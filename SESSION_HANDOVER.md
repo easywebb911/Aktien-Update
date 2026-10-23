@@ -1538,6 +1538,89 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   `scripts/lint_protected_zones.py` so ändern, dass er immer exit 0
   liefert) UND `git revert` des Merge-Commits.
 
+### 23.10.2026 — Veraltete Status-Etiketten (SCORE_STATUS_LABELS) aktualisiert (1 PR)
+
+- **Drei Status-Einträge in `config.SCORE_STATUS_LABELS` auf die aktuellen
+  Freeze-Mechanismen umgestellt (Block-1-Pflicht befolgt, Anzeige/Golden —
+  Auto-Merge nach grünen Tests):** `#602` (Branch-Commit `48ed95fa`,
+  23.10., kein Merge-Hash genannt — Regel a) greift) korrigiert
+  veraltete Re-Test-Bedingungen, die durch die
+  zwischenzeitlich aufgesetzten Freeze-Auswertungen (Setup-Edge-Re-Test
+  10.10.2026, Conviction Test c Erratum 10.10.2026, KI-Score-Edge-Test
+  13.10.2026/Erratum 16.10.) überholt waren.
+
+  **SCHRITT 0 — geprüfte Anzeige-Texte (vollständige Liste):**
+  | Fundstelle | Bewertung | Aktion |
+  |---|---|---|
+  | `SCORE_STATUS_LABELS["setup"]` | veraltet (`review_by: 2026-09-30` überfällig, kalendergetrieben obwohl der echte Freeze automatisch bei n≥250 auswertet) | geändert |
+  | `SCORE_STATUS_LABELS["conviction"]` | veraltet (Text/`review_cond` nennen „Re-Test 28.07.“/„WIN-Bucket ≥ 20“ — durch Test c im Setup-Edge-Freeze ersetzt) | geändert |
+  | `SCORE_STATUS_LABELS["ki"]` | veraltet (`review_cond` nennt „WIN-Bucket ≥ 20 UND zweites Marktregime“ — durch den KI-Score-Edge-Test-Freeze ersetzt) | geändert |
+  | `SCORE_STATUS_LABELS["monster"]` | korrekt (falsifiziert, kein Re-Test geplant) | unverändert |
+  | `SCORE_STATUS_LABELS["earliness"]` | korrekt (falsifiziert, kein Re-Test geplant) | unverändert |
+  | `SCORE_STATUS_LABELS["exit_pressure"]` | **unklar — STOPP, nur gemeldet** (siehe unten) | unverändert |
+  | Entry-Shadow „Erhebung läuft“ (generate_report.py, Methodik-Info + Tooltip) | korrekt — zeitlose Beschreibung einer dauerhaft laufenden Schattensammlung, kein Bezug zu einem abgelaufenen Termin | unverändert |
+  | Conviction-Action-Text „Aggregations-Anzeige, nicht validiert.“ (`compute_conviction_score`) | korrekt — bleibt zutreffend, zusätzlich: liegt in einer `lint_protected_zones.py`-geschützten Funktion, wäre ohnehin nicht ohne Label änderbar | unverändert |
+  | `app.html` | enthält dieselben Texte (Build-Artefakt), wird vom nächsten echten Daily-Run automatisch aus dem neuen `config.py`-Stand neu geschrieben — nicht hand-editiert | n/a |
+
+  **exit_pressure — STOPP, nur gemeldet:** der Auftrag vermutete einen Bezug
+  zu „§4-Re-Test n=215/250“ — dieser Wert wurde **nirgends** belegt
+  (einziger gefundener n-Stand in `SESSION_HANDOVER.md`: Setup-Edge/
+  Conviction UND KI-Score beide `n=0/250`, Stand 22.10.2026, PR #598-
+  Block-1-Eintrag). `exit_pressure` hat laut eigenem Kommentar im Dict
+  **keinen** Validierungs-Pfad (Closed-Trades-Schema offen) — anders als
+  setup/conviction/ki gibt es **keinen** automatischen n≥250-Auslöser, auf
+  den `review_by` umgestellt werden könnte. `review_by: 2026-09-30` bleibt
+  deshalb unverändert überfällig — der Status-Drift-Wecker feuert
+  weiterhin wöchentlich dafür (korrektes Verhalten: ein echtes, ungelöstes
+  Review darf nicht stillschweigend verschwinden).
+
+  **Bewusste Abweichung von der wörtlichen Vorschlags-Formulierung:**
+  `status_date` wurde **nicht** auf heute gesetzt (obwohl die
+  Pflege-Pflicht-Kommentar-Referenz im Auftrag das suggerierte) —
+  `config.py`s eigene Feld-Doku sagt explizit „Datum des REGISTRIERTEN
+  Befunds … NICHT der Render-Zeitstempel“, und der zitierte Pflege-Pflicht-
+  Satz bezieht sich wörtlich auf „ein Status-Wechsel **nach einem
+  Re-Test**“ — heute hat kein Re-Test stattgefunden (n weiterhin 0/250),
+  nur die Prosa wurde korrigiert. `status_date` bleibt daher die
+  ursprünglichen Befund-Daten (30.06./28.07./15.07.2026).
+
+  **Badge-Länge (Widerspruch gemeldet statt umgangen):** die im Auftrag
+  vorgeschlagenen Texte („… (n=250)“) wären für Setup/KI deutlich länger
+  als heute (heute je ein Wort: „unvalidiert“/„heuristisch“, 11 Zeichen).
+  CSS erlaubt Zeilenumbruch (`white-space:normal`, Conviction trug schon
+  53 Zeichen), die Vorgabe „nicht länger als heute“ ließ sich für diese
+  zwei Badges aber nicht einhalten, ohne die neue Information komplett
+  wegzulassen. Kompromiss: kurze Badges „unvalidiert · Test läuft“ /
+  „heuristisch · Test läuft“ (25 statt 11 Zeichen, Kernwort unverändert —
+  Farbe/`status_kind` bleiben korrekt) statt der vollen „(n=250)“-Vorschlags-
+  Formulierung; das „n ≥ 250“-Detail lebt stattdessen in `review_cond`
+  (Methodik-Panel, nicht auf der Karte). Conviction wurde dabei sogar
+  **kürzer** (22 statt 53 Zeichen).
+
+  **Golden-Diff (Beleg, 3 Zeilen geändert):** ausschließlich die drei
+  `cockpit-status-badge`-Spans + die `_conf_class`-Tooltip/aria-label-Texte
+  für Setup/KI/Conviction — Datum-Teile (`Befund 2026-06-30` etc.)
+  byte-identisch erhalten, kein anderer Teil der Seite berührt.
+
+  **Mini-Stopp geprüft:** `SCORE_STATUS_LABELS`/`SCORE_STATUS_KINDS` stehen
+  bereits in `lint_protected_zones.py`s `_CONST_EXCLUDE` (reine
+  Anzeigetexte, kein Score-Effekt) — der Lint lässt diesen PR ohne Label
+  durch, kein Umgehen nötig.
+
+  **Nicht angefasst (harte Grenze eingehalten):** `score()`,
+  `ki_signal_score`, `apply_agent_boost`, Top-10, Filter, Push,
+  `compute_conviction_score`/`apply_conviction_scores` — alle unverändert
+  (per `lint_score_confidence_isolation.py` + `lint_protected_zones.py`
+  bestätigt). Freeze-Blöcke byte-identisch. Keine `return_*`-Werte.
+
+  1 neuer Test (`scripts/mock_test_status_review_reminder.py`, Beleg gegen
+  die REALE config: setup/conviction/ki feuern beim Status-Drift-Wecker
+  nicht mehr, exit_pressure weiterhin — wie gefordert), 1 Testdatei-Anpassung
+  (`scripts/mock_test_score_confidence.py`, Literal-String nachgezogen),
+  Golden neu erzeugt, alle 7 Lints + 162 Allowlist-Tests grün.
+
+  **Rückweg:** `git revert` des Merge-Commits.
+
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
 Token in `backtest_history.json`, Ursache `_extract_hist_5d`
