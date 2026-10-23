@@ -92,11 +92,12 @@ jobs:
         # übernehmen.
         run: python scripts/lint_nan_bypass_fields.py
 
-      - name: Fetch PR base (for open-items consistency check)
+      - name: Fetch PR base (for open-items consistency + protected-zones checks)
         # Der PR-Checkout ist ein flacher Single-Ref-Checkout (der Merge-
         # Commit) — origin/<base> bzw. der Basis-SHA ist ohne diesen Fetch
         # nicht auflösbar. Holt NUR den exakten Basis-Commit (Tiefe 1,
-        # kein Netzwerk-Overhead über eine einzelne Ref hinaus).
+        # kein Netzwerk-Overhead über eine einzelne Ref hinaus). Wird seit
+        # 23.10.2026 von ZWEI Checks genutzt (siehe unten).
         run: git fetch origin ${{ github.event.pull_request.base.sha }} --depth=1 --quiet
 
       - name: Lint open-items consistency
@@ -111,6 +112,24 @@ jobs:
         env:
           OPEN_ITEMS_BASE_REF: ${{ github.event.pull_request.base.sha }}
         run: python scripts/lint_open_items_consistency.py
+
+      - name: Lint protected zones
+        # 8. Check (23.10.2026) — Technische Schutz-Sperre, weil ein
+        # täglicher "Wächter"-Agent [Wächter]-PRs selbst merged (Easy-
+        # Entscheid 22.10.2026). Blockiert JEDEN PR, der Score-/Filter-/
+        # Push-/Exit-Logik, Freeze-Blöcke/Errata in SESSION_HANDOVER.md oder
+        # scripts/freeze_eval.py bzw. scripts/stats_helpers.py berührt —
+        # unabhängig davon, wer den PR erstellt hat. EIN [Wächter]-PR kann
+        # das NIEMALS umgehen (auch nicht per Label); ein Nicht-Wächter-PR
+        # kommt mit dem Label "protected-ok" (nur von Easy gesetzt) durch.
+        # Siehe scripts/lint_protected_zones.py-Docstring für die volle
+        # Architektur. Vergleicht exakt den PR-Basis-SHA, kein tieferer
+        # Git-History-Zugriff.
+        env:
+          PROTECTED_ZONES_BASE_REF: ${{ github.event.pull_request.base.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: python scripts/lint_protected_zones.py
 
       - name: Handover-Staleness-Hinweis
         # 7. Check (28.09.2026) — ADVISORY, weicher als die übrigen 6
