@@ -1312,7 +1312,8 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
 - **Neue Schattensammlung für Reddit-Aufmerksamkeit (Block-1-Pflicht
   befolgt, Manual-Merge — neue externe API + neues JSONL-Schema, Easy
-  mergt am iPhone):** `#600` (Branch-Commit siehe Nachtrag, 23.10.) setzt
+  mergt am iPhone):** `#600` (Branch-Commit `601788b9`, 23.10., kein
+  Merge-Hash genannt — Regel a) greift) setzt
   Easys Entscheid vom selben Tag um: die seit mind. 27.07.2026 toten
   ki_agent.py-Quellen `reddit_mentions`/`openinsider`/`fda_calendar`
   (siehe PR #599-Bericht) werden NICHT live reaktiviert, bevor die
