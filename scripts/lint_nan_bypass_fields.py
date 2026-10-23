@@ -246,12 +246,16 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     ("generate_report.py", 17229, "setup_today"),
     ("generate_report.py", 17986, "score"),
     ("generate_report.py", 18485, "score"),
-    ("generate_report.py", 19039, "score"),
-    ("generate_report.py", 19082, "score"),
+    # Technische Schutz-Sperre (23.10.2026, lint_protected_zones.py): neue
+    # PROTECTED-ZONE-Marker-Kommentare in main() verschieben die 3 Zeilen
+    # unten erneut (reine Verschiebung, per Diff-Hunk-Arithmetik
+    # nachgerechnet, keine neuen Funde).
+    ("generate_report.py", 19045, "score"),
+    ("generate_report.py", 19088, "score"),
     # Diese letzte generate_report.py-Zeile liegt NACH dem main()-Orchestrierungs-
     # Block oben — größerer Gesamt-Shift als die Zeilen davor (siehe Kommentar
     # oben).
-    ("generate_report.py", 19267, "score"),
+    ("generate_report.py", 19274, "score"),
     ("health_check.py", 647, "score"),
     ("ki_agent.py", 1367, "last_price"),
     ("ki_agent.py", 2729, "score"),

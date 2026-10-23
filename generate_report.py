@@ -18958,6 +18958,12 @@ def main():
                          "stockanalysis": "Stockanalysis", "none": "—"}
         c["sf_source"] = _SF_SRC_LABEL.get(sf_source, "—")
 
+        # PROTECTED-ZONE-START: filter-top10-selection (lint_protected_zones.py,
+        # 23.10.2026 — scripts/lint_protected_zones.py liest diese Marker-
+        # Kommentare live am jeweiligen origin/main-Stand; NICHT verschieben/
+        # entfernen ohne CLAUDE.md-Abschnitt "Technische Schutz-Sperre" zu
+        # prüfen). Deckt Hard-Filter + Post-Enrichment-Cap-Filter + Top-10-
+        # Auswahl + FINRA-Trend-Bonus-Anwendung + finale Sortierung ab.
         # Hard filters — manual_personal-Ticker (persönliche Watchlist) sind
         # vollständig befreit: kein Cap-Filter, kein Short-Float-Filter, kein
         # RVOL-Filter. Der User hat sie explizit angefordert und sie sollen
@@ -19083,6 +19089,7 @@ def main():
 
     # --- Step 3a: Score smoothing (70 % today + 30 % avg last 3 runs) ---
     apply_score_smoothing(top10, report_date)
+    # PROTECTED-ZONE-END: filter-top10-selection
 
     # SI-Positions-Zeitreihe (forward-only Sammlung, Paper-Schritt A+B):
     # persistiert die ausstehende Short-POSITION settlement-datiert über den

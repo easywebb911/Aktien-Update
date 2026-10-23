@@ -3497,6 +3497,9 @@ def main() -> None:
     # laufen weiterhin in beiden Phasen (aktionsrelevant für offene
     # Positionen). Default ``premarket`` für Backward-Compat — alte
     # app_data ohne run_phase verhält sich wie früher.
+    # PROTECTED-ZONE-START: push-gate-phase-flag (lint_protected_zones.py,
+    # 23.10.2026 — Marker live am origin/main-Stand gelesen, siehe
+    # generate_report.py-Pendant-Kommentar für Details).
     run_phase = str(app_data.get("run_phase") or "premarket").lower()
     if run_phase not in ("premarket", "postclose"):
         log.warning("Unbekanntes run_phase=%r in app_data — als premarket behandelt",
@@ -3506,6 +3509,7 @@ def main() -> None:
     if not anomaly_pushes_enabled:
         log.info("Anomaly-Pushes deaktiviert (run_phase=%s) — nur Exit-P2 läuft",
                  run_phase)
+    # PROTECTED-ZONE-END: push-gate-phase-flag
     # prev_conviction_scores für conviction_high-Threshold-Crossing-Logik.
     # Sustained-High (prev ≥ Schwelle) feuert NICHT erneut — der Snapshot
     # wird am Run-Ende aus dem aktuellen app_data["conviction_scores"] neu
@@ -3549,6 +3553,7 @@ def main() -> None:
             )
         except Exception as _hc_exc:
             log.debug("yfinance_singletons (VIX) provider-record skipped: %s", _hc_exc)
+    # PROTECTED-ZONE-START: push-gate-vix (lint_protected_zones.py, 23.10.2026)
     vix_now = _VIX_CURRENT
     vix_pause = (vix_now is not None and vix_now > ANOMALY_VIX_PAUSE_THRESHOLD)
     vix_warn  = (vix_now is not None and vix_now > ANOMALY_VIX_WARN_THRESHOLD
@@ -3561,6 +3566,7 @@ def main() -> None:
                  vix_now, ANOMALY_VIX_WARN_THRESHOLD)
     vix_warn_prefix = (f"⚠️ VIX {vix_now:.1f} | "
                        if vix_warn else "")
+    # PROTECTED-ZONE-END: push-gate-vix
 
     # SEC EDGAR 13D/13G Filings einmal pro Run abrufen — fuer ALLE monitored
     # Tickers (Top-10 ∪ Watchlist ∪ Positions, Phase-2-Coverage 16.05.2026).
@@ -3762,6 +3768,9 @@ def main() -> None:
                 # „📊 Bewegung gelaufen"-Label). EDGAR-Filings und
                 # Earnings-Sofort-Alerts (oben separat behandelt) sind
                 # AUSGENOMMEN — Sofort-Charakter unabhängig vom Setup.
+                # PROTECTED-ZONE-START: push-gate-silence-conviction
+                # (lint_protected_zones.py, 23.10.2026) — Silence-Filter +
+                # Cooldown-Check + Conviction-Gate + tatsächlicher Push-Send.
                 _t10m       = (app_data.get("top10_metrics") or {}).get(ticker) or {}
                 _rsi14      = _t10m.get("rsi14")
                 _chg2d_pct  = _t10m.get("change_2d")  # in %
@@ -3861,6 +3870,7 @@ def main() -> None:
                         n_alerts += 1
                         log.info("Anomaly push (%s/%s): %s",
                                  anom["trigger"], anom["severity"], body)
+    # PROTECTED-ZONE-END: push-gate-silence-conviction
 
     t_elapsed = round(time.time() - t_start, 1)
     out = {

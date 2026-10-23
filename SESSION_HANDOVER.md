@@ -1418,6 +1418,126 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   **Rückweg:** `config.APEWISDOM_SHADOW_ENABLED = False` setzen UND
   `git revert` des Merge-Commits von PR #600.
 
+### 23.10.2026 — Technische Schutz-Sperre gegen Wächter-Eingriffe in geschützte Logik (1 PR)
+
+- **`scripts/lint_protected_zones.py` — neuer 8. PR-CI-Check (Block-1-Pflicht
+  befolgt, Manual-Merge — neue Sperr-Logik mit scharfer Wirkung auf den
+  täglichen Wächter-Agenten, Easy mergt am iPhone):** `#601` (Branch-Commit
+  `c2251738`, 23.10., kein Merge-Hash genannt — Regel a) greift) setzt
+  Easys Entscheid vom 22.10.2026 um: der
+  tägliche „Wächter"-Agent (Claude Code Remote Session) erstellt und merged
+  `[Wächter]`-PRs selbständig, ohne menschliche Freigabe pro PR. Diese
+  Sperre ist eine MECHANISCHE Zweitsicherung gegen einen unbeabsichtigten
+  Eingriff in Score-/Filter-/Push-/Exit-Logik oder die Freeze-Auswertung —
+  unabhängig von der Session-Disziplin des Wächters selbst.
+
+  **SCHRITT 0 (read-only, vor dem Bau):**
+  - **0a** Geschützte Bereiche identifiziert (vollständige Liste siehe
+    `_PROTECTED_FUNCTIONS`/`_PROTECTED_CONST_PREFIXES`/`_SENTINEL_FILES`/
+    `_PROTECTED_WHOLE_FILES` im Lint-Skript): 20 benannte Funktionen in
+    `generate_report.py` (`score`, `score_bonus`, `apply_monster_score`,
+    `apply_agent_boost`, `apply_score_smoothing`,
+    `apply_late_runner_penalty`, `compute_conviction_score`,
+    `apply_conviction_scores`, `compute_earliness_pts`,
+    `_earliness_pts_v1/v2`, `compute_exit_score`, `process_exit_signals`,
+    `_compute_exit_state`, `_detect_recent_squeeze`, `_float_turnover_pts`,
+    `_gap_hold_pts`, `_rs_spy_pts`, `_normalize_rvol`,
+    `_compute_sub_scores`) + 4 in `ki_agent.py`
+    (`compute_signal`, `detect_anomalies`, `fetch_uoa_signal`,
+    `_stocktwits_pts`) + 2 in `backtest_history.py`
+    (`_build_backtest_extension`, `_append_backtest_entries`); 25
+    Konstanten-Präfixe in `config.py` (u. a. `MIN_PRICE`,
+    `MIN_SHORT_FLOAT`, `MIN_REL_VOLUME`, `MAX_MARKET_CAP`, `ANOMALY_`,
+    `EXIT_`, `COMBO_`, `SCORE_`, `AGENT_BOOST_`, `SQUEEZE_HIST_MALUS_`,
+    `EARLINESS_`, `RVOL_`, `TRIGGER_`, `PUSH_` u.v.m. — minus 8 bewusst
+    ausgeschlossener Display-/Status-Konstanten wie `SCORE_CONFIDENCE_*`);
+    4 Sentinel-Marker-Zonen für inline-Logik in `main()` (siehe unten); alle
+    `VORABREGISTRIERUNG`/`ERRATUM`-Überschriften in `SESSION_HANDOVER.md`;
+    `scripts/freeze_eval.py` + `scripts/stats_helpers.py` als ganze
+    Dateien. **Fehlendes gemeldet (0a-Pflicht):** die Konstanten-Liste ist
+    Präfix-basiert, nicht erschöpfend aufgezählt — ein neuer Score-Pfad
+    mit untypischem Namen (kein bekanntes Präfix) würde NICHT automatisch
+    erfasst; Pflege-Hinweis in der Doku ergänzt.
+  - **0b** Bestehende PR-CI ist `.github/workflows/pr-checks.yml`
+    (Trigger `pull_request`, advisory, kein required-Status-Check) — fährt
+    bereits 7 Lints + Mock-Test-Allowlist-Runner. **Kein neuer Workflow
+    nötig** — ein 8. Step reicht, direkt nach dem bereits vorhandenen
+    „Fetch PR base"-Step (der auch vom Open-Items-Consistency-Check
+    mitgenutzt wird).
+
+  **Widerspruch zu melden (EXZELLENZ-BLOCK-Pflicht):** `main()` in beiden
+  Haupt-Dateien mischt Score-/Filter-/Push-Logik UND reine Logging-/
+  Diagnose-Calls in denselben Codeblöcken (z. B. `log.info`-Zeilen
+  zwischen den eigentlichen Filter-Checks der Top-10-Pipeline). Eine
+  chirurgisch genaue AST-Trennung ist dort nicht robust automatisierbar —
+  deshalb 4 bewusst GROSSZÜGIG geschnittene Sentinel-Marker-Zonen
+  (`# PROTECTED-ZONE-START/END: <name>`-Kommentare direkt im Code
+  eingefügt, nicht hartkodierte Zeilennummern — lintet live gegen den
+  jeweiligen Basis-Stand): `filter-top10-selection`
+  (generate_report.py, Hard-Filter + Cap-Filter + Top-10-Auswahl +
+  FINRA-Bonus + finale Sortierung + Score-Smoothing-Aufruf) sowie
+  `push-gate-phase-flag` + `push-gate-vix` + `push-gate-silence-conviction`
+  (ki_agent.py, die komplette Gating-Reihenfolge `vix_pause → cooldown →
+  silence_filter → conviction_gate → push`). Diese Zonen schützen auch ein
+  paar benachbarte Logging-Zeilen mit — akzeptierte Überprotektion,
+  dokumentiert statt versteckt.
+
+  **BAU:**
+  - `scripts/lint_protected_zones.py` — vergleicht `git diff --unified=0
+    <base> -- <datei>` gegen `PROTECTED_ZONES_BASE_REF` (Default
+    `origin/main`, im Workflow der PR-Basis-SHA), parst die
+    `@@ -oldstart,oldcount@@`-Hunk-Header und prüft Zeilen-Überlappung
+    gegen die vier Zonen-Kategorien (AST-Funktionen, AST-Konstanten,
+    Sentinel-Marker, Markdown-Überschriften-Anker) — EIN gemeinsamer
+    Überlappungs-Mechanismus für alle vier Kategorien.
+  - **Ausnahme-Modell (bewusst eine Kombination, nicht nur eine der beiden
+    im Auftrag vorgeschlagenen Optionen):** trägt der PR-Titel das Präfix
+    `[Wächter]` → **NIEMALS** Ausnahme möglich, auch nicht per Label (Kern-
+    Garantie — ein reines Label-Modell wäre schwächer, weil derselbe
+    Wächter-Token, der mergen darf, vermutlich auch Labels setzen könnte).
+    Sonst (Nicht-Wächter-PR, i. d. R. ein von Easy angestoßener manueller
+    PR) → Ausnahme NUR über das Label `protected-ok` (nur von Easy gesetzt,
+    GitHub-Repo-Berechtigung regelt das, nicht der Lint selbst) — ein
+    reines Titel-Modell allein hätte JEDEN Nicht-Wächter-PR stillschweigend
+    befreit, auch versehentliche Score-Eingriffe in eigentlich unrelated
+    PRs. Die Kombination schließt beide Lücken.
+  - Neuer 8. Step in `.github/workflows/pr-checks.yml` ("Lint protected
+    zones"), direkt nach "Lint open-items consistency" — nutzt denselben
+    bereits gefetchten PR-Basis-SHA, zusätzlich `PR_TITLE` +
+    `PR_LABELS` aus dem `pull_request`-Event-Kontext (keine zusätzliche
+    GitHub-API-Berechtigung nötig).
+
+  **Nicht angefasst (harte Grenze eingehalten):** keine Änderung an
+  geschützter Logik selbst (nur Kommentar-Marker eingefügt — Golden
+  byte-identisch bestätigt); keine neuen Bibliotheken (nur `subprocess`
+  für `git`-Aufrufe, stdlib); Freeze-Blöcke byte-identisch.
+
+  22 neue Tests (`scripts/mock_test_lint_protected_zones.py` — 12
+  Pure-Funktions-Tests + 10 End-to-End-Szenarien gegen Temp-Git-Repos,
+  inkl. aller 5 im Auftrag geforderten Fixture-Belege: score()-Änderung
+  rot, Logging-Funktion-Änderung grün, Freeze-Block-Änderung rot,
+  config-Schwelle rot, git-add-Zeile im Workflow grün — plus zusätzlich
+  verifiziert: Wächter-PR kann NICHT per Label umgehen, Nicht-Wächter-PR
+  OHNE Label bleibt trotzdem rot [Default blockierend], Sentinel-Zone-
+  Touch wird erkannt), Golden byte-identisch, alle 7 Lints grün
+  (`lint_nan_bypass_fields.py`-Baseline erneut nachgeführt — reine
+  Zeilenverschiebung durch die neuen Sentinel-Marker-Kommentare, per
+  Diff-Hunk-Arithmetik exakt nachgerechnet, keine neuen NaN-Bypass-Funde).
+
+  **Guardian-Finding behoben (noch im selben PR, nicht als Folge-PR
+  verschoben):** `_compute_sub_scores` fehlte initial in der Funktionsliste
+  — obwohl bereits anderswo im Projekt
+  (`scripts/lint_score_confidence_isolation.py`, CLAUDE.md "Score-
+  Methodik-Sync-Regel") als kritische Score-Berechnungsfunktion
+  eingestuft (SI-Trend-/Short-Pressure-/Borrow-/PC-Ratio-Boni fließen
+  dort direkt in den Score ein). Nachgetragen, 20 statt 19 Funktionen.
+  `_drivers_breakdown` bewusst NICHT ergänzt (Guardian-Einschätzung:
+  Display-/Methodik-Sync-Helfer, keine eigenständige Score-Berechnung).
+
+  **Rückweg:** den neuen Step aus `pr-checks.yml` entfernen (oder
+  `scripts/lint_protected_zones.py` so ändern, dass er immer exit 0
+  liefert) UND `git revert` des Merge-Commits.
+
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
 Token in `backtest_history.json`, Ursache `_extract_hist_5d`
