@@ -1645,6 +1645,73 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   `scripts/mock_test_coverage_watchdog.py`. **Rückweg:** `git revert` des
   Merge-Commits.
 
+### 23.10.2026 — ntfy-Relay-Workflow für geplante Claude-Agenten (1 PR, Manual-Merge)
+
+- **`.github/workflows/agent_ntfy_relay.yml` — neuer Workflow, NUR
+  `workflow_dispatch` (Block-1-Pflicht befolgt, neue Workflow-Datei →
+  **Manual-Merge**, NICHT selbst gemergt):** `#604` (Branch-Commit
+  `6fecc01d`, 23.10., kein Merge-Hash genannt — Regel a) greift, der
+  steht vor dem Merge noch nicht fest) gibt geplanten Claude-Agenten (Wächter täglich, Lit-Check wöchentlich,
+  Monatsrundgang) einen Weg, eine ntfy-Nachricht an Easys gewohnten Kanal
+  zu schicken, ohne `NTFY_TOPIC` (GitHub-Secret, bleibt geheim) zu kennen —
+  der Agent löst stattdessen diesen Workflow per `workflow_dispatch` mit
+  `title`/`message` (Pflicht) + `tags`/`priority` (optional, Default
+  `robot`/`default`) aus; der Workflow selbst liest das Secret und sendet.
+
+  **Aufruf-Beispiel:**
+  ```
+  gh workflow run agent_ntfy_relay.yml -f title="Wächter-Lauf" \
+    -f message="Keine Funde." -f tags=robot -f priority=default
+  ```
+
+  **SCHRITT 0 (Sendemuster übernommen, nicht neu erfunden):** geprüft
+  `config.py` (~:1699, `NTFY_TOPIC`/`NTFY_ENABLED`), `alert.py`
+  (`send_ntfy_alert` — Legacy, seit 06.09.2026 formal gegated, OHNE
+  ASCII-Title-Strip, nicht als Vorlage übernommen), `scripts/
+  health_check_digest.py` (`_ntfy_send` — das belegte URL-Pattern:
+  `POST https://ntfy.sh/{topic}` + `data=`-UTF-8-Body + Header
+  `Title`/`Priority`/`Tags`, Title ASCII-gestrippt wegen RFC-7230-
+  Header-Latin1-Limit — JSON-API-Variante hatte 17.05.2026 nachweislich
+  NICHT zuverlässig gepusht, siehe CLAUDE.md „Health-Check (Phase 3)")
+  und `health_check.py:1518` (ntfy-Server-Default-Limit **4096 Bytes**,
+  `DIGEST_BODY_SAFE_BYTES = 3800` als dort etablierter
+  Sicherheitsabstand). Übernommen: URL-Pattern, ASCII-Title-Strip,
+  UTF-8-Body, 3800-Byte-Sicherheits-Deckel mit „… (gekürzt)"-Suffix
+  (neu für diesen Workflow, da `lit_reminder.py`/`health_check_digest.py`
+  nie einen so langen Body haben).
+
+  **Sicherheit (Injection):** `title`/`message`/`tags`/`priority` kommen
+  NUR über `env:` in den eingebetteten Python-Block (quoted Heredoc
+  `<<'PYEOF'` — die Shell interpretiert den Blockinhalt gar nicht);
+  Werte werden ausschließlich über `os.environ` gelesen, nie direkt in
+  Shell-Text interpoliert. `NTFY_TOPIC` wird nirgends geloggt/geprintet
+  (nur die Tatsache „nicht gesetzt" bei leerem Secret). Ungültige
+  `priority` fällt defensiv auf `default` zurück. Belegt durch
+  `scripts/mock_test_agent_ntfy_relay.py` (21 Tests, u. a. 7
+  Injection-Payloads: `$(rm -rf /)`, Backtick-Command, Quote-Escape,
+  Umlaute, Emojis, Zeilenumbrüche, Mix — kommen alle unverändert als
+  Request-Daten an, kein Shell-Effekt).
+
+  **Architektur-Entscheidung „kein Checkout":** die gesamte Sende-Logik
+  liegt INLINE im Workflow-YAML (Python-stdlib `urllib`, kein `requests`
+  — keine neue Bibliothek, kein `pip install`-Schritt nötig), NICHT in
+  einem separaten `scripts/`-File — sonst wäre ein Checkout nötig
+  gewesen. Der Mock-Test extrahiert den Python-Block per Regex direkt
+  aus der YAML (analog zum `_extract`-Muster in
+  `mock_test_score_confidence.py`, das Funktions-Bodies aus
+  `generate_report.py` zieht) — eine Quelle der Wahrheit, keine
+  Logik-Drift zwischen Workflow und Test.
+
+  **Harte Grenzen eingehalten:** kein Score-/Filter-/Push-Gate-/Top-10-
+  Touch; `alert.py`/`lit_reminder.py`/`health_check_digest.py`/
+  `ki_agent.py`-Sender unverändert; keine neue Bibliothek. `permissions: {}`,
+  `timeout-minutes: 2`, kein Checkout.
+
+  squeeze-guardian lief vor Ready (Ergebnis siehe PR-Bericht).
+
+  **Rückweg:** `git revert` des Commits, der `agent_ntfy_relay.yml`
+  einführt.
+
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
 Token in `backtest_history.json`, Ursache `_extract_hist_5d`
