@@ -2085,13 +2085,17 @@ WIKI_ATTENTION_STATUS_ROW = (
 # Re-Test-Befund status + status_date + review_by hier anpassen. Der Wecker
 # erinnert automatisch an fällige Reviews — kein manuelles Nachhalten mehr.
 # Registrierte Befunde (Quelle SESSION_HANDOVER, Stand 21.07.2026):
-#   setup      30.06.: AUC ~0.40 invertiert, kein Edge → Re-Test ~Sept (n≥250)
+#   setup      30.06.: AUC ~0.40 invertiert, kein Edge → Re-Test über den
+#              Setup-Edge-Re-Test-Freeze (eingefroren 10.10.2026, automatisch
+#              bei n≥250, kein Kalendertermin mehr — siehe review_cond)
 #   earliness  30.06. (#394): AUC 0.77 (13.05.) fällt OoS auf 0.47–0.52 → falsif.
 #   monster    30.06./04.07.: AUC 0.76→0.51 kollabiert
 #   ki         15.07.: kein belegter Effekt (AUC 0.61/0.58, CI<0.5); Re-Test
-#              datengetrieben (WIN-Bucket≥20 + 2. Marktregime), kein Kalender
-#   conviction 30.06. (Prüfpunkt P3): Aggregat, Edge unbelegt — Re-Test-Stand
-#              + Fälligkeit leben im dict-Eintrag (status_date/review_by/review_cond)
+#              über den KI-Score-Edge-Test-Freeze (eingefroren 13.10.2026,
+#              automatisch bei n≥250 — siehe review_cond)
+#   conviction 30.06. (Prüfpunkt P3): Aggregat, Edge unbelegt — Re-Test über
+#              Test c (Conviction-Zusatznutzen) im Setup-Edge-Freeze (Erratum
+#              10.10.2026, automatisch bei n≥250 — siehe review_cond)
 #   exit       01.07. Exit-Timing B.1: Δ~+4pp Hinweis, Holm-negativ. Der
 #              exit_pressure-SCORE selbst hat KEINEN Validierungs-Pfad (Closed-
 #              Trades-Schema offen) — review_by ans Exit-Timing-Sept-Fenster
@@ -2116,10 +2120,13 @@ WIKI_ATTENTION_STATUS_ROW = (
 # leben NUR im Eintrag, nicht als Datums-Literal in diesem Kommentar (Drift-Falle).
 SCORE_STATUS_LABELS = {
     "setup": {
-        "status":      "unvalidiert",
+        "status":      "unvalidiert · Test läuft",
         "status_kind": "pending",
         "status_date": "2026-06-30",
-        "review_by":   "2026-09-30",
+        "review_by":   None,
+        "review_cond": "Setup-Edge-Re-Test eingefroren 10.10.2026 — Auswertung "
+                       "automatisch, sobald n ≥ 250 bestätigende Zeilen vorliegen "
+                       "(kein Kalendertermin, siehe SESSION_HANDOVER.md)",
     },
     "monster": {
         "status":      "OoS-kollabiert",
@@ -2129,18 +2136,23 @@ SCORE_STATUS_LABELS = {
         "review_cond": "falsifiziert (AUC-Kollaps 0.76→0.51) — kein Re-Test geplant",
     },
     "ki": {
-        "status":      "heuristisch",
+        "status":      "heuristisch · Test läuft",
         "status_kind": "heuristic",
         "status_date": "2026-07-15",
         "review_by":   None,
-        "review_cond": "datengetrieben: Re-Test erst bei WIN-Bucket ≥ 20 UND zweitem Marktregime",
+        "review_cond": "KI-Score-Edge-Test eingefroren 13.10.2026 (Erratum "
+                       "16.10.) — Auswertung automatisch, sobald n ≥ 250 "
+                       "bestätigende Zeilen vorliegen (kein Kalendertermin)",
     },
     "conviction": {
-        "status":      "Aggregat · unvalidiert (Re-Test 28.07. nicht belegt)",
+        "status":      "Aggregat · Test läuft",
         "status_kind": "pending",
         "status_date": "2026-07-28",
         "review_by":   None,
-        "review_cond": "datengetrieben: Re-Test erst bei ≥1 bear-Regime UND WIN-Bucket ≥ 20 (heute n_win=9, bull 90/neutral 10/bear 0)",
+        "review_cond": "Test c (Conviction-Zusatznutzen) im Setup-Edge-"
+                       "Freeze, Erratum 10.10.2026 — Auswertung automatisch "
+                       "gemeinsam mit dem Setup-Edge-Re-Test, sobald n ≥ 250 "
+                       "bestätigende Zeilen vorliegen",
     },
     "earliness": {
         "status":      "OoS falsifiziert (AUC 0.77 → 0.47–0.52)",

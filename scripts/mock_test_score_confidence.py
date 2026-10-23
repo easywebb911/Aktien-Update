@@ -168,11 +168,12 @@ def test_entry_fields_data_dimension_only():
 def test_html_two_dimensions_separated():
     res = compute_score_confidence(_bh(600))
     rows_html, computed_at = _score_confidence_rows_html(res)
-    # Validierungs-Status aus config (Single-Source) — Setup = unvalidiert.
+    # Validierungs-Status aus config (Single-Source) — Setup = unvalidiert ·
+    # Test läuft (Freeze-Auswertung automatisch bei n≥250, 23.10.2026-Refresh).
     # Farbpunkt (aus status_kind, CSS-Klasse — Setup=pending=blau) + Status
     # (fett, vollbreit) in getrennten Spans. KEIN Emoji mehr.
     assert "conf-status-dot conf-kind-pending" in rows_html, rows_html
-    assert "<strong>unvalidiert</strong>" in rows_html, rows_html
+    assert "<strong>unvalidiert · Test läuft</strong>" in rows_html, rows_html
     assert "🔴" not in rows_html and "🟢" not in rows_html, "Emoji-Punkt sollte weg sein"
     # Daten-Dimension getrennt, mit n + tier.
     assert "Datenbasis: n=600 gereift (groß)" in rows_html, rows_html

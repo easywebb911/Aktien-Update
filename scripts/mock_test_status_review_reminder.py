@@ -141,6 +141,27 @@ def test_09_config_constants() -> None:
         "min", "low", "default", "high", "urgent")
 
 
+def test_10_real_config_setup_conviction_ki_no_longer_due() -> None:
+    """BELEG (23.10.2026, Status-Etiketten-Refresh): setup/conviction/ki
+    sind auf die automatische n≥250-Freeze-Auswertung umgestellt
+    (review_by=None + review_cond) — der kalendergetriebene Wecker darf für
+    diese drei NICHT mehr feuern, egal wie weit in der Zukunft ``now`` liegt.
+    exit_pressure bleibt bewusst unverändert (review_by=2026-09-30,
+    überfällig, kein Ersatz-Mechanismus gefunden) — MUSS weiter als fällig
+    erkannt werden, sonst würde ein echtes, ungelöstes Review stillschweigend
+    verschwinden."""
+    far_future = dt.datetime(2099, 1, 1)
+    due = srr.find_due_reviews(config.SCORE_STATUS_LABELS, far_future)
+    due_keys = {d["score"] for d in due}
+    for key in ("setup", "conviction", "ki"):
+        assert key not in due_keys, (
+            f"{key} feuert noch (review_by={config.SCORE_STATUS_LABELS[key].get('review_by')}) "
+            f"— sollte auf review_cond umgestellt sein")
+    assert "exit_pressure" in due_keys, (
+        "exit_pressure sollte weiterhin als fällig erkannt werden "
+        "(kein Ersatz-Mechanismus — STOPP-Fall, siehe PR-Bericht)")
+
+
 def main() -> None:
     tests = [
         ("01 find_due nur Vergangenheit",     test_01_due_only_past),
@@ -152,6 +173,8 @@ def main() -> None:
         ("07 ENABLED=False → kein Push",       test_07_disabled_no_push),
         ("08 im Daily-Run verdrahtet",         test_08_wired_into_daily_run),
         ("09 config-Konstanten gültig",        test_09_config_constants),
+        ("10 setup/conviction/ki nicht mehr fällig, exit_pressure schon",
+         test_10_real_config_setup_conviction_ki_no_longer_due),
     ]
     failed = 0
     for name, fn in tests:
