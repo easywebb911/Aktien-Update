@@ -413,6 +413,15 @@
     "substrate": "en",
     "reason": null
   },
+  "CLB": {
+    "qid": "Q5170174",
+    "title": "Core_Laboratories",
+    "resolved_at": "2026-10-23T23:53:04Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Core Laboratories Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "CLBK": {
     "qid": null,
     "title": null,
@@ -980,6 +989,15 @@
     "substrate": "en",
     "reason": null
   },
+  "JBGS": {
+    "qid": "Q17109683",
+    "title": "JBG_Smith",
+    "resolved_at": "2026-10-23T23:53:04Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "JBG SMITH Properties",
+    "substrate": "en",
+    "reason": null
+  },
   "JJSF": {
     "qid": "Q6109309",
     "title": "J&J_Snack_Foods",
@@ -1079,6 +1097,15 @@
     "substrate": "none",
     "reason": "sparql_fetch_failed"
   },
+  "LZM": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-23T23:53:04Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Lifezone Metals Limited",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "METC": {
     "qid": null,
     "title": null,
@@ -1159,6 +1186,15 @@
     "company_name_at_resolve": "Energy Vault Holdings, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "NRXP": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-23T23:53:04Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "NRx Pharmaceuticals, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "NTLA": {
     "qid": "Q54621387",

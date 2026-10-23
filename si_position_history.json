@@ -771,6 +771,12 @@
       "shares_short": 6944521,
       "short_pct_float": 17.54,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 6812699,
+      "short_pct_float": 17.21,
+      "pub_date": "2026-10-09"
     }
   ],
   "ENOV": [
@@ -2517,6 +2523,12 @@
       "shares_short": 33853308,
       "short_pct_float": 22.35,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 36835528,
+      "short_pct_float": 24.32,
+      "pub_date": "2026-10-09"
     }
   ],
   "CTNT": [
@@ -4911,6 +4923,12 @@
       "shares_short": 10227326,
       "short_pct_float": 21.65,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 12747861,
+      "short_pct_float": 26.02,
+      "pub_date": "2026-10-09"
     }
   ],
   "EVMN": [
@@ -5103,6 +5121,12 @@
       "shares_short": 4382706,
       "short_pct_float": 22.89,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 4868011,
+      "short_pct_float": 25.43,
+      "pub_date": "2026-10-09"
     }
   ],
   "CRSR": [
@@ -7050,6 +7074,12 @@
       "shares_short": 11089264,
       "short_pct_float": 26.42,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 10131631,
+      "short_pct_float": 24.14,
+      "pub_date": "2026-10-09"
     }
   ],
   "SBGI": [
@@ -8307,6 +8337,12 @@
       "shares_short": 4458318,
       "short_pct_float": 15.02,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 4723069,
+      "short_pct_float": 15.91,
+      "pub_date": "2026-10-09"
     }
   ],
   "LUCK": [
@@ -9408,6 +9444,12 @@
       "shares_short": 9773562,
       "short_pct_float": 23.54,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 9793940,
+      "short_pct_float": 23.59,
+      "pub_date": "2026-10-09"
     }
   ],
   "EYPT": [
@@ -10058,6 +10100,36 @@
       "settlement_date": "2026-09-30",
       "shares_short": 6785180,
       "short_pct_float": 15.53,
+      "pub_date": "2026-10-09"
+    }
+  ],
+  "LZM": [
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 3401831,
+      "short_pct_float": null,
+      "pub_date": "2026-09-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 3465982,
+      "short_pct_float": 20.31,
+      "pub_date": "2026-10-09"
+    }
+  ],
+  "RCAT": [
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 32051407,
+      "short_pct_float": null,
+      "pub_date": "2026-09-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 35776323,
+      "short_pct_float": 25.75,
       "pub_date": "2026-10-09"
     }
   ]
