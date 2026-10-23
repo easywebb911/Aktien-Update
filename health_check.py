@@ -3355,7 +3355,8 @@ def coverage_silent_empty_warn_line(quelle: str, path=None, *, now_ts=None) -> s
 
 
 def coverage_overview_line(path=None, *, now_ts=None,
-                           quellen: list[str] | None = None) -> str:
+                           quellen: list[str] | None = None,
+                           exclude: set | frozenset | None = None) -> str:
     """EINE Übersichtszeile "N von M Quellen unter Baseline". Berücksichtigt
     BEIDE Warnarten (Folge-PR 22.10.2026):
       a) die LETZTE Zeile dieser Quelle hat ``n_erhalten == 0`` UND
@@ -3366,13 +3367,22 @@ def coverage_overview_line(path=None, *, now_ts=None,
     Iteriert über ALLE bekannten Quellen (``COVERAGE_QUELLEN``,
     überschreibbar für Tests), nicht nur über die mit bereits vorhandenen
     Zeilen — eine Quelle, die NIE geschrieben hat, zählt NICHT als "unter
-    Baseline" (kein Fund ≠ Ausfall)."""
+    Baseline" (kein Fund ≠ Ausfall).
+
+    ``exclude`` (Wächter 23.10.2026): Quellen, die als "bekannt tot"
+    gelten (``known_dead_coverage_quellen``), zählen weder in N noch in M;
+    ihre Anzahl wird als Zusatz "· K bekannt tot (ausgenommen)" angehängt.
+    ``None``/leer → Verhalten unverändert."""
     try:
         p = path if path is not None else COVERAGE_LOG_FILE
         quellen = quellen if quellen is not None else COVERAGE_QUELLEN
+        excl = set(exclude or ())
+        n_excl = len([q for q in quellen if q in excl])
+        quellen = [q for q in quellen if q not in excl]
+        suffix = f" · {n_excl} bekannt tot (ausgenommen)" if n_excl else ""
         state, rows = _read_coverage_rows(p)
         if state != "ok":
-            return f"📡 Abdeckungs-Übersicht: 0 von {len(quellen)} Quellen unter Baseline"
+            return f"📡 Abdeckungs-Übersicht: 0 von {len(quellen)} Quellen unter Baseline{suffix}"
         n_under = 0
         for q in quellen:
             own_rows = [r for r in rows if r.get("quelle") == q]
@@ -3383,9 +3393,112 @@ def coverage_overview_line(path=None, *, now_ts=None,
             silent_empty = coverage_silent_empty_warn_line(q, p, now_ts=now_ts) is not None
             if call_fail or silent_empty:
                 n_under += 1
-        return f"📡 Abdeckungs-Übersicht: {n_under} von {len(quellen)} Quellen unter Baseline"
+        return f"📡 Abdeckungs-Übersicht: {n_under} von {len(quellen)} Quellen unter Baseline{suffix}"
     except Exception:  # pragma: no cover — nie den Digest brechen
         return "📡 Abdeckungs-Übersicht: Status nicht ermittelbar"
+
+
+# ── Bekannt tote Quellen (Wächter, Easy-Entscheid 23.10.2026) ────────────────
+# reddit_mentions (Reddit-403), openinsider (ConnectionError), fda_calendar
+# (Anti-Bot) sind seit mind. 27.07.2026 tot und bewusst NICHT repariert
+# (KI-Freeze). Der Digest soll sie nicht täglich als ⚠️ melden — ABER nur,
+# solange das zugeordnete open_item offen/beobachtet ist (fehlt das Item,
+# ist es erledigt oder ist open_items.json unlesbar → normale ⚠️-Meldung,
+# fail-safe: lieber zu viel melden als verschlucken). Liefert eine dieser
+# Quellen wieder Daten, gilt sie NICHT mehr als tot (normale Zeilen) und
+# der Digest meldet das zusätzlich als Neuigkeit (coverage_recovered_line).
+# REIN ANZEIGE im Digest-Body — kein Einfluss auf Push-Klasse, Score,
+# Filter, Push oder Exit.
+COVERAGE_KNOWN_DEAD_QUELLEN: dict[str, str] = {
+    "reddit_mentions": "bekannt-tote-quellen-digest",
+    "openinsider":     "bekannt-tote-quellen-digest",
+    "fda_calendar":    "bekannt-tote-quellen-digest",
+}
+
+
+def _coverage_has_data_recently(quelle: str, rows: list, now_ts=None) -> bool:
+    """True, wenn im ``COVERAGE_WARN_WINDOW_HOURS``-Fenster mind. eine Zeile
+    dieser Quelle tatsächlich Daten lieferte (``n_mit_daten > 0``; bei
+    Alt-Zeilen ohne das Feld ersatzweise ``n_erhalten > 0``)."""
+    now = now_ts or datetime.now(timezone.utc)
+    cutoff = now - timedelta(hours=COVERAGE_WARN_WINDOW_HOURS)
+    for r in rows:
+        if r.get("quelle") != quelle:
+            continue
+        ts = r.get("ts_utc")
+        if not isinstance(ts, str):
+            continue
+        try:
+            dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+        except Exception:
+            continue
+        if dt < cutoff:
+            continue
+        nmd = r.get("n_mit_daten")
+        try:
+            if nmd is not None:
+                if int(nmd) > 0:
+                    return True
+            elif int(r.get("n_erhalten") or 0) > 0:
+                return True
+        except (TypeError, ValueError):
+            continue
+    return False
+
+
+def known_dead_coverage_quellen(open_items_path=None, coverage_path=None, *,
+                                now_ts=None) -> dict[str, str]:
+    """``{quelle: open_item_id}`` der Quellen, die der Digest als "bekannt
+    tot" kennzeichnen darf: zugeordnetes open_item existiert mit Status
+    offen/beobachtet UND die Quelle lieferte im 24h-Fenster KEINE Daten.
+    Fail-soft: jeder Fehler → ``{}`` (= normale ⚠️-Meldungen)."""
+    try:
+        items = _load_open_items(open_items_path if open_items_path is not None
+                                 else OPEN_ITEMS_FILE)
+        if not items:
+            return {}
+        active = {it.get("id") for it in items
+                  if it.get("status") in _OPEN_ITEMS_ACTIVE_STATUSES}
+        state, rows = _read_coverage_rows(coverage_path if coverage_path is not None
+                                          else COVERAGE_LOG_FILE)
+        rows = rows if state == "ok" else []
+        out: dict[str, str] = {}
+        for q, item_id in COVERAGE_KNOWN_DEAD_QUELLEN.items():
+            if item_id in active and not _coverage_has_data_recently(q, rows, now_ts):
+                out[q] = item_id
+        return out
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return {}
+
+
+def coverage_known_dead_line(quelle: str, item_id: str) -> str:
+    """Ersatz-Zeile für eine bekannt tote Quelle (statt Liveness + ⚠️)."""
+    return f"ℹ️ {quelle}: bekannt tot (siehe open_items: {item_id})"
+
+
+def coverage_recovered_line(quelle: str, open_items_path=None, coverage_path=None,
+                            *, now_ts=None) -> str | None:
+    """Neuigkeits-Zeile, wenn eine als bekannt tot geführte Quelle (Item
+    offen/beobachtet) im 24h-Fenster wieder Daten lieferte — sonst ``None``."""
+    try:
+        item_id = COVERAGE_KNOWN_DEAD_QUELLEN.get(quelle)
+        if not item_id:
+            return None
+        items = _load_open_items(open_items_path if open_items_path is not None
+                                 else OPEN_ITEMS_FILE) or []
+        if not any(it.get("id") == item_id
+                   and it.get("status") in _OPEN_ITEMS_ACTIVE_STATUSES for it in items):
+            return None
+        state, rows = _read_coverage_rows(coverage_path if coverage_path is not None
+                                          else COVERAGE_LOG_FILE)
+        if state != "ok" or not _coverage_has_data_recently(quelle, rows, now_ts):
+            return None
+        return (f"🆕 {quelle} liefert wieder Daten (als tot geführt, "
+                f"open_items: {item_id}) — prüfen")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return None
 
 
 # ── ftd_history-Liveness (Digest, 11.08.2026) ─────────────────────────────────
