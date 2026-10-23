@@ -66,6 +66,7 @@ from config import (
     OPTIONS_CHAIN_RAW_DIGEST_ATM_RANGE,
     NEWS_COVERAGE_LOG_FILE,
     NEWS_COVERAGE_WARN_WINDOW_HOURS,
+    APEWISDOM_ATTENTION_LOG_FILE,
     COVERAGE_LOG_ENABLED,
     COVERAGE_LOG_FILE,
     COVERAGE_QUELLEN,
@@ -2997,6 +2998,33 @@ def news_coverage_liveness_line(path=None, *, now_ts=None) -> str:
         return "📰 News-Abdeckung: Status nicht ermittelbar"
 
 
+def apewisdom_attention_digest_line(path=None, *, now_ts=None) -> str:
+    """Eine Digest-Zeile für die Reddit-Aufmerksamkeits-Schattensammlung
+    (ApeWisdom, 23.10.2026) — fail-soft (nie Exception/leer). Zeigt, wie
+    viele überwachte Ticker am LETZTEN Sammel-Tag auf Reddit erwähnt wurden
+    (``found=True``) und die Summe ihrer Mentions ("Punkte"). Rein
+    deskriptiv — KEIN Score-/Push-/Top-10-Bezug; diese Sammlung fließt in
+    keinen Berechnungspfad zurück (siehe generate_report.py-Konstanten-
+    Block + open_items.json "reddit-shadow-apewisdom")."""
+    try:
+        p = path if path is not None else APEWISDOM_ATTENTION_LOG_FILE
+        state, info = _read_news_coverage(p)
+        if state == "absent":
+            return "🗣 Reddit-Schatten (ApeWisdom): sammelt ab dem nächsten Lauf (Datei noch nicht angelegt)"
+        if state in ("unparsable", "empty"):
+            return "🗣 Reddit-Schatten (ApeWisdom): Datei unlesbar/leer"
+        rows = info["rows"]
+        last_date = rows[-1].get("date")
+        last_day_rows = [r for r in rows if r.get("date") == last_date]
+        n_found = sum(1 for r in last_day_rows if r.get("found"))
+        total_mentions = sum(int(r.get("mentions") or 0)
+                              for r in last_day_rows if r.get("found"))
+        return (f"🗣 Reddit-Schatten (ApeWisdom): läuft · "
+                f"{n_found} Ticker · {total_mentions} Punkte")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "🗣 Reddit-Schatten (ApeWisdom): Status nicht ermittelbar"
+
+
 def news_coverage_warn_line(path=None, *, now_ts=None) -> str | None:
     """Warnzeile NUR wenn in ALLEN Läufen im ``NEWS_COVERAGE_WARN_WINDOW_
     HOURS``-Fenster die Summe (Top-10-mit-News + Watchlist-mit-News) 0 war
@@ -3627,6 +3655,7 @@ def format_digest_body(state_fails: list[dict],
                        reg_sho_line: str | None = None,
                        news_coverage_line: str | None = None,
                        news_coverage_warn: str | None = None,
+                       apewisdom_line: str | None = None,
                        coverage_lines: list[str] | None = None,
                        coverage_warns: list[str] | None = None,
                        coverage_silent_empty_warns: list[str] | None = None,
@@ -3674,6 +3703,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{news_coverage_line}"
         if news_coverage_warn:
             body += f"\n{news_coverage_warn}"
+        if apewisdom_line:
+            body += f"\n{apewisdom_line}"
         if coverage_lines:
             body += "\n" + "\n".join(coverage_lines)
         if coverage_warns:
@@ -3736,6 +3767,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(news_coverage_line)
         if news_coverage_warn:
             body_lines.append(news_coverage_warn)
+        if apewisdom_line:
+            body_lines.append(apewisdom_line)
         if coverage_lines:
             body_lines.extend(coverage_lines)
         if coverage_warns:
@@ -3802,6 +3835,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(news_coverage_line)
     if news_coverage_warn:
         lines.append(news_coverage_warn)
+    if apewisdom_line:
+        lines.append(apewisdom_line)
     if coverage_lines:
         lines.extend(coverage_lines)
     if coverage_warns:

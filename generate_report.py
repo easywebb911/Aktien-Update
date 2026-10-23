@@ -1916,7 +1916,8 @@ def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
 # — KEINE Änderung an Rückgabewerten/Anfragezahl.
 _COVERAGE_ACCT: dict = {
     q: {"n_erwartet": 0, "n_fehler": 0, "n_mit_daten": 0, "error_counts": {}}
-    for q in ("options_atm", "earnings_date", "earnings_surprise")
+    for q in ("options_atm", "earnings_date", "earnings_surprise",
+              "apewisdom_shadow")
 }
 
 
@@ -4462,6 +4463,162 @@ def _persist_news_coverage(top10: list[dict] | None, enriched: list[dict] | None
         return 1
     except Exception as exc:   # pragma: no cover — nie den Daily-Run brechen
         log.warning("news_coverage_history: Schreiben fehlgeschlagen: %s", exc)
+        return 0
+
+
+# ── Reddit-Aufmerksamkeits-Schattensammlung (ApeWisdom, 23.10.2026) ──────────
+# Easy-Entscheid 23.10.2026: separate, rein additive Zeitreihe — SCHATTEN-
+# sammlung ausdrücklich OHNE jeden Einfluss auf score()/ki_signal_score/
+# apply_agent_boost/Top-10/Filter/Push/Conviction, bis die laufende KI-Score-
+# Freeze-Auswertung (PR #597/#598) abgeschlossen ist. Ersetzt NICHT die tote
+# ki_agent.fetch_reddit_mentions-Quelle (die bleibt unverändert im Code
+# stehen, siehe PR #599-Bericht) — dieser Baustein ist ein komplett eigener
+# Lese-/Schreib-Pfad.
+#
+# Architektur: EIN Abruf der ApeWisdom-"all-stocks"-Gesamtliste (paginiert,
+# APEWISDOM_API_PAGES Seiten à 100 Einträge) pro Daily-Run-Lauf, statt eines
+# Requests je überwachtem Ticker — Easy-Vorgabe 23.10.2026, hält die
+# Anfragezahl unabhängig von der Pool-Größe konstant.
+_APEWISDOM_BASE_URL = "https://apewisdom.io/api/v1.0/filter/{filt}/page/{page}"
+
+
+def _fetch_apewisdom_attention(*, pages: int | None = None,
+                                timeout: int | None = None) -> dict:
+    """Holt die ApeWisdom-"all-stocks"-Gesamtliste (paginiert) und gibt ein
+    Dict ``{TICKER: {mentions, mentions_24h_ago, rank, rank_24h_ago,
+    upvotes}}`` zurück.
+
+    EIN Fehlschlag (Netzwerk/HTTP/Parse) auf irgendeiner Seite bricht den
+    gesamten Abruf ab und gibt ``{}`` zurück — fail-soft, niemals eine
+    Exception nach außen. Reine Lese-Funktion, kein Score-/Filter-Effekt.
+    """
+    pages   = pages if pages is not None else APEWISDOM_API_PAGES
+    timeout = timeout if timeout is not None else APEWISDOM_API_TIMEOUT
+    result: dict = {}
+    try:
+        for page in range(1, pages + 1):
+            url = _APEWISDOM_BASE_URL.format(filt=APEWISDOM_API_FILTER, page=page)
+            resp = requests.get(url, headers=HTTP_HEADERS, timeout=timeout)
+            resp.raise_for_status()
+            data = resp.json()
+            for entry in (data.get("results") or []):
+                sym = (entry.get("ticker") or "").strip().upper()
+                if not sym:
+                    continue
+                result[sym] = {
+                    "mentions":          entry.get("mentions"),
+                    "mentions_24h_ago":  entry.get("mentions_24h_ago"),
+                    "rank":              entry.get("rank"),
+                    "rank_24h_ago":      entry.get("rank_24h_ago"),
+                    "upvotes":           entry.get("upvotes"),
+                }
+    except Exception:
+        return {}
+    return result
+
+
+def _load_apewisdom_attention_keys(path) -> set:
+    """Fail-soft ``(date, ticker)``-Key-Set-Loader für Idempotenz, analog
+    ``_load_news_coverage_keys``. Ein zweiter Lauf am selben Tag (premarket
+    + postclose, oder manueller Re-Dispatch) erzeugt KEINE Duplikat-Zeile
+    pro Ticker — forward-only, eine Zeile je Ticker und Tag (Lehre aus #599:
+    diese Quelle läuft NUR über generate_report.py, max. 2×/Tag, NIE über
+    den stündlichen ki_agent-Tick — der Befund-B-Idempotenz-Kollaps betraf
+    ausschließlich stündliche ki_agent-Aufrufe mit konstanter Phase und
+    greift hier strukturell nicht)."""
+    keys: set = set()
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except Exception:
+                    continue
+                if not isinstance(d, dict):
+                    continue
+                k = (d.get("date"), d.get("ticker"))
+                if k[0] is not None and k[1] is not None:
+                    keys.add(k)
+    except FileNotFoundError:
+        pass
+    except Exception:
+        pass
+    return keys
+
+
+def _persist_apewisdom_attention(tickers, attention: dict, *,
+                                  report_date_iso: str | None = None,
+                                  now_fn=None) -> int:
+    """Persistiert die ApeWisdom-Reddit-Aufmerksamkeit für den überwachten
+    Pool (Top-10 ∪ persönliche Watchlist) als append-only JSONL-Zeilen in
+    ``APEWISDOM_ATTENTION_LOG_FILE`` — eine Zeile je Ticker und Tag.
+
+    ``attention`` ist das Ergebnis von ``_fetch_apewisdom_attention()`` —
+    leer bei Fetch-Fehler. Ticker ohne Treffer in der Liste bekommen eine
+    Zeile mit ``found=False``/``mentions=None`` (legitim leer — nicht jeder
+    überwachte Ticker wird an jedem Tag auf Reddit diskutiert; siehe
+    COVERAGE_SILENT_EMPTY_SPARSE_QUELLEN-Einordnung in config.py).
+
+    Pflegt zusätzlich ``_COVERAGE_ACCT["apewisdom_shadow"]`` (generischer
+    Daten-Abdeckungs-Wächter) — ``n_erwartet``/``n_mit_daten`` auf Ticker-
+    Ebene, ``n_fehler`` auf Call-Ebene (EIN Bulk-Abruf bedient den ganzen
+    Pool; schlägt er fehl, zählt das für ALLE erwarteten Ticker als Fehler,
+    nicht nur für einen — sonst würde ``n_erhalten`` fälschlich fast voll
+    bleiben, obwohl der einzige zugrundeliegende Call gescheitert ist).
+
+    KEIN Score-/Filter-/Push-/Conviction-Effekt — reine Zeitreihen-
+    Persistenz für eine spätere, eigene Hypothesenprüfung nach der
+    KI-Score-Freeze-Auswertung. Idempotent über ``(date, ticker)``.
+    """
+    if not APEWISDOM_SHADOW_ENABLED:
+        return 0
+    pool = sorted({t for t in (tickers or []) if t})
+    if not pool:
+        return 0
+    acct = _COVERAGE_ACCT["apewisdom_shadow"]
+    acct["n_erwartet"] += len(pool)
+    now_fn = now_fn or (lambda: datetime.now(timezone.utc))
+    t_iso = report_date_iso or date.today().isoformat()
+    bulk_fetch_failed = not attention
+    if bulk_fetch_failed:
+        acct["n_fehler"] += len(pool)
+        acct["error_counts"]["FetchFailed"] = (
+            acct["error_counts"].get("FetchFailed", 0) + len(pool))
+    try:
+        existing_keys = _load_apewisdom_attention_keys(APEWISDOM_ATTENTION_LOG_FILE)
+        n_written = 0
+        n_found = 0
+        with open(APEWISDOM_ATTENTION_LOG_FILE, "a", encoding="utf-8") as fh:
+            for ticker in pool:
+                if (t_iso, ticker) in existing_keys:
+                    continue
+                entry = attention.get(ticker)
+                found = entry is not None
+                if found:
+                    n_found += 1
+                line = {
+                    "date":              t_iso,
+                    "ticker":            ticker,
+                    "ts_utc":            now_fn().isoformat(),
+                    "found":             found,
+                    "mentions":          (entry or {}).get("mentions"),
+                    "mentions_24h_ago":  (entry or {}).get("mentions_24h_ago"),
+                    "rank":              (entry or {}).get("rank"),
+                    "rank_24h_ago":      (entry or {}).get("rank_24h_ago"),
+                    "upvotes":           (entry or {}).get("upvotes"),
+                    "quelle":            "apewisdom",
+                }
+                fh.write(json.dumps(line, ensure_ascii=False, separators=(",", ":")) + "\n")
+                n_written += 1
+        acct["n_mit_daten"] += n_found
+        log.info("apewisdom_attention_history: %d neue Zeilen (%d mit Treffer von %d Pool)",
+                 n_written, n_found, len(pool))
+        return n_written
+    except Exception as exc:   # pragma: no cover — nie den Daily-Run brechen
+        log.warning("apewisdom_attention_history: Schreiben fehlgeschlagen: %s", exc)
         return 0
 
 
@@ -19156,6 +19313,21 @@ def main():
         _persist_news_coverage(top10, enriched, run_phase=run_phase)
     except Exception as _ncov_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("news_coverage_history übersprungen: %s", _ncov_exc)
+
+    # apewisdom_attention_history (23.10.2026): Reddit-Aufmerksamkeits-
+    # Schattensammlung — Easy-Entscheid 23.10.2026, SEPARAT von score()/
+    # ki_signal_score/apply_agent_boost/Top-10/Filter/Push/Conviction bis
+    # nach der laufenden KI-Score-Freeze-Auswertung (siehe Konstanten-Block
+    # oben + open_items.json "reddit-shadow-apewisdom"). Pool = derselbe
+    # ``_news_pool`` (Top-10 ∪ persönliche Watchlist) — kein zusätzlicher
+    # Pool-Bau. EIN Bulk-Abruf der ApeWisdom-Gesamtliste pro Lauf, lokal
+    # gegen den Pool gefiltert — KEIN Request pro Ticker.
+    try:
+        if APEWISDOM_SHADOW_ENABLED:
+            _apewisdom_attention = _fetch_apewisdom_attention()
+            _persist_apewisdom_attention(_news_pool, _apewisdom_attention)
+    except Exception as _apew_exc:   # pragma: no cover  (nie den Daily-Run brechen)
+        log.warning("apewisdom_attention_history übersprungen: %s", _apew_exc)
 
     # Parallel options data fetch (US-only, Top-5, max 5 threads).
     # Opt 4 (2026-04): nur erste 5 Ticker von us_top10 — restliche Karten

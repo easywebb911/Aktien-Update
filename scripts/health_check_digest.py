@@ -359,6 +359,16 @@ def main(*, now_ts: datetime | None = None,
         log.warning("news_coverage_warn_line unerwartet: %r", _ncovw_exc)
         news_coverage_warn = None
 
+    # Reddit-Aufmerksamkeits-Schattensammlung (ApeWisdom, 23.10.2026): eigene
+    # Digest-Zeile analog news_coverage_line — rein deskriptiv, KEIN Score-/
+    # Push-/Top-10-Bezug. raise-frei; try/except ist reine Absicherung.
+    try:
+        apewisdom_line = hc.apewisdom_attention_digest_line(
+            ROOT / hc.APEWISDOM_ATTENTION_LOG_FILE, now_ts=now_ts)
+    except Exception as _apew_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("apewisdom_attention_digest_line unerwartet: %r", _apew_exc)
+        apewisdom_line = None
+
     # Generischer Daten-Abdeckungs-Wächter (21.10.2026): je Quelle eine
     # Liveness-Zeile + optionale Warnzeile, plus EINE Übersichtszeile.
     # raise-frei; try/except ist reine Absicherung.
@@ -514,6 +524,7 @@ def main(*, now_ts: datetime | None = None,
         reg_sho_line=reg_sho_line,
         news_coverage_line=news_coverage_line,
         news_coverage_warn=news_coverage_warn,
+        apewisdom_line=apewisdom_line,
         coverage_lines=coverage_lines,
         coverage_warns=coverage_warns,
         coverage_silent_empty_warns=coverage_silent_empty_warns,

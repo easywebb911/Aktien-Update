@@ -1308,6 +1308,115 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
   **Rückweg:** `git revert` des Merge-Commits von PR #599.
 
+### 23.10.2026 — Reddit-Aufmerksamkeits-Schattensammlung (ApeWisdom) (1 PR)
+
+- **Neue Schattensammlung für Reddit-Aufmerksamkeit (Block-1-Pflicht
+  befolgt, Manual-Merge — neue externe API + neues JSONL-Schema, Easy
+  mergt am iPhone):** `#600` (Branch-Commit siehe Nachtrag, 23.10.) setzt
+  Easys Entscheid vom selben Tag um: die seit mind. 27.07.2026 toten
+  ki_agent.py-Quellen `reddit_mentions`/`openinsider`/`fda_calendar`
+  (siehe PR #599-Bericht) werden NICHT live reaktiviert, bevor die
+  laufende KI-Score-Freeze-Auswertung (`#597`/`#598`, Stand 22.10.2026
+  n=0/250) abgeschlossen ist. Stattdessen entsteht eine komplett
+  SEPARATE, additive Reddit-Aufmerksamkeits-Zeitreihe über die
+  öffentliche ApeWisdom-API (apewisdom.io, kein Key/Login nötig) — als
+  Datenbasis für eine spätere, eigene Hypothesenprüfung NACH dem Freeze.
+
+  **SCHRITT 0 (read-only, vor dem Bau):**
+  - **0a** ApeWisdom-API: öffentlicher Endpunkt
+    `GET https://apewisdom.io/api/v1.0/filter/{filter}/page/{page}`,
+    Felder `ticker`/`mentions`/`mentions_24h_ago`/`rank`/`rank_24h_ago`/
+    `upvotes`. Kein Key/Login, laut Produktbeschreibung dediziert für
+    Reddit-Stock-Mentions gebaut. Rate-Limit offiziell undokumentiert
+    (Community-Berichte ~20 Req/Min/IP) — **kein** Mini-Stopp-Trigger
+    (nicht kostenpflichtig, kein Login, keine gefundene ToS-Untersagung
+    von automatisiertem Abruf). Exakte Feld-Semantik NICHT live
+    gegen die API verifiziert — Websuche + Trainingswissen, kein
+    `WebFetch` möglich (Sandbox-Netzwerk-Policy blockt die Domain, siehe
+    0b).
+  - **0b** Erreichbarkeit vom GitHub-Actions-Runner: aus dieser Sandbox
+    NICHT prüfbar (`curl` über den Agent-Proxy liefert `403 CONNECT
+    tunnel failed` — Policy-Denial, nicht die ApeWisdom-API selbst).
+    Erster echter Workflow-Lauf ist der Beleg.
+  - **0c** Universum: Top-10 ∪ persönliche Watchlist (identischer Pool
+    wie `_news_pool` — kein neuer Pool-Bau), aktuell ~14-15 Ticker. EIN
+    Bulk-Abruf der ApeWisdom-"all-stocks"-Gesamtliste pro Lauf
+    (`APEWISDOM_API_PAGES=2` × 100 Einträge = Top-200), lokal gegen den
+    Pool gefiltert — **kein** Request pro Ticker (Easy-Vorgabe). Macht
+    die Anfragezahl unabhängig von der Pool-Größe: max. 2 Requests/Lauf
+    × 2 Läufe/Tag (premarket + postclose) = 4 Requests/Tag gesamt.
+  - **0d** Mini-Stopp Konsumenten: Grep bestätigt — `apewisdom`/
+    `APEWISDOM` kommt in KEINER anderen Datei vor außer
+    `generate_report.py`, `health_check.py`, `config.py`,
+    `scripts/health_check_digest.py` und den neuen Tests. `score()`,
+    `_compute_sub_scores()`, `apply_agent_boost()` (generate_report.py)
+    und `compute_signal()` (ki_agent.py) lesen das Wort nirgends — zudem
+    per Source-Inspektions-Test verriegelt
+    (`scripts/mock_test_apewisdom_shadow.py`, Abschnitt 7). Mini-Stopp
+    git-add-in-allen-Workflow-Listen (Lehre #501): `coverage_history.jsonl`
+    ist bereits in beiden Workflows ge-add-ed (apewisdom_shadow ist nur
+    eine 7. Quelle in dieser bestehenden Datei, kein neues git add nötig);
+    die NEUE `apewisdom_attention_history.jsonl` läuft NUR in
+    `daily-squeeze-report.yml` (nie über den stündlichen ki_agent-Tick —
+    bewusst, siehe Befund-B-Lehre aus #599) → git add NUR dort ergänzt,
+    `ki_agent.yml` braucht keinen Eintrag.
+
+  **BAU:**
+  - `generate_report.py`: `_fetch_apewisdom_attention()` (EIN Bulk-Abruf,
+    paginiert, fail-soft → `{}` bei jedem Fehler) +
+    `_persist_apewisdom_attention()` (append-only JSONL, eine Zeile je
+    Ticker und Tag, idempotent über `(date, ticker)` — Lehre aus #599
+    bewusst umgangen: läuft NUR hier, max. 2×/Tag, nie stündlich). Beide
+    Funktionen hängen in `main()` direkt nach dem News-Coverage-Persist-
+    Call, nutzen den bereits gebauten `_news_pool`.
+  - Flag `APEWISDOM_SHADOW_ENABLED=True` (config.py) schaltet den
+    gesamten Baustein ab — additiv.
+  - **Generischer Daten-Abdeckungs-Wächter:** `apewisdom_shadow` als 4.
+    Quelle in `_COVERAGE_ACCT` (generate_report.py) + neuer Eintrag in
+    `config.COVERAGE_QUELLEN` + `COVERAGE_SILENT_EMPTY_SPARSE_QUELLEN`
+    (Small-Cap-Abdeckung ist strukturell sparse, nicht dense — bewusste
+    Einordnung gegen Alarm-Müdigkeit). Besonderheit: EIN Bulk-Call bedient
+    den ganzen Pool — bei Fetch-Fehler wird `n_fehler` auf die GANZE
+    Pool-Größe gesetzt (nicht nur 1), sonst hätte `n_erhalten` fälschlich
+    fast den vollen Pool gezeigt, obwohl der einzige zugrundeliegende
+    Call gescheitert ist.
+  - Neue, eigene Digest-Zeile `apewisdom_attention_digest_line()`
+    (health_check.py) — Format „🗣 Reddit-Schatten (ApeWisdom): läuft ·
+    {n} Ticker · {m} Punkte" (Summe der Mentions am letzten Sammel-Tag).
+    In `format_digest_body()` (neuer `apewisdom_line`-Parameter, additiv
+    in allen 3 Klassen) + `scripts/health_check_digest.py` verdrahtet.
+  - **Harte Grenzen eingehalten:** kein Eingriff in `score()`,
+    `ki_signal_score`, `apply_agent_boost`, Top-10, Filter, Push,
+    Conviction, Exit; keine neue Bibliothek (nur `requests`, bereits
+    importiert); keine `return_*`-Werte; Freeze-Blöcke byte-identisch.
+
+  19 neue Tests (`scripts/mock_test_apewisdom_shadow.py` — Fetch/Parse,
+  Persist/Schema/Coverage-Buchung, Idempotenz, COVERAGE_QUELLEN-
+  Eintragung, Digest-Zeile, `format_digest_body`-Verdrahtung, Grep-Beleg
+  + Score-/Top-10-Gegenprobe), Golden byte-identisch, alle 5 Lints grün
+  (`lint_nan_bypass_fields.py`-Baseline erneut nachgeführt — reine
+  Zeilenverschiebung durch die ~160 neuen Zeilen vor der Hauptschleife,
+  per Diff-Hunk-Arithmetik exakt nachgerechnet und gegen den frischen
+  Lint-Lauf verifiziert, keine neuen NaN-Bypass-Funde).
+  `open_items.json`: zwei neue Einträge `reddit-shadow-apewisdom`
+  (beobachtet, Wiedervorlage nach KI-Score-Freeze-Auswertung) +
+  `openinsider-fda-tot` (erledigt/dokumentiert — Begründung: OpenInsider
+  ist redundant zu der bereits vorhandenen SEC-Form-4-Quelle, FDA-Calendar
+  hat keinen gefundenen kostenlosen Ersatz) — 35→37 Items.
+
+  **Widerspruch zu melden (EXZELLENZ-BLOCK-Pflicht):** ApeWisdoms
+  Reddit-Liste konzentriert sich erfahrungsgemäß auf liquide Mega-/
+  Large-Caps (GME/AMC/TSLA-Klasse) — viele der hier typischen Squeeze-
+  Kandidaten (Small-/Micro-Caps) könnten in den Top-200 schlicht NICHT
+  auftauchen. Das wäre dann ein legitimes „nicht erwähnt", kein Fehler —
+  aber die praktische Abdeckung für genau die Ticker, die diesem Tool am
+  meisten nutzen würden, könnte dünn ausfallen. Erst die echte Live-
+  Baseline (Wiedervorlage nach dem KI-Score-Freeze) zeigt, ob
+  `APEWISDOM_API_PAGES` erhöht werden muss.
+
+  **Rückweg:** `config.APEWISDOM_SHADOW_ENABLED = False` setzen UND
+  `git revert` des Merge-Commits von PR #600.
+
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
 Token in `backtest_history.json`, Ursache `_extract_hist_5d`
