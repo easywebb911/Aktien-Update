@@ -379,6 +379,82 @@ def test_coverage_overview_line():
            "1 von 3" in overview2)
 
 
+def test_known_dead_quellen_gate():
+    """Wächter 23.10.2026: bekannt tote Quellen → ℹ️ nur bei offenem/
+    beobachtetem Item UND ohne Daten; erledigt/fehlend/unlesbar → {}
+    (normale ⚠️, fail-safe); wieder Daten → 🆕-Zeile, nicht mehr 'tot'."""
+    d = tempfile.mkdtemp()
+    cov = os.path.join(d, "cov.jsonl")
+    oi = os.path.join(d, "oi.json")
+    now = datetime(2026, 10, 23, 13, 47, tzinfo=timezone.utc)
+    item = "bekannt-tote-quellen-digest"
+
+    def _oi(status):
+        with open(oi, "w", encoding="utf-8") as fh:
+            json.dump({"schema_v": 1, "items": [
+                {"id": item, "title": "t", "opened": "2026-10-23",
+                 "description": "d", "status": status, "status_date": "2026-10-23"}]}, fh)
+
+    def _cov(nmd_reddit):
+        with open(cov, "w", encoding="utf-8") as fh:
+            for q, nmd in (("reddit_mentions", nmd_reddit), ("openinsider", 0),
+                           ("fda_calendar", 0)):
+                fh.write(json.dumps({"date": "2026-10-23", "run_phase": "ki_agent_tick",
+                                     "quelle": q, "ts_utc": "2026-10-23T13:27:00Z",
+                                     "n_erwartet": 16, "n_erhalten": 0,
+                                     "n_mit_daten": nmd}) + "\n")
+
+    _cov(0)
+    _oi("beobachtet")
+    kd = hc.known_dead_coverage_quellen(oi, cov, now_ts=now)
+    _check("beobachtet + keine Daten → alle 3 bekannt tot",
+           set(kd) == {"reddit_mentions", "openinsider", "fda_calendar"})
+    ov = hc.coverage_overview_line(cov, now_ts=now,
+                                   quellen=["reddit_mentions", "openinsider",
+                                            "fda_calendar", "options_atm"],
+                                   exclude=set(kd))
+    _check("Übersicht: tote Quellen weder in N noch M",
+           "0 von 1 Quellen unter Baseline · 3 bekannt tot (ausgenommen)" in ov)
+    _check("ohne exclude: Übersicht unverändert (3 von 4)",
+           "3 von 4 Quellen unter Baseline" in hc.coverage_overview_line(
+               cov, now_ts=now, quellen=["reddit_mentions", "openinsider",
+                                         "fda_calendar", "options_atm"]))
+    _check("ℹ️-Zeile nennt Item",
+           hc.coverage_known_dead_line("openinsider", item)
+           == f"ℹ️ openinsider: bekannt tot (siehe open_items: {item})")
+    _check("keine 🆕-Zeile ohne Daten",
+           hc.coverage_recovered_line("reddit_mentions", oi, cov, now_ts=now) is None)
+
+    _oi("offen")
+    _check("offen → ebenfalls bekannt tot",
+           len(hc.known_dead_coverage_quellen(oi, cov, now_ts=now)) == 3)
+    _oi("erledigt")
+    _check("erledigt → {} (normale ⚠️)",
+           hc.known_dead_coverage_quellen(oi, cov, now_ts=now) == {})
+    os.remove(oi)
+    _check("open_items fehlt → {} (fail-safe)",
+           hc.known_dead_coverage_quellen(oi, cov, now_ts=now) == {})
+    with open(oi, "w", encoding="utf-8") as fh:
+        fh.write("{kaputt")
+    _check("open_items unlesbar → {} (fail-safe)",
+           hc.known_dead_coverage_quellen(oi, cov, now_ts=now) == {})
+
+    _oi("beobachtet")
+    _cov(2)
+    kd2 = hc.known_dead_coverage_quellen(oi, cov, now_ts=now)
+    _check("reddit liefert wieder Daten → nicht mehr 'tot'",
+           "reddit_mentions" not in kd2 and len(kd2) == 2)
+    rec = hc.coverage_recovered_line("reddit_mentions", oi, cov, now_ts=now)
+    _check("🆕-Zeile bei wieder gelieferten Daten",
+           rec is not None and rec.startswith("🆕 reddit_mentions liefert wieder Daten"))
+    _check("nicht gemappte Quelle → keine 🆕-Zeile",
+           hc.coverage_recovered_line("options_atm", oi, cov, now_ts=now) is None)
+    later = datetime(2026, 10, 25, 13, 47, tzinfo=timezone.utc)
+    _check("Daten außerhalb 24h-Fenster → wieder 'tot'",
+           "reddit_mentions" in hc.known_dead_coverage_quellen(oi, cov, now_ts=later))
+    print("    [Fixture] " + ov)
+
+
 # ===========================================================================
 # 5: format_digest_body-Verdrahtung
 # ===========================================================================
@@ -693,6 +769,7 @@ def run_all():
         test_coverage_liveness_line_states,
         test_coverage_warn_line,
         test_coverage_overview_line,
+        test_known_dead_quellen_gate,
         test_format_digest_body_wiring,
         test_options_atm_real_error_counted,
         test_options_atm_legitimate_empty_not_counted,

@@ -375,7 +375,27 @@ def main(*, now_ts: datetime | None = None,
     coverage_lines: list[str] = []
     coverage_warns: list[str] = []
     coverage_silent_empty_warns: list[str] = []
+    # Bekannt tote Quellen (Wächter, Easy-Entscheid 23.10.2026): ℹ️-Zeile
+    # statt Liveness + ⚠️, solange das open_item offen/beobachtet ist und
+    # die Quelle keine Daten liefert. raise-frei (fail-soft → {}).
+    try:
+        _known_dead = hc.known_dead_coverage_quellen(
+            ROOT / hc.OPEN_ITEMS_FILE, ROOT / hc.COVERAGE_LOG_FILE, now_ts=now_ts)
+    except Exception as _kd_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("known_dead_coverage_quellen unerwartet: %r", _kd_exc)
+        _known_dead = {}
     for _q in hc.COVERAGE_QUELLEN:
+        if _q in _known_dead:
+            coverage_lines.append(hc.coverage_known_dead_line(_q, _known_dead[_q]))
+            continue
+        try:
+            _recovered = hc.coverage_recovered_line(
+                _q, ROOT / hc.OPEN_ITEMS_FILE, ROOT / hc.COVERAGE_LOG_FILE,
+                now_ts=now_ts)
+            if _recovered:
+                coverage_warns.append(_recovered)
+        except Exception as _rec_exc:  # pragma: no cover — Helper ist raise-frei
+            log.warning("coverage_recovered_line(%s) unerwartet: %r", _q, _rec_exc)
         try:
             coverage_lines.append(hc.coverage_liveness_line(
                 _q, ROOT / hc.COVERAGE_LOG_FILE, now_ts=now_ts))
@@ -399,7 +419,8 @@ def main(*, now_ts: datetime | None = None,
             log.warning("coverage_silent_empty_warn_line(%s) unerwartet: %r", _q, _covs_exc)
     try:
         coverage_overview = hc.coverage_overview_line(
-            ROOT / hc.COVERAGE_LOG_FILE, now_ts=now_ts)
+            ROOT / hc.COVERAGE_LOG_FILE, now_ts=now_ts,
+            exclude=set(_known_dead))
     except Exception as _covo_exc:  # pragma: no cover — Helper ist raise-frei
         log.warning("coverage_overview_line unerwartet: %r", _covo_exc)
         coverage_overview = None

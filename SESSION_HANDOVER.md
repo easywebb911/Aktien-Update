@@ -1621,6 +1621,30 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
   **Rückweg:** `git revert` des Merge-Commits.
 
+### 23.10.2026 — [Wächter] Digest: bekannt tote Quellen als ℹ️ statt ⚠️ (1 PR)
+
+- **Digest kennzeichnet reddit_mentions / openinsider / fda_calendar als
+  „ℹ️ bekannt tot (siehe open_items)" (Easy-Entscheid 23.10.2026, Klasse A,
+  Wächter-Self-Merge bei grünen Gates):** `#603` (Branch
+  `claude/waechter-bekannt-tote-quellen-k7q2`, kein Merge-Hash genannt —
+  Regel a) greift). Befund: der Digest meldete die drei seit mind.
+  27.07.2026 toten, bewusst nicht reparierten Quellen täglich mit je zwei
+  ⚠️-Zeilen und zählte sie als „3 von 7 Quellen unter Baseline" — echter
+  Dauerzustand, aber reiner Lärm. Änderung (nur Digest-Body, keine Push-
+  Klasse berührt): `health_check.COVERAGE_KNOWN_DEAD_QUELLEN` (Mapping
+  Quelle → open_item), `known_dead_coverage_quellen` /
+  `coverage_known_dead_line` / `coverage_recovered_line`,
+  `coverage_overview_line(exclude=…)` (tote Quellen weder in N noch M,
+  Zusatz „· K bekannt tot (ausgenommen)"), Verdrahtung in
+  `scripts/health_check_digest.py`. Neues open_item
+  `bekannt-tote-quellen-digest` (beobachtet) — die Kennzeichnung gilt NUR,
+  solange es offen/beobachtet ist; erledigt/fehlend/unlesbar → wieder
+  normale ⚠️ (fail-safe). Liefert eine Quelle im 24h-Fenster wieder Daten →
+  normale Zeilen + „🆕 <quelle> liefert wieder Daten". Kein Score-/Filter-/
+  Push-/Exit-/Freeze-Bezug. 1 neuer Testfall in
+  `scripts/mock_test_coverage_watchdog.py`. **Rückweg:** `git revert` des
+  Merge-Commits.
+
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
 Token in `backtest_history.json`, Ursache `_extract_hist_5d`
