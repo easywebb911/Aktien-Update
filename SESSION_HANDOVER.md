@@ -1434,14 +1434,15 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   **SCHRITT 0 (read-only, vor dem Bau):**
   - **0a** Geschützte Bereiche identifiziert (vollständige Liste siehe
     `_PROTECTED_FUNCTIONS`/`_PROTECTED_CONST_PREFIXES`/`_SENTINEL_FILES`/
-    `_PROTECTED_WHOLE_FILES` im Lint-Skript): 19 benannte Funktionen in
+    `_PROTECTED_WHOLE_FILES` im Lint-Skript): 20 benannte Funktionen in
     `generate_report.py` (`score`, `score_bonus`, `apply_monster_score`,
     `apply_agent_boost`, `apply_score_smoothing`,
     `apply_late_runner_penalty`, `compute_conviction_score`,
     `apply_conviction_scores`, `compute_earliness_pts`,
     `_earliness_pts_v1/v2`, `compute_exit_score`, `process_exit_signals`,
     `_compute_exit_state`, `_detect_recent_squeeze`, `_float_turnover_pts`,
-    `_gap_hold_pts`, `_rs_spy_pts`, `_normalize_rvol`) + 4 in `ki_agent.py`
+    `_gap_hold_pts`, `_rs_spy_pts`, `_normalize_rvol`,
+    `_compute_sub_scores`) + 4 in `ki_agent.py`
     (`compute_signal`, `detect_anomalies`, `fetch_uoa_signal`,
     `_stocktwits_pts`) + 2 in `backtest_history.py`
     (`_build_backtest_extension`, `_append_backtest_entries`); 25
@@ -1522,6 +1523,16 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   (`lint_nan_bypass_fields.py`-Baseline erneut nachgeführt — reine
   Zeilenverschiebung durch die neuen Sentinel-Marker-Kommentare, per
   Diff-Hunk-Arithmetik exakt nachgerechnet, keine neuen NaN-Bypass-Funde).
+
+  **Guardian-Finding behoben (noch im selben PR, nicht als Folge-PR
+  verschoben):** `_compute_sub_scores` fehlte initial in der Funktionsliste
+  — obwohl bereits anderswo im Projekt
+  (`scripts/lint_score_confidence_isolation.py`, CLAUDE.md "Score-
+  Methodik-Sync-Regel") als kritische Score-Berechnungsfunktion
+  eingestuft (SI-Trend-/Short-Pressure-/Borrow-/PC-Ratio-Boni fließen
+  dort direkt in den Score ein). Nachgetragen, 20 statt 19 Funktionen.
+  `_drivers_breakdown` bewusst NICHT ergänzt (Guardian-Einschätzung:
+  Display-/Methodik-Sync-Helfer, keine eigenständige Score-Berechnung).
 
   **Rückweg:** den neuen Step aus `pr-checks.yml` entfernen (oder
   `scripts/lint_protected_zones.py` so ändern, dass er immer exit 0

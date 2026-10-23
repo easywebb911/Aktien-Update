@@ -104,7 +104,7 @@ _PROTECTED_FUNCTIONS: dict[str, tuple[str, ...]] = {
         "compute_earliness_pts", "_earliness_pts_v1", "_earliness_pts_v2",
         "compute_exit_score", "process_exit_signals", "_compute_exit_state",
         "_detect_recent_squeeze", "_float_turnover_pts", "_gap_hold_pts",
-        "_rs_spy_pts", "_normalize_rvol",
+        "_rs_spy_pts", "_normalize_rvol", "_compute_sub_scores",
     ),
     "ki_agent.py": (
         "compute_signal", "detect_anomalies", "fetch_uoa_signal",
