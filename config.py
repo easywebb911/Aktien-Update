@@ -524,6 +524,7 @@ COVERAGE_LOG_FILE    = "coverage_history.jsonl"
 COVERAGE_QUELLEN = [
     "options_atm", "earnings_date", "earnings_surprise",
     "reddit_mentions", "fda_calendar", "openinsider",
+    "apewisdom_shadow",
 ]
 
 # Digest-Warnschwelle je Quelle: "0 erhalten in ALLEN Läufen der letzten N
@@ -554,7 +555,39 @@ COVERAGE_SILENT_EMPTY_WINDOW_HOURS_SPARSE = 24 * 7   # die übrigen 4 Quellen
 COVERAGE_SILENT_EMPTY_DENSE_QUELLEN = ["options_atm", "earnings_date"]
 COVERAGE_SILENT_EMPTY_SPARSE_QUELLEN = [
     "earnings_surprise", "reddit_mentions", "fda_calendar", "openinsider",
+    "apewisdom_shadow",
 ]
+
+# ── Reddit-Aufmerksamkeits-Schattensammlung (ApeWisdom, 23.10.2026) ──────────
+# Easy-Entscheid 23.10.2026: Ersatz für die seit mind. 27.07.2026 toten
+# ki_agent.py-Quellen reddit_mentions/openinsider/fda_calendar NICHT in den
+# ki_signal_score zurückfließen lassen, bevor die laufende KI-Score-Freeze-
+# Auswertung (PR #597/#598, n=0/250 Stand 22.10.2026) abgeschlossen ist.
+# Diese Sammlung ist bewusst eine SEPARATE, rein additive Zeitreihe —
+# KEIN Ersatz für ki_agent.fetch_reddit_mentions (die alte, tote Quelle bleibt
+# unverändert im Code stehen, siehe PR #599-Bericht). Quelle: ApeWisdom
+# (apewisdom.io/api), öffentliche REST-API ohne Key/Login, dediziert für
+# Reddit-Stock-Mentions gebaut (laut Produktbeschreibung — Rate-Limit
+# undokumentiert, Community-Berichte nennen ~20 Req/Min/IP; diese Sammlung
+# bleibt mit max. 2×2=4 Requests/Tag weit darunter). Erreichbarkeit vom
+# GitHub-Actions-Runner ist aus dieser Sandbox NICHT prüfbar (Netzwerk-Policy
+# blockt den Domain-Zugriff hier) — erster echter Lauf ist der Beleg.
+#
+# Flag schaltet den gesamten Baustein ab (Fetch + Persistenz + Coverage-
+# Zeile) — additiv, KEIN Einfluss auf score()/ki_signal_score/apply_agent_
+# boost/Top-10/Filter/Push/Conviction. Siehe open_items.json
+# "reddit-shadow-apewisdom".
+APEWISDOM_SHADOW_ENABLED     = True
+APEWISDOM_ATTENTION_LOG_FILE = "apewisdom_attention_history.jsonl"
+APEWISDOM_API_FILTER         = "all-stocks"
+# 2 Seiten × 100 Einträge = Top-200 meistdiskutierte Ticker auf Reddit an
+# diesem Tag — EIN Abruf der Gesamtliste statt pro-Ticker-Abfragen (Easy-
+# Vorgabe 23.10.2026). Lokal gegen den Monitored-Pool (Top-10 ∪ Watchlist)
+# gefiltert; Ticker außerhalb der Top-200 gelten als "nicht erwähnt"
+# (legitim leer, kein Fehler). Schwelle unkalibriert — Wiedervorlage nach
+# Live-Baseline (siehe open_items.json).
+APEWISDOM_API_PAGES   = 2
+APEWISDOM_API_TIMEOUT = 10
 
 # ── Unusual Options Activity (UOA) — yfinance Options-Chain ──────────────────
 # Bewertet ungewöhnliche Optionsaktivität pro Ticker:

@@ -38,6 +38,7 @@ SCRIPTS = ROOT / "scripts"
 #    danach statisch festgeschrieben. Kategorie A: deterministisch, kein
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
+    "apewisdom_shadow",
     "backfill_entry_past_return_5d", "backfill_max_gain", "backtest_data_integrity", "backtest_history_writepath", "backtest_return_vs_spy", "backtest_writepath_nan_guard", "bootstrap_shell_phase0", "bootstrap_shell_phase1", "borrow_iborrowdesk", "card_cockpit_stage1", "card_cockpit_stage2",
     "borrow_dormant",
     "change2d_nan_hardening",
