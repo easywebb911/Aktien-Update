@@ -4,3 +4,6 @@
 {"date":"2026-10-22","run_phase":"premarket","quelle":"options_atm","ts_utc":"2026-10-22T11:54:39.197789+00:00","n_erwartet":5,"n_erhalten":5,"n_mit_daten":5,"error_counts":{}}
 {"date":"2026-10-22","run_phase":"premarket","quelle":"earnings_date","ts_utc":"2026-10-22T11:54:39.197969+00:00","n_erwartet":10,"n_erhalten":10,"n_mit_daten":10,"error_counts":{}}
 {"date":"2026-10-22","run_phase":"premarket","quelle":"earnings_surprise","ts_utc":"2026-10-22T11:54:39.198081+00:00","n_erwartet":10,"n_erhalten":10,"n_mit_daten":10,"error_counts":{}}
+{"date":"2026-10-23","run_phase":"postclose","quelle":"options_atm","ts_utc":"2026-10-23T00:00:50.553554+00:00","n_erwartet":5,"n_erhalten":5,"n_mit_daten":4,"error_counts":{}}
+{"date":"2026-10-23","run_phase":"postclose","quelle":"earnings_date","ts_utc":"2026-10-23T00:00:50.553764+00:00","n_erwartet":10,"n_erhalten":10,"n_mit_daten":7,"error_counts":{}}
+{"date":"2026-10-23","run_phase":"postclose","quelle":"earnings_surprise","ts_utc":"2026-10-23T00:00:50.553872+00:00","n_erwartet":10,"n_erhalten":10,"n_mit_daten":8,"error_counts":{}}

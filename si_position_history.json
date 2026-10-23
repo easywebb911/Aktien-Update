@@ -2925,6 +2925,12 @@
       "shares_short": 5156157,
       "short_pct_float": 35.6,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 5603057,
+      "short_pct_float": 37.78,
+      "pub_date": "2026-10-09"
     }
   ],
   "AZTA": [
@@ -3750,6 +3756,12 @@
       "shares_short": 46488528,
       "short_pct_float": 23.63,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 44803095,
+      "short_pct_float": 22.77,
+      "pub_date": "2026-10-09"
     }
   ],
   "GPRE": [
@@ -5421,6 +5433,12 @@
       "shares_short": 21051050,
       "short_pct_float": 32.84,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 20628268,
+      "short_pct_float": 32.18,
+      "pub_date": "2026-10-09"
     }
   ],
   "JEM": [
@@ -5823,6 +5841,12 @@
       "shares_short": 25619592,
       "short_pct_float": 31.94,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 17531618,
+      "short_pct_float": 21.48,
+      "pub_date": "2026-10-09"
     }
   ],
   "YELP": [
@@ -6840,6 +6864,12 @@
       "shares_short": 2974359,
       "short_pct_float": 20.35,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 3280269,
+      "short_pct_float": 22.42,
+      "pub_date": "2026-10-09"
     }
   ],
   "SANA": [
@@ -7842,6 +7872,12 @@
       "shares_short": 19508011,
       "short_pct_float": 20.89,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 18967626,
+      "short_pct_float": 20.13,
+      "pub_date": "2026-10-09"
     }
   ],
   "JBGS": [
@@ -9962,6 +9998,66 @@
       "settlement_date": "2026-09-30",
       "shares_short": 2282692,
       "short_pct_float": 15.17,
+      "pub_date": "2026-10-09"
+    }
+  ],
+  "WMK": [
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 2431651,
+      "short_pct_float": null,
+      "pub_date": "2026-09-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 2754756,
+      "short_pct_float": 25.64,
+      "pub_date": "2026-10-09"
+    }
+  ],
+  "CARS": [
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 6801313,
+      "short_pct_float": null,
+      "pub_date": "2026-09-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 7373923,
+      "short_pct_float": 17.45,
+      "pub_date": "2026-10-09"
+    }
+  ],
+  "EYE": [
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 14056076,
+      "short_pct_float": null,
+      "pub_date": "2026-09-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 15545507,
+      "short_pct_float": 27.91,
+      "pub_date": "2026-10-09"
+    }
+  ],
+  "HPP": [
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 6351508,
+      "short_pct_float": null,
+      "pub_date": "2026-09-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 6785180,
+      "short_pct_float": 15.53,
       "pub_date": "2026-10-09"
     }
   ]

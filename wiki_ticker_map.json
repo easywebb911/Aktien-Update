@@ -1259,6 +1259,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "PFSA": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-23T00:01:00Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Profusa, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "PLAY": {
     "qid": "Q5228205",
     "title": "Dave_&_Buster's",
@@ -1726,6 +1735,15 @@
     "company_name_at_resolve": "Wetour Robotics Limited",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "WMK": {
+    "qid": "Q7980370",
+    "title": "Weis_Markets",
+    "resolved_at": "2026-10-23T00:01:00Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Weis Markets, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "WOLF": {
     "qid": "Q5183828",
