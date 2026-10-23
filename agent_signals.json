@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-23T13:42:16.664768+02:00",
+  "updated": "2026-10-23T15:27:36.878920+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 15.7,
+    "elapsed_s": 15.8,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": null
     },
     "DBI": {
-      "score": 45,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 8.1% + News: earnings beat + SEC Form 4 + UOA Call/Put 7.5×",
+      "drivers": "Spanne 8.1% + SEC Form 4 + UOA Call/Put 7.5×",
       "price": 6.55,
       "chg_pct": 0.0,
       "rvol_4d": 0.91,
@@ -66,7 +66,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -298,9 +298,9 @@
       "uoa_cp_ratio": 3.163265306122449
     },
     "VEEA": {
-      "score": 44,
+      "score": 41,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 15.0% + News: merger",
+      "drivers": "Volumen 2.1× + Spanne 15.0% + News-KI 12/30: Positive business developments and strategic partnerships, but lacking short squeeze catalysts like high short interest,",
       "price": 4.19,
       "chg_pct": 0.0,
       "rvol_4d": 2.14,
@@ -312,7 +312,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
