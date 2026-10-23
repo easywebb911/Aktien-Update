@@ -1625,7 +1625,7 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
 - **Digest kennzeichnet reddit_mentions / openinsider / fda_calendar als
   „ℹ️ bekannt tot (siehe open_items)" (Easy-Entscheid 23.10.2026, Klasse A,
-  Wächter-Self-Merge bei grünen Gates):** `#PRNR` (Branch
+  Wächter-Self-Merge bei grünen Gates):** `#603` (Branch
   `claude/waechter-bekannt-tote-quellen-k7q2`, kein Merge-Hash genannt —
   Regel a) greift). Befund: der Digest meldete die drei seit mind.
   27.07.2026 toten, bewusst nicht reparierten Quellen täglich mit je zwei
