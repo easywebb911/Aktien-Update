@@ -1852,7 +1852,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 ### 24.10.2026 — Doku: Automatisierungs-Betrieb (geplante Agenten, ntfy) festgehalten (1 PR, Doku)
 
 - **Neuer Abschnitt §9j „Automatisierungs-Betrieb"** (dieser PR, Doku-only,
-  Block-1-Pflicht befolgt; PR-Nummer siehe PR): hält fest, was seit 22.–24.10.
+  Block-1-Pflicht befolgt): `#607`: hält fest, was seit 22.–24.10.
   außerhalb des Repos läuft (drei geplante Claude-Agenten + Einmal-Kontrolle,
   Zustellung nur über `agent_ntfy_relay.yml`), die Easy-Entscheide dazu
   (Wächter-Self-Merge Klasse A, Nachlauf-Regel, ntfy statt Claude-Push) und
