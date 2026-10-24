@@ -15,7 +15,10 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from scripts.check_html_assertions import evaluate_html_assertions  # noqa: E402
+from scripts.check_html_assertions import (  # noqa: E402
+    _PILLARS_PER_CARD,
+    evaluate_html_assertions,
+)
 
 
 def _build_html(n_articles: int = 10,
@@ -34,7 +37,7 @@ def _build_html(n_articles: int = 10,
     - n_cockpit:  erste N Cards mit ``<div class="card-cockpit">``
     - n_price:    erste N Cards mit ``cockpit-price``
     - n_pillar:   TOTAL-Anzahl ``cockpit-pillar`` über alle Cards
-                  (sequenziell ab Card #1 verteilt, max 3 pro Card).
+                  (sequenziell ab Card #1 verteilt, max _PILLARS_PER_CARD pro Card).
                   Pillar-Value wird immer mit dem Pillar zusammen
                   gerendert.
 
@@ -54,13 +57,13 @@ def _build_html(n_articles: int = 10,
     if n_price is None:
         n_price = n_articles
     if n_pillar is None:
-        n_pillar = n_articles * 3
+        n_pillar = n_articles * _PILLARS_PER_CARD
     broken_setup_idx = set(broken_setup_idx or [])
     zero_setup_idx = set(zero_setup_idx or [])
 
     pv_suffix = " sb-conf-robust" if pillar_value_with_suffix else ""
     dn_suffix = " sb-conf-heur"   if pillar_value_with_suffix else ""
-    pillar_names = ["setup", "monster", "ki"]
+    pillar_names = ["setup", "ki"]  # Monster-Säule seit PR #605 entfernt
 
     parts = ["<html><body>"]
     pillars_remaining = n_pillar
@@ -73,7 +76,7 @@ def _build_html(n_articles: int = 10,
         parts.append('<div class="cockpit-ticker-block"></div>')
         if i < n_price:
             parts.append('<div class="cockpit-price"></div>')
-        card_pillars = min(3, max(0, pillars_remaining))
+        card_pillars = min(_PILLARS_PER_CARD, max(0, pillars_remaining))
         for p_idx in range(card_pillars):
             name = pillar_names[p_idx]
             if name == "setup":
@@ -166,26 +169,26 @@ def test_06_zero_articles_is_crit() -> None:
 
 
 def test_07_pillar_count_multiplier_correct() -> None:
-    """3 Pillars pro Karte: 10 Karten → 30 Pillars. 15 vorhanden → WARN (50 %)."""
-    # 15/30 = 50 % → 15 <= 30/2 = 15 → CRIT (per `<=` Grenze)
-    html = _build_html(10, n_pillar=15)
+    """2 Pillars pro Karte: 10 Karten → 20 Pillars. 10 vorhanden → CRIT (50 %)."""
+    # 10/20 = 50 % → 10 <= 20/2 = 10 → CRIT (per `<=` Grenze)
+    html = _build_html(10, n_pillar=10)
     fails = evaluate_html_assertions(html)
     pillar = [f for f in fails if f["id"] == "html_cockpit_pillar_count"]
     assert len(pillar) == 1, f"erwartet Fail für pillar, bekam: {fails}"
-    assert pillar[0]["severity"] == "crit"  # 15 == 30/2 → crit
-    assert pillar[0]["expected"] == 30
-    assert pillar[0]["actual"] == 15
+    assert pillar[0]["severity"] == "crit"  # 10 == 20/2 → crit
+    assert pillar[0]["expected"] == 20
+    assert pillar[0]["actual"] == 10
 
 
 def test_08_pillar_warn_pfad() -> None:
-    """20/30 Pillars = 66 % → WARN (zwischen 50 % und 100 %)."""
-    html = _build_html(10, n_pillar=20)
+    """15/20 Pillars = 75 % → WARN (zwischen 50 % und 100 %)."""
+    html = _build_html(10, n_pillar=15)
     fails = evaluate_html_assertions(html)
     pillar = [f for f in fails if f["id"] == "html_cockpit_pillar_count"]
     assert len(pillar) == 1
     assert pillar[0]["severity"] == "warn"
-    assert pillar[0]["actual"] == 20
-    assert pillar[0]["expected"] == 30
+    assert pillar[0]["actual"] == 15
+    assert pillar[0]["expected"] == 20
 
 
 def test_09_smaller_article_count_basis() -> None:
@@ -205,13 +208,13 @@ def test_10_invalid_input() -> None:
 def test_11_all_three_per_card_with_mix() -> None:
     """Mix-Szenario: alles passt außer card-cockpit (9 statt 10) → CRIT-Mix.
 
-    cockpit-price und pillar bleiben OK (10 / 30) — nur Mix-Eintrag.
+    cockpit-price und pillar bleiben OK (10 / 20) — nur Mix-Eintrag.
 
     Card #10 hat in der Phase-1b-Fixture auch keinen ``card-cockpit``-
     Wrapper, aber alle 7 Gold-List-Per-Card-Checks (price/ticker-block/
     pillar/pillar-value/donut-number) sind via Helper-Default trotzdem
     in jeder Card vorhanden — daher KEIN zusätzlicher Phase-1b-Fail."""
-    html = _build_html(10, n_cockpit=9, n_price=10, n_pillar=30)
+    html = _build_html(10, n_cockpit=9, n_price=10, n_pillar=20)
     fails = evaluate_html_assertions(html)
     assert len(fails) == 1, f"erwartet exakt 1 Fail (Mix only), bekam: {fails}"
     assert fails[0]["id"] == "html_card_cockpit_count"
@@ -329,6 +332,19 @@ def test_20_per_card_donut_number_prefix_match() -> None:
     assert dn == [], f"erwartet 0 Donut-Fails, bekam: {dn}"
 
 
+def test_21_real_golden_html_passes() -> None:
+    """Regression (Wächter 24.10.2026): das echte Outer-Page-Golden (vom
+    echten Renderer erzeugt) muss S9 bestehen. Nach PR #605 (Monster-Säule
+    entfernt, 2 statt 3 Säulen) erwartete S9 weiter 3 Säulen pro Karte
+    und blockierte jeden Daily-Run mit CRIT. Dieser Test bindet S9 an den
+    tatsächlichen Render-Output statt nur an synthetische Fixtures."""
+    golden = ROOT / "tests" / "golden" / "report_outer_page.html"
+    html = golden.read_text(encoding="utf-8")
+    assert html.count('<article class="card') >= 1, "Golden ohne Karten?"
+    fails = evaluate_html_assertions(html)
+    assert fails == [], f"echtes Golden darf keine S9-Fails haben: {fails}"
+
+
 def main() -> int:
     tests = [
         test_01_all_correct,
@@ -352,6 +368,7 @@ def main() -> int:
         test_18_prefix_match_with_conf_suffix_counts,
         test_19_per_card_fail_detail_names_card_index,
         test_20_per_card_donut_number_prefix_match,
+        test_21_real_golden_html_passes,
     ]
     failed = 0
     for t in tests:
