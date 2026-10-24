@@ -33,8 +33,13 @@ import re
 #
 # Jeder Eintrag definiert ein Klassen-Literal, dessen Vorkommen relativ
 # zur tatsächlichen article-count erwartet wird. Multiplikator gibt an,
-# wie oft pro Karte das Literal vorkommen muss (3 = 3 Cockpit-Pillars
-# pro Karte etc.).
+# wie oft pro Karte das Literal vorkommen muss (_PILLARS_PER_CARD =
+# Cockpit-Pillars pro Karte etc.).
+
+# Cockpit-Säulen pro Karte. Seit PR #605 (Easy-Entscheid 24.10.2026,
+# Monster-Säule entfernt) nur noch Setup + KI = 2 (vorher 3). Muss zu
+# ``pillar_specs`` in ``generate_report._card_cockpit_html`` passen.
+_PILLARS_PER_CARD = 2
 
 _ARTICLE_LITERAL = '<article class="card'
 
@@ -54,7 +59,7 @@ _ASSERTION_SPECS = (
     {
         "id":          "html_cockpit_pillar_count",
         "literal":     'class="cockpit-pillar"',
-        "per_article": 3,
+        "per_article": _PILLARS_PER_CARD,
         "label":       "cockpit-pillar",
     },
 )
@@ -147,7 +152,7 @@ def evaluate_html_assertions(html: str) -> list[dict]:
 # ── Phase 1b — Pro-Card-Checks ─────────────────────────────────────────────
 #
 # Gold-Liste der deterministischen Per-Card-Checks (alle mit per-Card-
-# Count == 1 oder 3 als Soll-Wert):
+# Count == 1 oder _PILLARS_PER_CARD als Soll-Wert):
 _PER_CARD_ASSERTION_SPECS = (
     {
         "id":       "html_per_card_cockpit_price",
@@ -168,7 +173,7 @@ _PER_CARD_ASSERTION_SPECS = (
         "label":    "cockpit-pillar",
         "literal":  'class="cockpit-pillar"',
         "is_prefix": False,
-        "per_card": 3,
+        "per_card": _PILLARS_PER_CARD,
     },
     {
         # Prefix-Falle: im echten HTML steht hier IMMER ein Konfidenz-
@@ -178,7 +183,7 @@ _PER_CARD_ASSERTION_SPECS = (
         "label":    "cockpit-pillar-value",
         "literal":  'class="cockpit-pillar-value',
         "is_prefix": True,
-        "per_card": 3,
+        "per_card": _PILLARS_PER_CARD,
     },
     {
         # Selbe Prefix-Falle wie pillar-value.

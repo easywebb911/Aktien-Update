@@ -1779,6 +1779,27 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
   **Rückweg:** `git revert` des Merge-Commits.
 
+### 24.10.2026 — [Wächter] S9-HTML-Check auf 2 Cockpit-Säulen nachgezogen (1 PR)
+
+- **Health-Check S9 (`scripts/check_html_assertions.py`) erwartete nach
+  `#605` weiter 3 Cockpit-Säulen pro Karte (Klasse A, Wächter-Self-Merge
+  bei grünen Gates):** `#PRNR` (Branch `claude/waechter-s9-pillar-count-x4m9`,
+  kein Merge-Hash genannt — Regel a) greift). Befund: manueller Daily-Run
+  24.10. 16:57 UTC (Run 40113911821) endete mit „HTML-Sanity-Check CRIT:
+  3 Fail(s)" + Exit 1 → kein Deploy. Ursache: `#605` entfernte die
+  Monster-Säule (`_card_cockpit_html`, jetzt nur Setup + KI), S9 prüfte aber
+  hartkodiert `per_article: 3` / `per_card: 3` für `cockpit-pillar` und
+  `cockpit-pillar-value`. Beleg: das echte Golden nach `#605` liefert genau
+  die 3 Live-Fails (pillar_count warn, per_card_pillar crit,
+  per_card_pillar_value crit). Die Mock-Tests nutzten nur synthetische
+  3-Säulen-Fixtures und blieben grün. Ohne Fix wäre jeder Daily-Run ab
+  Mo 26.10. rot geblieben (alte index.html bleibt stehen, täglicher
+  CRIT-Push). Änderung: Konstante `_PILLARS_PER_CARD = 2` statt der drei
+  hartkodierten 3er; Test-Fixture auf 2 Säulen; neuer Test 21 prüft S9
+  gegen das echte Golden (schlägt mit altem Code fehl, mit Fix grün).
+  Kein Score-/Filter-/Push-/Exit-/Freeze-Bezug. **Rückweg:** `git revert`
+  des Merge-Commits.
+
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
 Token in `backtest_history.json`, Ursache `_extract_hist_5d`
