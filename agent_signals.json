@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-24T22:50:50.774515+02:00",
+  "updated": "2026-10-25T01:15:19.124314+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 15.4,
+    "elapsed_s": 11.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 5.669412205166604
     },
     "BKYI": {
-      "score": 66,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 4.3× + ⚡ Extremes Volumen 4.3×+ + Spanne 21.9% + News: contract",
+      "drivers": "Volumen 4.3× + ⚡ Extremes Volumen 4.3×+ + Spanne 21.9% + News-KI 8/30: Contract wins and leadership appointments are positive but lack evidence of high short interest, low float, or significa",
       "price": 3.39,
       "chg_pct": 0.0,
       "rvol_4d": 4.27,
@@ -44,9 +44,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 5.7
     },
     "ENVX": {
-      "score": 83,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 21.1% + Earnings in 19d + UOA Call-Vol/OI 10.1× ATM + UOA Call/Put 40.7×",
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 21.1% + News-KI 15/30: Positive order news is offset by analyst downgrades and fair value cuts, suggesting limited short-squeeze catalysts with + Earnings in 19d + UOA Call-Vol/OI 10.1× ATM + UOA Call/Put 40.7×",
       "price": 2.79,
       "chg_pct": -0.0,
       "rvol_4d": 3.58,
@@ -88,9 +88,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 10.1× ATM",
@@ -121,9 +121,9 @@
       "uoa_cp_ratio": 0.130961026385863
     },
     "IONQ": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 12d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Negative sentiment with comparison articles suggesting IonQ may underperform competitors; limited short squeeze potentia + Earnings in 12d",
       "price": 31.27,
       "chg_pct": 0.0,
       "rvol_4d": 0.63,
@@ -135,7 +135,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.8068470969234328,
@@ -234,7 +234,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 7.9% + News: partnership, contract + Earnings in 18d + UOA Call/Put 4.5×",
+      "drivers": "Spanne 7.9% + News: revenue beat, contract + Earnings in 18d + UOA Call/Put 4.5×",
       "price": 3.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.73,
@@ -280,7 +280,7 @@
     "VEEA": {
       "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 11.8× + 🚀 Massives Volumen 11.8×+ + Spanne 29.1% + News-KI 12/30: Positive business developments and partnerships, but lack of short interest catalyst, squeeze-specific indicators, or fo",
+      "drivers": "Volumen 11.8× + 🚀 Massives Volumen 11.8×+ + Spanne 29.1% + News-KI 12/30: Positive business developments and strategic partnerships, but no indicators of high short interest, low float, or squee",
       "price": 4.93,
       "chg_pct": -0.0,
       "rvol_4d": 11.82,
