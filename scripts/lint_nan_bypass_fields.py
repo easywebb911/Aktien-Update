@@ -224,38 +224,38 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     ("generate_report.py", 5858, "float_shares"),
     ("generate_report.py", 5859, "float_shares"),
     ("generate_report.py", 5860, "float_shares"),
-    ("generate_report.py", 6463, "score"),
-    ("generate_report.py", 6920, "short_float"),
-    ("generate_report.py", 6921, "short_ratio"),
-    ("generate_report.py", 6922, "rel_volume"),
-    ("generate_report.py", 6924, "change"),
-    ("generate_report.py", 7190, "float_shares"),
-    ("generate_report.py", 7295, "52w_high"),
-    ("generate_report.py", 7295, "52w_low"),
-    ("generate_report.py", 7392, "price"),
-    ("generate_report.py", 7393, "short_float"),
-    ("generate_report.py", 7394, "short_ratio"),
-    ("generate_report.py", 7395, "rel_volume"),
-    ("generate_report.py", 7396, "change"),
-    ("generate_report.py", 7731, "float_shares"),
-    ("generate_report.py", 7739, "52w_high"),
-    ("generate_report.py", 7740, "52w_low"),
-    ("generate_report.py", 8422, "float_shares"),
-    ("generate_report.py", 17196, "entry_price"),
-    ("generate_report.py", 17205, "price"),
-    ("generate_report.py", 17229, "setup_today"),
-    ("generate_report.py", 17986, "score"),
-    ("generate_report.py", 18485, "score"),
-    # Technische Schutz-Sperre (23.10.2026, lint_protected_zones.py): neue
-    # PROTECTED-ZONE-Marker-Kommentare in main() verschieben die 3 Zeilen
-    # unten erneut (reine Verschiebung, per Diff-Hunk-Arithmetik
-    # nachgerechnet, keine neuen Funde).
-    ("generate_report.py", 19045, "score"),
-    ("generate_report.py", 19088, "score"),
-    # Diese letzte generate_report.py-Zeile liegt NACH dem main()-Orchestrierungs-
-    # Block oben — größerer Gesamt-Shift als die Zeilen davor (siehe Kommentar
-    # oben).
-    ("generate_report.py", 19274, "score"),
+    # Monster-Score-Anzeige-Entfernung (24.10.2026, Easy-Entscheid): gemischte
+    # Zeilen-Shifts in generate_report.py — Kommentar-/Doku-Ergänzungen VOR
+    # Zeile ~8423 verschieben nach UNTEN (netto mehr Zeilen), entfernter Code
+    # (Cockpit-Monster-Pillar, Sort-Mode "monster", Chat-Kontext-Felder
+    # monster_today) VOR Zeile ~17189 verschiebt die Funde dahinter nach OBEN
+    # (netto weniger Zeilen). Beide Richtungen per frischem Lint-Lauf
+    # verifiziert (24 Funde unverändert, nur Position), KEIN inhaltlicher Fix.
+    ("generate_report.py", 6474, "score"),
+    ("generate_report.py", 6930, "short_float"),
+    ("generate_report.py", 6931, "short_ratio"),
+    ("generate_report.py", 6932, "rel_volume"),
+    ("generate_report.py", 6934, "change"),
+    ("generate_report.py", 7199, "float_shares"),
+    ("generate_report.py", 7304, "52w_high"),
+    ("generate_report.py", 7304, "52w_low"),
+    ("generate_report.py", 7401, "price"),
+    ("generate_report.py", 7402, "short_float"),
+    ("generate_report.py", 7403, "short_ratio"),
+    ("generate_report.py", 7404, "rel_volume"),
+    ("generate_report.py", 7405, "change"),
+    ("generate_report.py", 7739, "float_shares"),
+    ("generate_report.py", 7747, "52w_high"),
+    ("generate_report.py", 7748, "52w_low"),
+    ("generate_report.py", 8423, "float_shares"),
+    ("generate_report.py", 17189, "entry_price"),
+    ("generate_report.py", 17198, "price"),
+    ("generate_report.py", 17222, "setup_today"),
+    ("generate_report.py", 17979, "score"),
+    ("generate_report.py", 18478, "score"),
+    ("generate_report.py", 19038, "score"),
+    ("generate_report.py", 19081, "score"),
+    ("generate_report.py", 19267, "score"),
     ("health_check.py", 647, "score"),
     ("ki_agent.py", 1367, "last_price"),
     ("ki_agent.py", 2729, "score"),

@@ -476,12 +476,27 @@ berührt.
 
 Bloomberg-Stil-Cockpit-Layout für Top-10-Karten + Watchlist-Drawer.
 Header zweispaltig (rank/ticker links · price/change rechts mit
-farbigem ▲/▼-Pfeil), darunter Cockpit-Body mit drei Sub-Score-Säulen
-(Setup → Monster → KI, jeweils 100 px breit, Label + /100 + 26 px
+farbigem ▲/▼-Pfeil), darunter Cockpit-Body mit Sub-Score-Säulen
+(Setup → KI, jeweils 100 px breit, Label + /100 + 26 px
 Score-Wert + 3 px Progress-Bar) und großem Conviction-Donut rechts
 (SVG 185×185 mit `width`/`height` als HTML-Attribute, stroke-width 7,
 rotate(-90deg) für 12-Uhr-Start, 50 px Zahl in Donut-Mitte, „/ 100"
 darunter, zweizeilige Erklärungs-Caption).
+
+**Monster-Säule entfernt (Easy-Entscheid 24.10.2026):** ursprünglich drei
+Säulen (Setup → Monster → KI) — die Monster-Säule ist aus Cockpit UND
+Watchlist-Drawer entfernt (OoS falsifiziert, 30.06. AUC 0.76→0.51
+kollabiert; redundant, da Setup × KI-Faktor beide einzeln sichtbar sind;
+visuell irreführend). `pillar_specs` in `_card_cockpit_html` enthält nur
+noch `("Setup", …)` + `("KI", …)`. **Berechnung/Persistenz bleiben
+unberührt** (`apply_monster_score`, `app_data.monster_scores`,
+`backtest_history.monster_score`, Health-Check S6) — nur die Anzeige
+fällt weg. Die Monster-Zeile im `CARD_COCKPIT_ENABLED=False`-Fallback
+(`_score_block_inner_html`) ist bewusst unberührt geblieben (dieser Pfad
+ist der dokumentierte Rollback-Mechanismus für das Cockpit-Redesign
+selbst, kein eigenständiger Monster-Anzeige-Pfad — Live-Flag ist `True`,
+der Fallback ist inaktiv). Die zugehörige Sortier-Option „Monster" ist
+ebenfalls entfernt, siehe Abschnitt „Navigation" unten.
 
 ### Stage-Plan
 
@@ -778,7 +793,9 @@ Filter bereinigen.
 
 ## Conviction-Score (Schritt A — Daten, ohne UI)
 
-Vierte Bewertungs-Achse neben Setup-Score, Monster-Score und KI-Score.
+Vierte Bewertungs-Achse neben Setup-Score, Monster-Score und KI-Score
+(Monster-Score seit 24.10.2026 nicht mehr auf den Karten angezeigt —
+Berechnung bleibt, siehe „Karten-Cockpit-Redesign" oben).
 Beantwortet die Aktions-Frage („jetzt einsteigen?") via Aggregation aus
 Setup-Qualität, Earliness, aktiven Anomalie-Triggern und Marktphasen-
 Konformität (VIX-Regime). **Schritt A liefert nur die Daten** — Anzeige
@@ -2498,14 +2515,21 @@ in `STOCKS_CTX` an den Chat:
 
 | Feld | Inhalt |
 |---|---|
-| `today_top10[]`     | pro Ticker `setup_today`, `setup_yesterday`, `setup_delta`, `monster_today`, `ki_today`, RVOL, RSI, Earnings-Tage, Sektor, SI-Trend |
-| `watchlist[]` (seit 17.05.2026) | Easy's persönlich beobachtete Tickers **außerhalb** der Top-10 (heute typischerweise AI, AMC, IONQ, RR, CRMD). 17 Felder analog `today_top10` (`setup_today`, `monster_today`, `ki_today`, `price`, `change`, `change_2d`, `change_5d`, `short_float`, `short_ratio`, `rel_volume`, `rsi14`, `atm_iv`, `earnings_days`, `sector`, `si_trend`, `company`, `ticker`). Quelle: `watchlist_cards`-Dict (= `app_data.json["watchlist_cards"]`). Top-10-Mitglieder werden ausgeschlossen — sind via `today_top10` abgedeckt. Datenqualität ist gleich Top-10 dank Conviction-Coverage Phase 1 + KI-Agent-Coverage Phase 2. **LLM-Vertrag:** bei User-Frage nach Watchlist-Ticker → `watchlist`-Daten nutzen, keine generischen Antworten mehr. Watchlist ist NICHT gerankt (User-pinned, nicht Score-sortiert). |
+| `today_top10[]`     | pro Ticker `setup_today`, `setup_yesterday`, `setup_delta`, `ki_today`, RVOL, RSI, Earnings-Tage, Sektor, SI-Trend |
+| `watchlist[]` (seit 17.05.2026) | Easy's persönlich beobachtete Tickers **außerhalb** der Top-10 (heute typischerweise AI, AMC, IONQ, RR, CRMD). 16 Felder analog `today_top10` (`setup_today`, `ki_today`, `price`, `change`, `change_2d`, `change_5d`, `short_float`, `short_ratio`, `rel_volume`, `rsi14`, `atm_iv`, `earnings_days`, `sector`, `si_trend`, `company`, `ticker`). Quelle: `watchlist_cards`-Dict (= `app_data.json["watchlist_cards"]`). Top-10-Mitglieder werden ausgeschlossen — sind via `today_top10` abgedeckt. Datenqualität ist gleich Top-10 dank Conviction-Coverage Phase 1 + KI-Agent-Coverage Phase 2. **LLM-Vertrag:** bei User-Frage nach Watchlist-Ticker → `watchlist`-Daten nutzen, keine generischen Antworten mehr. Watchlist ist NICHT gerankt (User-pinned, nicht Score-sortiert). |
 | `anomalies_today[]` | `{ticker, trigger, detail}` — `score_jump`, `rvol_high`, `earnings_imminent`, `topten_entry`, `topten_exit` |
 | `topten_changes`    | `{new: [...], dropped: [...]}` vs. Vortag |
-| `positions[]`       | `entry_date`, `entry_price`, `current_price`, `pnl_pct`, `in_top10`, `in_watchlist_card`, `setup_today`, `monster_today` |
+| `positions[]`       | `entry_date`, `entry_price`, `current_price`, `pnl_pct`, `in_top10`, `in_watchlist_card`, `setup_today` |
 | `today_date` / `yesterday_date` | DE-Datums-Strings, auf die die Diffs sich beziehen |
 
-### Quellen-Priorität für Positions-Felder (current_price / setup_today / monster_today)
+**`monster_today` entfernt (Easy-Entscheid 24.10.2026):** war bis
+23.10.2026 Teil von `today_top10[]`/`watchlist[]`/`positions[]` sowie
+der entsprechenden System-Prompt-Erwähnung in `chat_script.jinja` —
+gestrichen, damit das LLM nicht mit dem (unvalidierten, nicht mehr
+angezeigten) Monster-Score argumentiert. `monster_score` bleibt auf dem
+Stock-Dict berechnet; der Chat-Kontext liest ihn schlicht nicht mehr.
+
+### Quellen-Priorität für Positions-Felder (current_price / setup_today)
 
 Reihenfolge in `_build_chat_synthesis_ctx`:
 
@@ -2518,8 +2542,7 @@ Reihenfolge in `_build_chat_synthesis_ctx`:
    Position-Panel liest — Single-Source-Konsistenz zwischen Chat-Ctx
    und Position-Panel.
 3. **Keine Quelle** — beide Flags `False`, `current_price=None`,
-   `setup_today=None`, `monster_today=None`. Das ist die echte
-   „ohne aktuellen Kurs"-Lage.
+   `setup_today=None`. Das ist die echte „ohne aktuellen Kurs"-Lage.
 
 **`in_top10` bleibt strikt** = Membership in heutiger Top-10 — KEIN
 Watchlist-Smearing. Sonst verliert die LLM das Signal „aus Top-10
@@ -3598,7 +3621,7 @@ auf Mobile wraps der Timestamp in Reihe 2.
 | 3 | `zap`            | `triggerKiAgent()` |
 | 4 | `bar-chart-3`    | `scrollToBacktesting()` (öffnet `#bt-section` + scroll) |
 | 5 | `book-open`      | `scrollToMethodology()` (öffnet `details.info-panel` + scroll) |
-| 6 | `arrow-up-down`  | Score-Sortierung-Submenu (Setup ✓ / Monster ✓) |
+| 6 | `arrow-up-down`  | Score-Sortierung-Submenu (Setup ✓ / KI ✓ / Conviction ✓) |
 | 7 | `message-circle` | `toggleChat()` |
 
 **Footer-Reihe** (4 Utility-Buttons): `minus` (A−) · `plus` (A+) ·
@@ -3614,9 +3637,13 @@ irgendwo getriggert wird.
 ### Score-Sortierung-Submenu
 
 Auswahl persistiert in `localStorage['squeeze_sort_mode']` (unverändert
-zur alten Logik). `_applySortMode(mode)` aktualisiert zusätzlich:
-- `#menu-sort-current` (Label „Setup" / „Monster")
-- `#menu-sort-check-setup` / `#menu-sort-check-monster` (`visibility`)
+zur alten Logik). Drei Optionen: `setup` (Default) / `ki` / `conviction`.
+Die frühere vierte Option `monster` ist entfernt (Easy-Entscheid
+24.10.2026, Monster-Score von den Karten genommen) — ein weiterhin im
+localStorage stehender Alt-Wert `monster` fällt fail-soft auf `setup`
+zurück (`_SORT_VALID.indexOf('monster')` liefert `-1`). `_applySortMode(mode)`
+aktualisiert zusätzlich:
+- `#menu-sort-check-setup` / `#menu-sort-check-ki` / `#menu-sort-check-conviction` (`visibility`)
 
 Submenu-Toggle schließt **nicht** den Drawer — Auswahl ist eine Aktion
 INNERHALB des Sub-Menüs. Nach `selectSortMode()` schließt sich das

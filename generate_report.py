@@ -6419,9 +6419,20 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     liegt visuell oben und prominent — Konvergenz-Anzeige aus vier
     Achsen. Setup/Monster/KI bleiben in bisheriger Größe darunter.
     Reihenfolge & Schriftgröße werden rein über CSS-Klassen
-    ``.sort-setup`` / ``.sort-monster`` am Container gesteuert
-    (Conviction immer Order 0). Monster/KI/Conviction-Zeilen werden nur
-    gerendert, wenn die zugehörigen Werte vorhanden sind.
+    ``.sort-setup`` / ``.sort-ki`` am Container gesteuert (Conviction
+    immer Order 0). Monster/KI/Conviction-Zeilen werden nur gerendert,
+    wenn die zugehörigen Werte vorhanden sind.
+
+    Monster-Zeile ist nur im CARD_COCKPIT_ENABLED=False-Fallback-Pfad
+    erreichbar (aktiver Live-Pfad ist der Cockpit, siehe
+    ``_card_cockpit_html`` — dort wurde die Monster-Säule am 24.10.2026
+    entfernt). Hier bewusst unberührt gelassen, da dieser Fallback der
+    dokumentierte Rollback-Pfad für das Cockpit-Redesign ist, kein
+    separater Monster-Anzeige-Pfad — Entfernen hier wäre Scope-Erweiterung
+    für ein inaktives Code-Pfad. Die zugehörige Sortier-Option "Monster"
+    ist entfernt (siehe ``_applySortMode``); die CSS-Klasse
+    ``.sort-monster`` ist dadurch unerreichbar und wurde aus head.jinja
+    entfernt — dieser Row bleibt in natürlicher DOM-Reihenfolge.
     """
     rows: list[str] = []
 
@@ -6529,7 +6540,8 @@ def _card_cockpit_html(
 
     Parallel zu ``_score_block_inner_html``. Produziert komplettes Header-
     Cockpit: Header-Zeile zweispaltig (ticker/badges links, price/change
-    rechts) + Cockpit-Body (Saeulen Setup/Monster/KI links 100 px,
+    rechts) + Cockpit-Body (Saeulen Setup/KI links 100 px — Monster-Saeule
+    entfernt, Easy-Entscheid 24.10.2026, siehe Kommentar unten —,
     Conviction-Donut rechts mit Label, Zahl, /100-Skala, Erklaerungstext).
 
     Stage 1: Helper existiert + ist testbar, aber NICHT im Render-Pfad
@@ -6589,29 +6601,27 @@ def _card_cockpit_html(
     donut_gap = donut_c - donut_dash
 
     setup_val = _safe_float(s.get("score", 0))
-    monster_val = s.get("monster_score")
     ki_val = s.get("ki_signal_score")
 
+    # Monster-Pillar entfernt (Easy-Entscheid 24.10.2026): OoS falsifiziert
+    # (30.06. AUC 0.76→0.51 kollabiert), redundant (Setup × KI-Faktor, beide
+    # einzeln sichtbar), visuell irreführend. Berechnung/Persistenz bleiben
+    # unberührt (apply_monster_score, app_data.monster_scores) — nur die
+    # Anzeige fällt weg. Siehe CLAUDE.md "Score-Methodik & Filterkriterien".
     pillar_specs = [
         ("Setup",   setup_val,   "setup",   f"{setup_val:.1f}"),
-        ("Monster", monster_val, "monster",
-         f"{monster_val:.0f}" if monster_val is not None else "—"),
         ("KI",      ki_val,      "ki",
          f"{ki_val:.0f}" if ki_val is not None else "—"),
     ]
-    # Score-Delta T-1 nur fuer Setup-Pillar — Conviction/Monster/KI haben
-    # heute keine eigene History-Persistenz (siehe CLAUDE.md "Score-Delta
-    # T-1 Phase 1 — Folge-PR-Idee Phase 2").
+    # Score-Delta T-1 nur fuer Setup-Pillar — Conviction/KI haben heute
+    # keine eigene History-Persistenz (siehe CLAUDE.md "Score-Delta T-1
+    # Phase 1 — Folge-PR-Idee Phase 2").
     setup_delta_html = _cockpit_delta_html(s)
     pillars: list[str] = []
     for label, val, conf_key, fmt in pillar_specs:
         if val is None:
             col = "#94a3b8"
             pct = 0.0
-        elif conf_key == "monster":
-            # Neutral-Grau statt Ampel: monster_score unvalidiert (kein grün=gut).
-            col = _MONSTER_NEUTRAL_COLOR
-            pct = max(0.0, min(100.0, float(val)))
         else:
             col = _tri_score_color(val)
             pct = max(0.0, min(100.0, float(val)))
@@ -6943,9 +6953,8 @@ def _card(i: int, s: dict) -> str:
     # Informational hint for candidates below the MIN_SCORE reference value
     below_min_score_html = _score_hint_html(s["score"])
     score_block_html = _score_block_inner_html(s, below_min_score_html)
-    monster_score_val = s.get("monster_score")
-    monster_data_attr = (f' data-monster="{monster_score_val:.1f}"'
-                         if monster_score_val is not None else '')
+    # Monster-Score-data-Attribut entfernt (Easy-Entscheid 24.10.2026) —
+    # war nur Lesepfad für die entfernte Sortier-Option "Monster".
     # Conviction-Score als data-Attribut für die Sortier-Logik im
     # Hamburger-Menü (sort-conviction). Stocks ohne conviction-Feld
     # bleiben ohne Attribut → JS-Fallback sortiert sie ans Ende.
@@ -7244,7 +7253,7 @@ def _card(i: int, s: dict) -> str:
         )
 
     return f"""
-<article class="card{' card-manual' if s.get('manual_personal') else ''}{' card-lazy' if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ''}" id="c{i}" data-ticker="{s['ticker']}" data-setup-rank="{i}"{monster_data_attr}{conviction_data_attr}
+<article class="card{' card-manual' if s.get('manual_personal') else ''}{' card-lazy' if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ''}" id="c{i}" data-ticker="{s['ticker']}" data-setup-rank="{i}"{conviction_data_attr}
   data-score="{sc:.1f}" data-company="{s.get('company_name','')}"
   data-price="{_price:.2f}" data-sf="{sf:.1f}" data-sr="{sr:.1f}"
   data-rv="{rv:.2f}" data-chg="{chg:.2f}" data-si="{si_trend}"
@@ -7481,9 +7490,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
 
     below_min_score_html = _score_hint_html(s["score"])
     score_block_html = _score_block_inner_html(s, below_min_score_html)
-    monster_score_val = s.get("monster_score")
-    monster_data_attr = (f' data-monster="{monster_score_val:.1f}"'
-                         if monster_score_val is not None else '')
+    # Monster-Score-data-Attribut entfernt (Easy-Entscheid 24.10.2026) —
+    # war nur Lesepfad für die entfernte Sortier-Option "Monster".
     # Conviction-Score als data-Attribut für die Sortier-Logik im
     # Hamburger-Menü (sort-conviction). Stocks ohne conviction-Feld
     # bleiben ohne Attribut → JS-Fallback sortiert sie ans Ende.
@@ -7883,7 +7891,6 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "no_data_html":         no_data_html,
         "below_min_score_html": below_min_score_html,
         "score_block_html":     score_block_html,
-        "monster_data_attr":    monster_data_attr,
         "conviction_data_attr": conviction_data_attr,
         "setup_rank":           i,
         "si_shares_per_day_row": si_shares_per_day_row,
@@ -8097,8 +8104,6 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict,
             "setup_today":     setup_today,
             "setup_yesterday": prev_score_f,
             "setup_delta":     delta,
-            "monster_today":   (round(_safe_float(s.get("monster_score", 0)), 1)
-                                if s.get("monster_score") is not None else None),
             "ki_today":        s.get("ki_signal_score"),
             "price":           round(_safe_float(s.get("price", 0)), 2),
             "change":          round(_safe_float(s.get("change", 0)), 2),
@@ -8229,8 +8234,6 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict,
             "in_watchlist_card": (s is None and wl is not None),
             "setup_today":       (round(_safe_float(src.get("score")), 1)
                                   if src and src.get("score") is not None else None),
-            "monster_today":     (round(_safe_float(src.get("monster_score")), 1)
-                                  if (src and src.get("monster_score") is not None) else None),
         })
 
     # Watchlist-Tickers außerhalb der heutigen Top-10 (analog today_top10-
@@ -8252,8 +8255,6 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict,
             "company":         wl_data.get("company_name", ""),
             "setup_today":     (round(_safe_float(wl_data.get("score", 0)), 1)
                                 if wl_data.get("score") is not None else None),
-            "monster_today":   (round(_safe_float(wl_data.get("monster_score", 0)), 1)
-                                if wl_data.get("monster_score") is not None else None),
             "ki_today":        wl_data.get("ki_signal_score"),
             "price":           round(_safe_float(wl_data.get("price", 0)), 2),
             "change":          round(_safe_float(wl_data.get("change", 0)), 2),
@@ -8844,10 +8845,6 @@ def generate_html_v1(stocks: list[dict], report_date: str,
           <i data-lucide="check" class="menu-check" id="menu-sort-check-setup"></i>
           <span>Setup-Score</span>
         </button>
-        <button class="menu-subitem" data-sort="monster" role="menuitemradio" onclick="selectSortMode('monster')">
-          <i data-lucide="check" class="menu-check" id="menu-sort-check-monster"></i>
-          <span>Monster-Score</span>
-        </button>
         <button class="menu-subitem" data-sort="ki" role="menuitemradio" onclick="selectSortMode('ki')">
           <i data-lucide="check" class="menu-check" id="menu-sort-check-ki"></i>
           <span>KI-Score</span>
@@ -9218,10 +9215,10 @@ def generate_html_v1(stocks: list[dict], report_date: str,
           </div>
         </div>
         <p class="score-block-foot score-block-foot-strong">
-          <strong>Monster-Score = Setup-Score × KI-Boost</strong> — KI ≥ 60: +20&nbsp;% · KI &lt; 25: −20&nbsp;% · sonst neutral · Cap 100
+          <strong>Monster-Score</strong> — berechnet, aber nicht angezeigt (OoS falsifiziert 30.06.2026: AUC 0.76→0.51). Formel bleibt dokumentiert: Setup-Score × KI-Boost, KI ≥ 60: +20&nbsp;% · KI &lt; 25: −20&nbsp;% · sonst neutral · Cap 100.
         </p>
         <p class="score-block-foot"><em>Sub-Scores sind unabhängige Qualitätsindikatoren — nicht die Zerlegung des Gesamt-Scores.</em></p>
-        <p class="score-block-foot"><strong>Top-10-Sortierung</strong> (Hamburger-Menü): vier Optionen — <strong>Setup-Score</strong> (Default, Server-seitige Reihenfolge), <strong>Monster-Score</strong> (absteigend nach Setup×KI-Boost), <strong>KI-Score</strong> (absteigend nach reinem KI-Agent-Score, auf Karten sichtbar als pulsierender Dot) oder <strong>Conviction-Score</strong> (absteigend nach Aggregations-Wert — Stocks ohne Conviction-Daten ans Ende). KI-Sortierung wird nach Eingang des stündlichen agent_signals.json-Fetches angewandt.</p>
+        <p class="score-block-foot"><strong>Top-10-Sortierung</strong> (Hamburger-Menü): drei Optionen — <strong>Setup-Score</strong> (Default, Server-seitige Reihenfolge), <strong>KI-Score</strong> (absteigend nach reinem KI-Agent-Score, auf Karten sichtbar als pulsierender Dot) oder <strong>Conviction-Score</strong> (absteigend nach Aggregations-Wert — Stocks ohne Conviction-Daten ans Ende). KI-Sortierung wird nach Eingang des stündlichen agent_signals.json-Fetches angewandt.</p>
         </div>
       </details>
       <details class="info-box info-box--full methodology-card">
@@ -9281,7 +9278,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         <div class="method-content">
         <p class="score-intro-story">
           <strong>Conviction bündelt vier Achsen zu einer Konvergenz-Anzeige</strong>
-          obendrauf zu Setup/Monster/KI. Aggregiert vier Komponenten:
+          obendrauf zu Setup/KI. Aggregiert vier Komponenten:
           Setup-Qualität, Earliness, aktive Anomalie-Trigger und
           Marktphasen-Konformität (VIX-Regime).
         </p>
@@ -9892,22 +9889,24 @@ function changeFontSize(dir){{
   localStorage.setItem(_FS_KEY, String(next));
   _updateFsBtns(next);
 }}
-// ── Sortierung Setup ↔ Monster ↔ KI ─────────────────────────────────────────
+// ── Sortierung Setup ↔ KI ↔ Conviction ──────────────────────────────────────
 // Drei Optionen: ``setup`` (Default, sortiert nach data-setup-rank
-// aufsteigend = Server-seitige Reihenfolge), ``monster`` (data-monster
-// absteigend), ``ki`` (data-ki-score absteigend; wird zur Laufzeit von
-// renderAgentSignals auf jedem Card gesetzt — nicht-zugewiesene Karten
-// landen ans Ende). Persistenz in localStorage[``squeeze_sort_mode``].
+// aufsteigend = Server-seitige Reihenfolge), ``ki`` (data-ki-score
+// absteigend; wird zur Laufzeit von renderAgentSignals auf jedem Card
+// gesetzt — nicht-zugewiesene Karten landen ans Ende), ``conviction``
+// (data-conviction absteigend). Persistenz in
+// localStorage[``squeeze_sort_mode``]. Die frühere vierte Option
+// ``monster`` ist entfernt (Easy-Entscheid 24.10.2026, Monster-Score von
+// den Karten genommen) — ein weiterhin im localStorage stehender Alt-Wert
+// ``monster`` fällt fail-soft auf ``setup`` zurück (``indexOf`` liefert -1).
 const _SORT_KEY = 'squeeze_sort_mode';
-const _SORT_VALID = ['setup', 'monster', 'ki', 'conviction'];
+const _SORT_VALID = ['setup', 'ki', 'conviction'];
 function _applySortMode(mode){{
   const m = _SORT_VALID.indexOf(mode) >= 0 ? mode : 'setup';
   const grid = document.querySelector('.cards-grid');
   if (grid) {{
     const cards = Array.from(grid.querySelectorAll('article.card'));
-    if (m === 'monster') {{
-      cards.sort((a, b) => parseFloat(b.dataset.monster || '0') - parseFloat(a.dataset.monster || '0'));
-    }} else if (m === 'ki') {{
+    if (m === 'ki') {{
       cards.sort((a, b) => parseFloat(b.dataset.kiScore || '0') - parseFloat(a.dataset.kiScore || '0'));
     }} else if (m === 'conviction') {{
       // Conviction: data-conviction (gesetzt nur wenn Wert vorhanden) absteigend.
@@ -9924,20 +9923,17 @@ function _applySortMode(mode){{
   }}
   // Score-Block-Layout: jeder Modus bekommt eine eigene ``sort-*``-
   // Klasse, die den entsprechenden Score nach oben stellt + auf 36px
-  // hochzieht. Genau eine der vier ist gesetzt, die anderen sind aus.
+  // hochzieht. Genau eine der drei ist gesetzt, die anderen sind aus.
   document.querySelectorAll('.score-block').forEach(sb => {{
     sb.classList.toggle('sort-setup',      m === 'setup');
-    sb.classList.toggle('sort-monster',    m === 'monster');
     sb.classList.toggle('sort-ki',         m === 'ki');
     sb.classList.toggle('sort-conviction', m === 'conviction');
   }});
-  // Häkchen im Submenu aktualisieren — exakt eine der vier Optionen aktiv.
+  // Häkchen im Submenu aktualisieren — exakt eine der drei Optionen aktiv.
   const cs = document.getElementById('menu-sort-check-setup');
-  const cm = document.getElementById('menu-sort-check-monster');
   const ck = document.getElementById('menu-sort-check-ki');
   const cc = document.getElementById('menu-sort-check-conviction');
   if (cs) cs.style.visibility = (m === 'setup')      ? 'visible' : 'hidden';
-  if (cm) cm.style.visibility = (m === 'monster')    ? 'visible' : 'hidden';
   if (ck) ck.style.visibility = (m === 'ki')         ? 'visible' : 'hidden';
   if (cc) cc.style.visibility = (m === 'conviction') ? 'visible' : 'hidden';
 }}
@@ -11177,14 +11173,11 @@ function _kiInsightItems(appData) {{
     items.push(`VIX bei ${{v}} — ${{phrase}}`);
   }});
 
-  // (2) Monster-Score-Spitze
-  _try(() => {{
-    const entries = Object.entries(monster).filter(([_, v]) => typeof v === 'number' && isFinite(v));
-    if (!entries.length) return;
-    entries.sort((a, b) => b[1] - a[1]);
-    const [t, sc] = entries[0];
-    items.push(`${{t}} hat heute den höchsten Monster-Score mit ${{Math.round(sc)}}`);
-  }});
+  // (2) Monster-Score-Spitze ENTFERNT (Easy-Entscheid 24.10.2026, Monster-
+  // Score von den Karten genommen — OoS falsifiziert, redundant, visuell
+  // irreführend). ``monster`` bleibt als Variable bestehen — wird weiter
+  // unten (Item "Score-Sprung") rein für die Universums-Mitgliedschaft
+  // gelesen (``t in monster``), nicht für die Anzeige eines Wertes.
 
   // (3) Stabilstes Setup unter den Top-3 Setup-Scores (kleine Score-
   // Standardabweichung über die letzten ≤5 History-Einträge → "stabil")
@@ -14055,7 +14048,7 @@ function _fmtGerman(d) {{
     }}
     // Re-Sort wenn KI-Modus aktiv — Card-DataAttr ``kiScore`` ist jetzt
     // erst gefüllt (vor dem agent_signals.json-Fetch wäre der Sort
-    // sinnlos gewesen). Server-side Setup-/Monster-Sort braucht das nicht.
+    // sinnlos gewesen). Server-side Setup-Sort braucht das nicht.
     try {{
       if ((localStorage.getItem(_SORT_KEY) || 'setup') === 'ki'
           && typeof _applySortMode === 'function') {{

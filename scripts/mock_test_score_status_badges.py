@@ -133,10 +133,18 @@ def test_08_rank_context_reuses_existing_text() -> None:
 
 
 def test_09_monster_still_neutral() -> None:
+    # Monster-Pillar im Cockpit ist entfernt (Easy-Entscheid 24.10.2026) —
+    # die Neutral-Farb-KONSTANTE + ihre Verwendung im Legacy-Fallback
+    # (_score_block_inner_html, m_col) bleiben bestehen (Berechnung/
+    # Persistenz-Prinzip bleibt sichtbar, nur die Cockpit-Anzeige fällt
+    # weg). Der frühere Cockpit-Sonderzweig ``conf_key == "monster"``
+    # existiert nicht mehr, weil "monster" gar nicht mehr in
+    # pillar_specs auftaucht.
     assert "_MONSTER_NEUTRAL_COLOR" in GR_SRC, "Monster-Neutral-Farbe entfernt?"
-    assert 'conf_key == "monster"' in GR_SRC and \
-        "col = _MONSTER_NEUTRAL_COLOR" in GR_SRC, \
-        "Monster-Pillar nicht mehr neutral gefärbt"
+    assert "m_col = _MONSTER_NEUTRAL_COLOR" in GR_SRC, \
+        "Monster-Zeile im Legacy-Fallback nicht mehr neutral gefärbt"
+    assert 'elif conf_key == "monster":' not in GR_SRC, \
+        "Cockpit-Pillar-Sonderzweig für Monster sollte entfernt sein (Saeule weg)"
 
 
 def test_10_badge_describes_score_not_stock() -> None:

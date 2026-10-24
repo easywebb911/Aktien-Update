@@ -1712,6 +1712,72 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   **Rückweg:** `git revert` des Commits, der `agent_ntfy_relay.yml`
   einführt.
 
+### 24.10.2026 — Monster-Score von den Karten genommen (1 PR, Anzeige/Golden)
+
+- **Monster-Säule aus Cockpit + Watchlist-Drawer entfernt, Sortier-Option
+  „Monster" entfernt, Chat-Kontext + Methodik-Panel angepasst
+  (Block-1-Pflicht befolgt; Auto-Merge-Kandidat, da `lint_protected_zones.py`
+  grün — PR trotzdem nur auf Ready gesetzt, nicht selbst gemergt, laut
+  Auftrag):** PR auf Branch `claude/remove-monster-score-display`
+  (PR-Nummer siehe unten nachgetragen) setzt Easys Entscheid um: Monster-
+  Score ist OoS falsifiziert (30.06. AUC 0.76→0.51 kollabiert), redundant
+  (Setup × KI-Faktor, beide einzeln sichtbar) und visuell irreführend.
+  **Berechnung + Persistenz bleiben unberührt** — `apply_monster_score`,
+  `app_data.json["monster_scores"]`, `backtest_history.json.monster_score`,
+  Health-Check S6 (`monster_scores`-Coverage-Check) sind alle unverändert;
+  nur die Anzeige fällt weg.
+
+  **SCHRITT 0 (Konsumenten-Liste, vollständig gegrept, mit Entscheidung):**
+
+  | Fundstelle | Entscheidung | Begründung |
+  |---|---|---|
+  | `_card_cockpit_html` (`pillar_specs`, Cockpit-Säule) | **weg** | Live-Anzeige-Pfad (CARD_COCKPIT_ENABLED=True); Watchlist-Drawer erbt automatisch (ruft dieselbe Funktion über `_card`) |
+  | `_score_block_inner_html` (Monster-Row, Legacy-Fallback) | **bleibt** | Nur erreichbar bei `CARD_COCKPIT_ENABLED=False` — dokumentierter Rollback-Pfad für das Cockpit-Redesign selbst (anderes Feature), nicht eigenständiger Monster-Anzeige-Pfad. Entfernen wäre Scope-Erweiterung für inaktiven Code |
+  | `data-monster`-Attribut (`_card`/`_build_card_ctx`/`card.jinja`) | **weg** | Einziger Zweck war der jetzt entfernte Sortier-Modus |
+  | Sortier-Menü „Monster-Score" (HTML-Button, `_SORT_VALID`, `_applySortMode`, Checkbox-Refs) | **weg** | explizit im Auftrag; Alt-Wert `monster` in `localStorage` fällt fail-soft auf `setup` zurück (`indexOf` liefert -1) |
+  | Chat-Kontext `monster_today` (3× in `_build_chat_synthesis_ctx`: `today_top10`/`positions_out`/`watchlist_out`) + `chat_script.jinja`-Feldliste | **weg** | reiner Anzeige-Datenpfad für die LLM, kein Score-/Filter-Effekt; SCHRITT-0-Check bestätigte keine andere Stelle liest `monster_today` |
+  | KI-Insight-Stream „Monster-Score-Spitze" (`_kiInsightItems`, Item 2) | **weg** | zeigt Monster-Wert explizit im `#ki-insight-stream`-UI-Band — nicht in der ursprünglichen Liste genannt, aber eindeutig von „kein Chat/keine Karte zeigt mehr Monster" erfasst. Die `monster`-JS-Variable selbst bleibt (Universums-Mitgliedschafts-Check in Item „Score-Sprung", keine Anzeige) |
+  | `_wl_card_payload`-Feld `monster_score` (watchlist_cards-Schema) | **bleibt** | Persistenz/Schema, kein Display-Lesepfad (Mini-Tile/Drawer lesen es nicht); Entfernen wäre Schema-Änderung (harte Grenze) |
+  | `entry_monster_score`-Snapshot (Position-Open, Gist) | **bleibt** | reine Metadaten-Persistenz, wird nirgends gerendert |
+  | Methodik-Panel „Boni/Malus/Monster-Score"-Box | **gekürzt, nicht gelöscht** | Formel-Zeile → „berechnet, aber nicht angezeigt (OoS falsifiziert 30.06.2026)"; Sortier-Satz von „vier" auf „drei Optionen" korrigiert |
+  | Konfidenz-Tabelle „Monster-Score"-Zeile (`_score_confidence_rows_html`) | **bleibt** | unabhängige Validierungs-Status-Anzeige, kein Score-/Filter-Effekt, nicht Teil der Karten-Anzeige |
+  | `ki_agent.py` (`send_ntfy_alert(monster_score=...)`, `_monster_score`, Push-Pfade) | **bleibt, nicht angefasst** | Push-Pfad, harte Grenze; Body rendert Monster laut eigenem Docstring bereits seit 06.08.2026 nicht mehr |
+
+  **Mini-Stopp-Check (kein Fund):** kein Score-/Push-/Exit-/Test-Pfad liest
+  die ANZEIGE-Werte (`monster_today`, Cockpit-Pillar-HTML) — alle Treffer
+  waren entweder reine Anzeige oder die bereits geschützte Push-Pipeline
+  (`ki_agent.py`), die unberührt blieb.
+
+  **Golden-Diff (Beleg, nur erwartete Stellen, 29 Insertions/37 Deletions):**
+  pro Karte ein entferntes `data-monster="…"`-Attribut + ein entfernter
+  `<div class="cockpit-pillar" data-sb="monster">…</div>`-Block, die
+  Methodik-Panel-Zeilen (Formel-Kürzung, „drei Optionen", „Setup/KI" statt
+  „Setup/Monster/KI"), das entfernte Sortier-Menü-Item, die gekürzte
+  `_SORT_VALID`/`_applySortMode`-JS-Sektion, der gekürzte `chat_script.jinja`-
+  Feldsatz und das entfernte `monster_today` im eingebetteten `STOCKS_CTX`-
+  JSON. Kein anderer Teil der Seite berührt.
+
+  **Tests:** 2 neue/angepasste Assertions in `mock_test_card_cockpit_stage1.py`
+  (Test 04/15: zwei statt drei Säulen, Monster-Label/-Marker darf nicht mehr
+  vorkommen), `mock_test_monster_neutralization.py` (A6/C2 korrigiert auf den
+  neuen Zustand + neue Sektion D: `_SORT_VALID` ohne „monster" + Fallback-
+  Ternary-Beleg), `mock_test_score_status_badges.py` (Test 09 korrigiert),
+  `mock_test_chat_watchlist_ctx.py` (Test 04: 16 statt 17 Pflichtfelder).
+  `scripts/lint_nan_bypass_fields.py`-Baseline um die gemischten
+  Zeilen-Shifts nachgeführt (reine Verschiebung, 24 unveränderte Funde,
+  kein inhaltlicher Fix). Golden neu erzeugt. Alle 7 Lints + 163
+  Allowlist-Tests grün, inkl. `lint_protected_zones.py` (Auto-Merge-
+  Voraussetzung erfüllt).
+
+  **Nicht angefasst (harte Grenze eingehalten):** `apply_monster_score`,
+  `score()`, Top-10-Filter/-Ranking, alle Push-/Exit-Pfade (`ki_agent.py`
+  unverändert), kein Schema-Change an `app_data.json`/`backtest_history.json`/
+  `watchlist_cards`.
+
+  squeeze-guardian lief vor Ready (Ergebnis siehe PR-Bericht).
+
+  **Rückweg:** `git revert` des Merge-Commits.
+
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
 Token in `backtest_history.json`, Ursache `_extract_hist_5d`

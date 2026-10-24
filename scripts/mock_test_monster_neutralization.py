@@ -24,7 +24,16 @@ TEIL B2 — Signal-Zähler monster-frei (source):
 
 BLEIBT unangetastet (Belege):
   C1 apply_monster_score unverändert vorhanden (Berechnung bleibt).
-  C2 Sortier-Option data-sort="monster" bleibt.
+  C2 ÜBERHOLT (24.10.2026, Easy-Entscheid): die Sortier-Option
+     data-sort="monster" selbst ist jetzt ENTFERNT — nicht mehr Teil der
+     "bleibt unangetastet"-Garantie. Test C2 prüft seitdem das Gegenteil
+     (Option weg), siehe Testkörper. Nur die BERECHNUNG (C1) bleibt.
+
+TEIL D — Sortier-Fallback (neu, 24.10.2026):
+  D1/D2 _SORT_VALID enthält kein "monster" mehr, aber weiterhin "setup".
+  D3 Fallback-Ternary (`_SORT_VALID.indexOf(mode) >= 0 ? mode : 'setup'`)
+     unverändert — ein alter localStorage-Wert "monster" fällt dadurch
+     automatisch (fail-soft, kein Sonderfall-Code) auf "setup" zurück.
 
 generate_report + ki_agent importieren schwere Module — vor dem Import gestubbt
 (Union der beiden Stub-Sätze). Funktionale Tests nutzen Fixtures, kein Netz.
@@ -35,6 +44,7 @@ Exit 0 bei Erfolg, 1 bei Fail.
 from __future__ import annotations
 
 import pathlib
+import re
 import sys
 import types
 
@@ -179,9 +189,32 @@ def _test_untouched():
     gr.apply_monster_score([stock])
     _check("C1b apply_monster_score setzt monster_score (funktional)",
            isinstance(stock.get("monster_score"), (int, float)))
-    # Sortier-Option bleibt.
-    _check("C2 Sortier-Option data-sort=\"monster\" bleibt",
-           'data-sort="monster"' in gr_src)
+    # Sortier-Option "monster" ist entfernt (Easy-Entscheid 24.10.2026,
+    # Monster-Score von den Karten genommen — siehe mock_test_
+    # card_cockpit_stage1.py Test 04/15 für die Cockpit-Konsequenz).
+    _check("C2 Sortier-Option data-sort=\"monster\" entfernt",
+           'data-sort="monster"' not in gr_src)
+
+
+# ── D — Sortier-Fallback (fail-soft bei Alt-Wert "monster") ──────────────────
+def _test_sort_fallback():
+    print("── D — Sortier-Fallback fuer Alt-Wert \"monster\" ─────────────")
+    gr_src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+    m = re.search(r"_SORT_VALID\s*=\s*\[([^\]]*)\]", gr_src)
+    _check("D0 _SORT_VALID gefunden", bool(m))
+    if not m:
+        return
+    valid_values = [v.strip().strip("'\"") for v in m.group(1).split(",") if v.strip()]
+    _check("D1 _SORT_VALID enthaelt kein 'monster' mehr",
+           "monster" not in valid_values, f"got {valid_values}")
+    _check("D2 _SORT_VALID enthaelt weiterhin 'setup'",
+           "setup" in valid_values, f"got {valid_values}")
+    # Die Fallback-Ternary selbst ist unveraendert — jeder Wert, der nicht
+    # (mehr) in _SORT_VALID steht (inkl. eines alten localStorage-Eintrags
+    # "monster"), faellt auf "setup" zurueck. indexOf('monster') liefert
+    # -1 (>= 0 ist False) -> Fallback greift ohne Sonderfall-Code.
+    _check("D3 Fallback-Ternary vorhanden (indexOf(mode) >= 0 ? mode : 'setup')",
+           "_SORT_VALID.indexOf(mode) >= 0 ? mode : 'setup'" in gr_src)
 
 
 # ── TEIL A2 — Neutral-Grau statt Ampel (Feinschliff, beide Pfade) ─────────────
@@ -193,8 +226,13 @@ def _test_neutral_color():
     _check("A5 Score-Row: Monster nutzt _MONSTER_NEUTRAL_COLOR (nicht Ampel)",
            "m_col = _MONSTER_NEUTRAL_COLOR" in gr_src
            and "m_col = _tri_score_color(ms)" not in gr_src)
-    _check("A6 Cockpit-Pillar: monster-Zweig auf _MONSTER_NEUTRAL_COLOR",
-           'elif conf_key == "monster":' in gr_src
+    # Cockpit-Pillar: Monster-Saeule selbst ist entfernt (Easy-Entscheid
+    # 24.10.2026) — der frühere monster-Sonderzweig in der Pillar-Schleife
+    # (_card_cockpit_html) existiert nicht mehr, weil "monster" gar nicht
+    # mehr in pillar_specs auftaucht. Die Neutral-Farb-LOGIK selbst bleibt
+    # nur noch im Legacy-Fallback (_score_block_inner_html, A5 oben) aktiv.
+    _check("A6 Cockpit-Pillar: monster-Sonderzweig entfernt (Saeule weg)",
+           'elif conf_key == "monster":' not in gr_src
            and gr_src.count("col = _MONSTER_NEUTRAL_COLOR") >= 1)
     # Funktional: der neutrale Farbwert ist NICHT das Ampel-Grün.
     _check("A7 Neutral-Farbe ist grau, nicht grün (#22c55e)",
@@ -263,6 +301,7 @@ def main() -> int:
     _test_signal_counter()
     _test_earnings_body_neutral()
     _test_untouched()
+    _test_sort_fallback()
     print()
     if _fails:
         print(f"✗ {len(_fails)} FAIL: {_fails}")
