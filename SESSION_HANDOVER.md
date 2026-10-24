@@ -1783,7 +1783,7 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
 - **Health-Check S9 (`scripts/check_html_assertions.py`) erwartete nach
   `#605` weiter 3 Cockpit-Säulen pro Karte (Klasse A, Wächter-Self-Merge
-  bei grünen Gates):** `#PRNR` (Branch `claude/waechter-s9-pillar-count-x4m9`,
+  bei grünen Gates):** `#606` (Branch `claude/waechter-s9-pillar-count-x4m9`,
   kein Merge-Hash genannt — Regel a) greift). Befund: manueller Daily-Run
   24.10. 16:57 UTC (Run 40113911821) endete mit „HTML-Sanity-Check CRIT:
   3 Fail(s)" + Exit 1 → kein Deploy. Ursache: `#605` entfernte die
