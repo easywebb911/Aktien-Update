@@ -1718,8 +1718,9 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   „Monster" entfernt, Chat-Kontext + Methodik-Panel angepasst
   (Block-1-Pflicht befolgt; Auto-Merge-Kandidat, da `lint_protected_zones.py`
   grün — PR trotzdem nur auf Ready gesetzt, nicht selbst gemergt, laut
-  Auftrag):** PR auf Branch `claude/remove-monster-score-display`
-  (PR-Nummer siehe unten nachgetragen) setzt Easys Entscheid um: Monster-
+  Auftrag):** `#605` (Branch-Commit `949f8b47`, 24.10., kein Merge-Hash
+  genannt — Regel a) greift, der steht vor dem Merge noch nicht fest)
+  setzt Easys Entscheid um: Monster-
   Score ist OoS falsifiziert (30.06. AUC 0.76→0.51 kollabiert), redundant
   (Setup × KI-Faktor, beide einzeln sichtbar) und visuell irreführend.
   **Berechnung + Persistenz bleiben unberührt** — `apply_monster_score`,
