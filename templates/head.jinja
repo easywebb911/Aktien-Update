@@ -1246,10 +1246,12 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .score-block.sort-setup .sb-row[data-sb="monster"]{order:2}
 .score-block.sort-setup .sb-row[data-sb="ki"]{order:3}
 .score-block.sort-setup .sb-row[data-sb="setup"] .sb-num{font-size:36px;font-weight:900}
-.score-block.sort-monster .sb-row[data-sb="monster"]{order:1}
-.score-block.sort-monster .sb-row[data-sb="setup"]{order:2}
-.score-block.sort-monster .sb-row[data-sb="ki"]{order:3}
-.score-block.sort-monster .sb-row[data-sb="monster"] .sb-num{font-size:36px;font-weight:900}
+/* .score-block.sort-monster ENTFERNT (Easy-Entscheid 24.10.2026) — die
+   Sortier-Option "Monster" existiert nicht mehr (_applySortMode), diese
+   Klasse ist seitdem unerreichbar. Die .sb-row[data-sb="monster"]-Zeile
+   selbst bleibt im CARD_COCKPIT_ENABLED=False-Fallback erhalten (siehe
+   _score_block_inner_html) — sie steht dort künftig in natürlicher
+   DOM-Reihenfolge statt per sort-monster neu geordnet zu werden. */
 .score-block.sort-ki .sb-row[data-sb="ki"]{order:1}
 .score-block.sort-ki .sb-row[data-sb="setup"]{order:2}
 .score-block.sort-ki .sb-row[data-sb="monster"]{order:3}

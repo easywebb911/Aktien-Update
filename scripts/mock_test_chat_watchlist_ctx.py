@@ -133,17 +133,21 @@ def test_03_top10_tickers_excluded() -> None:
 
 
 def test_04_required_fields_present() -> None:
+    # monster_today entfernt (Easy-Entscheid 24.10.2026, Monster-Score von
+    # den Karten/Chat genommen) — 16 statt vormals 17 Pflichtfelder.
     ctx = _build_chat_synthesis_ctx([], {}, {"XYZ": _make_wl_card("XYZ")})
     entry = ctx["watchlist"][0]
     required = [
-        "ticker", "company", "setup_today", "monster_today", "ki_today",
+        "ticker", "company", "setup_today", "ki_today",
         "price", "change", "change_2d", "change_5d", "short_float",
         "short_ratio", "rel_volume", "rsi14", "atm_iv", "earnings_days",
         "sector", "si_trend",
     ]
     for f in required:
         assert f in entry, f"Pflichtfeld '{f}' fehlt in Watchlist-Eintrag"
-    assert len(required) == 17, "Field-Liste hat nicht 17 Eintraege"
+    assert len(required) == 16, "Field-Liste hat nicht 16 Eintraege"
+    assert "monster_today" not in entry, \
+        "monster_today sollte nicht mehr im Chat-Kontext stehen"
 
 
 def test_05_plausible_field_values() -> None:
@@ -205,7 +209,7 @@ def main() -> int:
         ("01 STOCKS_CTX hat watchlist-Key",        test_01_ctx_has_watchlist_key),
         ("02 watchlist ist Liste",                  test_02_watchlist_is_list),
         ("03 Top-10-Ticker ausgeschlossen",        test_03_top10_tickers_excluded),
-        ("04 17 Pflichtfelder vorhanden",          test_04_required_fields_present),
+        ("04 16 Pflichtfelder vorhanden",          test_04_required_fields_present),
         ("05 Plausible Field-Werte",                test_05_plausible_field_values),
         ("06 Leere watchlist_cards -> []",         test_06_empty_watchlist_cards),
         ("07 Field-Format gerundet",                test_07_field_format_rounded),

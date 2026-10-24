@@ -9,7 +9,9 @@ Tests:
   1. config.CARD_COCKPIT_ENABLED existiert und ist False (Stage-1-Default)
   2. _card_cockpit_html-Funktion existiert in generate_report
   3. Output enthaelt Cockpit-Container-Klasse
-  4. Output enthaelt drei Saeulen in Reihenfolge Setup -> Monster -> KI
+  4. Output enthaelt zwei Saeulen in Reihenfolge Setup -> KI (Monster-Saeule
+     entfernt, Easy-Entscheid 24.10.2026 — OoS falsifiziert, redundant,
+     visuell irreführend; Berechnung/Persistenz bleiben unberührt)
   5. SVG hat width="150" + height="150" als HTML-Attribute (NICHT nur CSS)
      — Tuning-Sequenz 18.05.2026: 185 -> 160 -> 150 nach iPhone-Verify
   6. Donut hat /100-Skala
@@ -21,8 +23,8 @@ Tests:
      Donut-Zahl 40px, Change 11px+weight400 (iterativ getunt 18.05.)
  12. Bestehende _score_block_inner_html-Funktion UNVERAENDERT vorhanden
  13. Bestehender _card-Pfad UNVERAENDERT (kein cockpit-Aufruf)
- 14. Render mit None-Werten fuer monster/ki -> graceful '—'
- 15. Saeulen-Reihenfolge im HTML strikt Setup vor Monster vor KI
+ 14. Render mit None-Wert fuer ki -> graceful '—'
+ 15. Saeulen-Reihenfolge im HTML strikt Setup vor KI, Monster nicht mehr vorhanden
 """
 from __future__ import annotations
 
@@ -125,17 +127,19 @@ def test_03_cockpit_container_class() -> None:
         "Cockpit-Container-Klasse fehlt im Output"
 
 
-def test_04_three_pillars_in_order() -> None:
+def test_04_two_pillars_in_order() -> None:
     out = _card_cockpit_html(1, _sample_stock())
-    # Reihenfolge Setup -> Monster -> KI via data-sb-Marker
+    # Reihenfolge Setup -> KI via data-sb-Marker. Monster-Saeule entfernt
+    # (Easy-Entscheid 24.10.2026) — data-sb="monster" darf NICHT mehr
+    # im Cockpit-Output auftauchen.
     setup_idx = out.find('data-sb="setup"')
     monster_idx = out.find('data-sb="monster"')
     ki_idx = out.find('data-sb="ki"')
     assert setup_idx > 0, "Setup-Saeule fehlt"
-    assert monster_idx > setup_idx, \
-        f"Monster nach Setup erwartet (setup@{setup_idx}, monster@{monster_idx})"
-    assert ki_idx > monster_idx, \
-        f"KI nach Monster erwartet (monster@{monster_idx}, ki@{ki_idx})"
+    assert monster_idx == -1, \
+        f"Monster-Saeule sollte nicht mehr im Cockpit erscheinen (gefunden @{monster_idx})"
+    assert ki_idx > setup_idx, \
+        f"KI nach Setup erwartet (setup@{setup_idx}, ki@{ki_idx})"
 
 
 def test_05_svg_has_html_size_attributes() -> None:
@@ -238,7 +242,10 @@ def test_13_helper_callable_and_defined() -> None:
 
 
 def test_14_none_values_graceful() -> None:
-    # Monster/KI=None ohne Crash, "—" als Display
+    # KI=None ohne Crash, "—" als Display (Monster-Saeule existiert nicht
+    # mehr im Cockpit — monster_score=None hat hier keinen Effekt mehr,
+    # bewusst trotzdem gesetzt um Robustheit gegen den Alt-Feld-Namen zu
+    # belegen)
     s = _sample_stock(monster_score=None, ki_signal_score=None)
     out = _card_cockpit_html(1, s)
     assert "—" in out, "None-Werte sollten als — gerendert werden"
@@ -249,14 +256,14 @@ def test_14_none_values_graceful() -> None:
 
 
 def test_15b_ki_hint_only_for_ki_when_none() -> None:
-    # Der Kontext-Hint ist auf KI beschränkt: bei vorhandenem KI-Wert kein Hint,
-    # und Monster=None (das auch "—" rendert) bekommt KEINEN KI-Hint.
+    # Der Kontext-Hint ist auf KI beschränkt: bei vorhandenem KI-Wert kein
+    # Hint. (Die frühere Monster=None-Gegenprobe ist entfallen — die
+    # Monster-Saeule existiert seit 24.10.2026 nicht mehr im Cockpit, es
+    # gibt also keinen zweiten Pillar mehr, dessen None-Wert fälschlich
+    # einen KI-Hint auslösen könnte.)
     out_full = _card_cockpit_html(1, _sample_stock())   # ki=65 gesetzt
     assert "cockpit-pillar-hint" not in out_full, \
         "Bei vorhandenem KI-Wert darf kein Hint erscheinen"
-    out_monster_none = _card_cockpit_html(1, _sample_stock(monster_score=None))
-    assert out_monster_none.count("cockpit-pillar-hint") == 0, \
-        "Monster=None darf keinen KI-Hint auslösen"
 
 
 def test_16_cockpit_padding_matches_surrounding_containers() -> None:
@@ -274,12 +281,14 @@ def test_16_cockpit_padding_matches_surrounding_containers() -> None:
 
 def test_15_pillar_order_strict_in_html() -> None:
     out = _card_cockpit_html(1, _sample_stock())
-    # Setup-Label muss vor Monster-Label vor KI-Label in HTML stehen
+    # Setup-Label muss vor KI-Label in HTML stehen; Monster-Label darf
+    # nicht mehr vorkommen (Easy-Entscheid 24.10.2026).
     su = out.find(">Setup<")
     mo = out.find(">Monster<")
     ki = out.find(">KI<")
-    assert su > 0 and mo > su and ki > mo, \
-        f"Saeulen-Reihenfolge in HTML falsch: Setup={su}, Monster={mo}, KI={ki}"
+    assert su > 0 and ki > su, \
+        f"Saeulen-Reihenfolge in HTML falsch: Setup={su}, KI={ki}"
+    assert mo == -1, f"Monster-Label sollte nicht mehr im Cockpit erscheinen (gefunden @{mo})"
 
 
 # ── Runner ───────────────────────────────────────────────────────────────────
@@ -289,7 +298,7 @@ def main() -> int:
         ("01 CARD_COCKPIT_ENABLED flag exists",       test_01_flag_exists),
         ("02 _card_cockpit_html exists",             test_02_helper_exists),
         ("03 cockpit container class",                test_03_cockpit_container_class),
-        ("04 three pillars Setup->Monster->KI",       test_04_three_pillars_in_order),
+        ("04 two pillars Setup->KI",                   test_04_two_pillars_in_order),
         ("05 SVG width/height HTML attrs (not CSS)",  test_05_svg_has_html_size_attributes),
         ("06 Donut /100-scale marker",                test_06_donut_has_100_scale),
         ("07 chg > 0 -> cockpit-change-up",          test_07_chg_positive_class),
