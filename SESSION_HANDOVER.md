@@ -1849,6 +1849,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ---
 
+### 24.10.2026 — Doku: Automatisierungs-Betrieb (geplante Agenten, ntfy) festgehalten (1 PR, Doku)
+
+- **Neuer Abschnitt §9j „Automatisierungs-Betrieb"** (dieser PR, Doku-only,
+  Block-1-Pflicht befolgt; PR-Nummer siehe PR): hält fest, was seit 22.–24.10.
+  außerhalb des Repos läuft (drei geplante Claude-Agenten + Einmal-Kontrolle,
+  Zustellung nur über `agent_ntfy_relay.yml`), die Easy-Entscheide dazu
+  (Wächter-Self-Merge Klasse A, Nachlauf-Regel, ntfy statt Claude-Push) und
+  den Lit-Check-Fund 24.10. (Stice-Lawrence/Wong/Zhao, JAR 2025 — Squeeze-
+  Gewinne drehen meist zurück → Exit-Argument, nur Kandidat). Kein Code,
+  keine Logik berührt. **Rückweg:** `git revert` des Merge-Commits.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
@@ -5049,6 +5060,49 @@ der parallelen/entlasteten Durchführung reiner Grep-/Git-Log-/Zählungs-
 Diagnosen (analog dem bestehenden `squeeze-guardian`-Zweitblick, §9g, aber
 für Diagnose statt Review) — keine neue Berechtigungsstufe, keine
 Ausnahme von den PR-/Merge-Regeln oben.
+
+### 9j. Automatisierungs-Betrieb (geplante Claude-Agenten, ab 22.–24.10.2026)
+
+**Easy-Entscheid (22.–24.10.2026): maximale Entlastung.** Easy soll Datenfehler
+weder selbst finden noch weiterleiten noch mergen; er entscheidet nur Score-,
+Freeze- und Exit-Fragen. Die Sicherheit kommt aus Gates + technischer Sperre,
+nicht aus manuellen Merges.
+
+**Laufende geplante Aufgaben (claude.ai Scheduled Tasks, außerhalb des Repos,
+angelegt aus dem Squeeze-Report-Projekt-Chat — nur so haben die Läufe Repo-
+Zugang):**
+- **Wächter-Agent täglich 11:56 Berlin:** liest Digest + `coverage_history.jsonl`
+  + `news_coverage_history.jsonl` + `provider_health.jsonl` + `open_items.json`;
+  prüft jede Warnung (echt/Fehlalarm mit Beleg). **Klasse A** (Wächter/Zähler/
+  Digest/Logging/Selbstprüfungen, Abruf-Bugs, Anzeige-Fallbacks) repariert er
+  als `[Wächter]`-PR und **mergt selbst**, wenn alle Gates grün sind (Tests,
+  Golden byte-identisch, alle Lints inkl. `lint_protected_zones.py`, Guardian
+  ohne Befund, keine geschützte Zone, kein neues Schema/keine neue API, kleiner
+  Diff; max. 1 Merge/Tag). **Nachlauf-Regel (24.10.):** behebt sein Fix einen
+  abgebrochenen Daily-Run an einem US-Handelstag, startet er
+  `daily-squeeze-report.yml` genau einmal neu. **Klasse B** (alles Geschützte)
+  nur als Empfehlung an Easy. Belege bisher: #603 (bekannt tote Quellen ℹ️),
+  #606 (S9-Erwartung nach Monster-Entfernung).
+- **Lit-Check wöchentlich Sa 08:56 Berlin:** 1–2 neue Stoßrichtungen, Verdikt
+  je Fund, Nullbefund legitim, read-only.
+- **Monatsrundgang 02.11.2026 09:00 Berlin (einmalig):** Offene Punkte A–D,
+  Gruppe B als Entscheidungs-Vorlage (u. a. exit_pressure: Closed-Trades-Daten
+  sammeln vs. Etikett/Wecker umstellen).
+- **Zustellung ausschließlich über ntfy** via `agent_ntfy_relay.yml` (#604,
+  Topic bleibt Secret); Claude-Push ist bewusst aus (Easy 23.10.).
+
+**Lit-Check-Funde (der Lit-Check-Agent darf nicht schreiben — Funde werden
+hier nachgetragen):**
+- 24.10.2026: Stice-Lawrence/Wong/Zhao, „Short Squeezes After Short-Selling
+  Attacks", Journal of Accounting Research 2025 — Squeeze nach Short-Report in
+  ~15 % der Fälle, Gewinne drehen meist komplett zurück → Argument für
+  zügiges Sichern / prüfbare Exit-Regeln (nur Kandidat, kein Eingriff in
+  laufende Tests). AIMM-X (arXiv 2601.15304): nicht relevant. Mendel WP
+  2025-104: nur Bestätigung. Skew/Reversal-Timing: Nullbefund.
+
+**Pflege:** Neue Agent-Regeln ändert Claude im Projekt-Chat (Scheduled-Task-
+Prompt), nicht im Repo. Wiederholt ein Lit-Check bereits gelistete Funde,
+diese Liste ergänzen.
 
 ---
 
