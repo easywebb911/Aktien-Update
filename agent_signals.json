@@ -1,17 +1,17 @@
 {
-  "updated": "2026-10-25T12:30:56.428865+01:00",
+  "updated": "2026-10-25T17:20:50.152076+01:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 15.5,
+    "elapsed_s": 13.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 26,
+      "score": 18,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Neutral earnings announcement and generic marketing content show no catalysts for short-squeeze momentum. + Earnings in 10d + UOA Call/Put 5.7×",
+      "drivers": "Earnings in 10d + UOA Call/Put 5.7×",
       "price": 2.9,
       "chg_pct": 0.0,
       "rvol_4d": 1.15,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
@@ -76,21 +76,21 @@
       "uoa_cp_ratio": 5.7
     },
     "ENVX": {
-      "score": 38,
-      "confidence": 33,
-      "drivers": "Earnings in 18d + UOA Call-Vol/OI 10.1× ATM + UOA Call/Put 40.7×",
+      "score": 100,
+      "confidence": 70,
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 21.1% + News-KI 12/30: Positive order news provides temporary bullish momentum, but analyst target cuts and production execution concerns signi + Earnings in 18d + UOA Call-Vol/OI 10.1× ATM + UOA Call/Put 40.7×",
       "price": 2.79,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 3.58,
+      "rvol_20d": 3.29,
       "earnings": "in 18 Tagen (12.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 10.1× ATM",
@@ -102,7 +102,7 @@
     "GRPN": {
       "score": 31,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Negative price action with falling stock despite market gains and bear interest suggests weak momentum and limited short + Earnings in 11d + FINRA Short-Vol 60%",
+      "drivers": "News-KI 8/30: Negative sentiment with stock underperformance and no indicators of high short interest, significant retail interest, or + Earnings in 11d + FINRA Short-Vol 60%",
       "price": 16.12,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
@@ -142,9 +142,9 @@
       "uoa_cp_ratio": 0.3596567456006952
     },
     "JBGS": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Routine dividend declaration and earnings postponement show no short-squeeze catalyst; company appears stable with regul + Earnings in 9d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 9d",
       "price": 11.57,
       "chg_pct": -0.0,
       "rvol_4d": 0.9,
@@ -156,7 +156,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -234,7 +234,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 7.9% + News: revenue beat, contract + Earnings in 17d + UOA Call/Put 4.5×",
+      "drivers": "Spanne 7.9% + News: contract, partnership + Earnings in 17d + UOA Call/Put 4.5×",
       "price": 3.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.73,
@@ -278,9 +278,9 @@
       "uoa_cp_ratio": 5.487179487179487
     },
     "VEEA": {
-      "score": 72,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 11.8× + 🚀 Massives Volumen 11.8×+ + Spanne 29.1% + News: merger",
+      "drivers": "Volumen 11.8× + 🚀 Massives Volumen 11.8×+ + Spanne 29.1% + News-KI 12/30: Positive business developments and partnerships, but no short squeeze indicators like high short interest, low float, or",
       "price": 4.93,
       "chg_pct": -0.0,
       "rvol_4d": 11.82,
@@ -292,7 +292,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
