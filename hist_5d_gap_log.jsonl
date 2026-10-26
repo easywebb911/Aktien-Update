@@ -1876,3 +1876,13 @@
 {"schema_v": 1, "run_ts": "2026-10-23T23:52:43Z", "ticker": "ISSC", "reason": "nonfinite_cell", "dropped_day": "2026-10-21 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
 {"schema_v": 1, "run_ts": "2026-10-23T23:52:43Z", "ticker": "ISSC", "reason": "nonfinite_cell", "dropped_day": "2026-10-23 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
 {"schema_v": 1, "run_ts": "2026-10-23T23:52:43Z", "ticker": "ISSC", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 1, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-26T13:05:11Z", "ticker": "LYCA", "reason": "nonfinite_cell", "dropped_day": "2026-10-19 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-26T13:05:11Z", "ticker": "LYCA", "reason": "nonfinite_cell", "dropped_day": "2026-10-20 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-26T13:05:11Z", "ticker": "LYCA", "reason": "nonfinite_cell", "dropped_day": "2026-10-21 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-26T13:05:11Z", "ticker": "LYCA", "reason": "nonfinite_cell", "dropped_day": "2026-10-22 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-26T13:05:11Z", "ticker": "LYCA", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 1, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-26T13:05:11Z", "ticker": "ISSC", "reason": "nonfinite_cell", "dropped_day": "2026-10-19 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-26T13:05:11Z", "ticker": "ISSC", "reason": "nonfinite_cell", "dropped_day": "2026-10-20 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-26T13:05:11Z", "ticker": "ISSC", "reason": "nonfinite_cell", "dropped_day": "2026-10-21 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-26T13:05:11Z", "ticker": "ISSC", "reason": "nonfinite_cell", "dropped_day": "2026-10-23 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-26T13:05:11Z", "ticker": "ISSC", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 1, "window": 5}
