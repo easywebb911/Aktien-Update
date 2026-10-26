@@ -1,11 +1,11 @@
 {
-  "updated": "2026-10-26T07:14:57.001444+01:00",
+  "updated": "2026-10-26T14:06:22.780459+01:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 1,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 13.0,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 13.1,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -28,13 +28,13 @@
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.3649043139798897,
       "uoa_cp_ratio": 5.669412205166604
     },
     "BKYI": {
-      "score": 63,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 4.3× + ⚡ Extremes Volumen 4.3×+ + Spanne 21.9% + News-KI 12/30: Positive business developments and leadership appointments, but lack of catalyst magnitude, short interest data, or stoc",
+      "drivers": "Volumen 4.3× + ⚡ Extremes Volumen 4.3×+ + Spanne 21.9% + News-KI 8/30: Positive business developments but lacking short-squeeze catalysts like high short interest, bullish earnings surprises,",
       "price": 3.39,
       "chg_pct": 0.0,
       "rvol_4d": 4.27,
@@ -44,8 +44,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -72,13 +72,13 @@
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.8787878787878788,
       "uoa_cp_ratio": 5.7
     },
     "ENVX": {
-      "score": 63,
+      "score": 86,
       "confidence": 70,
-      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 21.1% + Earnings in 17d + UOA Call/Put 40.7×",
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 21.1% + News-KI 15/30: Positive order catalyzes short-term optimism, but analyst downgrades and execution risk on scaling production limit shor + Earnings in 17d + UOA Call/Put 40.7×",
       "price": 2.79,
       "chg_pct": -0.0,
       "rvol_4d": 3.58,
@@ -88,20 +88,20 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 40.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 2.2951631331725277,
       "uoa_cp_ratio": 40.69762419006479
     },
     "GRPN": {
       "score": 31,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Negative price action with stock dropping despite market gains, but no indicators of high short interest, squeeze cataly + Earnings in 10d + FINRA Short-Vol 60%",
+      "drivers": "News-KI 8/30: Negative price action and bearish sentiment dominate headlines with no indicators of high short interest, retail squeeze + Earnings in 10d + FINRA Short-Vol 60%",
       "price": 16.12,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
@@ -116,7 +116,7 @@
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.03288672350791717,
       "uoa_cp_ratio": 0.130961026385863
     },
     "IONQ": {
@@ -137,7 +137,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.5414287526963584,
       "uoa_cp_ratio": 0.3596567456006952
     },
     "JBGS": {
@@ -181,7 +181,7 @@
       "uoa_drivers": [
         "UOA Call/Put 7.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.4666666666666667,
       "uoa_cp_ratio": 7.501118568232662
     },
     "LZM": {
@@ -208,9 +208,9 @@
       "uoa_cp_ratio": 81.0
     },
     "NRXP": {
-      "score": 65,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Spanne 11.0% + News-KI 12/30: Positive regulatory progress on ketamine product, but lacks short-squeeze catalysts like high short interest, low float, + Earnings in 17d + FINRA Short-Vol 86% + UOA Call/Put 2.9×",
+      "drivers": "Spanne 11.0% + News: contract + Earnings in 17d + FINRA Short-Vol 86% + UOA Call/Put 2.9×",
       "price": 2.49,
       "chg_pct": 0.0,
       "rvol_4d": 0.83,
@@ -222,18 +222,18 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.18604651162790697,
       "uoa_cp_ratio": 2.8507462686567164
     },
     "PDYN": {
-      "score": 58,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 7.9% + News: contract, partnership + Earnings in 16d + UOA Call/Put 4.5×",
+      "drivers": "Spanne 7.9% + News-KI 8/30: Positive revenue growth and strategic partnerships are bullish but lack short-squeeze catalysts like high short interest + Earnings in 16d + UOA Call/Put 4.5×",
       "price": 3.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.73,
@@ -244,19 +244,19 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.012295081967213115,
       "uoa_cp_ratio": 4.5
     },
     "SOC": {
       "score": 26,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Operational updates and production restart are positive but lack the high short interest, stock pressure, or catalyst in + Earnings in 14d + UOA Call/Put 5.5×",
+      "drivers": "News-KI 8/30: Operational updates and executive compensation news lack the high short interest, catalyst-driven urgency, and forced bu + Earnings in 14d + UOA Call/Put 5.5×",
       "price": 3.26,
       "chg_pct": -0.0,
       "rvol_4d": 1.02,
@@ -273,13 +273,13 @@
       "uoa_drivers": [
         "UOA Call/Put 5.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.19124087591240876,
       "uoa_cp_ratio": 5.487179487179487
     },
     "VEEA": {
       "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 11.8× + 🚀 Massives Volumen 11.8×+ + Spanne 29.1% + News-KI 12/30: Positive business developments and partnerships, but no short squeeze indicators present (no high short interest, borrow",
+      "drivers": "Volumen 11.8× + 🚀 Massives Volumen 11.8×+ + Spanne 29.1% + News-KI 12/30: Positive business developments and partnerships, but no evidence of high short interest, low float, or catalysts typical",
       "price": 4.93,
       "chg_pct": -0.0,
       "rvol_4d": 11.82,
@@ -315,7 +315,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.4209354120267261,
       "uoa_cp_ratio": 0.8258426966292135
     }
   }
