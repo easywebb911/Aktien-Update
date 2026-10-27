@@ -1,17 +1,17 @@
 {
-  "updated": "2026-10-27T06:06:12.263071+01:00",
+  "updated": "2026-10-27T11:35:14.913976+01:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 14.7,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 18.2,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
-      "score": 18,
+      "score": 36,
       "confidence": 33,
-      "drivers": "Earnings in 8d + UOA Call/Put 16.4×",
+      "drivers": "News-KI 18/30: Positive performance headlines lack short-squeeze catalysts like high short interest data, gamma pressure, or forced cov + Earnings in 8d + UOA Call/Put 16.4×",
       "price": 2.89,
       "chg_pct": 0.0,
       "rvol_4d": 0.93,
@@ -22,8 +22,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 16.4×"
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 2.4204545454545454
     },
     "GRPN": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 5.1% + Earnings in 9d",
+      "score": 26,
+      "confidence": 70,
+      "drivers": "Spanne 5.1% + News-KI 8/30: Negative sentiment with stock declining and bearish narratives dominate; no indicators of high short interest, squeeze p + Earnings in 9d",
       "price": 16.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.06,
@@ -90,7 +90,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -118,9 +118,9 @@
       "uoa_cp_ratio": 1.7433990895295903
     },
     "JACK": {
-      "score": 83,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Spanne 5.8% + News: squeeze, short squeeze + Earnings in 43d + FINRA Short-Vol 100% + UOA Call/Put 3.9×",
+      "drivers": "Spanne 5.8% + Earnings in 43d + FINRA Short-Vol 100% + UOA Call/Put 3.9×",
       "price": 11.23,
       "chg_pct": -0.0,
       "rvol_4d": 0.87,
@@ -131,7 +131,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -141,9 +141,9 @@
       "uoa_cp_ratio": 3.8666666666666667
     },
     "MNRO": {
-      "score": 35,
+      "score": 55,
       "confidence": 33,
-      "drivers": "Earnings in 2 Tagen (29.10.2026) + Earnings in 2d + UOA Call/Put 10.2×",
+      "drivers": "Earnings in 2 Tagen (29.10.2026) + News: buyout + Earnings in 2d + UOA Call/Put 10.2×",
       "price": 13.41,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -153,8 +153,8 @@
       "upcoming_event": "Earnings in 2 Tagen (29.10.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -185,9 +185,9 @@
       "uoa_cp_ratio": 0.5447154471544715
     },
     "PDYN": {
-      "score": 36,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 10.1% + News-KI 8/30: Positive business developments and revenue growth lack short-squeeze catalysts; high operating losses and no indication  + Earnings in 15d + UOA Call/Put 13.9×",
+      "drivers": "Spanne 10.1% + News: partnership, revenue beat + Earnings in 15d + UOA Call/Put 13.9×",
       "price": 3.87,
       "chg_pct": -0.0,
       "rvol_4d": 0.83,
@@ -198,8 +198,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 13.9×"
@@ -252,9 +252,9 @@
       "uoa_cp_ratio": 1.2450331125827814
     },
     "VEEA": {
-      "score": 41,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 30.0% + News-KI 12/30: Positive business developments but no indicators of high short interest, significant squeeze potential, or catalysts typ",
+      "drivers": "Volumen 2.5× + Spanne 30.0% + News-KI 8/30: Positive business developments and investment backing, but no evidence of high short interest, low float, or squeeze cat",
       "price": 6.08,
       "chg_pct": -0.0,
       "rvol_4d": 2.46,
@@ -264,8 +264,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
