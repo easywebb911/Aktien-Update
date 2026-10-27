@@ -1142,6 +1142,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "MPT": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-27T00:32:39Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Medical Properties Trust, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "NGNE": {
     "qid": null,
     "title": null,
@@ -1565,6 +1574,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "SVRA": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-27T00:32:39Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Savara Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "SVV": {
     "qid": null,
     "title": null,
@@ -1769,6 +1787,15 @@
     "resolved_at": "2026-10-08T01:03:42Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Wetour Robotics Limited",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "WGS": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-27T00:32:39Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "GeneDx Holdings Corp.",
     "substrate": "none",
     "reason": "no_p249"
   },

@@ -1677,6 +1677,12 @@
       "shares_short": 40231477,
       "short_pct_float": 30.06,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 31083892,
+      "short_pct_float": 23.22,
+      "pub_date": "2026-10-09"
     }
   ],
   "GLUE": [
@@ -3249,6 +3255,12 @@
       "shares_short": 2277992,
       "short_pct_float": 33.41,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 2222251,
+      "short_pct_float": 32.59,
+      "pub_date": "2026-10-09"
     }
   ],
   "QDEL": [
@@ -3414,6 +3426,12 @@
       "shares_short": 5830669,
       "short_pct_float": 37.75,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 5626310,
+      "short_pct_float": 36.11,
+      "pub_date": "2026-10-09"
     }
   ],
   "EBS": [
@@ -4713,6 +4731,12 @@
       "shares_short": 41426996,
       "short_pct_float": 23.57,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 43563969,
+      "short_pct_float": 24.78,
+      "pub_date": "2026-10-09"
     }
   ],
   "RXRX": [
@@ -9576,6 +9600,12 @@
       "shares_short": 145296024,
       "short_pct_float": 32.56,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 146186806,
+      "short_pct_float": 32.76,
+      "pub_date": "2026-10-09"
     }
   ],
   "UNIT": [
@@ -10130,6 +10160,21 @@
       "settlement_date": "2026-09-30",
       "shares_short": 35776323,
       "short_pct_float": 25.75,
+      "pub_date": "2026-10-09"
+    }
+  ],
+  "BTDR": [
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 55589381,
+      "short_pct_float": null,
+      "pub_date": "2026-09-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 61164528,
+      "short_pct_float": 33.37,
       "pub_date": "2026-10-09"
     }
   ]
