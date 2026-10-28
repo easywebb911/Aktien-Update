@@ -764,6 +764,15 @@
     "substrate": "en",
     "reason": null
   },
+  "FRGT": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-28T00:33:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Freight Technologies, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "FTK": {
     "qid": null,
     "title": null,
