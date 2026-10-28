@@ -628,6 +628,11 @@
       "date": "2026-10-27",
       "inst_ownership": 1.37292,
       "insider_ownership": 0.008669999
+    },
+    {
+      "date": "2026-10-28",
+      "inst_ownership": 1.3730701,
+      "insider_ownership": 0.008669999
     }
   ],
   "RES": [
@@ -807,6 +812,11 @@
     {
       "date": "2026-10-23",
       "inst_ownership": 0.27817,
+      "insider_ownership": 0.2662
+    },
+    {
+      "date": "2026-10-28",
+      "inst_ownership": 0.27820998,
       "insider_ownership": 0.2662
     }
   ],
@@ -1279,6 +1289,11 @@
       "date": "2026-10-27",
       "inst_ownership": 0.4693,
       "insider_ownership": 0.0066299997
+    },
+    {
+      "date": "2026-10-28",
+      "inst_ownership": 0.46998,
+      "insider_ownership": 0.0066299997
     }
   ],
   "AMC": [
@@ -1440,6 +1455,11 @@
     {
       "date": "2026-10-26",
       "inst_ownership": 0.49771,
+      "insider_ownership": 0.00585
+    },
+    {
+      "date": "2026-10-28",
+      "inst_ownership": 0.49775,
       "insider_ownership": 0.00585
     }
   ],
@@ -5129,6 +5149,11 @@
       "date": "2026-10-27",
       "inst_ownership": 0.56968,
       "insider_ownership": 0.08858
+    },
+    {
+      "date": "2026-10-28",
+      "inst_ownership": 0.56944,
+      "insider_ownership": 0.08858
     }
   ],
   "CRVS": [
@@ -6984,6 +7009,11 @@
     {
       "date": "2026-10-27",
       "inst_ownership": 1.20726,
+      "insider_ownership": 0.05163
+    },
+    {
+      "date": "2026-10-28",
+      "inst_ownership": 1.20713,
       "insider_ownership": 0.05163
     }
   ],
@@ -9377,6 +9407,11 @@
       "date": "2026-10-27",
       "inst_ownership": 1.0682399,
       "insider_ownership": 0.02552
+    },
+    {
+      "date": "2026-10-28",
+      "inst_ownership": 1.0686799,
+      "insider_ownership": 0.02552
     }
   ],
   "DBGI": [
@@ -10626,6 +10661,27 @@
       "date": "2026-10-28",
       "inst_ownership": 0.87018996,
       "insider_ownership": 0.02072
+    }
+  ],
+  "IMSR": [
+    {
+      "date": "2026-10-28",
+      "inst_ownership": 0.26749,
+      "insider_ownership": 0.19093001
+    }
+  ],
+  "BFLY": [
+    {
+      "date": "2026-10-28",
+      "inst_ownership": 0.61969,
+      "insider_ownership": 0.102539994
+    }
+  ],
+  "DNA": [
+    {
+      "date": "2026-10-28",
+      "inst_ownership": 0.73668,
+      "insider_ownership": 0.04559
     }
   ]
 }
