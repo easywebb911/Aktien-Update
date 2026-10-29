@@ -314,6 +314,15 @@
     "substrate": "en",
     "reason": null
   },
+  "BLMN": {
+    "qid": "Q4928282",
+    "title": "Bloomin'_Brands",
+    "resolved_at": "2026-10-29T01:02:15Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Bloomin' Brands, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "BMBL": {
     "qid": "Q21233433",
     "title": "Bumble",
@@ -583,6 +592,15 @@
     "company_name_at_resolve": "T3 Defense Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "DIN": {
+    "qid": "Q5278020",
+    "title": "Dine_Brands",
+    "resolved_at": "2026-10-29T01:02:15Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Dine Brands Global, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "DMRC": {
     "qid": "Q5275736",
@@ -1618,6 +1636,15 @@
     "company_name_at_resolve": "USA TODAY Co., Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "TDOC": {
+    "qid": "Q20715093",
+    "title": "Teladoc_Health",
+    "resolved_at": "2026-10-29T01:02:15Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Teladoc Health, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "TNON": {
     "qid": null,
