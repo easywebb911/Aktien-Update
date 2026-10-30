@@ -34,6 +34,7 @@ import exit_shadow
 import matured_export
 import ftd_history
 import reg_sho_history
+import trading_date
 from backtest_history import (
     _load_backtest_history,
     _append_backtest_entries,
@@ -3877,7 +3878,7 @@ def _persist_inst_ownership_history(enriched: list[dict], *,
     """
     if not INST_OWNERSHIP_HISTORY_ENABLED:
         return 0
-    t_iso = report_date_iso or date.today().isoformat()
+    t_iso = report_date_iso or trading_date.us_trading_date_iso()
     hist = _load_inst_ownership_history()
     added = 0
     for s in enriched:
@@ -4073,7 +4074,7 @@ def _persist_options_oi_history(top10, *, report_date_iso: str | None = None,
     fetch_fn = fetch_fn or _fetch_next_expiry_chain
     now_fn = now_fn or time.monotonic
     budget = OPTIONS_OI_TIME_BUDGET_S if time_budget_s is None else time_budget_s
-    t_iso = report_date_iso or date.today().isoformat()
+    t_iso = report_date_iso or trading_date.us_trading_date_iso()
     hist = _load_options_oi_history()
     added = 0
     n_fetchfail = 0
@@ -4283,7 +4284,7 @@ def _persist_options_chain_raw(top10, *, raw_cache: dict | None,
     if run_phase != "postclose":            # NUR postclose (wie options_oi_history)
         return 0
     now_fn = now_fn or (lambda: datetime.now(timezone.utc))
-    t_iso = report_date_iso or date.today().isoformat()
+    t_iso = report_date_iso or trading_date.us_trading_date_iso()
 
     existing_keys = _load_options_chain_raw_keys(OPTIONS_CHAIN_RAW_FILE)
 
@@ -4433,7 +4434,7 @@ def _persist_news_coverage(top10: list[dict] | None, enriched: list[dict] | None
     if not NEWS_COVERAGE_LOG_ENABLED:
         return 0
     now_fn = now_fn or (lambda: datetime.now(timezone.utc))
-    t_iso = report_date_iso or date.today().isoformat()
+    t_iso = report_date_iso or trading_date.us_trading_date_iso()
     try:
         existing_keys = _load_news_coverage_keys(NEWS_COVERAGE_LOG_FILE)
         if (t_iso, run_phase) in existing_keys:
@@ -4581,7 +4582,7 @@ def _persist_apewisdom_attention(tickers, attention: dict, *,
     acct = _COVERAGE_ACCT["apewisdom_shadow"]
     acct["n_erwartet"] += len(pool)
     now_fn = now_fn or (lambda: datetime.now(timezone.utc))
-    t_iso = report_date_iso or date.today().isoformat()
+    t_iso = report_date_iso or trading_date.us_trading_date_iso()
     bulk_fetch_failed = not attention
     if bulk_fetch_failed:
         acct["n_fehler"] += len(pool)
@@ -18229,6 +18230,16 @@ def main():
     # Die Header-Timestamp-Anzeige (Z. ~6254) nutzt weiterhin Berlin-Zeit
     # (eigene ZoneInfo-Instanz, von dieser Datums-Achse unabhängig).
     report_date = datetime.now(ZoneInfo("America/New_York")).strftime("%d.%m.%Y")
+    # Trading-Date-Fix (Wächter 26.10.2026): dieselbe ET-Kopplung wie
+    # report_date oben, nur als ISO-String fuer die Sammel-/Persistenz-
+    # Pfade, die bisher unabhaengig `date.today()` (UTC-Kalenderdatum)
+    # nutzten und dadurch bei Laeufen nach UTC-Mitternacht einen Tag zu
+    # frueh datierten (siehe trading_date.py-Docstring + SESSION_HANDOVER.md).
+    # EINMAL hier berechnet, an ALLE betroffenen Aufrufer unten explizit
+    # durchgereicht -- verhindert, dass zwei Calls im selben Lauf durch
+    # getrennte `trading_date.us_trading_date_iso()`-Aufrufe zufaellig auf
+    # verschiedenen Seiten einer Tagesgrenze landen.
+    _us_trading_date_iso = trading_date.us_trading_date_iso()
     run_phase   = _resolve_run_phase()
     log.info("=== Squeeze Report %s (run_phase=%s) ===", report_date, run_phase)
     # Health-Check Phase 2 — Provider-Aggregatoren zurücksetzen, damit
@@ -19099,7 +19110,7 @@ def main():
     # in-memory auf dem Stock-Dict (kein Extra-Fetch). Rein additive Sammlung,
     # KEIN Score-/Filter-/Push-/Anzeige-Effekt, fail-soft.
     try:
-        _persist_inst_ownership_history(enriched)
+        _persist_inst_ownership_history(enriched, report_date_iso=_us_trading_date_iso)
     except Exception as _io_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("inst_ownership-Zeitreihe übersprungen: %s", _io_exc)
 
@@ -19129,6 +19140,7 @@ def main():
 
     try:
         _persist_options_oi_history(top10, run_phase=run_phase,
+                                    report_date_iso=_us_trading_date_iso,
                                     fetch_fn=_fetch_oi_with_raw_capture)
     except Exception as _oi_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("options_oi-Zeitreihe übersprungen: %s", _oi_exc)
@@ -19140,6 +19152,7 @@ def main():
     # Anzeige-Effekt, fail-soft.
     try:
         _persist_options_chain_raw(top10, run_phase=run_phase,
+                                   report_date_iso=_us_trading_date_iso,
                                    raw_cache=_chain_raw_cache)
     except Exception as _ocr_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("options_chain_raw-Zeitreihe übersprungen: %s", _ocr_exc)
@@ -19152,7 +19165,8 @@ def main():
     # rein additive Sammlung, KEIN Score-/Filter-/Push-/Anzeige-Effekt, fail-soft.
     try:
         _ftd_universe = [s.get("ticker") for s in top10 if s.get("ticker")]
-        ftd_history.collect_and_persist(_ftd_universe, run_phase=run_phase)
+        ftd_history.collect_and_persist(_ftd_universe, run_phase=run_phase,
+                                        report_date_iso=_us_trading_date_iso)
     except Exception as _ftd_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("ftd_history-Sammlung übersprungen: %s", _ftd_exc)
 
@@ -19164,7 +19178,8 @@ def main():
     try:
         _rs_universe = [{"ticker": s.get("ticker"), "exchange": s.get("exchange")}
                         for s in top10 if s.get("ticker")]
-        reg_sho_history.collect_and_persist(_rs_universe, run_phase=run_phase)
+        reg_sho_history.collect_and_persist(_rs_universe, run_phase=run_phase,
+                                            report_date_iso=_us_trading_date_iso)
     except Exception as _rs_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("reg_sho_history-Sammlung übersprungen: %s", _rs_exc)
 
@@ -19310,7 +19325,8 @@ def main():
     # (kein zusätzlicher Fetch — die News sind jetzt bereits angehängt).
     # KEIN Score-/Filter-/Push-/Conviction-Effekt, fail-soft.
     try:
-        _persist_news_coverage(top10, enriched, run_phase=run_phase)
+        _persist_news_coverage(top10, enriched, run_phase=run_phase,
+                               report_date_iso=_us_trading_date_iso)
     except Exception as _ncov_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("news_coverage_history übersprungen: %s", _ncov_exc)
 
@@ -19325,7 +19341,8 @@ def main():
     try:
         if APEWISDOM_SHADOW_ENABLED:
             _apewisdom_attention = _fetch_apewisdom_attention()
-            _persist_apewisdom_attention(_news_pool, _apewisdom_attention)
+            _persist_apewisdom_attention(_news_pool, _apewisdom_attention,
+                                         report_date_iso=_us_trading_date_iso)
     except Exception as _apew_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("apewisdom_attention_history übersprungen: %s", _apew_exc)
 
@@ -19496,6 +19513,7 @@ def main():
             health_check.persist_coverage_row(
                 _cov_q, _cov_erw, _cov_erh, _cov_acct["error_counts"],
                 n_mit_daten=_cov_acct["n_mit_daten"],
+                report_date_iso=_us_trading_date_iso,
                 run_phase=run_phase)
         except Exception as _cov_exc:   # pragma: no cover  (nie den Daily-Run brechen)
             log.warning("coverage_history (%s) übersprungen: %s", _cov_q, _cov_exc)

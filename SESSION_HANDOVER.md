@@ -1800,6 +1800,76 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   Kein Score-/Filter-/Push-/Exit-/Freeze-Bezug. **Rückweg:** `git revert`
   des Merge-Commits.
 
+### 26.10.2026 — [Wächter] UTC-statt-ET-Handelstag-Bug in 8 Sammel-Pfaden + NYSE-Reg-SHO-Root-Cause (1 PR, Manual-Merge)
+
+- **Trading-Date-Fix (Klasse: neue Persistenz-Pfade/Ursachenbehebung an
+  Bestandsdaten, Manual-Merge, NICHT selbst gemergt):** `#608` (Branch-Commit
+  `23d960ff`, 26.10., kein Merge-Hash — Regel a, PR noch offen/Ready).
+  **Befund:** 8 Sammel-/Persistenz-
+  Pfade datierten neue Einträge mit `date.today()`/
+  `datetime.now(timezone.utc).date()` (UTC-Kalenderdatum) statt dem
+  US/Eastern-Handelstag — Postclose-Läufe, die nach UTC-Mitternacht feuern
+  (US/Eastern ist dann noch derselbe Handelstag), bekamen ein Label, das
+  einen Tag zu weit in der Zukunft lag. Beleg: `options_oi_history.json`
+  ohne Einträge für 19.10./21.10., dafür 20.10./23.10. je doppelt (18 statt
+  ~10 Ticker) — Muster bestätigt chronisch seit August 2026, nicht erst
+  seit Oktober.
+- **NYSE-Reg-SHO-Root-Cause bestätigt (löst `nyse-regsho-empty-streak`,
+  offen seit 06.10.2026):** dieselbe UTC-Drift bestimmte auch das NYSE-
+  Abfragedatum in `reg_sho_history.py` (`_last_workday_before(now.date())`)
+  — landete die Abfrage einen Tag zu weit in der Zukunft, war die NYSE-
+  Liste für diesen Tag strukturell noch nicht publiziert (HTTP 200 +
+  Platzhalter-Body = die seit 28.09.2026 beobachtete „empty"-Serie).
+  Beleg: `reg_sho_history_state.json`-Lauf 23.10.2026 23:52:50 UTC (VOR
+  Mitternacht) → `nyse_result="ok:13"` (Erfolg); die Läufe am 20./22./23.10.
+  (NACH Mitternacht datiert) zeigten `source_empty` exakt auf den Tagen
+  mit falsch vorausgreifendem Abfragedatum.
+- **Fix:** neuer Helper `trading_date.us_trading_date(now_utc)` (Single-
+  Source-of-Truth, `zoneinfo.ZoneInfo("America/New_York")`, kein neuer
+  Dependency) ersetzt `date.today()` an allen Fundstellen in
+  `generate_report.py` (5× `_persist_*`-Helper + neuer
+  `_us_trading_date_iso`-Berechnungs-Block in `main()`, einmal pro Lauf
+  berechnet und explizit an 7 Aufrufer durchgereicht), `health_check.py`
+  (`persist_coverage_row`-Default), `ki_agent.py` (ein `persist_coverage_row`-
+  Call), `reg_sho_history.py` (sowohl Label `t_iso` als auch NYSE-Abfrage-
+  Anker `nyse_date_iso`) und `ftd_history.py`. Andere `date.today()`-
+  Stellen in diesen Dateien (FINRA-SI-Probe, Backtest/S10-Cutoffs,
+  Exit-Shadow, RSS-Freshness-Filter, Options-Expiry-Auswahl) bewusst
+  UNVERÄNDERT gelassen — Score-/Backtest-/Exit-angrenzend oder kein
+  Datums-Schlüssel-Bezug (Mini-Stopp-Prüfung, keine Freeze-Pflicht
+  ausgelöst).
+- **Einmal-Korrektur (`scripts/fix_trading_dates_oneoff.py`, im PR
+  ausgeführt, Ergebnis-Dateien committed):** 4 JSONL-Dateien mit
+  Zeilen-Zeitstempel deterministisch korrigiert (Ziel-Datum aus dem
+  eigenen `ts_utc`/`fetch_ts_utc` abgeleitet) — `news_coverage_history.jsonl`
+  2/5 verschoben, `coverage_history.jsonl` 12/93 verschoben + 3 echte
+  Kollisionen (Alt-Format ohne `tick_hour`-Feld, zwei verschiedene
+  ki_agent-Ticks fallen nach Korrektur auf denselben Key — NICHT
+  überschrieben, nur gemeldet), `options_chain_raw.jsonl` 28/44
+  verschoben, `apewisdom_attention_history.jsonl` 0/36 (bereits korrekt).
+  4 Dict-of-Ticker-Listen-Dateien ohne Zeilen-Zeitstempel
+  (`inst_ownership_history.json`, `options_oi_history.json`,
+  `reg_sho_history.json`, `ftd_history.json`) bewusst NICHT mutiert —
+  keine Zuordnung möglich, welcher Ticker-Eintrag zu welchem von zwei
+  gemergten Tagen gehört — nur Zählung anomaler Datums-Counts (siehe
+  neues Open-Item `trading-date-dict-history-unrecoverable`). Idempotenz
+  verifiziert (zweiter Lauf: 0 Korrekturen, Datei-Hash unverändert).
+  `.bak`-Backups lokal angelegt, NICHT committed (`.gitignore` um `*.bak`
+  ergänzt).
+- **Tests:** 2 neue Dateien (`mock_test_trading_date.py` — UTC-Mitternacht-
+  Grenzfall, DST-Ende 01.11.2026, Default/naive-Verhalten, Score-Isolation;
+  `mock_test_fix_trading_dates_oneoff.py` — Verschiebung, bereits-korrekt,
+  ohne-Zeitstempel, Kollisions-Schutz, Idempotenz, `--dry-run`, Report-
+  only-Lesepfad), in `scripts/run_ci_mock_tests.py`-ALLOWLIST registriert.
+  165 Tests grün, Outer-Page-Golden byte-identisch, alle Lints grün
+  (inkl. `lint_protected_zones.py` — kein Score-/Filter-/Push-/Exit-Touch).
+- **Doku:** `open_items.json` — `nyse-regsho-empty-streak` auf `erledigt`
+  gesetzt (Root-Cause bestätigt + behoben); neues Item
+  `trading-date-dict-history-unrecoverable` (`beobachtet`) für die 4
+  unkorrigierbaren Dict-Dateien + den genuin fehlenden postclose-Eintrag
+  23.10. in `news_coverage_history.jsonl`. **Rückweg:** `git revert` des
+  Merge-Commits stellt Code UND Daten-Dateien wieder her.
+
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
 Token in `backtest_history.json`, Ursache `_extract_hist_5d`

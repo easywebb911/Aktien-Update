@@ -508,7 +508,7 @@ def test_persist_call_site_after_news_attach_not_before():
     stehen, nicht davor."""
     src = _SOURCE
     attach_pos = src.index('_c["news"] = _news_by_ticker[_t]')
-    call_pos = src.index('_persist_news_coverage(top10, enriched, run_phase=run_phase)')
+    call_pos = src.index('_persist_news_coverage(top10, enriched, run_phase=run_phase,')
     _check("_persist_news_coverage()-Aufruf steht NACH dem News-Attach-Loop",
            call_pos > attach_pos)
 

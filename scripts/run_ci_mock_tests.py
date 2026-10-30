@@ -84,6 +84,7 @@ ALLOWLIST = [
     "token_settings_ui_refresh", "token_storage_diagnose", "translate_error_guard", "vintage_guard",
     "watchlist_drawer_stale_data", "watchlist_uoa_price_nan_hardening", "weekly_digest_block",
     "us_holidays_algorithmic",
+    "trading_date", "fix_trading_dates_oneoff",
 ]
 
 # ── EXCLUDED (11) — bewusst NICHT im Gate, je mit Grund. ───────────────────

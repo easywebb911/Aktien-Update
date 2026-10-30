@@ -59,6 +59,8 @@ from urllib.error import HTTPError
 from urllib.parse import urlencode, urljoin
 from urllib.request import Request, urlopen
 
+import trading_date
+
 log = logging.getLogger(__name__)
 
 try:
@@ -447,11 +449,22 @@ def collect_and_persist(universe, *, report_date_iso=None, run_phase=None,
     now = now_utc or datetime.now(timezone.utc)
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
-    t_iso = report_date_iso or now.date().isoformat()
+    # Trading-Date-Fix (Wächter 26.10.2026): `now.date()` ist das UTC-
+    # Kalenderdatum des Laufs — bei postclose-Läufen nach UTC-Mitternacht
+    # (US/Eastern ist dann noch derselbe Handelstag) war das ein Tag zu
+    # früh und verschob sowohl das Label (`t_iso`) als auch das NYSE-
+    # Abfragedatum (`nyse_date_iso`, s.u.) auf den Folgetag. Der Folgetag
+    # ist für die NYSE-Liste strukturell NOCH NICHT publiziert → genau die
+    # "empty"-Symptomatik, die die Diagnose 26.10.2026 aufgedeckt hat.
+    # `trading_date.us_trading_date` ersetzt `now.date()` an beiden
+    # Stellen durch das US/Eastern-Handelstag-Datum.
+    _anchor_date = trading_date.us_trading_date(now)
+    t_iso = report_date_iso or _anchor_date.isoformat()
     # NYSE-API verlangt ein Datum VOR heute (siehe _resolve_nyse-Docstring) —
-    # basiert bewusst auf `now` (Wall-Clock des Laufs), NICHT auf `t_iso`
-    # (das ist nur das Label des persistierten Punkts, testweise überschreibbar).
-    nyse_date_iso = _last_workday_before(now.date()).isoformat()
+    # basiert bewusst auf dem ET-Handelstag-Anker (`_anchor_date`), NICHT
+    # auf `t_iso` (das ist nur das Label des persistierten Punkts,
+    # testweise überschreibbar und könnte vom Anker abweichen).
+    nyse_date_iso = _last_workday_before(_anchor_date).isoformat()
     budget = REG_SHO_TIME_BUDGET_S if time_budget_s is None else time_budget_s
     import time as _time
     t0 = _time.monotonic()
