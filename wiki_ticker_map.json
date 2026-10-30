@@ -602,6 +602,15 @@
     "substrate": "en",
     "reason": null
   },
+  "DKI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-30T01:07:21Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Darkiris Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "DMRC": {
     "qid": "Q5275736",
     "title": "Digimarc",
@@ -1735,6 +1744,15 @@
     "company_name_at_resolve": "Uniti Group Inc.",
     "substrate": "none",
     "reason": "no_article"
+  },
+  "UPBD": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-30T01:07:21Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Upbound Group, Inc.",
+    "substrate": "none",
+    "reason": "issuer_mismatch"
   },
   "UWMC": {
     "qid": "Q106024170",
