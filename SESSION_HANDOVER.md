@@ -2019,8 +2019,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 ### 30.10.2026 — exit_pressure "unvalidiert"-Caption + Wecker-Opt-Out + KI-Rate-28T-Nachzug + 4 Tracking-Items (1 PR)
 
 - **Easy-Entscheid (Monatsrundgang-Vorbereitung 30.10.2026, Variante B für
-  exit_pressure):** PR-Nummer wird per Follow-up-Commit nachgetragen
-  (Regel a), Branch `claude/exit-pressure-unvalidated-label`.
+  exit_pressure):** `#611` (Branch-Commit `27d8b0f2`, 30.10., kein
+  Merge-Hash — Regel a, PR noch offen/Ready).
 - **Frontend-Caption:** `buildPositionStatus()` (generate_report.py, JS)
   zeigt jetzt neben „Exit-Druck: X/100" eine kleine, dim/kursive Caption
   „unvalidiert" (`.ps-unvalidated`, neue CSS-Regel in `templates/head.jinja`
