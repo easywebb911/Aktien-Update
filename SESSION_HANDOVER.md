@@ -1803,9 +1803,9 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 ### 26.10.2026 — [Wächter] UTC-statt-ET-Handelstag-Bug in 8 Sammel-Pfaden + NYSE-Reg-SHO-Root-Cause (1 PR, Manual-Merge)
 
 - **Trading-Date-Fix (Klasse: neue Persistenz-Pfade/Ursachenbehebung an
-  Bestandsdaten, Manual-Merge, NICHT selbst gemergt):** PR-Nummer wird per
-  Follow-up-Commit nachgetragen (Regel a), Branch
-  `claude/trading-date-persistence-fix`. **Befund:** 8 Sammel-/Persistenz-
+  Bestandsdaten, Manual-Merge, NICHT selbst gemergt):** `#608` (Branch-Commit
+  `23d960ff`, 26.10., kein Merge-Hash — Regel a, PR noch offen/Ready).
+  **Befund:** 8 Sammel-/Persistenz-
   Pfade datierten neue Einträge mit `date.today()`/
   `datetime.now(timezone.utc).date()` (UTC-Kalenderdatum) statt dem
   US/Eastern-Handelstag — Postclose-Läufe, die nach UTC-Mitternacht feuern
