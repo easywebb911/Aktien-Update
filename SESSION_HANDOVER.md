@@ -1970,9 +1970,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 ### 30.10.2026 — Zwei Folge-Items aus PR #608 in open_items.json (1 PR, Doku/Config-only)
 
 - **Guardian-Randfunde aus #608 jetzt als eigene Tracking-Punkte** (reine
-  Doku, kein Code-Fix, PR-Nummer wird per Follow-up-Commit nachgetragen,
-  Regel a): PR-Nummer folgt, Branch `claude/open-items-pr608-followups`.
-  Zwei neue Items in `open_items.json` (39 → 41, strukturell geprüft,
+  Doku, kein Code-Fix): `#610` (Branch-Commit `ab6374b9`, 30.10., kein
+  Merge-Hash — Regel a, PR noch offen/Ready). Zwei neue Items in `open_items.json` (39 → 41, strukturell geprüft,
   `lint_open_items_consistency.py` grün, keine Duplikate — explizit
   gegrept).
 - **`finra-ssr-utc-cache-key`** (`offen`): `ki_agent.py:1243`
