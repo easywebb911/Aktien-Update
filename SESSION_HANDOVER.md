@@ -1860,6 +1860,43 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Gewinne drehen meist zurück → Exit-Argument, nur Kandidat). Kein Code,
   keine Logik berührt. **Rückweg:** `git revert` des Merge-Commits.
 
+### 30.10.2026 — [Wächter] Freeze-Zähler-Rate-Fenster 14T → 28T (1 PR, Anzeige-only)
+
+- **Digest-Zeile „Rate X Zeilen/Y Handelstage" zeigte praktisch immer 0**
+  (Auto-Merge, da `lint_protected_zones.py` grün bleibt): `#609` (Branch-
+  Commit `bf308b0e`, 30.10., kein Merge-Hash — Regel a, PR noch offen/
+  Ready). Befund: ein Eintrag reift erst nach ~10
+  Handelstagen (~15 Kalendertagen, siehe `return_10d`-Reifelogik in
+  `matured_export.py`) — das 14-Tage-Fenster von `_freeze_rate_last_14d`
+  war damit strukturell zu kurz, um je Zeilen zu zeigen.
+- **Fix (rein Anzeige):** neue Konstante `_FREEZE_RATE_WINDOW_DAYS = 28` in
+  `health_check.py` (direkt neben `_FREEZE_DATE_STR`/`_FREEZE_N_TARGET`),
+  einzige Stelle, die das Fenster definiert — `_freeze_rate_last_14d`
+  (Funktionsname aus Aufrufer-/Test-Kompatibilität bewusst unverändert
+  gelassen, siehe Docstring-Hinweis) liest jetzt `_FREEZE_RATE_WINDOW_DAYS`
+  statt des hartcodierten `14`; das Label in `freeze_counter_line` zieht
+  automatisch mit (`({_FREEZE_RATE_WINDOW_DAYS}T)` statt `(14T)`).
+- **Geprüft, NICHTS sonst berührt** (Mini-Stopp bestätigt, kein Freeze
+  ausgelöst): `_FREEZE_RATE_WINDOW_DAYS` wird per Grep ausschließlich in
+  `_freeze_rate_last_14d` + dem Label-String gelesen. Der Populationszähler
+  `n` (`_count_setup_edge_freeze_population`), `freeze_eval.py`
+  (Trigger-Logik bei n≥250), die Reifelogik in `matured_export.py` und
+  alle Schwellen-Konstanten sind unangetastet — `scripts/health_check_
+  digest.py` nutzt `setup_rate`/`ki_rate` aus dieser Funktionsfamilie nur
+  für die Anzeige-Zeile `eval_status_line` (Durchschnitt „ca. X/Y
+  Zeilen/Tag", kein „(14T)"/„(28T)"-Label dort, keine Trigger-Bedingung).
+  `_ki_score_freeze_rate_last_14d` (separate, strukturell ähnliche Funktion
+  ohne eigenes „(14T)"-Label in der Anzeige) bewusst NICHT angefasst —
+  außerhalb des Befund-Scopes.
+- **Tests:** `scripts/mock_test_freeze_zaehler.py` — Test 09 auf 28T-Cutoff
+  angepasst, neuer Test 09b als direkter Vorher/Nachher-Beleg (zwei
+  Einträge, die unter dem alten 14T-Fenster ausgeschlossen, unter dem
+  neuen 28T-Fenster erfasst würden), Test 20/MARK-Literal in Test 21 auf
+  `(28T)` aktualisiert. 24/24 Tests grün, volle Suite weiterhin grün
+  (163 Tests), alle Lints grün inkl. `lint_protected_zones.py`, Outer-
+  Page-Golden byte-identisch (kein Render-Pfad berührt). **Rückweg:**
+  `git revert` des Merge-Commits.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-

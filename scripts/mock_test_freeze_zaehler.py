@@ -7,8 +7,12 @@ Deckt ab:
      Eintrittsdatum > Freeze-Datum (12.10.2026) zaehlt; fehlende
      return_5d/return_10d zaehlen nicht; provenance=="backfill" zaehlt NIE;
      Dubletten (ticker, date) zaehlen einmal.
-  2  Rate (letzte 14 Kalendertage): nur Freeze-Population-Zeilen innerhalb
-     des Fensters, reine Zaehlung (zeilen, distinct Handelstage).
+  2  Rate (letzte ``_FREEZE_RATE_WINDOW_DAYS`` = 28 Kalendertage, Wächter-
+     Fix 30.10.2026 — war 14T, zu kurz fuer die ~15-Kalendertage-Reifezeit
+     eines Eintrags, zeigte praktisch immer 0): nur Freeze-Population-
+     Zeilen innerhalb des Fensters, reine Zaehlung (zeilen, distinct
+     Handelstage). test_09b belegt den Unterschied explizit gegen das alte
+     14T-Fenster (gleiche Daten, zwei "now"-Werte).
   3  KI-Abdeckung des letzten Report-Tags (backtest_history.json):
      10/10, 7/10, 0/10 (Schluessel vorhanden, aber alle None) und "n/a"
      (kein Eintrag traegt den Schluessel ki_signal_ts ueberhaupt).
@@ -129,12 +133,14 @@ def test_08_empty_file_zero() -> None:
     assert hc._count_setup_edge_freeze_population(p) == (0, 0)
 
 
-# ── 2. Rate (letzte 14 Kalendertage) ─────────────────────────────────────────
+# ── 2. Rate (letzte 28 Kalendertage, war 14T — Wächter-Fix 30.10.2026) ──────
 
 def test_09_rate_counts_only_within_window() -> None:
-    now = datetime(2026, 10, 25, 12, 0, tzinfo=timezone.utc)  # cutoff = 11.10.2026
+    assert hc._FREEZE_RATE_WINDOW_DAYS == 28, \
+        "Fenster-Konstante muss 28 sein (Wächter-Fix 30.10.2026)"
+    now = datetime(2026, 10, 25, 12, 0, tzinfo=timezone.utc)  # cutoff = 27.09.2026
     p = _tmp_jsonl([
-        _row("A", "12.10.2026"),   # innerhalb (>= 11.10.)
+        _row("A", "12.10.2026"),   # innerhalb (>= 27.09.)
         _row("B", "20.10.2026"),   # innerhalb
         _row("C", "01.10.2026"),   # VOR Freeze-Datum (10.10.) → fällt eh raus (nicht Population)
         _row("D", "15.09.2026"),   # weit außerhalb UND vor Freeze
@@ -142,6 +148,31 @@ def test_09_rate_counts_only_within_window() -> None:
     zeilen, tage = hc._freeze_rate_last_14d(p, now=now)
     assert zeilen == 2, f"Rate-Fenster falsch gezählt: zeilen={zeilen} (erwartet 2)"
     assert tage == 2, f"distinct Handelstage falsch: tage={tage} (erwartet 2)"
+
+
+def test_09b_rate_28d_window_catches_entries_14d_window_missed() -> None:
+    # Direkter Vorher/Nachher-Beleg des Wächter-Befunds (30.10.2026): dieselben
+    # Zeilen, die unter dem ALTEN 14-Tage-Fenster rausgefallen waeren, werden
+    # unter dem NEUEN 28-Tage-Fenster gezaehlt. "now" bewusst 14 Tage nach den
+    # Eintraegen gewaehlt, damit der alte 14T-Cutoff sie gerade eben ausschliesst,
+    # der neue 28T-Cutoff sie aber noch erfasst.
+    now = datetime(2026, 11, 8, 12, 0, tzinfo=timezone.utc)
+    p = _tmp_jsonl([
+        _row("A", "12.10.2026"),   # 27 Tage vor "now" -> innerhalb 28T, ausserhalb altem 14T
+        _row("B", "20.10.2026"),   # 19 Tage vor "now" -> innerhalb 28T, ausserhalb altem 14T
+    ])
+    zeilen, tage = hc._freeze_rate_last_14d(p, now=now)
+    assert (zeilen, tage) == (2, 2), (
+        f"28T-Fenster muss beide Zeilen erfassen: got=({zeilen},{tage})")
+
+    # Kontrollprobe: mit dem ALTEN 14-Tage-Fenster (manuell nachgebildet,
+    # ohne die Produktionskonstante zu nutzen) waeren beide Zeilen ausserhalb
+    # des Fensters gelegen -- das ist exakt der "zeigt praktisch immer 0"-Bug.
+    from datetime import timedelta
+    old_cutoff = now.date() - timedelta(days=14)
+    assert old_cutoff > datetime(2026, 10, 20).date(), (
+        "Testannahme verletzt: alter 14T-Cutoff muesste nach beiden "
+        "Eintragsdaten liegen, um den Bug zu demonstrieren")
 
 
 def test_10_rate_missing_file_none() -> None:
@@ -230,12 +261,12 @@ def test_20_freeze_counter_line_example_output() -> None:
     bp = _tmp_json([_bt_entry(t, "24.10.2026", "2026-10-24T12:00:00Z") for t in "ABCDE"])
     line = hc.freeze_counter_line(ep, bp, now=now)
     assert "n = 2/250" in line
-    assert "2 Zeilen/2 Handelstage (14T)" in line
+    assert "2 Zeilen/2 Handelstage (28T)" in line
     assert "5/5" in line
 
 
 def test_21_digest_body_includes_freeze_line_all_classes() -> None:
-    MARK = "🧪 Freeze-Zähler: Setup/Conviction n = 0/250 · Rate 0 Zeilen/0 Handelstage (14T) · KI-Abdeckung (letzter Report-Tag) n/a"
+    MARK = "🧪 Freeze-Zähler: Setup/Conviction n = 0/250 · Rate 0 Zeilen/0 Handelstage (28T) · KI-Abdeckung (letzter Report-Tag) n/a"
     body_ok, _, _, _ = hc.format_digest_body(
         [], [], n_runs=3, last_run_iso="x", digest_date="2026-10-11",
         freeze_line=MARK)
@@ -292,7 +323,8 @@ def main() -> int:
         ("06 alle Scores gezählt (kein >=70-Filter)",        test_06_all_scores_counted_no_ge70_filter),
         ("07 Datei fehlt -> None",                           test_07_missing_file_none),
         ("08 leere Datei -> (0,0)",                          test_08_empty_file_zero),
-        ("09 Rate: nur Fenster letzte 14 Kalendertage",      test_09_rate_counts_only_within_window),
+        ("09 Rate: nur Fenster letzte 28 Kalendertage",      test_09_rate_counts_only_within_window),
+        ("09b Rate: 28T-Fix faengt, was 14T verpasst hätte", test_09b_rate_28d_window_catches_entries_14d_window_missed),
         ("10 Rate: Datei fehlt -> None",                     test_10_rate_missing_file_none),
         ("11 Rate: Dedup wie Population",                    test_11_rate_dedup_same_as_population),
         ("12 KI-Abdeckung 10/10",                            test_12_ki_coverage_full),
