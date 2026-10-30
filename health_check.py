@@ -2294,8 +2294,15 @@ def _count_ki_score_freeze_population(export_path) -> tuple[int, int] | None:
 
 def _ki_score_freeze_rate_last_14d(export_path, now: datetime | None = None) -> tuple[int, int] | None:
     """``(zeilen, distinct_handelstage)`` der KI-Score-Population mit
-    Eintrittsdatum in den letzten 14 Kalendertagen — analog
-    ``_freeze_rate_last_14d``."""
+    Eintrittsdatum in den letzten ``_FREEZE_RATE_WINDOW_DAYS`` Kalendertagen
+    — analog ``_freeze_rate_last_14d``. Fenster seit 30.10.2026 identisch zur
+    Setup/Conviction-Rate (dieselbe Konstante, war vorher unabhängig
+    hartcodiert 14) — Konsistenz-Nachzug, kein eigenes "(14T)"-Digest-Label
+    existierte für diese Funktion (einziger Konsument ist
+    ``eval_status_line`` über ``scripts/health_check_digest.py``, zeigt nur
+    einen Durchschnitt "ca. X/Y Zeilen/Tag" ohne Fenster-Text). Funktionsname
+    bleibt wie bei ``_freeze_rate_last_14d`` aus Aufrufer-Kompatibilität
+    historisch bei ``_14d``."""
     result = _read_matured_export_rows(export_path)
     if result is None:
         return None
@@ -2303,7 +2310,7 @@ def _ki_score_freeze_rate_last_14d(export_path, now: datetime | None = None) -> 
     freeze_date = _parse_dmy_date(_KI_SCORE_FREEZE_DATE_STR)
     if now is None:
         now = datetime.now(timezone.utc)
-    cutoff = now.date() - timedelta(days=14)
+    cutoff = now.date() - timedelta(days=_FREEZE_RATE_WINDOW_DAYS)
     keys = _ki_score_population_keys(rows, freeze_date, min_date=cutoff)
     tage = {d for (_t, d) in keys}
     return len(keys), len(tage)

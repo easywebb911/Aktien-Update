@@ -2251,7 +2251,12 @@ function buildPositionStatus(ticker) {
     if (typeof ep === 'number' && isFinite(ep)) {
       const v = Math.round(ep);
       const c = v >= 75 ? '#ef4444' : v >= 30 ? '#f59e0b' : 'var(--txt-dim)';
-      pressureLine = `<div class="ps-pressure" style="color:${c}">Exit-Druck: ${v}/100</div>`;
+      // Easy-Entscheid 30.10.2026 (Variante B): exit_pressure hat keinen
+      // belegten Score-Edge (siehe config.SCORE_STATUS_LABELS["exit_pressure"]),
+      // Caption im Stil der Entry-Shadow-"heuristisch (Erhebung läuft)."-Zeile
+      // macht das direkt auf der Karte sichtbar statt nur im Methodik-Panel.
+      pressureLine = `<div class="ps-pressure" style="color:${c}">Exit-Druck: ${v}/100 `
+        + `<span class="ps-unvalidated">unvalidiert</span></div>`;
     }
     // Render-Bedingung: mindestens Composite ODER mindestens eine
     // warn/crit-Trigger-Zeile muss vorhanden sein. Kein exit_pressure

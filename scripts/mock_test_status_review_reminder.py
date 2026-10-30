@@ -146,10 +146,11 @@ def test_10_real_config_setup_conviction_ki_no_longer_due() -> None:
     sind auf die automatische n≥250-Freeze-Auswertung umgestellt
     (review_by=None + review_cond) — der kalendergetriebene Wecker darf für
     diese drei NICHT mehr feuern, egal wie weit in der Zukunft ``now`` liegt.
-    exit_pressure bleibt bewusst unverändert (review_by=2026-09-30,
-    überfällig, kein Ersatz-Mechanismus gefunden) — MUSS weiter als fällig
-    erkannt werden, sonst würde ein echtes, ungelöstes Review stillschweigend
-    verschwinden."""
+    exit_pressure (review_by=2026-09-30, überfällig) bleibt in
+    ``find_due_reviews`` weiterhin als fällig erkennbar — das ist nach wie
+    vor ein wahrer Fakt (siehe Docstring dort) — wird aber seit 30.10.2026
+    per ``STATUS_REVIEW_WECKER_SKIP_LABELS``-Flag in ``run()`` NICHT mehr
+    tatsächlich gepusht (test_11)."""
     far_future = dt.datetime(2099, 1, 1)
     due = srr.find_due_reviews(config.SCORE_STATUS_LABELS, far_future)
     due_keys = {d["score"] for d in due}
@@ -158,8 +159,40 @@ def test_10_real_config_setup_conviction_ki_no_longer_due() -> None:
             f"{key} feuert noch (review_by={config.SCORE_STATUS_LABELS[key].get('review_by')}) "
             f"— sollte auf review_cond umgestellt sein")
     assert "exit_pressure" in due_keys, (
-        "exit_pressure sollte weiterhin als fällig erkannt werden "
-        "(kein Ersatz-Mechanismus — STOPP-Fall, siehe PR-Bericht)")
+        "exit_pressure sollte in find_due_reviews weiterhin als fällig "
+        "erkannt werden (review_by bleibt unverändert im Dict stehen — "
+        "der Opt-Out in run() ist ein separater, additiver Filter, kein "
+        "Löschen von review_by)")
+
+
+def test_11_exit_pressure_opt_out_no_push_via_run() -> None:
+    """BELEG (Easy-Entscheid 30.10.2026, Variante B): obwohl exit_pressure
+    laut find_due_reviews weiterhin fällig ist (test_10), darf run() dafür
+    KEINEN Push mehr absetzen — config.STATUS_REVIEW_WECKER_SKIP_LABELS
+    filtert es in run() heraus. Setup bleibt unverändert push-fähig (hier
+    über die ECHTE config, nicht die _LABELS-Fixture, damit der reale
+    Opt-Out-Pfad getestet wird, nicht nur die pure find_due_reviews-Logik)."""
+    assert "exit_pressure" in config.STATUS_REVIEW_WECKER_SKIP_LABELS, (
+        "exit_pressure muss in der Skip-Liste stehen")
+    wd = config.STATUS_REVIEW_WECKER_WEEKDAY
+    monday = _first_weekday_on_or_after(dt.datetime(2026, 7, 1), wd).replace(hour=21)
+    far_future_labels = dict(config.SCORE_STATUS_LABELS)
+    far_future_labels["exit_pressure"] = dict(far_future_labels["exit_pressure"])
+    far_future_labels["exit_pressure"]["review_by"] = "2026-01-01"  # garantiert fällig
+    captured = []
+    srr.SCORE_STATUS_LABELS = far_future_labels
+    try:
+        n = srr.run(monday, "postclose",
+                    send_fn=lambda item: captured.append(item["score"]) or True)
+    finally:
+        importlib.reload(srr)
+        sys.path.insert(0, str(ROOT))
+    assert "exit_pressure" not in captured, (
+        "exit_pressure darf trotz fälligem review_by NICHT gepusht werden "
+        "(STATUS_REVIEW_WECKER_SKIP_LABELS)")
+    assert n == 0, (
+        f"erwartet 0 Pushes (exit_pressure ist der einzige fällige Eintrag "
+        f"und wird geskippt), got n={n}, captured={captured}")
 
 
 def main() -> None:
@@ -175,6 +208,8 @@ def main() -> None:
         ("09 config-Konstanten gültig",        test_09_config_constants),
         ("10 setup/conviction/ki nicht mehr fällig, exit_pressure schon",
          test_10_real_config_setup_conviction_ki_no_longer_due),
+        ("11 exit_pressure Opt-Out: kein Push via run()",
+         test_11_exit_pressure_opt_out_no_push_via_run),
     ]
     failed = 0
     for name, fn in tests:
