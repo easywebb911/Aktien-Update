@@ -23,6 +23,15 @@ ntfy-Mechanik: identisches URL-Pattern wie ``scripts/lit_reminder.py`` /
 alle funktionierenden Sender (``POST https://ntfy.sh/{topic}`` + ``data=``-Body
 + Title/Priority/Tags-Header, ASCII-Title-Strip). KEIN Trade-Pipeline-Aufruf
 (kein Cooldown, kein Silence-Filter, keine push_history).
+
+PER-LABEL-OPT-OUT (30.10.2026, ``config.STATUS_REVIEW_WECKER_SKIP_LABELS``):
+``exit_pressure`` hat keinen automatischen Freeze-Auslöser (anders als
+setup/conviction/ki) — ohne Ersatz-Mechanismus würde der Wecker für immer
+wöchentlich auf ein überfälliges ``review_by`` hinweisen. ``find_due_reviews``
+erkennt das Label weiterhin korrekt als „fällig" (review_by bleibt im Dict
+unverändert stehen, kein Löschen), nur ``run()`` unterdrückt den tatsächlichen
+Push für Labels in dieser Liste — rein additiver Filter, trivial rückgängig
+zu machen (Label aus der Liste entfernen).
 """
 from __future__ import annotations
 
@@ -42,6 +51,7 @@ from config import (  # noqa: E402
     STATUS_REVIEW_WECKER_TITLE,
     STATUS_REVIEW_WECKER_TAGS,
     STATUS_REVIEW_WECKER_PRIORITY,
+    STATUS_REVIEW_WECKER_SKIP_LABELS,
     NTFY_ENABLED,
     NTFY_TOPIC,
 )
@@ -140,6 +150,12 @@ def run(now: _dt.datetime, run_phase: str, *, send_fn=None) -> int:
     if not gate_open(now, run_phase):
         return 0
     due = find_due_reviews(SCORE_STATUS_LABELS, now)
+    # Per-Label-Opt-Out (30.10.2026): find_due_reviews meldet weiterhin
+    # korrekt "fällig" (echte Tatsache, review_by bleibt unverändert im
+    # Dict) — nur der tatsächliche Push wird für Labels in der Skip-Liste
+    # unterdrückt. Reiner Flag, kein Löschen von review_by.
+    due = [item for item in due
+           if item.get("score") not in STATUS_REVIEW_WECKER_SKIP_LABELS]
     sender = send_fn or (lambda item: _ntfy_send(
         f"{STATUS_REVIEW_WECKER_TITLE}: {item['score']}", _reminder_body(item)))
     n_sent = 0

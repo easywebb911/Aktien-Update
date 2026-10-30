@@ -2185,6 +2185,18 @@ STATUS_REVIEW_WECKER_TITLE    = "⏰ Status-Review fällig"
 STATUS_REVIEW_WECKER_TAGS     = "alarm_clock"
 STATUS_REVIEW_WECKER_PRIORITY = "default"    # Erinnerung, kein Aktions-Signal
 
+# Per-Label-Opt-Out (Easy-Entscheid 30.10.2026, Variante B für exit_pressure):
+# exit_pressure hat laut eigenem Kommentar in SCORE_STATUS_LABELS keinen
+# automatischen n>=250-Freeze-Auslöser (anders als setup/conviction/ki) —
+# `review_by` blieb seit 30.09.2026 überfällig und der Wecker feuerte
+# wöchentlich ohne Aussicht auf Auflösung. Bewusst ALS FLAG statt Löschen
+# von `review_by`: das überfällige Datum bleibt als historischer Beleg im
+# Dict stehen (find_due_reviews erkennt es weiterhin korrekt als "fällig" —
+# das ist nach wie vor ein wahrer Fakt), nur der tatsächliche Push in
+# status_review_reminder.run() wird für Labels in dieser Liste unterdrückt.
+# Rückweg: Label aus der Liste entfernen (leere Liste = altes Verhalten).
+STATUS_REVIEW_WECKER_SKIP_LABELS = frozenset({"exit_pressure"})
+
 S10_OBSERVED_FIELDS = frozenset({
     # Core (immer gesetzt)
     "date", "ticker", "score", "entry_price", "rvol", "dtc",

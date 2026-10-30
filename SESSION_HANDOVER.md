@@ -2016,6 +2016,81 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   **Rückweg:** `git revert` des Merge-Commits (einfacher Revert, keine
   Code-Abhängigkeit).
 
+### 30.10.2026 — exit_pressure "unvalidiert"-Caption + Wecker-Opt-Out + KI-Rate-28T-Nachzug + 4 Tracking-Items (1 PR)
+
+- **Easy-Entscheid (Monatsrundgang-Vorbereitung 30.10.2026, Variante B für
+  exit_pressure):** `#611` (Branch-Commit `27d8b0f2`, 30.10., kein
+  Merge-Hash — Regel a, PR noch offen/Ready).
+- **Frontend-Caption:** `buildPositionStatus()` (generate_report.py, JS)
+  zeigt jetzt neben „Exit-Druck: X/100" eine kleine, dim/kursive Caption
+  „unvalidiert" (`.ps-unvalidated`, neue CSS-Regel in `templates/head.jinja`
+  direkt nach `.ps-pressure`) — im Stil der Entry-Shadow-„heuristisch
+  (Erhebung läuft)."-Zeile. Macht den bereits in `config.SCORE_STATUS_LABELS
+  ["exit_pressure"]` + dem Methodik-Panel vorhandenen „unvalidiert"-Status
+  jetzt auch direkt auf der Karte sichtbar, nicht nur in der Accordion.
+  KEINE Änderung an Berechnung/Triggern/Schwellen/`exit_shadow_log`.
+  Golden-Diff: genau ein Hunk (die eine Zeile), neu erzeugt + verifiziert
+  byte-identisch danach.
+- **Wöchentlicher Status-Wecker abgestellt (Konfig/Flag statt Löschen):**
+  neue Konstante `config.STATUS_REVIEW_WECKER_SKIP_LABELS = frozenset
+  ({"exit_pressure"})`. `status_review_reminder.run()` filtert Labels in
+  dieser Liste NACH `find_due_reviews()` heraus — die Pure-Funktion selbst
+  meldet `exit_pressure` weiterhin korrekt als „fällig" (review_by bleibt
+  unverändert `2026-09-30` im Dict stehen, keine Löschung), nur der
+  tatsächliche ntfy-Push wird unterdrückt. Rückweg: Label aus der
+  frozenset entfernen. Infrastruktur-Pushes (Health-Check-Digest, HTML-
+  Sanity-CRIT, Lit-Check-Weekly, dieser Wecker für andere Labels)
+  unverändert aktiv. Test 10 in `mock_test_status_review_reminder.py`
+  angepasst (dokumentiert jetzt explizit die Trennung find_due_reviews
+  vs. run()), neuer Test 11 belegt: `run()` pusht NICHT für exit_pressure
+  trotz fälligem review_by.
+- **`_ki_score_freeze_rate_last_14d`-Konsistenz-Nachzug:** nutzte seit
+  PR #609 unabhängig weiter ein hartcodiertes 14-Tage-Fenster (war nicht
+  Teil von #609, da ohne eigenes „(14T)"-Digest-Label — einziger Konsument
+  `eval_status_line` zeigt nur „ca. X/Y Zeilen/Tag" ohne Fenster-Text,
+  verifiziert: kein Label zum „Mitziehen" existierte tatsächlich). Jetzt
+  auf dieselbe `_FREEZE_RATE_WINDOW_DAYS`-Konstante (=28) umgestellt wie
+  die Setup/Conviction-Rate — zwei neue Tests in
+  `mock_test_freeze_zaehler.py` (11b/11c) belegen den Vorher/Nachher-
+  Unterschied und die geteilte Konstante.
+- **Vier neue Tracking-Items in `open_items.json`** (41 → 45, Duplikate
+  geprüft — vier bestehende, thematisch verwandte Items gefunden
+  [`setup-edge-retest-freeze`, `ki-score-edge-freeze`, `options-chain-raw-
+  sammelfeld`, `reddit-shadow-apewisdom`], aber keine echten Duplikate:
+  jene beschreiben Design/Setup, diese vier tragen die ersten echten
+  Mess-Zahlen aus der Monatsrundgang-Diagnose 30.10. — in jeder Beschreibung
+  auf das jeweilige Schwester-Item quer-referenziert):
+  - `exit-shadow-log-quelle` (offen): `exit_shadow_log.jsonl` als dritte,
+    bisher nicht dokumentierte Quelle für exit_pressure-Validierung —
+    552 Zeilen, 472 reif; Haken: Zeilen ≠ Positionen, Diagnose der
+    distinct-Positionen-Zahl steht noch aus.
+  - `apewisdom-abdeckung` (offen): Treffer-Quote nur 4,5–12,5 % seit
+    Sammelstart 23.10.; offen ob `APEWISDOM_API_PAGES` erhöhen hilft.
+  - `options-chain-raw-bidask` (offen): 22,9 % bid=0/None, 44,2 % Spread
+    >50 %, 889 Zeilen/9 Tage — für Spread-Kosten/UOA nicht belastbar ohne
+    strikten `bid>0 AND ask>0`-Filter.
+  - `freeze-zaehler-stagnation` (offen): Setup/Conviction UND KI-Score
+    je echt gezählt (40, 1307) — Doku-Zahl bestätigt korrekt. Stagniert
+    seit 15.10. wegen 14-Tage-Reife-Gate (kein Bug), grobe Schätzung
+    Ende Nov./Anfang Dez. 2026 bis n=250.
+- **Mini-Stopp geprüft, nichts gefunden:** `_is_freeze_population_row`/
+  `_ki_score_population_keys` lesen `obj.get("date")` aus
+  `matured_backtest_export.jsonl` — Ursprung `backtest_history.json`,
+  bereits ET-korrekt (`datetime.now(ZoneInfo("America/New_York"))`) —
+  **kein** #608-UTC-Datumsversatz-Risiko für die Freeze-Zähler.
+- **Tests/Lints:** 165 Tests grün (3 neue Testfälle in bestehenden Dateien:
+  `mock_test_status_review_reminder.py` Test 11, `mock_test_freeze_zaehler.py`
+  Tests 11b/11c), alle 6 Lints grün (inkl. `lint_protected_zones.py` — kein
+  Score-/Filter-/Push-/Exit-/Freeze-Logik-Touch, nur Anzeige/Config/Doku),
+  `lint_nan_bypass_fields.py`-Baseline wegen der JS-Zeilen-Verschiebung
+  (+5 Zeilen durch die Caption) neu verifiziert. Golden neu erzeugt (ein
+  Hunk, s. o.), danach byte-identisch.
+- **Klasse: Auto-Merge** (Anzeige-Label + Config-Flag + Konsistenz-Fenster
+  + additive Tracking-Items — `lint_protected_zones.py` bestätigt keine
+  geschützte Zone berührt). **Rückweg:** `git revert` des Merge-Commits
+  (Wecker-Opt-Out-Flag ist ohnehin schon trivial umkehrbar, falls separat
+  gewünscht: Label aus `STATUS_REVIEW_WECKER_SKIP_LABELS` entfernen).
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-

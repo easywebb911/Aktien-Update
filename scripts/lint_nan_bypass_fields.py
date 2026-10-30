@@ -248,14 +248,20 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     ("generate_report.py", 7748, "52w_high"),
     ("generate_report.py", 7749, "52w_low"),
     ("generate_report.py", 8424, "float_shares"),
-    ("generate_report.py", 17190, "entry_price"),
-    ("generate_report.py", 17199, "price"),
-    ("generate_report.py", 17223, "setup_today"),
-    ("generate_report.py", 17980, "score"),
-    ("generate_report.py", 18489, "score"),
-    ("generate_report.py", 19049, "score"),
-    ("generate_report.py", 19092, "score"),
-    ("generate_report.py", 19282, "score"),
+    # Exit-Druck-Unvalidiert-Caption (30.10.2026, Easy-Entscheid Variante B):
+    # buildPositionStatus()'s pressureLine-Template wuchs von 1 auf 6 Zeilen
+    # (Kommentar + zweizeiliges Template-Literal) -- verschiebt ALLE
+    # folgenden Funde in generate_report.py um +5. Reine Zeilen-Nachführung
+    # derselben, weiterhin offenen Funde -- KEIN inhaltlicher Fix. Werte
+    # unten per frischem Lint-Lauf nach diesem PR verifiziert.
+    ("generate_report.py", 17195, "entry_price"),
+    ("generate_report.py", 17204, "price"),
+    ("generate_report.py", 17228, "setup_today"),
+    ("generate_report.py", 17985, "score"),
+    ("generate_report.py", 18494, "score"),
+    ("generate_report.py", 19054, "score"),
+    ("generate_report.py", 19097, "score"),
+    ("generate_report.py", 19287, "score"),
     ("health_check.py", 648, "score"),
     ("ki_agent.py", 1368, "last_price"),
     ("ki_agent.py", 2730, "score"),

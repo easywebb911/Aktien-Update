@@ -187,6 +187,53 @@ def test_11_rate_dedup_same_as_population() -> None:
     assert tage == 1
 
 
+# ── 2b. KI-Score-Rate (Wächter-Fix 30.10.2026, Konsistenz-Nachzug) ──────────
+
+def _ki_row(ticker, date, provenance="forward", ki_signal_score=80,
+            return_5d=1.0, return_10d=2.0) -> str:
+    return json.dumps({
+        "ticker": ticker, "date": date, "provenance": provenance,
+        "ki_signal_ts": "2026-10-01T00:00:00Z", "ki_signal_score": ki_signal_score,
+        "return_5d": return_5d, "return_10d": return_10d,
+    })
+
+
+def test_11b_ki_score_rate_uses_shared_28d_window() -> None:
+    # Gleicher Beleg wie test_09b, aber fuer die KI-Score-Variante — vorher
+    # unabhaengig hartcodiert 14 Tage, jetzt dieselbe Konstante wie Setup.
+    now = datetime(2026, 11, 8, 12, 0, tzinfo=timezone.utc)
+    ki_freeze = hc._KI_SCORE_FREEZE_DATE_STR  # "12.10.2026", inklusiv (>=)
+    p = _tmp_jsonl([
+        _ki_row("A", ki_freeze),       # == Freeze-Datum, zaehlt (inklusiv)
+        _ki_row("B", "20.10.2026"),    # 19 Tage vor "now"
+    ])
+    zeilen, tage = hc._ki_score_freeze_rate_last_14d(p, now=now)
+    assert (zeilen, tage) == (2, 2), (
+        f"28T-Fenster muss beide Zeilen erfassen: got=({zeilen},{tage})")
+    # Kontrollprobe: beide Eintragsdaten liegen ausserhalb eines (altem)
+    # 14-Tage-Fensters ab "now" -- belegt, dass hier tatsaechlich das
+    # erweiterte Fenster greift, nicht Zufall.
+    from datetime import timedelta
+    old_cutoff_14d = now.date() - timedelta(days=14)
+    assert old_cutoff_14d > datetime(2026, 10, 20).date(), (
+        "Testannahme verletzt: alter 14T-Cutoff muesste nach beiden "
+        "Eintragsdaten liegen")
+
+
+def test_11c_ki_score_rate_window_constant_shared_with_setup() -> None:
+    # Stellt sicher, dass beide Rate-Funktionen DIESELBE Konstante nutzen
+    # (keine zweite, unabhaengig drifende Fenster-Zahl).
+    now = datetime(2026, 11, 8, 12, 0, tzinfo=timezone.utc)
+    setup_p = _tmp_jsonl([_row("A", "12.10.2026")])
+    ki_p = _tmp_jsonl([_ki_row("A", hc._KI_SCORE_FREEZE_DATE_STR)])
+    setup_rate = hc._freeze_rate_last_14d(setup_p, now=now)
+    ki_rate = hc._ki_score_freeze_rate_last_14d(ki_p, now=now)
+    assert setup_rate == (1, 1) and ki_rate == (1, 1), (
+        f"beide Fenster muessen bei identischem Abstand zu 'now' gleich "
+        f"greifen: setup={setup_rate} ki={ki_rate}")
+    assert hc._FREEZE_RATE_WINDOW_DAYS == 28
+
+
 # ── 3. KI-Abdeckung letzter Report-Tag ───────────────────────────────────────
 
 def _bt_entry(ticker, date, ki_signal_ts="__OMIT__"):
@@ -327,6 +374,8 @@ def main() -> int:
         ("09b Rate: 28T-Fix faengt, was 14T verpasst hätte", test_09b_rate_28d_window_catches_entries_14d_window_missed),
         ("10 Rate: Datei fehlt -> None",                     test_10_rate_missing_file_none),
         ("11 Rate: Dedup wie Population",                    test_11_rate_dedup_same_as_population),
+        ("11b KI-Score-Rate nutzt geteiltes 28T-Fenster",     test_11b_ki_score_rate_uses_shared_28d_window),
+        ("11c Setup-/KI-Rate teilen dieselbe Fenster-Konstante", test_11c_ki_score_rate_window_constant_shared_with_setup),
         ("12 KI-Abdeckung 10/10",                            test_12_ki_coverage_full),
         ("13 KI-Abdeckung 7/10",                             test_13_ki_coverage_partial),
         ("14 KI-Abdeckung 0/10 (Schlüssel da, alle None)",   test_14_ki_coverage_zero_but_key_present),
