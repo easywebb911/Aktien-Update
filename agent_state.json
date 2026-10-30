@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-10-30T02:00:17.099103+01:00",
+  "last_run": "2026-10-30T02:08:41.581994+01:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,54 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-10-26T14:10:30.845911+01:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock,trend_break",
-      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 63/100",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-10-26T14:10:30.845944+01:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale PDYN: trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-10-26T14:10:30.845970+01:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "escalation",
-      "trigger": "profit_lock,score_decay,trend_break",
-      "body": "🚨 Exit-Eskalation WOLF: pressure 62→77/100 · Trigger: profit_lock, score_decay, trend_break",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-10-26T14:10:30.845978+01:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock,score_decay,trend_break",
-      "body": "🔻 Exit-Signale WOLF: profit_lock, score_decay, trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-10-26T14:10:30.845997+01:00",
       "ticker": "GRPN",
@@ -1311,25 +1263,73 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-10-30T02:08:41.582085+01:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 64/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-10-30T02:08:41.582106+01:00",
+      "ticker": "PDYN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signale PDYN: trend_break crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-10-30T02:08:41.582120+01:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signale WOLF: profit_lock crit · Warnung pressure 56/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-10-30T02:08:41.582131+01:00",
+      "ticker": "GRPN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signale GRPN: trend_break crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "WEN": 68.0,
-    "XRX": 79.0,
-    "ULCC": 57.0,
-    "DIN": 42.0,
-    "DMRC": 63.0,
-    "NGNE": 63.0,
-    "TDOC": 56.0,
-    "REPL": 55.0,
-    "EDIT": 52.0,
-    "BLMN": 33.0,
+    "TDOC": 78.0,
+    "LENZ": 80.0,
+    "BBW": 67.0,
+    "DKI": 53.0,
+    "REPL": 60.0,
+    "DBI": 73.0,
+    "UPBD": 85.0,
+    "JACK": 71.0,
+    "TTEC": 69.0,
+    "FIRY": 60.0,
     "GRPN": 51.0,
-    "WOLF": 44.0,
-    "PDYN": 34.0,
-    "IONQ": 13.0,
+    "WOLF": 42.0,
+    "PDYN": 33.0,
     "AMC": 13.0,
-    "VEEA": 12.0
+    "VEEA": 13.0,
+    "IONQ": 13.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1374,25 +1374,25 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-10-30T02:00:17.099193+01:00"
+      "updated": "2026-10-30T02:08:41.582093+01:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-10-30T02:00:17.099217+01:00"
+      "updated": "2026-10-30T02:08:41.582111+01:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-10-30T02:00:17.099236+01:00"
+      "updated": "2026-10-30T02:08:41.582124+01:00"
     },
     "GRPN": {
       "last_active": [],
       "last_push_date": null,
       "esc_alerted": false,
-      "updated": "2026-10-30T02:00:17.099251+01:00"
+      "updated": "2026-10-30T02:08:41.582135+01:00"
     }
   }
 }
