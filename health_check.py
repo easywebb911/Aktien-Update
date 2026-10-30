@@ -2011,6 +2011,16 @@ def retest_counter_line(export_path=None) -> str:
 _FREEZE_DATE_STR = SETUP_EDGE_FREEZE_DATE          # "10.10.2026", DD.MM.YYYY
 _FREEZE_N_TARGET = SETUP_EDGE_FREEZE_N_TARGET      # 250, identisch zu §4
 
+# Fenster für die Rate-Anzeige in ``freeze_counter_line`` (Wächter-Befund
+# 30.10.2026): war 14 Kalendertage, zu kurz — ein Eintrag reift erst nach
+# 10 Handelstagen (~15 Kalendertage, siehe ``return_10d``-Reifelogik in
+# ``matured_export.py``), die "(14T)"-Zeile zeigte deshalb praktisch immer
+# 0. REIN ANZEIGE: ändert nur das Rate-Zeitfenster für diese eine Digest-
+# Zeile — der Freeze-Populationszähler ``n`` (``_count_setup_edge_freeze_
+# population``), ``freeze_eval.py`` und alle Reife-/Schwellen-Werte lesen
+# diese Konstante NICHT (siehe Grep-Beleg im PR-Text).
+_FREEZE_RATE_WINDOW_DAYS = 28
+
 
 def _parse_dmy_date(s) -> date | None:
     """Parst ``DD.MM.YYYY`` zu einem ``date``-Objekt, oder ``None`` bei
@@ -2089,9 +2099,13 @@ def _count_setup_edge_freeze_population(export_path) -> tuple[int, int] | None:
 
 def _freeze_rate_last_14d(export_path, now: datetime | None = None) -> tuple[int, int] | None:
     """``(zeilen, distinct_handelstage)`` der Freeze-Population mit
-    Eintrittsdatum in den letzten 14 Kalendertagen (bezogen auf ``now``,
-    UTC falls nicht gesetzt — Grenze inklusive, ``entry_date >= heute -
-    14 Tage``). REINE ZÄHLUNG, keine Rate-/Durchschnitts-Berechnung hier
+    Eintrittsdatum in den letzten ``_FREEZE_RATE_WINDOW_DAYS`` Kalendertagen
+    (bezogen auf ``now``, UTC falls nicht gesetzt — Grenze inklusive,
+    ``entry_date >= heute - _FREEZE_RATE_WINDOW_DAYS Tage``). Funktionsname
+    ist aus Aufrufer-/Test-Kompatibilität historisch bei ``_last_14d``
+    geblieben (war vor dem Fenster-Fix 30.10.2026 tatsächlich 14 Tage) —
+    das Fenster selbst kommt ausschließlich aus der Konstante oben, NICHT
+    aus dem Namen. REINE ZÄHLUNG, keine Rate-/Durchschnitts-Berechnung hier
     (das macht der Line-Builder als reine Text-Formatierung). Dubletten
     (ticker, date) zählen einmal, identisch zu
     ``_count_setup_edge_freeze_population``. ``None`` bei fehlender/
@@ -2103,7 +2117,7 @@ def _freeze_rate_last_14d(export_path, now: datetime | None = None) -> tuple[int
     freeze_date = _parse_dmy_date(_FREEZE_DATE_STR)
     if now is None:
         now = datetime.now(timezone.utc)
-    cutoff = now.date() - timedelta(days=14)
+    cutoff = now.date() - timedelta(days=_FREEZE_RATE_WINDOW_DAYS)
     keys = _freeze_population_keys(rows, freeze_date, min_date=cutoff)
     tage = {d for (_t, d) in keys}
     return len(keys), len(tage)
@@ -2160,7 +2174,10 @@ def freeze_counter_line(export_path=None, backtest_path=None,
     kaputter Teil zeigt „n/a", die anderen Teile bleiben lesbar):
 
       (i)   Setup/Conviction-Freeze-Population: ``n = X/250``
-      (ii)  Rate: Zeilen/Handelstage in den letzten 14 Kalendertagen
+      (ii)  Rate: Zeilen/Handelstage in den letzten ``_FREEZE_RATE_WINDOW_DAYS``
+            Kalendertagen (war 14T, Wächter-Befund 30.10.2026: ein Eintrag
+            reift erst nach ~15 Kalendertagen — 14T zeigte praktisch immer 0;
+            jetzt 28T)
       (iii) KI-Abdeckung des letzten Report-Tags (``backtest_history.json``)
 
     Optional (iv) aus dem Auftrag (Export-weite ki_signal_ts-Zeilenzahl)
@@ -2177,7 +2194,8 @@ def freeze_counter_line(export_path=None, backtest_path=None,
                    else "nicht ermittelbar")
 
         rate = _freeze_rate_last_14d(ep, now=now)
-        rate_txt = (f"{rate[0]} Zeilen/{rate[1]} Handelstage (14T)"
+        rate_txt = (f"{rate[0]} Zeilen/{rate[1]} Handelstage "
+                    f"({_FREEZE_RATE_WINDOW_DAYS}T)"
                     if rate is not None else "n/a")
 
         ki_txt = _freeze_ki_coverage_last_report_day(bp)
