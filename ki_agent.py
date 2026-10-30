@@ -264,6 +264,7 @@ def set_cooldown(ticker: str, state: dict) -> None:
 # Änderungen am push_history-Eintrag müssen dort gemacht werden.
 from push_history import _record_push  # noqa: E402
 import health_check  # noqa: E402
+import trading_date  # noqa: E402
 import exit_shadow  # noqa: E402  — Exit-Shadow-Forward-Backfill (Read-only)
 # Ausführungskosten-Haircut (12.09.2026) — Single-Source-of-Truth-Funktion lebt
 # in backtest_history.py (dort auch von der max_gain_pct-Rolling-Update-Logik
@@ -4001,6 +4002,7 @@ def main() -> None:
                 health_check.persist_coverage_row(
                     _cov_q, _cov_erw, _cov_erh, _cov_acct["error_counts"],
                     n_mit_daten=_cov_acct["n_mit_daten"],
+                    report_date_iso=trading_date.us_trading_date_iso(),
                     run_phase="ki_agent_tick")
             except Exception as _cov_exc:
                 # log.warning statt log.debug (Befund-B-Fix 22.10.2026) —

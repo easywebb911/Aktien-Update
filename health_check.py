@@ -38,6 +38,7 @@ _S4_EASTERN        = ZoneInfo("America/New_York")
 _S4_MKT_CLOSE_HOUR = 16
 
 import config  # für getattr-IST-Read im Konsistenz-Wächter (Projekt C)
+import trading_date
 from config import (
     CONSISTENCY_EXPECTED_STATE,
     DIGEST_CONSECUTIVE_THRESHOLD_OVERRIDES,
@@ -3165,7 +3166,7 @@ def persist_coverage_row(quelle: str, n_erwartet: int, n_erhalten: int,
         return 0
     path = path if path is not None else COVERAGE_LOG_FILE
     now_fn = now_fn or (lambda: datetime.now(timezone.utc))
-    t_iso = report_date_iso or date.today().isoformat()
+    t_iso = report_date_iso or trading_date.us_trading_date_iso()
     try:
         _now = now_fn()
         tick_hour = _now.strftime("%H") if run_phase == "ki_agent_tick" else None

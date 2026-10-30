@@ -46,6 +46,8 @@ from urllib.error import HTTPError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
+import trading_date
+
 log = logging.getLogger(__name__)
 
 try:  # zentrale Konstanten; Fallback macht das Modul standalone-testbar
@@ -304,7 +306,7 @@ def collect_and_persist(universe, *, report_date_iso=None, run_phase=None,
     now = now_utc or datetime.now(timezone.utc)
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
-    t_iso = report_date_iso or now.date().isoformat()
+    t_iso = report_date_iso or trading_date.us_trading_date_iso(now)
     budget = FTD_TIME_BUDGET_S if time_budget_s is None else time_budget_s
     import time as _time
     t0 = _time.monotonic()
