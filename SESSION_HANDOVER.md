@@ -1863,9 +1863,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 ### 30.10.2026 — [Wächter] Freeze-Zähler-Rate-Fenster 14T → 28T (1 PR, Anzeige-only)
 
 - **Digest-Zeile „Rate X Zeilen/Y Handelstage" zeigte praktisch immer 0**
-  (Auto-Merge, da `lint_protected_zones.py` grün bleibt): PR-Nummer wird per
-  Follow-up-Commit nachgetragen (Regel a), Branch
-  `claude/freeze-rate-window-28d`. Befund: ein Eintrag reift erst nach ~10
+  (Auto-Merge, da `lint_protected_zones.py` grün bleibt): `#609` (Branch-
+  Commit `bf308b0e`, 30.10., kein Merge-Hash — Regel a, PR noch offen/
+  Ready). Befund: ein Eintrag reift erst nach ~10
   Handelstagen (~15 Kalendertagen, siehe `return_10d`-Reifelogik in
   `matured_export.py`) — das 14-Tage-Fenster von `_freeze_rate_last_14d`
   war damit strukturell zu kurz, um je Zeilen zu zeigen.
