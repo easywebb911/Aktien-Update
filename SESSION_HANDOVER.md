@@ -1967,6 +1967,56 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Page-Golden byte-identisch (kein Render-Pfad berührt). **Rückweg:**
   `git revert` des Merge-Commits.
 
+### 30.10.2026 — Zwei Folge-Items aus PR #608 in open_items.json (1 PR, Doku/Config-only)
+
+- **Guardian-Randfunde aus #608 jetzt als eigene Tracking-Punkte** (reine
+  Doku, kein Code-Fix, PR-Nummer wird per Follow-up-Commit nachgetragen,
+  Regel a): PR-Nummer folgt, Branch `claude/open-items-pr608-followups`.
+  Zwei neue Items in `open_items.json` (39 → 41, strukturell geprüft,
+  `lint_open_items_consistency.py` grün, keine Duplikate — explizit
+  gegrept).
+- **`finra-ssr-utc-cache-key`** (`offen`): `ki_agent.py:1243`
+  (`fetch_finra_ssr`), `today = datetime.now(timezone.utc).date()` dient
+  als Start der 5-Tage-Rückwärtssuche UND als Cache-Schlüssel — gleiche
+  Fehlerklasse wie der in #608 behobene Bug (UTC-Kalenderdatum statt
+  US/Eastern-Handelstag), aber eigene, nicht mitbehobene Fundstelle (reiner
+  In-Memory-Cache-Key, kein History-Datei-Feld). Stand 30.10. verifiziert:
+  Fundstelle unverändert, die drei anderen `datetime.now(timezone.utc)
+  .date()`-Stellen in `ki_agent.py` (497/676/1084) sind bewusst anders
+  klassifiziert (backtest_history-/exit_shadow-angrenzend bzw. reiner
+  Freshness-Cutoff ohne Datums-Schlüssel-Bezug) — nur Zeile 1243 ist
+  betroffen. Folge bei Nichtstun: falscher Cache-Treffer/-Fehltreffer rund
+  um den UTC-Datumswechsel. Fix-Vorschlag: `trading_date.us_trading_date()`
+  (seit #608 vorhanden) statt der UTC-Variante. Kategorie A (mechanisch,
+  kein Score-/Filter-/Alert-Bezug — SSR ist reines Sub-Signal).
+- **`fix-trading-dates-oneoff-collision-undercounting`** (`offen`,
+  niedrige Priorität, nur Anzeige): `scripts/fix_trading_dates_oneoff.py:
+  fix_jsonl()` Zeilen 148-167 — Kollisions-Check vergleicht neue Zeilen nur
+  gegen die ERSTE gesehene Referenz-Zeile desselben Zielschlüssels; bei
+  einem theoretischen 3+-Zeilen-Fall könnte die gemeldete `collisions`-Zahl
+  den tatsächlichen Umfang unterzählen. KEIN Datenrisiko (bei erkannter
+  Kollision wird ohnehin nichts überschrieben). Beleg, dass die in #608
+  bereits korrigierten Daten nicht betroffen sind: erneuter `--dry-run` am
+  30.10. gegen aktuellen `main`-Stand zeigt die 3 bekannten Kollisionen in
+  `coverage_history.jsonl` weiterhin als exakt 3 separate 2-Zeilen-Paare —
+  kein 3+-Zeilen-Fall in echten Daten aufgetreten.
+- **Nebenbefund (nicht Teil dieses PR, nur zur Kenntnis):** derselbe
+  `--dry-run`-Lauf zeigt einen gewachsenen Korrektur-Rückstand in den 4
+  JSONL-Dateien (z. B. `coverage_history.jsonl` jetzt 34 statt 12 offene
+  Verschiebungen, `apewisdom_attention_history.jsonl` neu mit 6
+  Kollisionen) — Folge der Tage zwischen der #608-Diagnose (26.10.) und
+  dessen Merge (30.10.), in denen Daily-/KI-Agent-Läufe noch mit dem alten
+  Code liefen. Kein neuer Bug, nur unkorrigierter Bestand seit dem
+  Code-Fix-Merge. Kein Item angelegt — bei Bedarf eigener kleiner
+  Folge-PR (Skript erneut mit den bereits bestehenden Mitteln ausführen).
+- **Konsumenten-Check:** `open_items.json` wird von `generate_report.py`,
+  `health_check.py`, `ki_agent.py`, `scripts/health_check_digest.py` und
+  mehreren Mock-Tests gelesen — alle lesen strukturell (`status`,
+  `faellig_am`, `title`, …), keine Schema-Änderung, nur additive Einträge.
+  Keine Code-Berührung in diesem PR (reine JSON- + Doku-Änderung).
+  **Rückweg:** `git revert` des Merge-Commits (einfacher Revert, keine
+  Code-Abhängigkeit).
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
