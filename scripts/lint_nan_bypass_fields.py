@@ -269,7 +269,13 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     ("generate_report.py", 19079, "score"),
     ("generate_report.py", 19122, "score"),
     ("generate_report.py", 19312, "score"),
-    ("health_check.py", 648, "score"),
+    # Position-Watchlist-Wächter (31.10.2026): eine neue ``import re``-
+    # Zeile ganz oben in health_check.py (für den Ticker-Validierungs-
+    # Regex des neuen Wächters) verschiebt den einzigen health_check.py-
+    # Fund um +1. Reine Zeilen-Nachführung desselben, weiterhin offenen
+    # Funds — KEIN inhaltlicher Fix. Per frischem Lint-Lauf nach diesem
+    # PR verifiziert.
+    ("health_check.py", 649, "score"),
     ("ki_agent.py", 1368, "last_price"),
     ("ki_agent.py", 2730, "score"),
     ("ki_agent.py", 2738, "rvol_4d"),

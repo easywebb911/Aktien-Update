@@ -86,6 +86,15 @@ jobs:
           if [ -f eval_results.jsonl ]; then
             cp eval_results.jsonl "$FRESH_EVAL"
           fi
+          # position_watchlist_state.json (31.10.2026, Position-ohne-
+          # Watchlist-Wächter): analog eval_results.jsonl defensiv nur
+          # sichern/wiedereinspielen wenn vorhanden — existiert erst nach
+          # dem ersten Digest-Lauf, der eine Position ohne Watchlist-
+          # Eintrag sieht ODER eine bestehende Grace-Periode weiterführt.
+          FRESH_WL="${RUNNER_TEMP:-/tmp}/position_watchlist_state_fresh.json"
+          if [ -f position_watchlist_state.json ]; then
+            cp position_watchlist_state.json "$FRESH_WL"
+          fi
           pushed=0
           for attempt in 1 2 3 4 5; do
             if ! git fetch origin main; then
@@ -99,6 +108,10 @@ jobs:
             if [ -f "$FRESH_EVAL" ]; then
               cp "$FRESH_EVAL" eval_results.jsonl
               git add eval_results.jsonl
+            fi
+            if [ -f "$FRESH_WL" ]; then
+              cp "$FRESH_WL" position_watchlist_state.json
+              git add position_watchlist_state.json
             fi
             if git diff --staged --quiet; then
               echo "Keine state-Aenderung gegenueber origin/main — kein Commit noetig."

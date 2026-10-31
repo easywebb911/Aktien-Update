@@ -465,7 +465,12 @@ def test_main_dry_run_does_not_write_state():
     # Use a tmp state path via monkey-patch
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = pathlib.Path(tmp) / "state.json"
-        with mock.patch.object(dg, "DIGEST_STATE_FILE", tmp_path):
+        # Position-Watchlist-Wächter (31.10.2026): eigene Pfade umlenken,
+        # sonst würde dieser Real-Run gegen die ECHTE Repo-app_data.json/
+        # watchlist_personal.json/position_watchlist_state.json laufen.
+        with mock.patch.object(dg, "DIGEST_STATE_FILE", tmp_path), \
+             mock.patch.object(dg, "POSITION_WATCHLIST_STATE_FILE",
+                                pathlib.Path(tmp) / "position_watchlist_state.json"):
             rc = dg.main(now_ts=datetime(2026, 5, 15, 8, 13, tzinfo=timezone.utc),
                          dry_run=True)
         assert rc == 0
@@ -478,7 +483,9 @@ def test_main_persists_state_on_real_run():
         tmp_state = pathlib.Path(tmp) / "state.json"
         with mock.patch.object(dg, "DIGEST_STATE_FILE", tmp_state), \
              mock.patch.object(dg, "_ntfy_send", return_value=False), \
-             mock.patch.object(dg, "NTFY_TOPIC", ""):
+             mock.patch.object(dg, "NTFY_TOPIC", ""), \
+             mock.patch.object(dg, "POSITION_WATCHLIST_STATE_FILE",
+                                pathlib.Path(tmp) / "position_watchlist_state.json"):
             dg.main(now_ts=datetime(2026, 5, 15, 8, 13, tzinfo=timezone.utc))
         assert tmp_state.exists()
         state = json.loads(tmp_state.read_text())
@@ -506,7 +513,9 @@ def test_main_sets_last_successful_run_even_with_fails():
              mock.patch.object(dg, "_ntfy_send", return_value=False), \
              mock.patch.object(dg, "NTFY_TOPIC", ""), \
              mock.patch.object(dg, "_load_jsonl_window",
-                                return_value=[fixture_run]):
+                                return_value=[fixture_run]), \
+             mock.patch.object(dg, "POSITION_WATCHLIST_STATE_FILE",
+                                pathlib.Path(tmp) / "position_watchlist_state.json"):
             dg.main(now_ts=datetime(2026, 5, 21, 8, 47,
                                      tzinfo=timezone.utc))
         state = json.loads(tmp_state.read_text())
@@ -554,7 +563,9 @@ def test_main_force_overrides_already_sent():
             return True
         with mock.patch.object(dg, "DIGEST_STATE_FILE", tmp_state), \
              mock.patch.object(dg, "_ntfy_send", side_effect=_spy_send), \
-             mock.patch.object(dg, "NTFY_TOPIC", "test-topic"):
+             mock.patch.object(dg, "NTFY_TOPIC", "test-topic"), \
+             mock.patch.object(dg, "POSITION_WATCHLIST_STATE_FILE",
+                                pathlib.Path(tmp) / "position_watchlist_state.json"):
             dg.main(now_ts=datetime(2026, 5, 15, 9, 0, tzinfo=timezone.utc),
                     force=True)
         assert sent["calls"] == 1

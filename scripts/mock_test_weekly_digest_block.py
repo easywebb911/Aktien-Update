@@ -420,7 +420,13 @@ def test_f3_end_to_end_state_persists_weekly_digest_key():
              mock.patch.object(dg, "DIGEST_STATE_FILE", tmp_state), \
              mock.patch.object(dg.hc, "OPEN_ITEMS_FILE", fx.open_items_path), \
              mock.patch.object(dg.hc, "MATURED_EXPORT_FILE", fx.matured_path), \
-             mock.patch.object(dg, "NTFY_TOPIC", ""):
+             mock.patch.object(dg, "NTFY_TOPIC", ""), \
+             mock.patch.object(dg, "APP_DATA_FILE_FOR_WATCHDOG",
+                                pathlib.Path(empty_root) / "app_data.json"), \
+             mock.patch.object(dg, "WATCHLIST_PERSONAL_FILE_FOR_WATCHDOG",
+                                pathlib.Path(empty_root) / "watchlist_personal.json"), \
+             mock.patch.object(dg, "POSITION_WATCHLIST_STATE_FILE",
+                                pathlib.Path(state_dir) / "position_watchlist_state.json"):
             rc = dg.main(now_ts=_MON1, dry_run=False)
         _check("F3 exit 0", rc == 0, f"rc={rc}")
         saved = json.loads(tmp_state.read_text(encoding="utf-8"))
