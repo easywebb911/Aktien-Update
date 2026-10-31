@@ -35,8 +35,10 @@ Fixes** (`#537`/`#540`/`#552`/`#553`) · **Doku-/Backlog-Pflege**
 (`#565`) · **Open-Items-Nachtrag** (16 Punkte, `#566`). **§4-Zähler-
 Diskrepanz vom 18.09. GEKLÄRT** (Ursache: reiner Zeitversatz zwischen
 zwei Zählzeitpunkten, kein Logik-Bug — siehe §4-Protokolleintrag
-27.09.2026); aktueller Live-Stand **n=144/250**, nachgerechnet
-**27.09.2026, 07:16:50 UTC** direkt gegen `matured_backtest_export.jsonl`.
+27.09.2026); Stand **27.09.2026, 07:16:50 UTC**: **n=144/250** (direkt
+gegen `matured_backtest_export.jsonl` nachgerechnet). **Dieser Wert ist
+überholt** — aktueller Stand siehe §4-Block weiter unten
+(Protokolleintrag 31.10.2026, Zähler-Refresh: n=242/250).
 
 **Vorheriger Bogen — Woche 03.–08.08.2026** (PRs #500–#512, alle git-belegt
 gemergt): Prune-Konsequenz-
@@ -2665,6 +2667,21 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Guardian-Lauf vor Ready:** siehe Bericht.
 - **Klasse: Manual-Merge** (vorregistrierte Auswertungslogik, Freeze-
   Methodik — CLAUDE.md-Ausnahmeliste). Easy mergt selbst.
+- **Lehre (Notiz, keine Regeländerung, nachgetragen bei der Handover-
+  Konsistenz-Diagnose 31.10.2026):** `#621` wurde gemergt, während der
+  `lint_protected_zones.py`-CI-Check auf GitHub optisch noch ROT stand —
+  das Label war gesetzt und lokal (`PR_LABELS`-Simulation) bestätigt
+  grün, aber der GitHub-Check selbst wurde nicht neu getriggert (ein
+  `rerun_workflow_run` liest denselben alten Event-Payload ohne das
+  Label; ein echter Re-Trigger bräuchte einen frischen `pull_request`-
+  Event, z. B. durch einen neuen Push — ein leerer Kick-Commit nur dafür
+  ist unerwünscht). Gemergt wurde auf Basis des lokal bestätigten
+  Ergebnisses + Easys expliziter Freigabe, nicht auf Basis eines grünen
+  GitHub-Check-Badges. **Für künftige Fälle:** nach dem Setzen des
+  `protected-ok`-Labels den Check entweder per echtem neuem Push
+  aktualisieren lassen (nicht per reinem Rerun) oder explizit auf Basis
+  des lokalen Nachweises mergen und das im PR/Bericht so benennen —
+  nicht stillschweigend als „jetzt grün" behandeln.
 
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
@@ -3375,7 +3392,7 @@ neu getestet.
 |---|---|---|---|
 | ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
 | **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. **ERSETZT (10.10.2026)** — kein Zielgröße/Kriterium war hier je festgelegt; siehe Erratum-Block „Erweiterung vor Auswertung — Test (c) Conviction-Zusatznutzen" im Setup-Edge-Re-Test-Freeze unten (Test (c), Holm k=3). Diese Zeile bleibt als Historie stehen, nicht gelöscht. |
-| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)** | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=144 (nachgerechnet 27.09.2026, 07:16:50 UTC — siehe Protokolleintrag unten).** Projektion ~Mitte Nov. 2026 (unsicher, **kein Termin**). |
+| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf **aktiv** seit `#621` (31.10.2026) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
@@ -3608,6 +3625,15 @@ Implementierung unverändert bei `scripts/freeze_eval.py`
 exakt so gebaut; dieser Eintrag synchronisiert ausschließlich den
 Text mit dem Code, keine Code-Änderung ausgelöst durch diesen Eintrag
 selbst).
+
+**Zähler-Refresh 31.10.2026** (reine Anzeige-Aktualisierung, **keine**
+Änderung an der eingefrorenen §4-Definition oder an Kriterium a/b/c —
+analog dem Refresh-Muster vom 27.09.2026 oben): der in der RE-TEST-
+KALENDER-Tabelle und im obersten Dokument-Absatz zuletzt eingetragene
+Stand **n=144/250** (27.09.2026) war Anlass der Handover-Konsistenz-
+Diagnose dieser Session veraltet. Direkt gegen `matured_backtest_
+export.jsonl` nachgerechnet (`health_check.retest_counter_value()`):
+**n=242/250**. Beide Stellen oben sind auf diesen Wert aktualisiert.
 
 ### VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026
 
@@ -5982,8 +6008,14 @@ Zugang):**
 - **Lit-Check wöchentlich Sa 08:56 Berlin:** 1–2 neue Stoßrichtungen, Verdikt
   je Fund, Nullbefund legitim, read-only.
 - **Monatsrundgang 02.11.2026 09:00 Berlin (einmalig):** Offene Punkte A–D,
-  Gruppe B als Entscheidungs-Vorlage (u. a. exit_pressure: Closed-Trades-Daten
-  sammeln vs. Etikett/Wecker umstellen).
+  Gruppe B als Entscheidungs-Vorlage. **`exit_pressure` ist NICHT mehr Teil
+  von Gruppe B** (Handover-Konsistenz-Diagnose 31.10.2026, Korrektur
+  dieser Zeile) — bereits entschieden (Variante B: Etikett „unvalidiert" +
+  Wecker-Opt-Out statt Closed-Trades-Sammlung, `#611`, 30.10.2026, siehe
+  Block 1). Prüft stattdessen weiterhin: §4-Re-Test-Stand (jetzt mit
+  aktivem Auto-Auswertungslauf, `#621`), Freeze-Zähler Setup-Edge/KI-Score
+  (Stand 31.10.: n=50/250 je Familie, siehe `open_items.json`), SEC/FINRA-
+  Nachfolger-Filing, Block-1-Rückstand.
 - **Zustellung ausschließlich über ntfy** via `agent_ntfy_relay.yml` (#604,
   Topic bleibt Secret); Claude-Push ist bewusst aus (Easy 23.10.).
 
