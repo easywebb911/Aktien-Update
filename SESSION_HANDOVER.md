@@ -2526,6 +2526,46 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   konsistent zu den anderen Gist-nahen Workflows dieser Woche). Easy
   mergt selbst.
 
+### 31.10.2026 — Rückweg TEIL A: Wegwerf-Workflows v2 + inspect-gist entfernt, Korrektur-NACHTRAG (1 PR, Manual-Merge)
+
+- Nach Abschluss von TEIL A (GRPN/IONQ/PDYN-Bereinigung): versprochener
+  Rückweg — beide einmalig gebauten Wegwerf-Workflows (`#617`, `#618`)
+  samt Tests + ALLOWLIST-Einträgen wieder entfernt, kein Dauer-Werkzeug
+  bleibt im Repo. `#619` (Branch-Commit `fa870ee3`, 31.10., kein
+  Merge-Hash — Regel a, PR noch offen/Ready).
+- **GRPN echt entfernt** (Run 41232090595, 19:00:18Z, 3→2 Positions-
+  Einträge, AMC+WOLF beide unverändert). **30-Minuten-Stabilitäts-
+  Check** (Run 41234730967, 19:32:57Z): weiterhin nur AMC+WOLF
+  (2 Einträge), keine neue Gist-Revision seit 19:00:18Z — bestätigt,
+  dass #616 (`gistLoad(force)`-Fix) in der Zwischenzeit keinen
+  erneuten Rückfall ausgelöst hat. TEIL A damit abgeschlossen.
+- **Korrektur-NACHTRAG in `open_items.json`** (Item
+  `geister-positionen-ionq-pdyn`, nicht gelöscht, nur ergänzt): der
+  vorige NACHTRAG erklärte die „5 Positionen um 17:44 UTC"-Beobachtung
+  als Browser-Lost-Update — das war für diesen konkreten Vorfall
+  **falsch**. Tiefere Diagnose (Gist-Revisionshistorie, `#618`) zeigt:
+  zwischen den Löschungen 14:57:50Z/14:59:18Z und dem nächsten Check
+  um 18:57 UTC gab es **keine** weitere Revision — ein Lost-Update-
+  PATCH hätte zwingend eine neue Revision erzeugt. Echte Ursache:
+  `ki_agent.py:save_signals()` aktualisiert den `positions`-Key nie
+  selbst (`**existing`-Spread) — reine Anzeige-Latenz in
+  `app_data.json`, kein Gist-Schreibkonflikt. Der `gistLoad(force)`-
+  Fix aus `#616` bleibt davon **unberührt gültig** (reduziert ein
+  echtes, hier aber nicht ausgelöstes Risiko). Item auf `erledigt`
+  gesetzt.
+- **Neues Item** `app-data-positions-staleness-ki-agent-tick` für die
+  Anzeige-Latenz selbst (Fix-Vorschlag dokumentiert, nicht gebaut).
+- **Kein Score-/Filter-/Exit-/Freeze-Touch** — `lint_protected_zones.py`
+  grün. `run_ci_mock_tests.py`: 166/166 grün, Drift-Guard sauber
+  (zwei Test-Dateien entfernt, 168→166). `lint_open_items_consistency.py`
+  OK.
+- **Staleness-Grep (manuell, `gh`-GraphQL im Sandbox nicht verfügbar):**
+  höchste gemergte PR auf `main` = `#618`, höchste hier in Block 1
+  erwähnte PR = `#618` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe Bericht.
+- **Klasse: Manual-Merge** (entfernt Workflow-Dateien — konservativ
+  eingeordnet). Easy mergt selbst.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
