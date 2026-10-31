@@ -2091,6 +2091,66 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   (Wecker-Opt-Out-Flag ist ohnehin schon trivial umkehrbar, falls separat
   gewünscht: Label aus `STATUS_REVIEW_WECKER_SKIP_LABELS` entfernen).
 
+### 31.10.2026 — Geister-Positionen IONQ/PDYN diagnostiziert + open_items korrigiert (1 PR, Doku-only)
+
+- **Easy-Entscheid 31.10.2026 bestätigt:** IONQ und PDYN sind KEINE echten
+  offenen Positionen mehr, AMC ist offen und echt. Diagnose (read-only,
+  dieser PR): PR-Nummer wird per Follow-up-Commit nachgetragen (Regel a),
+  Branch `claude/ghost-positions-diagnose`.
+- **Fundort der Lücke identifiziert, NICHT gefixt:**
+  `generate_report.py:15752` (`window.wlRemoveFromExpanded`) ruft
+  `await gistSave(data);` OHNE Erfolgs-Check — anders als `wlSubmitClose`
+  (`generate_report.py:15721`, prüft `const ok = ...` explizit). Schlägt
+  der Gist-Write dort fehl, läuft `wlRemoveTicker` (Repo-Watchlist-Datei)
+  trotzdem durch: Ticker verschwindet aus der Watchlist, Position bleibt
+  im Gist — exakt das in CLAUDE.md ~Zeile 2092 dokumentierte
+  „Geister-Position"-Muster, hier mit konkretem zweitem Fehlerpfad
+  belegt (der dortige Fix betraf nur das Token/Unlock-Routing).
+- **IONQ/PDYN laufen an mehreren Stellen mit** (alle read-only
+  identifiziert, aktuell folgenlos da Pushes stumm): `exit_shadow_log`
+  (`generate_report.py:18031`/`:18163`, je 103 Zeilen bis 29.10.2026,
+  seit 24.08. ohne Watchlist-Eintrag), KI-Insight-Stream
+  (`generate_report.py:11164`, kein Watchlist-/Top-10-Filter — könnte
+  einen „Teilverkauf erwägen"-Satz für einen längst nicht mehr verfolgten
+  Ticker zeigen), Health-Check S3 (`health_check.py:753-770`, prüft
+  `current_price` ungefiltert für alle `positions`-Einträge),
+  `process_exit_signals` Phase 1 (`generate_report.py:17300`) und Phase 2
+  (`generate_report.py:18031`) — beide berechnen Exit-State vollständig,
+  `push_history`-Einträge inklusive, aber kein ntfy-Push geht raus
+  (`PUSH_EXIT_P1_NTFY_ENABLED`/`PUSH_EXIT_P2_NTFY_ENABLED` beide `False`,
+  `config.py:1721`/`:1723`, Easy-Entscheid 06.09.2026 — Berechnung läuft
+  trotzdem unverändert weiter). Trade-Journal/`closed_trades` NICHT
+  betroffen (nur bei „Position schließen" würde ein echter, hier
+  unpassender Journal-Eintrag mit erfundenem Exit-Kurs entstehen) — der
+  saubere Lösch-Weg für Easy ist „Aus Watchlist entfernen"
+  (`wlRemoveFromExpanded`, löscht die Position direkt ohne
+  Journal-Eintrag). **Kein existierender Wächter** gegen diese Bug-Klasse.
+- **Zusatz-Befund (nur aus Repo-Daten, NICHT von Easy bestätigt):** GRPN
+  stand am 11.10.2026 noch auf der Watchlist, fehlt in der aktuellen
+  Fassung (zuletzt geändert 25.10.2026), läuft aber laut `app_data.json`
+  (31.10.2026) weiter als Position — strukturell dasselbe Muster, aber
+  erst seit 1-2 Wochen und könnte eine bewusste, legitime Aktion sein
+  (Watchlist verlassen, WEIL die Position inzwischen eröffnet wurde).
+  Nicht als Geister-Position eingestuft, nur als Beobachtungspunkt.
+- **open_items.json** (45 → 46, Duplikate geprüft — keine gefunden):
+  Item `exit-shadow-log-quelle` per NACHTRAG korrigiert (die früheren
+  Zahlen „AMC/IONQ/PDYN als Positionen, ~52 unabhängige Beobachtungen"
+  waren überholt — korrigiert auf 296 reife Zeilen/13 Ticker/≈34
+  unabhängige Beobachtungen ohne IONQ+PDYN, Vor-24.08.-Status weiterhin
+  offen). Neues Item `geister-positionen-ionq-pdyn` (offen) mit obigem
+  Befund + Fix-Vorschlag (Wächter: `positions.json` gegen
+  `watchlist_personal.json` abgleichen, Ticker ohne Watchlist-Eintrag
+  seit > X Tagen melden — nur Vorschlag, nicht gebaut). Kein separates
+  Item für die 23 Nicht-Handelstag-Zeilen in `exit_shadow_log` angelegt —
+  geprüft, es existiert noch keines dafür, Easy-Annahme eines bereits
+  bestehenden „Wochenend-PR" trifft nicht zu.
+- **Kein Code/Daten/Logdatei berührt** — reine `open_items.json` +
+  Doku-Änderung, Diagnose-Teil vollständig read-only (per `git status`
+  nach dem Lauf bestätigt). `lint_protected_zones.py` grün, 165 Tests
+  grün, alle Lints grün, Golden byte-identisch (nichts gerendertes
+  geändert). **Klasse: Auto-Merge.** **Rückweg:** `git revert` des
+  Merge-Commits.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
