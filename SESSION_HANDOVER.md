@@ -2614,6 +2614,49 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   innerhalb bestehender YAML, kein neues Workflow-File, kein Score-/
   Filter-/Exit-/Alert-Pfad berührt).
 
+### 31.10.2026 — §4-Exit-B.1 Freeze-Auswertungs-Autorun (1 PR, Manual-Merge)
+
+- Easy-Auftrag: automatischer, einmaliger Auswertungslauf für den
+  vorabregistrierten §4-Exit-B.1-Re-Test, analog den bestehenden
+  Setup-Edge/Conviction- und KI-Score-Freezes. `#621` (Branch-Commit
+  `db271b31`, 31.10., kein Merge-Hash — Regel a, PR noch offen/Ready).
+- **Mini-STOPP vor dem Bau** (Schritt 1): drei Verfahrens-Lücken im
+  Ur-Text gefunden und mit Easy VOR Erreichen von n=250 (Stand n=242,
+  Ergebnis unbekannt) geklärt — siehe „Protokolleintrag 31.10.2026" im
+  §4-Block oben (Δ-Mechanik, Regime-Split-Mechanik, Seed=42).
+- **Gebaut:** `hc._is_exit_b1_population_row` (Single-Source mit dem
+  §4-Zähler), `paired_bootstrap_mean_delta` +
+  `evaluate_exit_b1_family` (`scripts/freeze_eval.py`, Holm-Familie
+  k=2, DREI-Zustands-Verdikt Beleg/bedingt/Unklar),
+  `wilcoxon_signed_rank_paired` (`scripts/stats_helpers.py`, rein
+  explorativ). `run_due_evaluations` erweitert (Auslöser n≥250 via
+  `hc.retest_counter_value()`). `scripts/health_check_digest.py`:
+  Status-Zeile „Exit-B.1 (§4)" in allen 3 Digest-Klassen, ntfy-Push
+  bei Trigger (generischer `just_triggered`-Loop deckt die neue
+  Familie automatisch ab, keine Sonderlogik nötig).
+- **34 neue Tests** (`mock_test_exit_b1_autorun.py`) + 6 neue in
+  `mock_test_stats_helpers.py`, in `run_ci_mock_tests.py` ALLOWLIST
+  registriert (168 Tests gesamt, Drift-Guard sauber). Determinismus,
+  Auslöser 249/250/Sperre, Fehlende-Werte-Pfade, End-to-End-Digest-
+  Push alle verifiziert.
+- **Verbot eingehalten:** keine Auswertung auf echten Daten (Stand
+  n=242/250) — nur synthetische Fixtures in den Tests.
+- **`open_items.json`**: neues Item
+  `exit-b1-freeze-autorun-vorab-check` (Vorab-Check 31.10. bestanden,
+  GRPN-Frage mit Option A geschlossen — Population ist der allgemeine
+  Top-10-Scoring-Pool, nicht die persönliche Watchlist/Position, daher
+  kein Zusatzfilter —, Auto-Lauf gebaut).
+- **`lint_protected_zones.py` meldet absichtlich 3 Funde**
+  (`SESSION_HANDOVER.md` §4-Block, `freeze_eval.py`, `stats_helpers.py`
+  — alle "Freeze-Methodik"-Zonen) — erwartet, da dieser PR bewusst die
+  eingefrorene Methodik-Infrastruktur auf Easys Auftrag ändert. Easy
+  muss das `protected-ok`-Label setzen, damit der Lint grün wird.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#620`,
+  höchste hier erwähnte PR = `#620` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe Bericht.
+- **Klasse: Manual-Merge** (vorregistrierte Auswertungslogik, Freeze-
+  Methodik — CLAUDE.md-Ausnahmeliste). Easy mergt selbst.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
