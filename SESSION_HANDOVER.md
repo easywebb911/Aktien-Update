@@ -2683,6 +2683,52 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   des lokalen Nachweises mergen und das im PR/Bericht so benennen —
   nicht stillschweigend als „jetzt grün" behandeln.
 
+### 31.10.2026 — Handover-Konsistenz-Diagnose nach Session 30./31.10. (1 PR, Auto-Merge)
+
+- Easy-Auftrag: Block-1-Vollständigkeit (`#608`–`#621`), Zähler-Stände
+  und Wiedervorlage-Daten auf Konsistenz prüfen, Widersprüche nicht
+  umgehen. `#622` (Branch-Commit `0d9a45b7`, 31.10., kein Merge-Hash —
+  Regel a, PR noch offen/Ready).
+- **Block 1 vollständig bestätigt** für alle 14 PRs — keine fehlenden
+  Einträge.
+- **§4-Zähler stark veraltet:** `n=144/250` (Stand 27.09.2026) stand an
+  zwei Stellen (Top-Absatz + RE-TEST-KALENDER-Tabelle), echter Stand
+  `n=242/250`. Neuer „Zähler-Refresh 31.10.2026"-Eintrag im §4-Block
+  (reine Anzeige, Definition unverändert, analog 27.09.-Muster).
+- **`open_items.json` ebenso veraltet:** `setup-edge-retest-freeze` +
+  `ki-score-edge-freeze` zeigten `n=0/250` (22.10.) — echter Stand
+  `n=50/250` beide Familien (NACHTRAG je Item). `freeze-zaehler-
+  stagnation`: selbst prognostizierte Wachstums-Wiederaufnahme
+  eingetreten (40→50, 30.10.→31.10.) — NACHTRAG + Status `offen`→
+  `beobachtet`.
+- **Zwei `faellig_am`** (`ki-score-edge-freeze`, `options-chain-raw-
+  sammelfeld`) von 2026-10-28 (wären „überfällig" erschienen) auf
+  2026-11-02 (Monatsrundgang, ohnehin ihr nächster sinnvoller
+  Prüfpunkt) verschoben.
+- **Section 9j korrigiert:** `exit_pressure` stand weiterhin als offene
+  Monatsrundgang-Entscheidung, war aber bereits 30.10. entschieden
+  (Variante B, `#611`) — Zeile aktualisiert.
+- **Neues Backlog-Item** `exit-b1-verdict-missing-pct-excluded-hint`
+  (Guardian-Minor-Finding aus `#621`, bisher nirgends nachgetragen).
+- **Lehre zu `#621` ergänzt** (Notiz, keine Regeländerung): Merge bei
+  optisch rotem, aber lokal bestätigtem `lint_protected_zones`-Check —
+  siehe Block-1-Eintrag von `#621` oben.
+- **Bestätigt, kein Fix nötig:** ApeWisdom-Wiedervorlage ist korrekt
+  event- statt datumsgebunden; Geister-Item bereits `erledigt`; 14T-
+  Rest aus `#611` bereits erledigt (code-bestätigt).
+- **Kein Score-/Filter-/Exit-Touch, keine `.py`-Datei berührt** —
+  `run_ci_mock_tests.py` unverändert 168/168 grün.
+- **`lint_protected_zones.py` meldet 1 Fund** (SESSION_HANDOVER.md
+  §4-Block — die Zähler-Refresh-Zeile liegt in der Freeze-Methodik-
+  Zone). Easy muss das `protected-ok`-Label setzen, auch für diese
+  reine Zahlen-Korrektur.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` =
+  `#621`, höchste hier erwähnte PR = `#621` — kein Rückstand vor
+  diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe Bericht.
+- **Klasse: Auto-Merge nach Guardian** (Doku-only) — benötigt aber
+  trotzdem das `protected-ok`-Label wegen des §4-Zonentreffers.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
