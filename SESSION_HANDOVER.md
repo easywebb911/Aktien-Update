@@ -2566,6 +2566,49 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Klasse: Manual-Merge** (entfernt Workflow-Dateien — konservativ
   eingeordnet). Easy mergt selbst.
 
+### 31.10.2026 — TEIL B: Position-ohne-Watchlist-Wächter (Health-Check-Digest) (1 PR, Auto-Merge)
+
+- Folge-Auftrag nach TEIL A (`#614`–`#619`, GRPN/IONQ/PDYN-Bereinigung):
+  ein täglicher Wächter gegen genau diese Bug-Klasse, damit sie künftig
+  nicht mehr nur per Zufallsfund auffällt. `#620` (Branch-Commit
+  `cf691627`, 31.10., kein Merge-Hash — Regel a, PR noch offen/Ready).
+- **Neue Funktion** `health_check.check_position_watchlist_staleness()`
+  (pure): vergleicht `app_data.json["positions"]` gegen
+  `watchlist_personal.json`. Position ohne Watchlist-Eintrag seit
+  **> 1 Handelstag** (Mo–Fr, Grace-Periode am Erstbefund-Tag) → Warn-
+  Fail (`id="S15"`, rein anzeigend, **keine** automatische Löschung).
+  **"Unbekannt ≠ ok"**: Watchlist nicht lesbar (fehlt/kaputt/falscher
+  Typ) → eigene Warnung statt stillschweigend „keine Geister
+  gefunden" — State bleibt dabei unangetastet.
+- **Persistenter State** `position_watchlist_state.json` (neue Datei,
+  vom `health_check_digest.yml`-Workflow committed, analog
+  `health_check_digest_state.json` — Backup/Restore-Logik im
+  Commit-Step ergänzt, defensiv nur wenn Datei vorhanden analog
+  `eval_results.jsonl`).
+- `position_watchlist_watchdog_lines()` (I/O-Wrapper, fail-soft) in
+  `scripts/health_check_digest.py` eingehängt — additive Zeile in
+  allen 3 Digest-Klassen (OK/warn/keine-Daten), **ohne** Einfluss auf
+  die bestehende Trigger-Schwelle (≥1 crit/≥3 warn), analog
+  `retest_counter_line`/`due_items_lines`.
+- **Bewusst NICHT** in `evaluate_state_invariants()`/`run_and_record()`
+  integriert — hätte den Daily-Run-/ki_agent-Call-Site-Vertrag UND die
+  Recency-Gating-Heuristik von `aggregate_state_fails` berührt.
+  Stattdessen eigenständiger Digest-only-Checker, analog
+  `status_review_reminder.py`.
+- **33 neue Tests**
+  (`scripts/mock_test_position_watchlist_watchdog.py`), in
+  `run_ci_mock_tests.py` ALLOWLIST registriert (Drift-Guard sauber,
+  167 Tests). `lint_nan_bypass_fields.py`-Zeilen-Nachführung (648→649,
+  neue `import re`-Zeile in `health_check.py`).
+- **Kein Score-/Filter-/Exit-/Freeze-Touch** — `lint_protected_zones.py`
+  + `lint_score_confidence_isolation.py` grün.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#619`,
+  höchste hier erwähnte PR = `#619` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe Bericht.
+- **Klasse: Auto-Merge** (State-Logging-Erweiterung + Workflow-Tweak
+  innerhalb bestehender YAML, kein neues Workflow-File, kein Score-/
+  Filter-/Exit-/Alert-Pfad berührt).
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
