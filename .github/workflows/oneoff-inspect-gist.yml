@@ -1,0 +1,163 @@
+name: One-off Inspect Gist
+
+# WEGWERF-DIAGNOSE-WORKFLOW (Folge-Auftrag nach PR #617, Easy-Freigabe
+# 31.10.2026): rein lesender Workflow, KEINE Loesch-/Schreib-Logik.
+# Zweck: (1) Ticker-Namen aus dem Positions-Gist listen (ohne Preise/
+# Stueckzahlen/Daten), (2) Gist-Revisionshistorie listen (NUR Zeitstempel
+# + Versions-Kurz-Hash, KEINE Inhalte) -- Hintergrund: ein Probelauf fand
+# nur noch 3 Positions-Eintraege statt der erwarteten 5 (GRPN vorhanden,
+# IONQ/PDYN NICHT vorhanden) -- Easy will die 3 Namen bestaetigt sehen
+# und die Revisionshistorie pruefen, statt zu raten.
+#
+# SICHERHEIT:
+#   - KEIN PATCH-Call irgendwo in diesem Skript -- nur zwei GET-Requests
+#     (Gist-Inhalt, Gist-Revisionen). Es ist technisch unmoeglich, dass
+#     dieser Workflow etwas im Gist aendert.
+#   - Logs zeigen NUR Tickernamen (keine Preise/Stueckzahlen/Daten) und
+#     NUR Revisions-Zeitstempel + Kurz-Hash (keine Diff-Inhalte). Dieses
+#     Repo ist OEFFENTLICH -- Workflow-Logs sind oeffentlich lesbar.
+#   - Bewusst KEIN Checkout -- braucht kein Repo-File, nur die
+#     Gist-Secrets (analog agent_ntfy_relay.yml / oneoff-remove-ghost-
+#     positions-v2.yml).
+#
+# RUECKWEG: `git revert <merge-commit>` entfernt die Datei wieder -- reine
+# Diagnose-Datei, keine Code-Abhaengigkeit sonst im Repo, keine
+# Daten-Aenderung rueckzuholen (das Skript hat nie geschrieben).
+
+on:
+  workflow_dispatch: {}
+
+permissions: {}
+
+concurrency:
+  group: oneoff-inspect-gist
+  cancel-in-progress: true
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: List ticker names + revision timestamps (read-only)
+        env:
+          GIST_ID:    ${{ secrets.GIST_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          GIST_API = "https://api.github.com/gists/{}"
+          GIST_COMMITS_API = "https://api.github.com/gists/{}/commits"
+          DATA_FILENAME = "squeeze_data.json"
+
+
+          def _headers(token: str) -> dict:
+              return {
+                  "Authorization": f"Bearer {token}",
+                  "Accept": "application/vnd.github+json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "Aktien-Update-OneOff-Inspect",
+              }
+
+
+          def _get_json(url: str, token: str) -> object:
+              req = urllib.request.Request(url, headers=_headers(token))
+              with urllib.request.urlopen(req, timeout=20) as resp:
+                  return json.loads(resp.read().decode("utf-8"))
+
+
+          def main() -> int:
+              gist_id = os.environ.get("GIST_ID", "").strip()
+              token = os.environ.get("GIST_TOKEN", "").strip()
+
+              if not gist_id or not token:
+                  print("FEHLER: GIST_ID/GIST_TOKEN nicht gesetzt -- Abbruch.",
+                        file=sys.stderr)
+                  return 1
+
+              # ---- Teil 1: Ticker-Namen (nur Namen, keine Werte) -----------
+              try:
+                  gist = _get_json(GIST_API.format(gist_id), token)
+              except Exception as exc:
+                  print(f"FEHLER: Gist-Lesen fehlgeschlagen "
+                        f"({type(exc).__name__}) -- Abbruch.", file=sys.stderr)
+                  return 1
+
+              files = (gist or {}).get("files") or {}
+              entry = files.get(DATA_FILENAME) or {}
+              if entry.get("truncated"):
+                  print(f"FEHLER: {DATA_FILENAME} ist truncated (>1MB) -- "
+                        f"Abbruch.", file=sys.stderr)
+                  return 1
+              raw = entry.get("content")
+              if not raw:
+                  print(f"FEHLER: {DATA_FILENAME} leer/fehlt im Gist -- "
+                        f"Abbruch.", file=sys.stderr)
+                  return 1
+              try:
+                  data = json.loads(raw)
+              except json.JSONDecodeError as exc:
+                  print(f"FEHLER: {DATA_FILENAME} ist kein gueltiges JSON "
+                        f"({exc}) -- Abbruch.", file=sys.stderr)
+                  return 1
+
+              positions = data.get("positions") if isinstance(data, dict) else None
+              watchlist = data.get("watchlist") if isinstance(data, dict) else None
+
+              if isinstance(positions, dict):
+                  pos_tickers = sorted(positions.keys())
+                  print(f"positions ({len(pos_tickers)} Eintraege): "
+                        f"{', '.join(pos_tickers) if pos_tickers else '(leer)'}")
+              else:
+                  print("positions: kein gueltiges Objekt im Gist.")
+
+              if isinstance(watchlist, list):
+                  wl_tickers = sorted(str(t) for t in watchlist)
+                  print(f"watchlist ({len(wl_tickers)} Eintraege): "
+                        f"{', '.join(wl_tickers) if wl_tickers else '(leer)'}")
+              else:
+                  print("watchlist: kein gueltiges Array im Gist.")
+
+              # ---- Teil 2: Revisionshistorie (nur Zeitstempel + Hash) ------
+              try:
+                  commits = _get_json(GIST_COMMITS_API.format(gist_id), token)
+              except Exception as exc:
+                  print(f"WARNUNG: Revisionshistorie nicht lesbar "
+                        f"({type(exc).__name__}) -- Ticker-Liste oben bleibt "
+                        f"gueltig.", file=sys.stderr)
+                  return 0
+
+              if not isinstance(commits, list):
+                  print("WARNUNG: Revisionshistorie hat unerwartetes Format.",
+                        file=sys.stderr)
+                  return 0
+
+              print(f"\nRevisionshistorie ({len(commits)} Eintraege, "
+                    f"neueste zuerst, NUR Zeitstempel + Kurz-Hash, "
+                    f"KEINE Inhalte):")
+              for c in commits:
+                  if not isinstance(c, dict):
+                      continue
+                  version = str(c.get("version", "?"))[:7]
+                  committed_at = c.get("committed_at", "?")
+                  # Change-Status ist NUR ein Zaehler (additions/deletions/
+                  # total), KEIN Inhalt -- unproblematisch zu loggen.
+                  cs = c.get("change_status") or {}
+                  print(f"  {committed_at}  rev={version}  "
+                        f"+{cs.get('additions', '?')}/-{cs.get('deletions', '?')}")
+
+              return 0
+
+
+          if __name__ == "__main__":
+              sys.exit(main())
+          PYEOF

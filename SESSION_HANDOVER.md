@@ -2486,6 +2486,46 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Klasse: Manual-Merge** (neue Workflow-Datei, schreibt in den Gist —
   CLAUDE.md-Ausnahmeliste). Easy mergt selbst.
 
+### 31.10.2026 — Zwischenstopp: Probelauf fand nur 3 statt 5 Positionen + rein lesender Diagnose-Workflow (1 PR, Manual-Merge)
+
+- Nach dem Merge von #617: Probelauf GRPN zeigte **„3 Positions-
+  Eintraege insgesamt"** statt der erwarteten 5 — GRPN vorhanden,
+  danach Probeläufe IONQ/PDYN zeigten beide **„NICHT vorhanden"**.
+  Per Auftrag("Ist etwas anders, melden, nicht raten") sofort gestoppt,
+  Easy informiert, keine echte Löschung ausgeführt.
+- **Easy-Freigabe:** Probeläufe IONQ/PDYN (read-only, erledigt) +
+  Ticker-Namen bestätigen + Gist-Revisionen seit 17:44 UTC lesen (nur
+  Zeitstempel/Urheber, keine Inhalte). `#618` (Branch-Commit `ab57916d`,
+  31.10., kein Merge-Hash — Regel a, PR noch offen/Ready).
+- **Neue Datei** `.github/workflows/oneoff-inspect-gist.yml` —
+  **rein lesend, KEIN PATCH-Call irgendwo im Skript** (technisch
+  unmöglich zu schreiben, per Test verriegelt:
+  `test_no_patch_call_anywhere_in_script`). Listet (1) alle
+  Ticker-Namen aus `positions`/`watchlist` (sortiert, ohne Preise/
+  Stückzahlen/Daten) und (2) die Gist-Revisionshistorie
+  (`GET /gists/{id}/commits`) mit NUR Zeitstempel + Kurz-Hash +
+  Änderungs-Zähler (additions/deletions) — keine Diff-Inhalte.
+- **Test** `scripts/mock_test_oneoff_inspect_gist.py` (17 Fälle,
+  gleiche Regex-Extraktions-Technik). In `run_ci_mock_tests.py`
+  ALLOWLIST registriert (Drift-Guard sauber, 168 Tests).
+- **Wichtiger Einschub zur Erwartbarkeit der Ergebnisse (für den
+  Bericht):** die GitHub-Gist-Commits-API liefert pro Revision ein
+  `user`-Feld — bei einem privaten Gist, der nur über EIN Secret-PAT
+  geschrieben wird (egal ob vom Browser-`gistSave` oder von einem
+  Workflow), zeigt dieses Feld immer denselben GitHub-Account. Die
+  Revisions-API kann also „Browser vs. Workflow" nicht direkt
+  unterscheiden — nur die Zeitstempel helfen, per Abgleich mit der
+  GitHub-Actions-Run-Historie (die Claude ohnehin einsehen kann,
+  ohne neue Secrets).
+- **Kein Score-/Filter-/Exit-/Freeze-Touch** — `lint_protected_zones.py`
+  grün. Golden unberührt.
+- **Guardian-Lauf vor Ready:** siehe Bericht.
+- **Zwei-Zeilen-Staleness-Grep vor Ready:** siehe Bericht.
+- **Klasse: Manual-Merge** (neue Workflow-Datei — CLAUDE.md-
+  Ausnahmeliste, auch wenn rein lesend; konservative Einordnung
+  konsistent zu den anderen Gist-nahen Workflows dieser Woche). Easy
+  mergt selbst.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
