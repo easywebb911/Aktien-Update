@@ -2356,6 +2356,88 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   wieder her — Gist-Daten selbst sind über die GitHub-Gist-
   Revisionshistorie wiederherstellbar, siehe Bericht).
 
+### 31.10.2026 — Lost-Update-Fix gistLoad/gistSave: Geister-Rückkehr IONQ/PDYN ursächlich geklärt + gefixt (1 PR, Manual-Merge)
+
+- Easy-Auftrag nach der Rückkehr-Beobachtung: Ursache finden,
+  reparieren falls eindeutig. `#PENDING` (Branch-Commit folgt — Regel
+  a, PR noch nicht angelegt).
+- **Rückkehr bestätigt per frischem Gist-Pull:** IONQ/PDYN standen um
+  17:43 UTC wieder im Gist — `gist_pull_state.json`
+  (`last_successful_gist_pull: 2026-10-31T17:43:59Z`) zeigt, das war
+  KEIN stiller Recovery-Fallback, sondern ein echter, aktueller
+  Gist-Zustand.
+- **Alle Gist-Schreiber gefunden (repo-weiter Grep):** der EINZIGE
+  Schreibpfad im gesamten Code ist `gistSave()`
+  (`generate_report.py`, PATCH-Aufruf) — kein Python-Skript schreibt
+  je in den Gist (`pull_gist_data.py` liest nur per GET, der
+  Wegwerf-Workflow ist bereits entfernt). Das grenzt die Ursache
+  eindeutig auf das Browser-Frontend ein.
+- **Root Cause, vollständig code-belegt (Lost-Update, Hypothese
+  BESTÄTIGT):** `gistLoad()` (`generate_report.py:14960`+) cachte den
+  Gist-Inhalt im Modul-Var `_GIST_DATA` für die GESAMTE Tab-
+  Lebensdauer — populiert einmalig beim `DOMContentLoaded`-Eager-
+  Preload (`:15765`+), NIE invalidiert. Vier Schreib-Pfade
+  (`_wlGistSyncWatchlist` `:14855`, `wlSubmitPosition` `:15438`,
+  `wlSubmitClose` `:15635`, `wlRemoveFromExpanded` `:15749`) lasen
+  diesen Cache, mutierten NUR ihr eigenes Feld (z. B. nur
+  `watchlist`) und schrieben das GESAMTE Objekt per PATCH zurück —
+  klassisches Lost-Update. War der Cache älter als unsere
+  server-seitige Löschung (14:57/14:59 UTC), hat JEDE Watchlist-
+  Aktion auf dem offen gebliebenen Tab die alten 5 Positionen wieder
+  zurückgeschrieben. iOS-Safari hält Tabs beim „Schließen" oft im
+  Hintergrund lebend statt sie neu zu laden — erklärt die
+  3-Stunden-Lücke ohne jeden Netzwerkzugriff unsererseits.
+- **Erklärt auch CLAUDE.md ~2092** (Watchlist-Austrag erzeugt
+  Geister): `wlRemoveFromExpanded` hatte neben der bereits bekannten
+  fehlenden `gistSave`-Erfolgsprüfung DIESELBE Cache-Veraltung —
+  beide Symptome derselben Architektur-Lücke (kein Fresh-Read-vor-
+  Write). Nicht zwei getrennte Bugs, sondern zwei Ausprägungen eines
+  einzigen Musters.
+- **Gist-Revisionen nicht direkt per API gelesen** (Mini-Stopp-
+  konform gemeldet, nicht geraten): `GIST_ID`/`GIST_TOKEN` sind
+  GitHub-Secrets, in dieser Sandbox nicht zugänglich — der Code-
+  Beweis (einziger Schreibpfad + nachgewiesen fehlerhafte Cache-
+  Semantik, exakt zum Symptom passend) ist aber ausreichend für eine
+  eindeutige Ursachen-Klärung ohne diesen zusätzlichen Beleg.
+- **Fix (kleinstmöglich, kein Score-/Filter-/Exit-Touch):**
+  `gistLoad(force)` — `force=true` erzwingt einen echten Netz-Fetch
+  statt den Cache zu liefern. Alle vier Schreib-Pfade rufen jetzt
+  `gistLoad(true)` unmittelbar vor dem Bauen ihres `data`-Objekts.
+  Drei Lese-Pfade (Trade-Journal-Render, Watchlist-Drawer-Refresh,
+  Eager-Preload) bleiben unverändert bei `force=false` — kein
+  zusätzlicher Netzverkehr bei jedem Karten-Expand. `gistSave`s
+  Cache-Update nach Erfolg bleibt unverändert (Regression-Guard
+  getestet).
+- **Test** `scripts/mock_test_gist_lost_update_fix.py` (9 Fälle):
+  Source-Inspektion (Signatur, 4-von-4-Schreib-Sites, 3-von-3-Lese-
+  Sites unverändert, Zählkonsistenz, Cache-Update-Regression) +
+  **Python-Replikation** der Cache-Semantik (deterministisch, kein
+  Netz): ein Test reproduziert den Bug (altes `force=false`-Muster
+  weckt eine serverseitig gelöschte Position wieder auf), ein Test
+  verifiziert den Fix (neues `force=true`-Muster lässt die Löschung
+  bestehen), ein Test bestätigt AMC bleibt in beiden Szenarien
+  byte-identisch unberührt. In `run_ci_mock_tests.py` ALLOWLIST
+  registriert (Drift-Guard sauber, 166 Tests).
+- **`lint_nan_bypass_fields.py`-Baseline nachgezogen:** der 12-Zeilen-
+  Kommentarblock + `force`-Parameter verschiebt 8 bekannte, weiterhin
+  offene Funde um +12 Zeilen — reine Zeilen-Nachführung, kein
+  inhaltlicher Fix an jenen Stellen.
+- **GRPN/IONQ/PDYN werden in diesem PR NICHT erneut entfernt** —
+  folgt als separater Auftrag NACH dem Merge dieses Fixes (sonst
+  könnte eine erneute Löschung demselben Lost-Update wieder zum
+  Opfer fallen, solange irgendein alter Tab offen bleibt).
+- **open_items.json:** ein NACHTRAG auf `geister-positionen-ionq-pdyn`
+  (Rückkehr + Ursache + Fix-Stand), keine neuen Items (46 → 46).
+- **Kein Score-/Filter-/Exit-/Freeze-Touch** — `lint_protected_zones.py`
+  grün. Golden-Diff exakt auf die 5 Fix-Zeilen begrenzt (geprüft,
+  nicht blind übermalen), UPDATE_GOLDEN durchgeführt.
+- **Guardian-Lauf vor Ready:** siehe Bericht.
+- **Zwei-Zeilen-Staleness-Grep vor Ready:** siehe Bericht.
+- **Klasse: Manual-Merge** (schreibt/ändert die Positions-Gist-
+  Schreiblogik — CLAUDE.md-Ausnahmeliste analog „Score-/Filter-
+  Logik-Änderungen", hier: kritischer Daten-Schreibpfad). Easy mergt
+  selbst.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-

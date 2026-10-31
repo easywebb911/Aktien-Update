@@ -252,16 +252,22 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     # buildPositionStatus()'s pressureLine-Template wuchs von 1 auf 6 Zeilen
     # (Kommentar + zweizeiliges Template-Literal) -- verschiebt ALLE
     # folgenden Funde in generate_report.py um +5. Reine Zeilen-Nachführung
-    # derselben, weiterhin offenen Funde -- KEIN inhaltlicher Fix. Werte
-    # unten per frischem Lint-Lauf nach diesem PR verifiziert.
-    ("generate_report.py", 17195, "entry_price"),
-    ("generate_report.py", 17204, "price"),
-    ("generate_report.py", 17228, "setup_today"),
-    ("generate_report.py", 17985, "score"),
-    ("generate_report.py", 18494, "score"),
-    ("generate_report.py", 19054, "score"),
-    ("generate_report.py", 19097, "score"),
-    ("generate_report.py", 19287, "score"),
+    # derselben, weiterhin offenen Funde -- KEIN inhaltlicher Fix.
+    #
+    # Lost-Update-Fix gistLoad/gistSave (31.10.2026): ein 12-Zeilen-
+    # Kommentarblock + ``force``-Parameter in ``gistLoad()`` verschiebt
+    # ALLE folgenden Funde um weitere +12. Erneut reine Zeilen-
+    # Nachführung derselben, weiterhin offenen Funde -- KEIN
+    # inhaltlicher Fix. Werte unten per frischem Lint-Lauf nach diesem
+    # PR verifiziert.
+    ("generate_report.py", 17207, "entry_price"),
+    ("generate_report.py", 17216, "price"),
+    ("generate_report.py", 17240, "setup_today"),
+    ("generate_report.py", 17997, "score"),
+    ("generate_report.py", 18506, "score"),
+    ("generate_report.py", 19066, "score"),
+    ("generate_report.py", 19109, "score"),
+    ("generate_report.py", 19299, "score"),
     ("health_check.py", 648, "score"),
     ("ki_agent.py", 1368, "last_price"),
     ("ki_agent.py", 2730, "score"),
