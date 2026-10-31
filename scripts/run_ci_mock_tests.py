@@ -40,6 +40,7 @@ SCRIPTS = ROOT / "scripts"
 ALLOWLIST = [
     "agent_ntfy_relay",
     "gist_lost_update_fix",
+    "oneoff_remove_ghost_positions_v2",
     "apewisdom_shadow",
     "lint_protected_zones",
     "backfill_entry_past_return_5d", "backfill_max_gain", "backtest_data_integrity", "backtest_history_writepath", "backtest_return_vs_spy", "backtest_writepath_nan_guard", "bootstrap_shell_phase0", "bootstrap_shell_phase1", "borrow_iborrowdesk", "card_cockpit_stage1", "card_cockpit_stage2",

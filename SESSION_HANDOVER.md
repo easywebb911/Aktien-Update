@@ -2452,6 +2452,40 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Logik-Änderungen", hier: kritischer Daten-Schreibpfad). Easy mergt
   selbst.
 
+### 31.10.2026 — Wegwerf-Workflow v2 zum Entfernen von GRPN/IONQ/PDYN (TEIL A, nach dem Lost-Update-Fix #616) (1 PR, Manual-Merge)
+
+- Folge-Auftrag nach PR #616 (Lost-Update-Fix): jetzt, wo der Fix drin
+  ist, GRPN/IONQ/PDYN per Wegwerf-Workflow v2 endgültig entfernen —
+  diesmal mit Nachprüfung nach ~30 Minuten als Beweis, dass der Fix
+  wirkt. `#PENDING` (Branch-Commit folgt — Regel a, PR noch nicht
+  angelegt).
+- **Ist-Zustand vor dem Lauf bestätigt, keine Überraschung:**
+  `app_data.json["positions"]` (Stand 17:44:12Z, VOR dem #616-Merge
+  18:15:58Z) = AMC, GRPN, IONQ, PDYN, WOLF — exakt wie erwartet.
+  Watchlist laut Easy: WOLF, AMC, VEEA. Geister-Kandidaten ohne
+  Watchlist-Eintrag: GRPN, IONQ, PDYN — exakt wie erwartet, kein
+  Widerspruch.
+- **Neue Datei** `.github/workflows/oneoff-remove-ghost-positions-v2.yml`
+  — identisches Sicherheits-Muster zu PR #614 (hartcodierte Allowlist,
+  jetzt `{GRPN, IONQ, PDYN}`, `choice`-Input ohne Freitext,
+  `dry_run`-Default `true`, Frisch-Verifikation nach dem Schreiben),
+  **erweitert um einen zweiten Verifikations-Anker**: AMC UND WOLF
+  müssen nach jedem echten Lauf byte-identisch bleiben (v1 hatte nur
+  AMC, da WOLF damals noch nicht zweifelsfrei als bleibende Position
+  eingeordnet war — jetzt sind beide echte, bleibende Positionen).
+- **Test** `scripts/mock_test_oneoff_remove_ghost_positions_v2.py`
+  (29 Fälle, gleiches Regex-Extraktions-Muster wie v1) — alle beim
+  ersten Lauf grün, keine neuen Bugs (das v1-Muster war bereits
+  gehärtet). In `run_ci_mock_tests.py` ALLOWLIST registriert
+  (Drift-Guard sauber, 167 Tests).
+- **Kein Score-/Filter-/Exit-/Freeze-Touch** — `lint_protected_zones.py`
+  grün. Golden unberührt (reine neue Dateien, kein Render-Code
+  geändert).
+- **Guardian-Lauf vor Ready:** siehe Bericht.
+- **Zwei-Zeilen-Staleness-Grep vor Ready:** siehe Bericht.
+- **Klasse: Manual-Merge** (neue Workflow-Datei, schreibt in den Gist —
+  CLAUDE.md-Ausnahmeliste). Easy mergt selbst.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
