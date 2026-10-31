@@ -2492,11 +2492,11 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Eintraege insgesamt"** statt der erwarteten 5 — GRPN vorhanden,
   danach Probeläufe IONQ/PDYN zeigten beide **„NICHT vorhanden"**.
   Per Auftrag("Ist etwas anders, melden, nicht raten") sofort gestoppt,
-  Easy informiert, keine echte Löschung ausgeführt. `#PENDING`
-  (Branch-Commit folgt — Regel a, PR noch nicht angelegt).
+  Easy informiert, keine echte Löschung ausgeführt.
 - **Easy-Freigabe:** Probeläufe IONQ/PDYN (read-only, erledigt) +
   Ticker-Namen bestätigen + Gist-Revisionen seit 17:44 UTC lesen (nur
-  Zeitstempel/Urheber, keine Inhalte).
+  Zeitstempel/Urheber, keine Inhalte). `#618` (Branch-Commit `ab57916d`,
+  31.10., kein Merge-Hash — Regel a, PR noch offen/Ready).
 - **Neue Datei** `.github/workflows/oneoff-inspect-gist.yml` —
   **rein lesend, KEIN PATCH-Call irgendwo im Skript** (technisch
   unmöglich zu schreiben, per Test verriegelt:
