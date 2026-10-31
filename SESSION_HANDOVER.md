@@ -2183,18 +2183,32 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   (`generate_report.py:14605`) — das ist die WATCHLIST, keine Positions-
   Liste. Es gibt **keine** zweite, unabhängige „Meine Positionen"-Ansicht
   im Code. Da IONQ/PDYN seit 24.08. nicht auf der Watchlist stehen und
-  nicht in der heutigen Top-10 sind, existiert für sie buchstäblich
-  keine Karte und damit kein erreichbarer Lösch-Pfad — deckt sich exakt
-  mit Easys Beobachtung.
-- **Vorschlag Wegwerf-Workflow** (nur Vorschlag, nicht gebaut, Easy
-  entscheidet): neuer `on: workflow_dispatch`-Workflow mit den zu
-  löschenden Tickern HARTCODIERT im Code (kein Freitext-Feld — kein
-  Verschreib-Risiko für AMC, da AMC im Code gar nicht vorkommt). Liest
-  den Gist, löscht nur die zwei hartcodierten Keys, schreibt per PATCH
-  zurück, loggt vorher/nachher zur Kontrolle. Rückweg: GitHub-Gists
-  führen automatisch Revisionen — bei einem Fehler kann Easy im Browser
-  (kein Terminal) die vorige Revision öffnen und zurückkopieren. Falls
-  je gebaut: „Neue Workflow-Datei" = Manual-Merge-Pflicht laut CLAUDE.md.
+  nicht in der heutigen Top-10 sind, existiert für sie **normalerweise**
+  keine Karte.
+- **KORREKTUR (Guardian-Fund, vor Merge eingearbeitet):** „buchstäblich
+  keine Karte, kein erreichbarer Lösch-Pfad" war UNVOLLSTÄNDIG — es
+  gibt bereits einen funktionierenden Weg ohne neuen Workflow:
+  `window.wlAddManual` (`generate_report.py:14862`, Ticker-Regex
+  `generate_report.py:14841`) lässt JEDEN syntaktisch gültigen Ticker
+  manuell in die Watchlist eintragen — auch IONQ/PDYN. Das erzeugt eine
+  Karte, `wlExpand` fällt auf `buildWlSparkOnly`
+  (`generate_report.py:14434`) zurück, die laut eigenem Kommentar
+  („Position-Panel auch im History-only-Fall", `:14509`) TROTZDEM
+  `buildPositionPanel(ticker, null)` samt „Aus Watchlist entfernen"-
+  Button rendert. **Easy kann IONQ/PDYN also schon heute in ~10
+  Sekunden selbst entfernen** (Ticker ins Watchlist-Feld eintippen →
+  Karte erscheint → „Aus Watchlist entfernen" antippen) — ohne jeden
+  neuen Workflow.
+- **Vorschlag Wegwerf-Workflow** (jetzt nur noch Alternative, nicht
+  mehr einziger Weg; nicht gebaut, Easy entscheidet): neuer
+  `on: workflow_dispatch`-Workflow mit den zu löschenden Tickern
+  HARTCODIERT im Code (kein Freitext-Feld — kein Verschreib-Risiko für
+  AMC, da AMC im Code gar nicht vorkommt). Liest den Gist, löscht nur
+  die zwei hartcodierten Keys, schreibt per PATCH zurück, loggt vorher/
+  nachher zur Kontrolle. Rückweg: GitHub-Gists führen automatisch
+  Revisionen — bei einem Fehler kann Easy im Browser (kein Terminal)
+  die vorige Revision öffnen und zurückkopieren. Falls je gebaut:
+  „Neue Workflow-Datei" = Manual-Merge-Pflicht laut CLAUDE.md.
 - **Konsumenten-Rundgang bestätigt** (keine neuen Stellen gegenüber dem
   Vor-PR, nochmal gegengeprüft): KI-Insight-Stream, Health-Check S3,
   Exit-Push-Pfad Phase 1+2 — alle ungefiltert, aber Pushes weiterhin
