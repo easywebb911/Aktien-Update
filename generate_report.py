@@ -14854,7 +14854,7 @@ function _fmtGerman(d) {{
   // watchlist_personal.json. Vorlage: wlRemoveFromExpanded.
   async function _wlGistSyncWatchlist(arr) {{
     if (!GIST_ID || !getToken()) return;
-    const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
+    const data = (await gistLoad(true)) || {{watchlist: [], positions: {{}}}};
     data.watchlist = arr.slice();
     await gistSave(data);
   }}
@@ -14957,8 +14957,33 @@ function _fmtGerman(d) {{
     catch(_) {{ return d; }}
   }}
 
-  async function gistLoad() {{
-    if (_GIST_DATA) return _gistClone(_GIST_DATA);
+  // Lost-Update-Fix (31.10.2026, Diagnose Geister-Rückkehr IONQ/PDYN):
+  // ``force=true`` erzwingt einen echten Netz-Fetch statt den (ggf.
+  // seit dem Seitenladen veralteten) ``_GIST_DATA``-Cache zu liefern.
+  // JEDER Schreib-Pfad MUSS ``gistLoad(true)`` nutzen, bevor er sein
+  // ``data``-Objekt baut und per ``gistSave`` zurückschreibt — sonst
+  // überschreibt ein PATCH aus einem lange offenen Tab (iOS-Safari
+  // hält Tabs im Hintergrund lebend statt sie neu zu laden) jede
+  // Änderung, die seit dem Seitenladen von woanders kam (anderes
+  // Gerät, anderer Tab, oder — wie am 31.10. demonstriert — ein
+  // serverseitiger Wegwerf-Workflow). Reine Lese-Pfade (Render,
+  // Preload) bleiben bei ``force=false`` (Default) — kein Verhaltens-
+  // Drift, nur zusätzlicher Netz-Call unmittelbar vor jedem Schreiben.
+  //
+  // EHRLICHE GRENZE (Guardian-Fund 31.10.2026): das Lost-Update-Fenster
+  // wird dadurch von „gesamte Tab-Lebensdauer" auf „Millisekunden
+  // zwischen diesem Fetch und dem nachfolgenden gistSave-PATCH"
+  // verkleinert — NICHT strukturell eliminiert. Schreiben zwei Clients
+  // (zwei Tabs/Geräte, oder ein Client + ein serverseitiger Workflow)
+  // im selben Mini-Fenster, gewinnt weiterhin der letzte PATCH. Eine
+  // vollständige Lösung bräuchte optimistic concurrency (z. B. ETag/
+  // If-Match gegen die Gist-Revision) — laut externem Entwickler-
+  // Report unterstützt die Gist-PATCH-API das aber nicht (400 statt
+  // 412, siehe PR #614-Diagnose). Für dieses Einzelnutzer-Tool ist die
+  // Risiko-Reduktion (Stunden → Sub-Sekunden) als ausreichend bewertet,
+  // nicht als vollständig behoben.
+  async function gistLoad(force) {{
+    if (!force && _GIST_DATA) return _gistClone(_GIST_DATA);
     if (!GIST_ID) return null;
     const token = getToken();
     if (!token) return null;
@@ -15435,7 +15460,7 @@ function _fmtGerman(d) {{
     // entry_thesis-Freitext lesen (optional, max 500 Zeichen via maxlength)
     const _thesisEl = document.getElementById('pos-thesis-' + ticker);
     const _entryThesis = ((_thesisEl && _thesisEl.value) || '').trim();
-    const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
+    const data = (await gistLoad(true)) || {{watchlist: [], positions: {{}}}};
     data.positions = data.positions || {{}};
     // EUR-Stufe 3/4: aktuellen FX als entry_fx einfrieren — fx_estimated
     // ist false, weil der User die Position JETZT eröffnet (kein Backfill).
@@ -15632,7 +15657,7 @@ function _fmtGerman(d) {{
       _refreshPositionPanel(ticker);
       return;
     }}
-    const data = (await gistLoad()) || {{watchlist: [], positions: {{}}, closed_trades: []}};
+    const data = (await gistLoad(true)) || {{watchlist: [], positions: {{}}, closed_trades: []}};
     if (!data.closed_trades) data.closed_trades = [];
     const pos = (data.positions || {{}})[ticker];
     if (!pos) {{
@@ -15746,7 +15771,7 @@ function _fmtGerman(d) {{
       // GIST_ID-Check bleibt als defensive catch-net (kein Gist
       // konfiguriert → Repo-Pfad allein läuft weiter).
       if (GIST_ID) {{
-        const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
+        const data = (await gistLoad(true)) || {{watchlist: [], positions: {{}}}};
         data.watchlist = (data.watchlist || []).filter(t => t !== ticker);
         if (data.positions) delete data.positions[ticker];
         await gistSave(data);
