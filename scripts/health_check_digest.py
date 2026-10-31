@@ -59,6 +59,14 @@ log = logging.getLogger("health_check_digest")
 DIGEST_STATE_FILE = ROOT / "health_check_digest_state.json"
 DIGEST_WINDOW_HOURS = 24
 
+# Position-ohne-Watchlist-Wächter (31.10.2026): eigene Modul-Attribute statt
+# inline ``ROOT / "..."`` im Call, damit Tests sie per
+# ``mock.patch.object(dg, "...", tmp_path)`` umlenken können — exakt das
+# Pattern von ``DIGEST_STATE_FILE`` oben.
+APP_DATA_FILE_FOR_WATCHDOG = ROOT / "app_data.json"
+WATCHLIST_PERSONAL_FILE_FOR_WATCHDOG = ROOT / hc.WATCHLIST_PERSONAL_FILE_FOR_WATCHDOG
+POSITION_WATCHLIST_STATE_FILE = ROOT / hc.POSITION_WATCHLIST_STATE_FILE
+
 
 # ── State-Datei (Konsekutiv-Counter + Mehrfach-Trigger-Schutz) ─────────────
 
@@ -539,9 +547,9 @@ def main(*, now_ts: datetime | None = None,
     try:
         watchdog_lines = hc.position_watchlist_watchdog_lines(
             now_ts,
-            app_data_path=str(ROOT / "app_data.json"),
-            watchlist_path=str(ROOT / hc.WATCHLIST_PERSONAL_FILE_FOR_WATCHDOG),
-            state_path=str(ROOT / hc.POSITION_WATCHLIST_STATE_FILE),
+            app_data_path=str(APP_DATA_FILE_FOR_WATCHDOG),
+            watchlist_path=str(WATCHLIST_PERSONAL_FILE_FOR_WATCHDOG),
+            state_path=str(POSITION_WATCHLIST_STATE_FILE),
             write_state=not dry_run,
         )
     except Exception as _wd_exc:  # pragma: no cover — Helper ist raise-frei

@@ -197,7 +197,9 @@ def test_01_main_sent_true_exit0() -> None:
              patch.object(hcd, "_ntfy_send", return_value=True), \
              patch.object(hcd, "NTFY_TOPIC", "test-topic"), \
              patch.object(hcd, "NTFY_ENABLED", True), \
-             patch.object(hcd, "_load_jsonl_window", return_value=[]):
+             patch.object(hcd, "_load_jsonl_window", return_value=[]), \
+             patch.object(hcd, "POSITION_WATCHLIST_STATE_FILE",
+                          pathlib.Path(state_path + ".wl")):
             rc = hcd.main(now_ts=datetime(2026, 5, 16, 8, 47, tzinfo=timezone.utc))
             assert rc == 0
             # State sollte last_digest_sent="2026-05-16" haben
@@ -214,7 +216,9 @@ def test_02_main_sent_false_topic_set_exit1() -> None:
              patch.object(hcd, "_ntfy_send", return_value=False), \
              patch.object(hcd, "NTFY_TOPIC", "test-topic"), \
              patch.object(hcd, "NTFY_ENABLED", True), \
-             patch.object(hcd, "_load_jsonl_window", return_value=[]):
+             patch.object(hcd, "_load_jsonl_window", return_value=[]), \
+             patch.object(hcd, "POSITION_WATCHLIST_STATE_FILE",
+                          pathlib.Path(state_path + ".wl")):
             rc = hcd.main(now_ts=datetime(2026, 5, 16, 8, 47, tzinfo=timezone.utc))
             assert rc == 1, f"Erwarte exit 1, got {rc}"
             # State muss trotzdem geschrieben sein (fail-Visibility-Fix)
@@ -233,7 +237,9 @@ def test_03_main_no_topic_test_mode_exit0() -> None:
              patch.object(hcd, "_ntfy_send", return_value=False), \
              patch.object(hcd, "NTFY_TOPIC", ""), \
              patch.object(hcd, "NTFY_ENABLED", False), \
-             patch.object(hcd, "_load_jsonl_window", return_value=[]):
+             patch.object(hcd, "_load_jsonl_window", return_value=[]), \
+             patch.object(hcd, "POSITION_WATCHLIST_STATE_FILE",
+                          pathlib.Path(state_path + ".wl")):
             rc = hcd.main(now_ts=datetime(2026, 5, 16, 8, 47, tzinfo=timezone.utc))
             assert rc == 0, f"Test-Mode darf kein exit 1 sein, got {rc}"
             s = json.loads(pathlib.Path(state_path).read_text())
@@ -252,7 +258,9 @@ def test_04_main_exception_in_ntfy_exit1() -> None:
              patch.object(hcd, "_ntfy_send", side_effect=_raises), \
              patch.object(hcd, "NTFY_TOPIC", "test-topic"), \
              patch.object(hcd, "NTFY_ENABLED", True), \
-             patch.object(hcd, "_load_jsonl_window", return_value=[]):
+             patch.object(hcd, "_load_jsonl_window", return_value=[]), \
+             patch.object(hcd, "POSITION_WATCHLIST_STATE_FILE",
+                          pathlib.Path(state_path + ".wl")):
             rc = hcd.main(now_ts=datetime(2026, 5, 16, 8, 47, tzinfo=timezone.utc))
             assert rc == 1, f"Exception muss zu exit 1 führen, got {rc}"
             # State trotzdem geschrieben
@@ -272,7 +280,9 @@ def test_05_main_already_sent_today_skip() -> None:
              patch.object(hcd, "_ntfy_send", return_value=True) as mock_send, \
              patch.object(hcd, "NTFY_TOPIC", "test-topic"), \
              patch.object(hcd, "NTFY_ENABLED", True), \
-             patch.object(hcd, "_load_jsonl_window", return_value=[]):
+             patch.object(hcd, "_load_jsonl_window", return_value=[]), \
+             patch.object(hcd, "POSITION_WATCHLIST_STATE_FILE",
+                          pathlib.Path(state_path + ".wl")):
             rc = hcd.main(now_ts=datetime(2026, 5, 16, 8, 47, tzinfo=timezone.utc))
             assert rc == 0
             # _ntfy_send darf nicht aufgerufen worden sein (early exit)
@@ -289,7 +299,9 @@ def test_06_main_dry_run_exit0() -> None:
              patch.object(hcd, "_ntfy_send", return_value=False) as mock_send, \
              patch.object(hcd, "NTFY_TOPIC", "test-topic"), \
              patch.object(hcd, "NTFY_ENABLED", True), \
-             patch.object(hcd, "_load_jsonl_window", return_value=[]):
+             patch.object(hcd, "_load_jsonl_window", return_value=[]), \
+             patch.object(hcd, "POSITION_WATCHLIST_STATE_FILE",
+                          pathlib.Path(state_path + ".wl")):
             rc = hcd.main(dry_run=True,
                            now_ts=datetime(2026, 5, 16, 8, 47, tzinfo=timezone.utc))
             assert rc == 0

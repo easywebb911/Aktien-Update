@@ -3800,6 +3800,14 @@ def build_diagnose_prompt(crit_fails: list[dict], *, digest_date: str) -> str | 
 # Das verhindert Alarm bei einer legitimen Aktion desselben Tages (Ticker
 # wird bewusst von der Watchlist genommen, weil die Position jetzt läuft).
 # Erst ab > 1 Handelstag seit dem Erstbefund feuert die Warnung.
+#
+# ID-Namensraum (Guardian-Finding, vor Ready eingearbeitet): ``id="WL1"``
+# ist BEWUSST KEIN Mitglied der offiziellen S1–S14-State-Invariants-Serie
+# (``docs/health_check_spec.md``) — dieser Checker läuft NICHT über
+# ``evaluate_state_invariants()``/``run_and_record()`` und wird NICHT von
+# ``aggregate_state_fails()``' Recency-Gating erfasst (siehe Modul-
+# Kommentar bei ``position_watchlist_watchdog_lines`` unten). Ein
+# ``S``-Präfix hätte fälschlich Mitgliedschaft in der S-Serie suggeriert.
 POSITION_WATCHLIST_STATE_FILE = "position_watchlist_state.json"
 WATCHLIST_PERSONAL_FILE_FOR_WATCHDOG = "watchlist_personal.json"
 _WL_WATCHDOG_TICKER_RE = re.compile(r"^[A-Z0-9.]{1,12}$")
@@ -3885,7 +3893,7 @@ def check_position_watchlist_staleness(
         Tickers, die (wieder) auf der Watchlist stehen oder gar keine
         Position mehr sind, werden aus dem State entfernt (Pruning).
 
-    ``id="S15"``, ``severity="warn"`` — rein anzeigend, NIE blockierend,
+    ``id="WL1"``, ``severity="warn"`` — rein anzeigend, NIE blockierend,
     keine automatische Löschung.
     """
     now_utc = now_utc or datetime.now(timezone.utc)
@@ -3896,7 +3904,7 @@ def check_position_watchlist_staleness(
     if watchlist_tickers is None:
         return (
             [{
-                "id": "S15", "severity": "warn",
+                "id": "WL1", "severity": "warn",
                 "detail": ("Watchlist (watchlist_personal.json) nicht lesbar "
                            "— Positions-Watchlist-Abgleich nicht möglich "
                            "(Unbekannt ≠ ok)"),
@@ -3933,7 +3941,7 @@ def check_position_watchlist_staleness(
                 n_workdays += 1
         if n_workdays > 1:
             fails.append({
-                "id": "S15", "severity": "warn",
+                "id": "WL1", "severity": "warn",
                 "detail": (f"Position {ticker} ohne Watchlist-Eintrag seit "
                            f"{n_workdays} Handelstagen (Erstbefund "
                            f"{first_seen_iso})"),

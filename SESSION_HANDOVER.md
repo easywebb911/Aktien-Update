@@ -2576,7 +2576,12 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   (pure): vergleicht `app_data.json["positions"]` gegen
   `watchlist_personal.json`. Position ohne Watchlist-Eintrag seit
   **> 1 Handelstag** (Mo–Fr, Grace-Periode am Erstbefund-Tag) → Warn-
-  Fail (`id="S15"`, rein anzeigend, **keine** automatische Löschung).
+  Fail (`id="WL1"`, rein anzeigend, **keine** automatische Löschung).
+  **`WL1` ist bewusst KEIN Mitglied der offiziellen S1–S14-Serie**
+  (`docs/health_check_spec.md`) — eigene, Digest-only-ID, damit keine
+  Verwechslung mit der State-Invariants-Kerntabelle entsteht
+  (Guardian-Finding, vor Ready eingearbeitet, ursprünglich als `S15`
+  gebaut).
   **"Unbekannt ≠ ok"**: Watchlist nicht lesbar (fehlt/kaputt/falscher
   Typ) → eigene Warnung statt stillschweigend „keine Geister
   gefunden" — State bleibt dabei unangetastet.

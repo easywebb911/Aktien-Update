@@ -93,7 +93,7 @@ def test_more_than_one_workday_fails():
     fails, state = hc.check_position_watchlist_staleness(
         {"GRPN": {}}, {"AMC"}, {"GRPN": "2026-10-30"}, now)
     _check("> 1 Handelstag -> genau 1 Fail", len(fails) == 1)
-    _check("Fail-Schema korrekt", fails and fails[0]["id"] == "S15"
+    _check("Fail-Schema korrekt", fails and fails[0]["id"] == "WL1"
            and fails[0]["severity"] == "warn")
     _check("Detail nennt Ticker + Handelstage", fails and "GRPN" in fails[0]["detail"]
            and "2" in fails[0]["detail"])
