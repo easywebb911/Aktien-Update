@@ -256,18 +256,19 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     #
     # Lost-Update-Fix gistLoad/gistSave (31.10.2026): ein 12-Zeilen-
     # Kommentarblock + ``force``-Parameter in ``gistLoad()`` verschiebt
-    # ALLE folgenden Funde um weitere +12. Erneut reine Zeilen-
-    # Nachführung derselben, weiterhin offenen Funde -- KEIN
-    # inhaltlicher Fix. Werte unten per frischem Lint-Lauf nach diesem
-    # PR verifiziert.
-    ("generate_report.py", 17207, "entry_price"),
-    ("generate_report.py", 17216, "price"),
-    ("generate_report.py", 17240, "setup_today"),
-    ("generate_report.py", 17997, "score"),
-    ("generate_report.py", 18506, "score"),
-    ("generate_report.py", 19066, "score"),
-    ("generate_report.py", 19109, "score"),
-    ("generate_report.py", 19299, "score"),
+    # ALLE folgenden Funde um weitere +12, plus ein Guardian-Fund-
+    # Nachtrag (ehrliche Race-Window-Grenze, 13 weitere Zeilen) um
+    # nochmal +13. Erneut reine Zeilen-Nachführung derselben, weiterhin
+    # offenen Funde -- KEIN inhaltlicher Fix. Werte unten per frischem
+    # Lint-Lauf nach diesem PR verifiziert.
+    ("generate_report.py", 17220, "entry_price"),
+    ("generate_report.py", 17229, "price"),
+    ("generate_report.py", 17253, "setup_today"),
+    ("generate_report.py", 18010, "score"),
+    ("generate_report.py", 18519, "score"),
+    ("generate_report.py", 19079, "score"),
+    ("generate_report.py", 19122, "score"),
+    ("generate_report.py", 19312, "score"),
     ("health_check.py", 648, "score"),
     ("ki_agent.py", 1368, "last_price"),
     ("ki_agent.py", 2730, "score"),

@@ -2426,12 +2426,26 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   folgt als separater Auftrag NACH dem Merge dieses Fixes (sonst
   könnte eine erneute Löschung demselben Lost-Update wieder zum
   Opfer fallen, solange irgendein alter Tab offen bleibt).
-- **open_items.json:** ein NACHTRAG auf `geister-positionen-ionq-pdyn`
-  (Rückkehr + Ursache + Fix-Stand), keine neuen Items (46 → 46).
+- **open_items.json:** zwei NACHTRÄGE auf `geister-positionen-ionq-pdyn`
+  (Rückkehr + Ursache + Fix-Stand, dann Guardian-Fund), keine neuen
+  Items (46 → 46).
 - **Kein Score-/Filter-/Exit-/Freeze-Touch** — `lint_protected_zones.py`
-  grün. Golden-Diff exakt auf die 5 Fix-Zeilen begrenzt (geprüft,
-  nicht blind übermalen), UPDATE_GOLDEN durchgeführt.
-- **Guardian-Lauf vor Ready:** siehe Bericht.
+  grün. Golden-Diff zunächst exakt auf die 5 Fix-Zeilen begrenzt
+  (geprüft, nicht blind übermalen), nach dem Guardian-Fund (siehe
+  unten) ein zweites Mal um den ehrlichen Grenz-Kommentar erweitert —
+  erneut geprüft, kein anderer Diff.
+- **Guardian-Lauf vor Ready — ⚠ ein Fund, eingearbeitet:** der
+  `gistLoad(force)`-Fix verkleinert das Lost-Update-Fenster von
+  „gesamte Tab-Lebensdauer" auf „Millisekunden zwischen Fresh-Read
+  und PATCH" — beseitigt es aber NICHT strukturell (ein echtes
+  TOCTOU-Race zwischen zwei Clients im selben Mini-Fenster bleibt
+  theoretisch möglich, Gist-PATCH unterstützt laut PR #614-Diagnose
+  kein ETag/If-Match). Das war im Code-Kommentar/der Doku nirgends
+  benannt — jetzt per „EHRLICHE GRENZE"-Kommentarblock in
+  `generate_report.py` (direkt vor `gistLoad`) sowie per NACHTRAG in
+  `open_items.json` nachgezogen. Kein Blocker (Einzelnutzer-Tool,
+  drastische Risiko-Reduktion), aber Transparenz-Pflicht erfüllt statt
+  stillschweigend übergangen.
 - **Zwei-Zeilen-Staleness-Grep vor Ready:** siehe Bericht.
 - **Klasse: Manual-Merge** (schreibt/ändert die Positions-Gist-
   Schreiblogik — CLAUDE.md-Ausnahmeliste analog „Score-/Filter-
