@@ -1853,6 +1853,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "WKC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-31T00:52:36Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "World Kinect Corporation",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "WMK": {
     "qid": "Q7980370",
     "title": "Weis_Markets",
