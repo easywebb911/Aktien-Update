@@ -2189,7 +2189,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   keine Karte, kein erreichbarer Lösch-Pfad" war UNVOLLSTÄNDIG — es
   gibt bereits einen funktionierenden Weg ohne neuen Workflow:
   `window.wlAddManual` (`generate_report.py:14862`, Ticker-Regex
-  `generate_report.py:14841`) lässt JEDEN syntaktisch gültigen Ticker
+  `generate_report.py:14840`) lässt JEDEN syntaktisch gültigen Ticker
   manuell in die Watchlist eintragen — auch IONQ/PDYN. Das erzeugt eine
   Karte, `wlExpand` fällt auf `buildWlSparkOnly`
   (`generate_report.py:14434`) zurück, die laut eigenem Kommentar
