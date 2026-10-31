@@ -2094,9 +2094,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 ### 31.10.2026 — Geister-Positionen IONQ/PDYN diagnostiziert + open_items korrigiert (1 PR, Doku-only)
 
 - **Easy-Entscheid 31.10.2026 bestätigt:** IONQ und PDYN sind KEINE echten
-  offenen Positionen mehr, AMC ist offen und echt. Diagnose (read-only,
-  dieser PR): PR-Nummer wird per Follow-up-Commit nachgetragen (Regel a),
-  Branch `claude/ghost-positions-diagnose`.
+  offenen Positionen mehr, AMC ist offen und echt. Diagnose (read-only):
+  `#612` (Branch-Commit `7bb55220`, 31.10., kein Merge-Hash — Regel a,
+  PR noch offen/Ready).
 - **Fundort der Lücke identifiziert, NICHT gefixt:**
   `generate_report.py:15752` (`window.wlRemoveFromExpanded`) ruft
   `await gistSave(data);` OHNE Erfolgs-Check — anders als `wlSubmitClose`
