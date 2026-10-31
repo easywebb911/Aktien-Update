@@ -2302,8 +2302,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 - Easy-Freigabe 31.10. ("Bitte übernimm du das"): PR #614 selbst gemergt
   und die beiden echten Läufe selbst gestartet (App-Tab von Easy
-  geschlossen gehalten). `#PENDING` (Branch-Commit folgt — Regel a, PR
-  noch nicht angelegt).
+  geschlossen gehalten). `#615` (Branch-Commit `07fc70f5`, 31.10., kein
+  Merge-Hash — Regel a, PR noch offen/Ready).
 - **Durchführung (alle 5 Schritte strikt nacheinander, Log geprüft):**
   Probelauf PDYN (Run `41212466594`, dry_run=true) → PDYN vorhanden,
   5 Positions-Einträge gesamt. Echter Lauf PDYN (Run `41212535664`) →
