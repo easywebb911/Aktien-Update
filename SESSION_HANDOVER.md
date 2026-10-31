@@ -2618,8 +2618,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 - Easy-Auftrag: automatischer, einmaliger Auswertungslauf für den
   vorabregistrierten §4-Exit-B.1-Re-Test, analog den bestehenden
-  Setup-Edge/Conviction- und KI-Score-Freezes. `#621` (Branch-Commit
-  `db271b31`, 31.10., kein Merge-Hash — Regel a, PR noch offen/Ready).
+  Setup-Edge/Conviction- und KI-Score-Freezes. `#621` (Branch-Commits
+  `db271b31` + `b35ffd84`, 31.10., kein Merge-Hash — Regel a, PR noch
+  offen/Ready).
+- **Guardian-Finding vor Ready behoben** (zweiter Commit): Regime-
+  Widerspruch-Verdikt ("widerlegt" vs. "nicht_pruefbar") war in drei
+  Ständen (Easys Chat-Entscheidung, Protokolltext-Entwurf, Code)
+  uneinheitlich — siehe „Protokolleintrag 31.10.2026 (b)" im §4-Block.
+  Easy-Entscheidung Option B: "nicht_pruefbar" → "bedingt",
+  "widerlegt" → "Unklar" (strenger, da echter Gegenbeleg statt
+  Datenmangel). Code war bereits so gebaut, nur Text synchronisiert +
+  neuer End-to-End-Test ergänzt (35 statt 34 Tests).
 - **Mini-STOPP vor dem Bau** (Schritt 1): drei Verfahrens-Lücken im
   Ur-Text gefunden und mit Easy VOR Erreichen von n=250 (Stand n=242,
   Ergebnis unbekannt) geklärt — siehe „Protokolleintrag 31.10.2026" im
@@ -2634,7 +2643,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Status-Zeile „Exit-B.1 (§4)" in allen 3 Digest-Klassen, ntfy-Push
   bei Trigger (generischer `just_triggered`-Loop deckt die neue
   Familie automatisch ab, keine Sonderlogik nötig).
-- **34 neue Tests** (`mock_test_exit_b1_autorun.py`) + 6 neue in
+- **35 neue Tests** (`mock_test_exit_b1_autorun.py`) + 6 neue in
   `mock_test_stats_helpers.py`, in `run_ci_mock_tests.py` ALLOWLIST
   registriert (168 Tests gesamt, Drift-Guard sauber). Determinismus,
   Auslöser 249/250/Sperre, Fehlende-Werte-Pfade, End-to-End-Digest-
