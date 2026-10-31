@@ -2457,8 +2457,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - Folge-Auftrag nach PR #616 (Lost-Update-Fix): jetzt, wo der Fix drin
   ist, GRPN/IONQ/PDYN per Wegwerf-Workflow v2 endgültig entfernen —
   diesmal mit Nachprüfung nach ~30 Minuten als Beweis, dass der Fix
-  wirkt. `#PENDING` (Branch-Commit folgt — Regel a, PR noch nicht
-  angelegt).
+  wirkt. `#617` (Branch-Commit `4056d7ee`, 31.10., kein Merge-Hash —
+  Regel a, PR noch offen/Ready).
 - **Ist-Zustand vor dem Lauf bestätigt, keine Überraschung:**
   `app_data.json["positions"]` (Stand 17:44:12Z, VOR dem #616-Merge
   18:15:58Z) = AMC, GRPN, IONQ, PDYN, WOLF — exakt wie erwartet.
