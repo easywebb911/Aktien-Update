@@ -11,8 +11,12 @@ name: One-off Remove Ghost Positions
 # SICHERHEIT (nicht verhandelbar):
 #   - Ticker-Eingabe ist ein 'choice'-Input, NUR IONQ/PDYN -- kein Freitext.
 #   - Zusaetzliche Code-Allowlist (ALLOWLIST unten) als zweite Schranke --
-#     AMC kommt im Code dieser Datei an KEINER Stelle vor, kann also auch
-#     bei einem manipulierten API-Dispatch nicht getroffen werden.
+#     AMC wird im Code dieser Datei an KEINER Stelle als Lösch-Ziel
+#     verwendet oder verwendbar -- der einzige Lösch-Trigger ist der
+#     allowlist-geprüfte 'ticker'-Wert. AMC kommt NUR defensiv vor (als
+#     Verifikations-Anker, um zu BEWEISEN, dass es unveraendert bleibt --
+#     siehe amc_before/amc_after unten), kann also auch bei einem
+#     manipulierten API-Dispatch nicht getroffen werden.
 #   - dry_run=true (Default) liest nur und berichtet, schreibt NICHTS.
 #   - Der echte Lauf (dry_run=false) aendert NUR den einen positions[ticker]-
 #     Eintrag, liest danach frisch zur Verifikation (Ticker weg, Zaehler
@@ -93,7 +97,9 @@ jobs:
 
           GIST_API = "https://api.github.com/gists/{}"
           DATA_FILENAME = "squeeze_data.json"
-          # Hartcodierte Allowlist -- AMC kommt hier an KEINER Stelle vor.
+          # Hartcodierte Allowlist -- AMC wird hier an KEINER Stelle als
+          # Lösch-Ziel verwendet (nur unten defensiv zur Verifikation
+          # gelesen, siehe amc_before/amc_after).
           ALLOWLIST = {"IONQ", "PDYN"}
 
 

@@ -2238,9 +2238,10 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Browser-`gistSave`-Muster aus `generate_report.py:15005-15013`:
   volles Datei-Overwrite von `squeeze_data.json`, nicht Teil-Patch).
 - **Sicherheits-Mechanik:** hartcodierte `ALLOWLIST = {"IONQ", "PDYN"}`
-  im Python-Block, geprüft VOR jedem Gist-Zugriff — AMC kommt im Code
-  an keiner Stelle vor, kann also auch bei einem manipulierten
-  API-Dispatch nicht getroffen werden. Ticker nicht im Gist vorhanden
+  im Python-Block, geprüft VOR jedem Gist-Zugriff — AMC wird im Code
+  an keiner Stelle als Lösch-Ziel verwendet (nur defensiv zur
+  Verifikation gelesen, siehe unten), kann also auch bei einem
+  manipulierten API-Dispatch nicht getroffen werden. Ticker nicht im Gist vorhanden
   → Abbruch ohne Schreiben mit expliziter „nicht vorhanden ≠ erledigt"-
   Meldung. Echter Lauf verifiziert nach dem Schreiben per frischem GET
   (nicht dem lokalen Stand vertrauend): Ticker weg, Zähler exakt −1,
@@ -2284,6 +2285,16 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Rückweg-PR folgt separat** nach den echten Läufen — löscht diese
   eine Workflow-Datei wieder (`git revert`), reine Tooling-Entfernung,
   keine Code-Abhängigkeit sonst im Repo.
+- **Guardian-Fund (vor Merge eingearbeitet):** alle sicherheitskritischen
+  Mechanismen (Allowlist vor jedem Netzwerkzugriff, choice-Input exakt
+  IONQ/PDYN, voller Datei-Overwrite inkl. unveränderter watchlist,
+  echte Frisch-Verifikation nach dem Schreiben, kein Zusatz-PATCH bei
+  Fehlern, Log-Hygiene, dry_run-Default) wurden unabhängig nachgeprüft
+  und bestätigt — einziger Fund war eine sachlich ungenaue
+  Kommentar-Formulierung ("AMC kommt im Code an keiner Stelle vor" war
+  falsch, da AMC defensiv zur Verifikation gelesen wird — nie als
+  Lösch-Ziel). Kommentare in der Workflow-Datei + hier präzisiert, kein
+  Verhaltens-Fix nötig.
 - **Klasse: Manual-Merge** (neue Workflow-Datei, schreibt in den Gist —
   CLAUDE.md-Ausnahmeliste). Easy mergt selbst.
 
