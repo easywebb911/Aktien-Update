@@ -2359,8 +2359,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 ### 31.10.2026 — Lost-Update-Fix gistLoad/gistSave: Geister-Rückkehr IONQ/PDYN ursächlich geklärt + gefixt (1 PR, Manual-Merge)
 
 - Easy-Auftrag nach der Rückkehr-Beobachtung: Ursache finden,
-  reparieren falls eindeutig. `#PENDING` (Branch-Commit folgt — Regel
-  a, PR noch nicht angelegt).
+  reparieren falls eindeutig. `#616` (Branch-Commit `c4b1c25b`, 31.10.,
+  kein Merge-Hash — Regel a, PR noch offen/Ready).
 - **Rückkehr bestätigt per frischem Gist-Pull:** IONQ/PDYN standen um
   17:43 UTC wieder im Gist — `gist_pull_state.json`
   (`last_successful_gist_pull: 2026-10-31T17:43:59Z`) zeigt, das war
