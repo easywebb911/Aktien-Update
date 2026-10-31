@@ -25,6 +25,7 @@ import json
 import logging
 import math
 import os
+import re
 import time
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
@@ -3779,6 +3780,207 @@ def build_diagnose_prompt(crit_fails: list[dict], *, digest_date: str) -> str | 
     return "\n\n".join([head, *blocks, _DIAGNOSE_PROMPT_FOOTER])
 
 
+# ── Position-ohne-Watchlist-Wächter (Digest-Zeile, 31.10.2026) ────────────────
+# Geister-Positionen-Bug-Klasse (siehe open_items.json
+# "geister-positionen-ionq-pdyn"): eine Position bleibt im Positions-Gist
+# stehen, obwohl der Ticker längst von der persönlichen Watchlist verschwunden
+# ist — bisher KEIN automatischer Wächter, nur Zufallsfund. Dieser Block
+# gleicht täglich `app_data.json["positions"]` gegen `watchlist_personal.json`
+# ab und meldet Positionen, die seit > 1 Handelstag ohne Watchlist-Eintrag
+# sind — rein anzeigend/warnend, KEINE automatische Löschung.
+#
+# "Unbekannt ≠ ok" (Auftrags-Vorgabe): ist `watchlist_personal.json` nicht
+# lesbar (fehlt/kaputt), wird das NICHT als "keine Geister gefunden"
+# interpretiert — stattdessen eine eigene Warn-Zeile, State bleibt
+# unangetastet (wir wissen nichts Verlässliches, also wird nichts fortge-
+# schrieben, das später fälschlich als "schon lange bekannt" gilt).
+#
+# Grace-Periode: der erste Tag, an dem ein Ticker ohne Watchlist-Eintrag
+# auffällt, wird nur im State vermerkt (Start der Uhr) — noch KEINE Zeile.
+# Das verhindert Alarm bei einer legitimen Aktion desselben Tages (Ticker
+# wird bewusst von der Watchlist genommen, weil die Position jetzt läuft).
+# Erst ab > 1 Handelstag seit dem Erstbefund feuert die Warnung.
+POSITION_WATCHLIST_STATE_FILE = "position_watchlist_state.json"
+WATCHLIST_PERSONAL_FILE_FOR_WATCHDOG = "watchlist_personal.json"
+_WL_WATCHDOG_TICKER_RE = re.compile(r"^[A-Z0-9.]{1,12}$")
+
+
+def _read_watchlist_tickers_for_watchdog(path: str | None = None) -> set[str] | None:
+    """Liest Ticker aus ``watchlist_personal.json``. Liefert ``None`` NUR bei
+    fehlender/kaputter Datei oder falschem Typ ("Unbekannt") — eine
+    tatsächlich leere, aber valide Liste liefert ein leeres (nicht-None)
+    Set ("ok, aktuell nichts auf der Watchlist"). Diese Unterscheidung ist
+    der ganze Zweck dieser Funktion (Auftrags-Vorgabe "Unbekannt ≠ ok") —
+    ``generate_report._load_personal_watchlist`` kann dafür NICHT
+    wiederverwendet werden, weil sie beide Fälle auf ``[]`` kollabiert."""
+    p = path if path is not None else WATCHLIST_PERSONAL_FILE_FOR_WATCHDOG
+    try:
+        with open(p, "r", encoding="utf-8") as fh:
+            raw = json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return None
+    if not isinstance(raw, list):
+        return None
+    out: set[str] = set()
+    for item in raw:
+        if isinstance(item, str):
+            t = item.strip().upper()
+            if t and _WL_WATCHDOG_TICKER_RE.match(t):
+                out.add(t)
+    return out
+
+
+def _read_position_watchlist_state(path: str | None = None) -> dict:
+    """Fail-soft Read, analog ``_load_digest_state``-Pattern. ``{}`` bei
+    fehlender/kaputter Datei — eine verlorene Uhr startet die Grace-
+    Periode lediglich neu (self-healing, nie ein falscher Alarm rückwärts)."""
+    p = path if path is not None else POSITION_WATCHLIST_STATE_FILE
+    try:
+        with open(p, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _write_position_watchlist_state(state: dict, path: str | None = None) -> None:
+    """Atomarer Write (tmp + os.replace, Haus-Muster). Fail-soft — ein
+    Schreibfehler darf den Digest nie crashen lassen."""
+    p = path if path is not None else POSITION_WATCHLIST_STATE_FILE
+    tmp = f"{p}.tmp"
+    try:
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(state, fh, indent=2, ensure_ascii=False)
+            fh.write("\n")
+        os.replace(tmp, p)
+    except OSError as exc:
+        log.warning("position_watchlist_watchdog: Schreibfehler — "
+                    "übersprungen: %s", exc)
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+
+
+def check_position_watchlist_staleness(
+    positions: dict | None,
+    watchlist_tickers: set[str] | None,
+    state: dict | None,
+    now_utc: datetime | None = None,
+) -> tuple[list[dict], dict]:
+    """PURE (kein I/O). Vergleicht ``positions`` (Ticker → Payload, aus
+    ``app_data.json["positions"]``) gegen ``watchlist_tickers``
+    (``None`` = Watchlist nicht lesbar — "Unbekannt").
+
+    Returnt ``(fails, new_state)``:
+      - ``watchlist_tickers is None`` → EIN Fail mit ``detail`` zum
+        Unbekannt-Zustand, ``state`` wird UNVERÄNDERT zurückgegeben
+        (keine Uhr darf auf Basis einer nicht gelesenen Watchlist starten
+        oder weiterlaufen).
+      - sonst: pro Position ohne Watchlist-Eintrag wird die Grace-Periode
+        (Mo–Fr-Handelstage seit Erstbefund, Feiertage vereinfacht
+        ignoriert — analog ``_s10_trading_days_elapsed`` /
+        ``_last_phase_run_age_workdays``, an Handelstag-Zählungen in
+        diesem Modul etabliertes Muster) geprüft; > 1 Handelstag → Fail.
+        Tickers, die (wieder) auf der Watchlist stehen oder gar keine
+        Position mehr sind, werden aus dem State entfernt (Pruning).
+
+    ``id="S15"``, ``severity="warn"`` — rein anzeigend, NIE blockierend,
+    keine automatische Löschung.
+    """
+    now_utc = now_utc or datetime.now(timezone.utc)
+    today = now_utc.date()
+    pos = {t: p for t, p in (positions or {}).items() if isinstance(p, dict)}
+    new_state = dict(state or {})
+
+    if watchlist_tickers is None:
+        return (
+            [{
+                "id": "S15", "severity": "warn",
+                "detail": ("Watchlist (watchlist_personal.json) nicht lesbar "
+                           "— Positions-Watchlist-Abgleich nicht möglich "
+                           "(Unbekannt ≠ ok)"),
+            }],
+            dict(state or {}),
+        )
+
+    # Pruning: Ticker ohne (noch) offene Position raus aus dem State.
+    for t in list(new_state.keys()):
+        if t not in pos:
+            del new_state[t]
+
+    fails: list[dict] = []
+    for ticker in sorted(pos):
+        if ticker in watchlist_tickers:
+            new_state.pop(ticker, None)
+            continue
+        first_seen_iso = new_state.get(ticker)
+        first_seen: date | None = None
+        if isinstance(first_seen_iso, str):
+            try:
+                first_seen = date.fromisoformat(first_seen_iso)
+            except ValueError:
+                first_seen = None
+        if first_seen is None:
+            # Erstbefund heute — Uhr starten, noch KEIN Fail (Grace-Tag 0).
+            new_state[ticker] = today.isoformat()
+            continue
+        n_workdays = 0
+        d = first_seen
+        while d < today:
+            d += timedelta(days=1)
+            if d.weekday() < 5:
+                n_workdays += 1
+        if n_workdays > 1:
+            fails.append({
+                "id": "S15", "severity": "warn",
+                "detail": (f"Position {ticker} ohne Watchlist-Eintrag seit "
+                           f"{n_workdays} Handelstagen (Erstbefund "
+                           f"{first_seen_iso})"),
+            })
+    return fails, new_state
+
+
+def position_watchlist_watchdog_lines(
+    now_ts: datetime | None = None,
+    *,
+    app_data_path: str | None = None,
+    watchlist_path: str | None = None,
+    state_path: str | None = None,
+    write_state: bool = True,
+) -> list[str]:
+    """I/O-Wrapper (fail-soft, nie Exception) für den Digest-Aufruf:
+    liest ``app_data.json["positions"]`` + ``watchlist_personal.json`` +
+    den persistierten State, ruft ``check_position_watchlist_staleness``
+    (pure) und schreibt den aktualisierten State zurück. Returnt eine
+    Zeilen-Liste für den Digest-Body (leer bei 0 Fails — kein
+    "alles ok"-Dauer-Rauschen, analog ``due_items_lines``).
+
+    Schreibt den State NICHT zurück im Unbekannt-Fall (watchlist nicht
+    lesbar) — ``check_position_watchlist_staleness`` liefert dafür
+    bereits den unveränderten State."""
+    try:
+        now_ts = now_ts or datetime.now(timezone.utc)
+        try:
+            with open(app_data_path or "app_data.json", "r", encoding="utf-8") as fh:
+                app_data = json.load(fh) or {}
+        except (FileNotFoundError, json.JSONDecodeError, OSError):
+            app_data = {}
+        positions = app_data.get("positions") if isinstance(app_data, dict) else None
+        watchlist_tickers = _read_watchlist_tickers_for_watchdog(watchlist_path)
+        state = _read_position_watchlist_state(state_path)
+        fails, new_state = check_position_watchlist_staleness(
+            positions, watchlist_tickers, state, now_ts)
+        if write_state and new_state != state:
+            _write_position_watchlist_state(new_state, state_path)
+        if not fails:
+            return []
+        return [f"👁 {f['detail']}" for f in fails]
+    except Exception as exc:  # pragma: no cover — Digest darf nie crashen
+        log.warning("position_watchlist_watchdog_lines unerwartet: %r", exc)
+        return []
+
+
 def format_digest_body(state_fails: list[dict],
                        provider_fails: list[dict],
                        *,
@@ -3802,6 +4004,7 @@ def format_digest_body(state_fails: list[dict],
                        due_items_lines_: list[str] | None = None,
                        eval_lines: list[str] | None = None,
                        weekly_lines: list[str] | None = None,
+                       watchdog_lines: list[str] | None = None,
                        ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
 
@@ -3858,6 +4061,8 @@ def format_digest_body(state_fails: list[dict],
             body += "\n" + "\n".join(eval_lines)
         if weekly_lines:
             body += "\n" + "\n".join(weekly_lines)
+        if watchdog_lines:
+            body += "\n" + "\n".join(watchdog_lines)
         return body, "📭 Health-Check ohne Daten", "high", "warning"
 
     # Recency-Gating (28.07.2026): erholte State-Fails („war kaputt, ist
@@ -3922,6 +4127,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.extend(eval_lines)
         if weekly_lines:
             body_lines.extend(weekly_lines)
+        if watchdog_lines:
+            body_lines.extend(watchdog_lines)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
         return "\n".join(body_lines), "✅ Health-Check OK", "default", None
 
@@ -3990,6 +4197,8 @@ def format_digest_body(state_fails: list[dict],
         lines.extend(eval_lines)
     if weekly_lines:
         lines.extend(weekly_lines)
+    if watchdog_lines:
+        lines.extend(watchdog_lines)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")
     body = "\n".join(lines).rstrip() + "\n"
 

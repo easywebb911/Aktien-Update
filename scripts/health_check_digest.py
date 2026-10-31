@@ -531,6 +531,23 @@ def main(*, now_ts: datetime | None = None,
         log.warning("weekly_summary_lines unerwartet: %r", _wk_exc)
         weekly_lines, weekly_state_updates = [], {}
 
+    # Position-ohne-Watchlist-Wächter (31.10.2026, backend-only, fail-soft):
+    # gleicht app_data.json["positions"] gegen watchlist_personal.json ab,
+    # meldet Positionen seit > 1 Handelstag ohne Watchlist-Eintrag.
+    # position_watchlist_watchdog_lines ist bereits raise-frei (eigener
+    # Außen-Guard); der try/except ist reine Absicherung.
+    try:
+        watchdog_lines = hc.position_watchlist_watchdog_lines(
+            now_ts,
+            app_data_path=str(ROOT / "app_data.json"),
+            watchlist_path=str(ROOT / hc.WATCHLIST_PERSONAL_FILE_FOR_WATCHDOG),
+            state_path=str(ROOT / hc.POSITION_WATCHLIST_STATE_FILE),
+            write_state=not dry_run,
+        )
+    except Exception as _wd_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("position_watchlist_watchdog_lines unerwartet: %r", _wd_exc)
+        watchdog_lines = []
+
     body, title, priority, tags = hc.format_digest_body(
         state_fails, prov_fails,
         n_runs=n_runs,
@@ -553,6 +570,7 @@ def main(*, now_ts: datetime | None = None,
         due_items_lines_=due_items_lines_,
         eval_lines=eval_lines,
         weekly_lines=weekly_lines,
+        watchdog_lines=watchdog_lines,
     )
 
     log.info("Digest %s — %d state-fails, %d provider-fails, %d runs",
