@@ -2298,6 +2298,64 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Klasse: Manual-Merge** (neue Workflow-Datei, schreibt in den Gist —
   CLAUDE.md-Ausnahmeliste). Easy mergt selbst.
 
+### 31.10.2026 — Geister-Bereinigung IONQ/PDYN durchgeführt + Wegwerf-Workflow entfernt (1 PR, Auto-Merge)
+
+- Easy-Freigabe 31.10. ("Bitte übernimm du das"): PR #614 selbst gemergt
+  und die beiden echten Läufe selbst gestartet (App-Tab von Easy
+  geschlossen gehalten). `#615` (Branch-Commit `07fc70f5`, 31.10., kein
+  Merge-Hash — Regel a, PR noch offen/Ready).
+- **Durchführung (alle 5 Schritte strikt nacheinander, Log geprüft):**
+  Probelauf PDYN (Run `41212466594`, dry_run=true) → PDYN vorhanden,
+  5 Positions-Einträge gesamt. Echter Lauf PDYN (Run `41212535664`) →
+  **ERFOLG**, 5 → 4, AMC unverändert = `True`. Probelauf IONQ (Run
+  `41212594887`, dry_run=true) → IONQ vorhanden, 4 Einträge gesamt.
+  Echter Lauf IONQ (Run `41212644169`) → **ERFOLG**, 4 → 3, AMC
+  unverändert = `True`. Beide Verifikationen lesen laut Workflow-Code
+  frisch per zweitem GET (nicht dem lokalen Stand vertrauend) — kein
+  KRITISCH-Fall aufgetreten, kein Stopp-Fall ausgelöst. Vorbedingungen
+  (Zeit außerhalb 05:50–06:50/20:50–21:50 UTC, kein laufender Daily-/
+  ki_agent-Run) vor dem ersten Lauf per `date -u` + `actions_list`
+  geprüft — unauffällig.
+- **Rückweg-Teil (dieser PR):** `.github/workflows/oneoff-remove-ghost-
+  positions.yml` + `scripts/mock_test_oneoff_remove_ghost_positions.py`
+  gelöscht, ALLOWLIST-Eintrag in `run_ci_mock_tests.py` entfernt
+  (Drift-Guard sauber, zurück auf 165 Tests). Kein Dauer-Werkzeug im
+  Repo — bei Bedarf (weiterer Geister-Fund) per neuem PR wieder
+  aufsetzbar, Blaupause bleibt in der Git-Historie dieses und des
+  vorigen PR erhalten.
+- **open_items.json — drei NACHTRÄGE, keine neuen Items (46 → 46):**
+  (a) `geister-positionen-ionq-pdyn`: Durchführung mit Run-IDs
+  dokumentiert; `exit_shadow_log.jsonl`-Zeilen für IONQ/PDYN ab
+  25.08.2026 bleiben historisch stehen (Gist-Löschen wirkt nur nach
+  vorne) — für Auswertungen weiterhin auszuschließen. (b) `options-
+  chain-raw-bidask`: Easys Digest-Beobachtung (42/45 ATM-nahe Strikes
+  mit Bid&Ask > 0) übernommen und eingeordnet — stützt die im
+  Haupteintrag vermutete Erklärung mit einem ersten Zahlenpaar,
+  bestätigt sie aber nicht abschließend (ein Tag ist keine Serie).
+  (c) `apewisdom-abdeckung`: Easys Beobachtung code-verifiziert —
+  die Digest-Zeile "Abdeckung apewisdom_shadow N/N" zeigt tatsächlich
+  Call-**Liveness** (`generate_report.py:19517`,
+  `erhalten = max(0, erwartet − n_fehler)`), nicht die Treffer-Quote;
+  echte Treffer (`n_mit_daten`) werden zwar mitgeschrieben
+  (`generate_report.py:19520`), aber von `coverage_liveness_line`
+  (`health_check.py:3265`) nicht angezeigt — architektonisch so
+  gewollt (Liveness- statt Treffer-Wächter), aber ohne diesen
+  Hintergrund irritierend. Einstufung: Kosmetik, kein Bug, kein Score-/
+  Filter-/Push-Effekt.
+- **Guardian-Lauf vor Ready:** siehe Bericht — Findings werden hier
+  nach Abschluss ergänzt, falls vorhanden.
+- **Zwei-Zeilen-Staleness-Grep vor Ready:** siehe Bericht.
+- **Kein Code außer den beiden genannten Dateien (Workflow+Test-
+  Löschung) berührt** — `generate_report.py`/`config.py`/
+  `health_check.py` unverändert, nur gelesen zur Verifikation der
+  NACHTRÄGE. `lint_protected_zones.py` grün, 165 Tests grün, alle
+  Lints grün, Golden byte-identisch.
+- **Klasse: Auto-Merge** (Workflow-Löschung + reine Doku — Easy-Freigabe
+  31.10. für Self-Merge nach grünen Tests explizit erteilt).
+  **Rückweg:** `git revert` des Merge-Commits (stellt Workflow + Test
+  wieder her — Gist-Daten selbst sind über die GitHub-Gist-
+  Revisionshistorie wiederherstellbar, siehe Bericht).
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
