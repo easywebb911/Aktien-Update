@@ -3536,16 +3536,17 @@ werden:
    läuft **zusätzlich als rein explorative Nebenzahl**, klar als
    „explorativ, ohne Einfluss auf die Entscheidung" gelabelt — ändert
    das Erfolgskriterium selbst nicht.
-2. **Regime-Split-Mechanik (Kriterium c).** Der Ur-Text nennt keinen
-   Schwellenwert/Mechanismus für „plausibel im Regime-Split
-   reproduzierbar". Geklärt: Vorzeichen von Δ(5d−10d) wird je
-   `market_regime`-Bucket (bull/bear/neutral) mit **n ≥ 10** geprüft.
-   „Plausibel" = **kein** Bucket mit n ≥ 10 zeigt ein Gegen-Vorzeichen
-   zum Gesamt-Δ. Ein Bucket mit n < 10 gilt als **„nicht prüfbar"** —
-   das zählt **NICHT** als erfüllt. Sind alle Buckets zu dünn besetzt
-   ODER liegt ein Gegen-Vorzeichen vor, lautet das Gesamtergebnis
-   **„bedingt"** statt „Beleg" (Freeze-Grenze „Punktschätzung ist nie
-   Beleg" bleibt dadurch gewahrt — „bedingt" ist KEIN „keine Edge").
+2. **Regime-Split-Mechanik (Kriterium c), PRÄZISIERT durch
+   Protokolleintrag (b) unten.** Der Ur-Text nennt keinen Schwellenwert/
+   Mechanismus für „plausibel im Regime-Split reproduzierbar". Geklärt:
+   Vorzeichen von Δ(5d−10d) wird je `market_regime`-Bucket (bull/bear/
+   neutral) mit **n ≥ 10** geprüft. „Plausibel" = **kein** Bucket mit
+   n ≥ 10 zeigt ein Gegen-Vorzeichen zum Gesamt-Δ. Ein Bucket mit
+   n < 10 gilt als **„nicht prüfbar"** — das zählt **NICHT** als
+   erfüllt. **Welches Gesamt-Verdikt „zu dünn besetzt" vs. „Gegen-
+   Vorzeichen" jeweils auslöst, ist NICHT mehr binär „bedingt" für
+   beide — siehe Protokolleintrag (b) unten (31.10.2026, zweiter
+   Nachtrag) für die endgültige, verbindliche Dreiteilung.**
 3. **Seed-Wert.** Das Erratum 22.10.2026 (Seed=42/N=2000/95% zweiseitig)
    ist laut eigener Überschrift ausdrücklich nur für die Setup-Edge/
    Conviction- UND KI-Score-Freezes gültig, nicht für Exit-B.1 (dessen
@@ -3559,6 +3560,45 @@ Easy-Entscheidung 31.10.2026 (vor n=250, Ergebnis unbekannt) — alle drei
 Punkte wie oben bestätigt. Implementierung: `scripts/freeze_eval.py`
 (Familie `exit_b1`, Auslöser `n ≥ 250` laut `retest_counter_value()`,
 analog den beiden bestehenden Familien).
+
+**Protokolleintrag 31.10.2026 (b) — vierte Verfahrens-Lücke GEKLÄRT,
+VOR Erreichen von n=250 (Stand bei Klärung: n=242, Ergebnis unbekannt,
+keine Auswertung auf echten Daten erfolgt)** (bindend gemäß Änderungs-
+Protokoll-Regel oben; Anlass: Guardian-Review des Auto-Auswertungslauf-
+PRs fand einen Widerspruch zwischen drei Ständen zu Kriterium (c) —
+Easys Chat-Entscheidung zum obigen Punkt 2 adressierte nur den
+„nicht prüfbar"-Fall, der damalige Entwurf dieses Protokolleintrags
+hatte eigenmächtig „ODER Gegen-Vorzeichen" ergänzt, und der tatsächlich
+gebaute Code wich wiederum von diesem Entwurfstext ab. Alle drei Stände
+werden hiermit auf EINEN, von Easy jetzt explizit bestätigten Stand
+gebracht):
+
+Die zwei Teil-Fälle von Kriterium (c), die NICHT „plausibel" sind,
+bekommen **unterschiedliche** Gesamt-Verdikte — **nicht**, wie der
+erste Entwurf dieses Eintrags fälschlich nahelegte, beide dasselbe
+„bedingt":
+
+- **„Nicht prüfbar"** (alle Buckets mit n ≥ 10 fehlen — zu wenig Daten,
+  keine Aussage möglich) UND Holm-signifikant (k=2) UND Bootstrap-CI-
+  Untergrenze > 0 pp erfüllt → Gesamtergebnis **„bedingt"** (nicht
+  „Beleg", aber auch kein Widerspruch — reiner Daten-Mangel).
+- **„Widerlegt"** (mindestens ein Bucket mit n ≥ 10 zeigt ein
+  tatsächliches Gegen-Vorzeichen zum Gesamt-Δ — ein echter, prüfbarer
+  Gegenbeleg, nicht bloß fehlende Daten) UND Holm-signifikant UND
+  Bootstrap-CI-Untergrenze > 0 pp erfüllt → Gesamtergebnis **„Unklar"**
+  (strenger als „bedingt", weil hier tatsächliche Evidenz GEGEN die
+  Reproduzierbarkeit vorliegt, nicht nur ihr Fehlen).
+
+Beide Fälle bleiben innerhalb der Freeze-Grenze „Punktschätzung ist nie
+Beleg, ein schwacher/widersprüchlicher Befund ist nie ‚keine Edge'" —
+weder „bedingt" noch „Unklar" ist eine Edge-Widerlegung, nur „Beleg"
+ist ein tatsächlicher Erfolgsnachweis. Easy-Entscheidung 31.10.2026
+(Option B, vor n=250, Ergebnis unbekannt): wie oben bestätigt.
+Implementierung unverändert bei `scripts/freeze_eval.py`
+(`_verdict_exit_b1_test` — Code war bereits vor diesem Protokolleintrag
+exakt so gebaut; dieser Eintrag synchronisiert ausschließlich den
+Text mit dem Code, keine Code-Änderung ausgelöst durch diesen Eintrag
+selbst).
 
 ### VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026
 

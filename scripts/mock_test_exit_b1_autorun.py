@@ -291,6 +291,36 @@ def test_verdict_bedingt_when_regime_not_testable():
                test["verdict"] == "bedingt", test["verdict_reason"])
 
 
+def test_verdict_unklar_when_regime_contradicted_end_to_end():
+    """Protokolleintrag 31.10.2026 (b) — END-TO-END-Beleg für den
+    Widerspruchsfall (Guardian-Finding, vor Ready behoben): Holm+CI
+    erfüllt, aber ein ausreichend besetzter Regime-Bucket zeigt ein
+    Gegen-Vorzeichen -> Gesamtverdikt MUSS "Unklar" sein, NICHT
+    "bedingt" (das bleibt dem "nicht_pruefbar"-Fall vorbehalten,
+    siehe test_verdict_bedingt_when_regime_not_testable)."""
+    rng = random.Random(201)
+    rows = []
+    # bull: grosser, klar positiver Effekt, n=60 -> dominiert das Gesamt-Delta
+    for i in range(60):
+        rows.append(_row(f"U{i}", return_5d=8.0 + rng.gauss(0, 1),
+                         return_10d=1.0 + rng.gauss(0, 1), return_3d=6.0 + rng.gauss(0, 1),
+                         market_regime="bull"))
+    # bear: ausreichend besetzt (n=15 >= 10), aber GEGENTEILIGER Effekt
+    for i in range(15):
+        rows.append(_row(f"D{i}", return_5d=1.0 + rng.gauss(0, 1),
+                         return_10d=8.0 + rng.gauss(0, 1), return_3d=1.0 + rng.gauss(0, 1),
+                         market_regime="bear"))
+    res = fe.evaluate_exit_b1_family(rows)
+    for label, test in res["tests"].items():
+        _check(f"Test {label}: Holm+CI trotzdem erfüllt (bull dominiert n/Effekt)",
+               test["criteria"]["holm_significant"] and test["criteria"]["ci_above_zero"],
+               test["criteria"])
+        _check(f"Test {label}: Regime-Status ist widerlegt",
+               test["regime_split"]["status"] == "widerlegt", test["regime_split"])
+        _check(f"Test {label}: Gesamtverdikt ist Unklar (NICHT bedingt, NICHT Beleg)",
+               test["verdict"] == "Unklar", test["verdict"])
+
+
 def test_verdict_never_rejects_edge_outright():
     """Freeze-Grenze: NIE 'keine Edge' — nur Beleg/bedingt/Unklar sind
     erlaubte Verdikt-Strings."""
@@ -550,6 +580,7 @@ def run_all():
         test_verdict_clear_success_beleg,
         test_verdict_no_effect_unklar,
         test_verdict_bedingt_when_regime_not_testable,
+        test_verdict_unklar_when_regime_contradicted_end_to_end,
         test_verdict_never_rejects_edge_outright,
         test_wilcoxon_does_not_influence_verdict,
         test_holm_family_k2_independent_from_other_freezes,
