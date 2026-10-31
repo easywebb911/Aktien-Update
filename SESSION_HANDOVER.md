@@ -3467,6 +3467,56 @@ eingefrorene §4-Definition selbst (`score≥70 ∧ provenance=forward`,
 Brutto-Bindung) ist NICHT verändert** — nur die angezeigte Zählung wurde
 aktualisiert und ihre Historie erklärt.
 
+**Protokolleintrag 31.10.2026 — drei Verfahrens-Lücken im Ur-Text GEKLÄRT,
+VOR Erreichen von n=250 (Stand bei Klärung: n=242, Ergebnis unbekannt,
+keine Auswertung auf echten Daten erfolgt)** (bindend gemäß Änderungs-
+Protokoll-Regel oben; Anlass: Mini-STOPP-Diagnose beim Bau des
+Auto-Auswertungslaufs fand drei offene Stellen im 05.08.-Ur-Text, die
+für eine deterministische, einmalige Auswertung geschlossen werden
+mussten, BEVOR der Auslöser erreicht wird — sonst wäre die Lesart erst
+am lebenden Ergebnis entschieden worden, was die Vorab-Registrierung
+entwertet hätte). Der Ur-Text selbst (Zielgröße, Kriterien a/b/c,
+Altzahlen-Referenz) bleibt **unverändert** — diese drei Klärungen
+ergänzen nur, WIE die bereits benannten Begriffe mechanisch umgesetzt
+werden:
+
+1. **Δ-Mechanik.** Der Ur-Text nennt als Zielgröße eine pp-Differenz
+   (Δ(5d−10d)/Δ(3d−10d)), als Verfahren aber `mann_whitney_u_auc`
+   (ein AUC-Maß) — beides passt nicht direkt zusammen. Geklärt:
+   **Δ = Mittel(`return_5d`) − Mittel(`return_10d`)** in Prozentpunkten
+   über die `score≥70`-Population, **gepaarter Bootstrap** (identischer
+   Resample-Index für beide Felder pro Iteration, N=2000). Mann-Whitney
+   liefert **ausschließlich den Holm-p-Wert** (Stichprobe `return_5d`
+   vs. Stichprobe `return_10d`) — nicht die Δ-Schätzung selbst.
+   **Erfolg = Holm-signifikant (k=2) UND Bootstrap-CI-Untergrenze > 0 pp**
+   (für die erwartete Richtung). **Zusatz:** ein gepaarter Wilcoxon-Test
+   läuft **zusätzlich als rein explorative Nebenzahl**, klar als
+   „explorativ, ohne Einfluss auf die Entscheidung" gelabelt — ändert
+   das Erfolgskriterium selbst nicht.
+2. **Regime-Split-Mechanik (Kriterium c).** Der Ur-Text nennt keinen
+   Schwellenwert/Mechanismus für „plausibel im Regime-Split
+   reproduzierbar". Geklärt: Vorzeichen von Δ(5d−10d) wird je
+   `market_regime`-Bucket (bull/bear/neutral) mit **n ≥ 10** geprüft.
+   „Plausibel" = **kein** Bucket mit n ≥ 10 zeigt ein Gegen-Vorzeichen
+   zum Gesamt-Δ. Ein Bucket mit n < 10 gilt als **„nicht prüfbar"** —
+   das zählt **NICHT** als erfüllt. Sind alle Buckets zu dünn besetzt
+   ODER liegt ein Gegen-Vorzeichen vor, lautet das Gesamtergebnis
+   **„bedingt"** statt „Beleg" (Freeze-Grenze „Punktschätzung ist nie
+   Beleg" bleibt dadurch gewahrt — „bedingt" ist KEIN „keine Edge").
+3. **Seed-Wert.** Das Erratum 22.10.2026 (Seed=42/N=2000/95% zweiseitig)
+   ist laut eigener Überschrift ausdrücklich nur für die Setup-Edge/
+   Conviction- UND KI-Score-Freezes gültig, nicht für Exit-B.1 (dessen
+   Ur-Text nur „fester Seed" ohne Zahl nennt, N=2000 aber schon dort
+   selbst fixiert). Geklärt: **derselbe Seed = 42** (`config.
+   EVAL_BOOTSTRAP_SEED`) wird für Exit-B.1 wiederverwendet — ein
+   projektweit einheitlicher Bootstrap-Seed statt einer neuen,
+   unbegründeten Zahl.
+
+Easy-Entscheidung 31.10.2026 (vor n=250, Ergebnis unbekannt) — alle drei
+Punkte wie oben bestätigt. Implementierung: `scripts/freeze_eval.py`
+(Familie `exit_b1`, Auslöser `n ≥ 250` laut `retest_counter_value()`,
+analog den beiden bestehenden Familien).
+
 ### VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026
 
 **Verhältnis zu §4 oben.** Der §4-Re-Test (Exit-B.1) prüft **Δ(5d−10d)** und
