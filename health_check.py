@@ -1946,6 +1946,23 @@ def _read_matured_export_rows(export_path) -> tuple[int, list[dict]] | None:
         return None
 
 
+def _is_exit_b1_population_row(obj: dict) -> bool:
+    """§4-Exit-B.1-Population (SESSION_HANDOVER.md §4, Freeze 05.08.2026,
+    Definition A): ``provenance == "forward"`` UND ``score >= 70`` —
+    **KEIN** Datums-Filter (anders als Setup-Edge/KI-Score — Definition A
+    ist bewusst rein herkunfts-/score-basiert, nicht entry-datum-basiert,
+    siehe Freeze-Begründung „warum Definition A nicht B"). Single-Source-
+    of-Truth, geteilt mit ``_count_matured_retest`` (Zähler) UND
+    ``freeze_eval.evaluate_exit_b1_family`` (Auswertungs-Population) —
+    EINE Stelle für die Bedingung, kein Drift-Risiko zwischen Zähler und
+    Auswertung."""
+    sc = obj.get("score")
+    return (obj.get("provenance") == "forward"
+            and isinstance(sc, (int, float))
+            and not isinstance(sc, bool)
+            and sc >= _RETEST_SCORE_MIN)
+
+
 def _count_matured_retest(export_path) -> tuple[int, int] | None:
     """``(n_forward_ge70, total_zeilen)`` aus dem Matured-Export, oder ``None``
     bei fehlender/unlesbarer Datei.
@@ -1959,21 +1976,15 @@ def _count_matured_retest(export_path) -> tuple[int, int] | None:
     Liest seit dem Freeze-Zähler-PR (11.10.2026) über den gemeinsamen Helper
     ``_read_matured_export_rows`` (Single Source of Truth für das Datei-
     Einlesen) — die Filter-Logik selbst (§4-Kriterien: forward + score≥70)
-    ist unverändert gegenüber vorher; siehe
+    ist seit dem Exit-B.1-Autorun-PR (31.10.2026) in ``_is_exit_b1_population_row``
+    ausgelagert (identische Bedingung, keine zweite Kopie); siehe
     ``scripts/mock_test_freeze_zaehler.py`` für den Vorher/Nachher-Beleg,
     dass dieser Refactor den §4-Rückgabewert nicht verändert hat."""
     result = _read_matured_export_rows(export_path)
     if result is None:
         return None
     total, rows = result
-    n = 0
-    for obj in rows:
-        sc = obj.get("score")
-        if (obj.get("provenance") == "forward"
-                and isinstance(sc, (int, float))
-                and not isinstance(sc, bool)
-                and sc >= _RETEST_SCORE_MIN):
-            n += 1
+    n = sum(1 for obj in rows if _is_exit_b1_population_row(obj))
     return n, total
 
 

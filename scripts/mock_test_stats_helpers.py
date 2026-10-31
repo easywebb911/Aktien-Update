@@ -26,6 +26,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from stats_helpers import (  # noqa: E402
     mann_whitney_u_auc,
     multiple_testing_correction,
+    wilcoxon_signed_rank_paired,
 )
 
 
@@ -300,11 +301,34 @@ def main():
            set(r["results"][0].keys()) == entry_keys,
            f"got {set(r['results'][0].keys())}")
 
+    # ── wilcoxon_signed_rank_paired (31.10.2026, §4-Exit-B.1-Autorun-PR) ──
+    # Explorative Nebenzahl für Exit-B.1 — eigenständige Direkt-Tests hier,
+    # ausführlichere End-to-End-Nutzung in mock_test_exit_b1_autorun.py.
+    _check("27 klare Paar-Differenz → kleines p",
+           wilcoxon_signed_rank_paired([5, 6, 7, 8, 5, 6, 7, 8],
+                                       [1, 2, 1, 2, 1, 2, 1, 2])["p_two_sided"] < 0.05)
+    r_sym = wilcoxon_signed_rank_paired([1, -1, 2, -2, 3, -3, 4, -4, 5, -5],
+                                        [0] * 10)
+    _check("28 symmetrische Differenzen um 0 → p groß (kein Effekt)",
+           r_sym["p_two_sided"] > 0.5, f"p={r_sym['p_two_sided']}")
+    r_zero = wilcoxon_signed_rank_paired([1, 2, 3], [1, 2, 3])
+    _check("29 alle Differenzen 0 → n=0, p=None, n_zero_dropped=3",
+           r_zero["n"] == 0 and r_zero["p_two_sided"] is None
+           and r_zero["n_zero_dropped"] == 3)
+    r_mis = wilcoxon_signed_rank_paired([1, 2], [1])
+    _check("30 Längen-Mismatch → kein Crash, p=None", r_mis["p_two_sided"] is None)
+    r_w1 = wilcoxon_signed_rank_paired([5, 1, 8, 2, 9, 3], [1, 5, 2, 8, 3, 9])
+    r_w2 = wilcoxon_signed_rank_paired([5, 1, 8, 2, 9, 3], [1, 5, 2, 8, 3, 9])
+    _check("31 Determinismus: gleicher Input → gleicher Output", r_w1 == r_w2)
+    wschema = {"n", "n_zero_dropped", "w_plus", "p_two_sided", "note"}
+    _check("32 Return-Schema (5 Keys)", set(r_w1.keys()) == wschema,
+           f"got {set(r_w1.keys())}")
+
     print()
     if _fails:
         print(f"{len(_fails)} FAIL: {_fails}")
         sys.exit(1)
-    print("Alle Mann-Whitney-/AUC- + Multiple-Testing-Tests bestanden.")
+    print("Alle Mann-Whitney-/AUC- + Multiple-Testing- + Wilcoxon-Tests bestanden.")
 
 
 if __name__ == "__main__":

@@ -14,6 +14,14 @@ Betroffene Freezes (SESSION_HANDOVER.md):
     95% zweiseitiges Perzentil-Intervall (2,5./97,5.), Ausschluss-Regel
     für fehlenden ``conviction_score`` in Test c (Spiegel der KI-Score-
     Regel vom 16.10.2026).
+  - "VORABREGISTRIERUNG — eingefroren 05.08.2026" (§4, Exit-B.1-Re-Test,
+    Exit-Timing-Hinweis) + "Protokolleintrag 31.10.2026" (drei
+    Verfahrens-Lücken geklärt — Δ-Mechanik, Regime-Split-Mechanik,
+    Seed — VOR Erreichen von n=250, bei n=242, Ergebnis unbekannt) —
+    Tests a (Δ(5d−10d)), b (Δ(3d−10d)), eigene Holm-Familie k=2.
+    ANDERS als die zwei obigen Familien: Zielgröße ist eine gepaarte
+    pp-Mittelwert-Differenz (kein AUC), Population ist rein
+    ``provenance=forward ∧ score≥70`` (KEIN Datums-Filter, Definition A).
 
 ARCHITEKTUR-DISZIPLIN (analog ``scripts/stats_helpers.py``):
   - Reine Funktionen für die Statistik (``bootstrap_auc_ci``,
@@ -57,7 +65,9 @@ if str(_ROOT) not in sys.path:
 
 import config  # noqa: E402
 import health_check as hc  # noqa: E402
-from stats_helpers import mann_whitney_u_auc, multiple_testing_correction  # noqa: E402
+from stats_helpers import (  # noqa: E402
+    mann_whitney_u_auc, multiple_testing_correction,
+    wilcoxon_signed_rank_paired)
 from cluster_purge import classify_cluster_records  # noqa: E402
 
 log = logging.getLogger(__name__)
@@ -65,9 +75,9 @@ log = logging.getLogger(__name__)
 SCHEMA_V = 1
 
 __all__ = [
-    "bootstrap_auc_ci", "paired_bootstrap_delta_auc", "cluster_double_run",
-    "auc_test_with_ci", "evaluate_setup_edge_family", "evaluate_ki_score_family",
-    "run_due_evaluations",
+    "bootstrap_auc_ci", "paired_bootstrap_delta_auc", "paired_bootstrap_mean_delta",
+    "cluster_double_run", "auc_test_with_ci", "evaluate_setup_edge_family",
+    "evaluate_ki_score_family", "evaluate_exit_b1_family", "run_due_evaluations",
 ]
 
 
@@ -252,6 +262,53 @@ def paired_bootstrap_delta_auc(rows: Sequence[dict], *, score_field_a: str,
             "auc_a": auc_a["auc"], "auc_b": auc_b["auc"],
             "p_two_sided": p_two_sided, "n": n,
             "n_iter": n_iter, "seed": seed, "note": None}
+
+
+def paired_bootstrap_mean_delta(values_a: Sequence[float], values_b: Sequence[float], *,
+                                n_iter: int = config.EVAL_BOOTSTRAP_N,
+                                seed: int = config.EVAL_BOOTSTRAP_SEED,
+                                lo_pct: float = config.EVAL_BOOTSTRAP_CI_LO,
+                                hi_pct: float = config.EVAL_BOOTSTRAP_CI_HI) -> dict:
+    """Gepaarter Bootstrap der Mittelwert-Differenz Δ = Mittel(a) − Mittel(b)
+    in den ORIGINAL-Einheiten (z. B. Prozentpunkte) — KEIN AUC-Maß.
+
+    §4-Exit-B.1-Protokolleintrag 31.10.2026, Punkt 1 (verbatim umgesetzt):
+    pro Resample wird EIN gemeinsamer Zeilen-Index-Vektor (mit
+    Zurücklegen) gezogen und auf BEIDE Arrays angewandt — ``values_a[i]``
+    und ``values_b[i]`` gehören zur selben Zeile (z. B. ``return_5d``/
+    ``return_10d`` derselben Backtest-Zeile), die Paarung bleibt über
+    jedes Resample erhalten. Punktschätzung ist Δ auf den ORIGINAL-Arrays
+    (kein Bootstrap-Mittelwert). ``values_a``/``values_b`` müssen gleich
+    lang sein.
+
+    Der Holm-Input (p-Wert) kommt NICHT aus diesem Bootstrap — das
+    Protokoll legt dafür ``mann_whitney_u_auc`` auf den beiden
+    UNABHÄNGIGEN Original-Arrays fest (siehe Caller
+    ``evaluate_exit_b1_family``). Diese Funktion liefert ausschließlich
+    die Δ-Schätzung + ihr Bootstrap-CI.
+
+    Returnt ``{point_delta, ci_lo, ci_hi, n, n_iter, seed, note}``.
+    ``note`` bei ungültigem Input (leer, unterschiedliche Länge)."""
+    a = list(values_a)
+    b = list(values_b)
+    n = len(a)
+    if n != len(b) or n == 0:
+        return {"point_delta": None, "ci_lo": None, "ci_hi": None, "n": n,
+                "n_iter": n_iter, "seed": seed,
+                "note": "values_a/values_b leer oder unterschiedlich lang."}
+    point_delta = sum(a) / n - sum(b) / n
+    rng = random.Random(seed)
+    deltas: list[float] = []
+    for _ in range(n_iter):
+        idx = [rng.randrange(n) for _ in range(n)]
+        ra = [a[i] for i in idx]
+        rb = [b[i] for i in idx]
+        deltas.append(sum(ra) / n - sum(rb) / n)
+    deltas.sort()
+    return {"point_delta": point_delta,
+            "ci_lo": _percentile(deltas, lo_pct),
+            "ci_hi": _percentile(deltas, hi_pct),
+            "n": n, "n_iter": n_iter, "seed": seed, "note": None}
 
 
 def cluster_double_run(rows: Sequence[dict], eval_fn: Callable[[Sequence[dict]], dict],
@@ -578,6 +635,205 @@ def evaluate_ki_score_family(export_rows: Sequence[dict], *,
     }
 
 
+# ── Exit-B.1-Familie (§4, Tests a/b — Holm k=2, EIGENE Mechanik) ───────
+# ANDERS als Setup-Edge/KI-Score: Zielgröße ist eine gepaarte pp-Mittel-
+# wert-Differenz (Δ), KEIN AUC. Population hat KEINEN Datums-Filter
+# (Definition A: provenance=forward ∧ score≥70, siehe
+# hc._is_exit_b1_population_row — Single-Source-of-Truth mit dem
+# §4-Zähler). Verfahren exakt nach SESSION_HANDOVER.md §4 +
+# "Protokolleintrag 31.10.2026" (drei Lücken im Ur-Text geklärt, VOR
+# Erreichen von n=250, bei n=242, Ergebnis unbekannt):
+#   - Δ = Mittel(return_Nd) − Mittel(return_10d), gepaarter Bootstrap
+#     (``paired_bootstrap_mean_delta``), N=2000, Seed=42.
+#   - Holm-p-Input kommt aus ``mann_whitney_u_auc`` auf den beiden
+#     UNABHÄNGIGEN Original-Arrays (return_Nd, return_10d) — NICHT aus
+#     dem Bootstrap selbst (das Bootstrap-CI ist ein zweites, vom Holm-p
+#     unabhängiges Erfolgskriterium).
+#   - Kriterium (c) Regime-Split: Vorzeichen von Δ je ``market_regime``-
+#     Bucket (bull/bear/neutral) mit n≥10; "plausibel" = kein
+#     ausreichend besetzter Bucket mit Gegen-Vorzeichen. Bucket < 10 =
+#     "nicht_pruefbar" (zählt NICHT als erfüllt). Fehlt jeder
+#     ausreichend besetzte Bucket → Gesamtstatus "nicht_pruefbar";
+#     widerspricht mind. ein ausreichend besetzter Bucket → "widerlegt".
+#   - Zusatz: Wilcoxon-Signed-Rank auf denselben Paaren läuft IMMER mit,
+#     ist aber REIN EXPLORATIV — beeinflusst Verdikt/Holm nicht.
+
+
+def _exit_b1_regime_check(rows: Sequence[dict], field_a: str, field_b: str,
+                          overall_sign: int) -> tuple[str, dict]:
+    """Kriterium (c) — Regime-Split-Plausibilität (Protokolleintrag
+    31.10.2026, Punkt 2). Returnt ``(status, detail)``:
+
+      ``status`` ∈ {"plausibel", "widerlegt", "nicht_pruefbar"}.
+      ``detail`` = ``{regime: {n, mean_delta?, status}}`` pro Bucket.
+
+    Ein Bucket zählt nur mit ``n >= 10`` zum Gesamturteil; kleinere
+    Buckets werden als ``"nicht_pruefbar"`` markiert, fließen aber NICHT
+    als Widerspruch ein (zu wenig Daten ≠ Gegenbeleg). ``overall_sign``
+    ist das Vorzeichen des Gesamt-Δ (1/-1/0) aus der Hauptpopulation."""
+    buckets: dict[str, list[tuple[float, float]]] = {"bull": [], "bear": [], "neutral": []}
+    for r in rows:
+        reg = r.get("market_regime")
+        va, vb = r.get(field_a), r.get(field_b)
+        if reg in buckets and _is_finite_number(va) and _is_finite_number(vb):
+            buckets[reg].append((va, vb))
+
+    detail: dict[str, dict] = {}
+    any_checked = False
+    any_contradiction = False
+    for reg, pairs in buckets.items():
+        n = len(pairs)
+        if n < 10:
+            detail[reg] = {"n": n, "status": "nicht_pruefbar"}
+            continue
+        mean_delta = sum(p[0] for p in pairs) / n - sum(p[1] for p in pairs) / n
+        bucket_sign = 0 if mean_delta == 0 else (1 if mean_delta > 0 else -1)
+        agrees = (overall_sign == 0) or (bucket_sign == overall_sign) or bucket_sign == 0
+        detail[reg] = {"n": n, "mean_delta": mean_delta,
+                      "status": "plausibel" if agrees else "widerlegt"}
+        any_checked = True
+        if not agrees:
+            any_contradiction = True
+
+    if any_contradiction:
+        return "widerlegt", detail
+    if not any_checked:
+        return "nicht_pruefbar", detail
+    return "plausibel", detail
+
+
+def _verdict_exit_b1_test(holm_sig: bool, ci_above_zero: bool,
+                          regime_status: str) -> tuple[str, str]:
+    """Verdikt-Logik für Exit-B.1 (Protokolleintrag 31.10.2026) — DREI
+    mögliche Ausgänge (anders als die generische ``_verdict()`` mit nur
+    zwei): "Beleg" / "bedingt" / "Unklar". "bedingt" ist NEU und nur für
+    den Fall reserviert, dass (a)+(b) erfüllt sind, aber (c) wegen zu
+    dünner Regime-Buckets nicht prüfbar war — ausdrücklich NICHT dasselbe
+    wie "erfüllt", aber auch kein "Unklar" (das bleibt für echte
+    Kriterien-Fails bzw. einen tatsächlichen Regime-Widerspruch
+    reserviert — Freeze-Grenze "nie keine Edge" bleibt in allen drei
+    Fällen gewahrt: "bedingt" und "Unklar" sind beide KEINE
+    Edge-Widerlegung)."""
+    if not (holm_sig and ci_above_zero):
+        failed = []
+        if not holm_sig:
+            failed.append("holm_significant")
+        if not ci_above_zero:
+            failed.append("ci_above_zero")
+        return ("Unklar",
+                f"Kriterien nicht erfüllt: {', '.join(failed)} — "
+                f"keine Edge-Widerlegung (Freeze-Grenze)")
+    if regime_status == "plausibel":
+        return "Beleg", "alle drei Erfolgskriterien erfüllt (inkl. Regime-Split plausibel)"
+    if regime_status == "nicht_pruefbar":
+        return ("bedingt",
+                "Holm-signifikant + Bootstrap-CI > 0 erfüllt, Regime-Split "
+                "NICHT prüfbar (zu wenig Daten je Bucket) — zählt laut "
+                "Protokolleintrag 31.10.2026 NICHT als erfüllt, aber auch "
+                "nicht als Widerspruch")
+    return ("Unklar",
+            "Holm-signifikant + Bootstrap-CI > 0 erfüllt, aber Regime-Split "
+            "WIDERLEGT (Gegen-Vorzeichen in einem ausreichend besetzten "
+            "Bucket) — keine Edge-Widerlegung (Freeze-Grenze)")
+
+
+def evaluate_exit_b1_family(export_rows: Sequence[dict], *,
+                            now: datetime | None = None) -> dict:
+    """Komplette, deterministische Auswertung für §4-Exit-B.1: Test a
+    (Δ(5d−10d)), Test b (Δ(3d−10d)). Reine Funktion — ``export_rows``
+    sind bereits eingelesene, UNGEFILTERTE Export-Zeilen. Eigene Holm-
+    Familie k=2 (NICHT mit Setup-Edge/KI-Score zusammengelegt — exakt
+    wie bei den beiden bestehenden Familien gehandhabt)."""
+    now = now or datetime.now(timezone.utc)
+
+    pop_rows = _dedup_rows([r for r in export_rows if hc._is_exit_b1_population_row(r)])
+    n_pop = len(pop_rows)
+
+    def _build_test(field_a: str, label: str) -> dict:
+        usable = [r for r in pop_rows
+                 if _is_finite_number(r.get(field_a)) and _is_finite_number(r.get("return_10d"))]
+        n_excluded = n_pop - len(usable)
+        pct_excluded = (n_excluded / n_pop * 100.0) if n_pop else 0.0
+        vals_a = [r[field_a] for r in usable]
+        vals_b = [r["return_10d"] for r in usable]
+
+        delta_stat = paired_bootstrap_mean_delta(vals_a, vals_b)
+        mw = mann_whitney_u_auc(vals_a, vals_b)
+        wilcoxon = wilcoxon_signed_rank_paired(vals_a, vals_b)
+
+        point_delta = delta_stat["point_delta"]
+        overall_sign = 0
+        if point_delta is not None:
+            overall_sign = 1 if point_delta > 0 else (-1 if point_delta < 0 else 0)
+        regime_status, regime_detail = _exit_b1_regime_check(
+            usable, field_a, "return_10d", overall_sign)
+
+        # Fehlende Werte / degenerierte Population (Schritt-1-Vorgabe "Umgang
+        # mit fehlenden Werten"): mann_whitney_u_auc liefert p_two_sided=None
+        # bei leerer/entarteter Stichprobe (z. B. alle Werte identisch oder
+        # eine Seite leer) — multiple_testing_correction verlangt aber einen
+        # float. Fail-safe-Clamp auf p=1.0 ("nie signifikant") statt Crash —
+        # konsistent mit der Freeze-Grenze "nie fälschlich Beleg bei
+        # fehlenden Daten". Dieser Fall ist bei n≥250 Gesamt-Auslöser nur bei
+        # einem extrem hohen Ausschluss-Anteil überhaupt erreichbar.
+        p_raw = mw["p_two_sided"] if mw["p_two_sided"] is not None else 1.0
+        return {
+            "label": label, "n": len(usable), "n_excluded": n_excluded,
+            "pct_excluded": pct_excluded,
+            "delta_statistic": delta_stat,
+            "mann_whitney_holm_input": mw,
+            "wilcoxon_exploratory": wilcoxon,
+            "regime_split": {"status": regime_status, "detail": regime_detail},
+            "p_raw": p_raw,
+        }
+
+    test_a = _build_test("return_5d", "Δ(5d−10d)")
+    test_b = _build_test("return_3d", "Δ(3d−10d)")
+
+    holm = multiple_testing_correction(
+        [test_a["p_raw"], test_b["p_raw"]], labels=["a", "b"])
+
+    def _holm_sig(label: str) -> bool:
+        for row in holm.get("results", []):
+            if row.get("label") == label:
+                return bool(row.get("holm_reject"))
+        return False
+
+    def _finish(test: dict, label: str) -> dict:
+        ci_lo = test["delta_statistic"]["ci_lo"]
+        holm_sig = _holm_sig(label)
+        ci_above_zero = (ci_lo is not None and ci_lo > 0.0)
+        verdict, reason = _verdict_exit_b1_test(
+            holm_sig, ci_above_zero, test["regime_split"]["status"])
+        out = dict(test)
+        out["test_id"] = f"exit_b1_{label}"
+        out["criteria"] = {
+            "holm_significant": holm_sig,
+            "ci_above_zero": ci_above_zero,
+            "regime_split_status": test["regime_split"]["status"],
+        }
+        out["holm_reject"] = holm_sig
+        out["verdict"] = verdict
+        out["verdict_reason"] = reason
+        return out
+
+    final_a = _finish(test_a, "a")
+    final_b = _finish(test_b, "b")
+
+    return {
+        "schema_v": SCHEMA_V,
+        "family": "exit_b1",
+        "freeze_date": "datumsfrei (Auslöser n>=250)",
+        "protocol_ref": ("SESSION_HANDOVER.md §4 (Exit-B.1-Re-Test), "
+                        "eingefroren 05.08.2026, Protokolleintrag "
+                        "31.10.2026 (Δ-/Regime-/Seed-Mechanik geklärt)"),
+        "evaluated_at": now.isoformat(),
+        "n_pop": n_pop,
+        "tests": {"a": final_a, "b": final_b},
+        "holm": holm,
+    }
+
+
 def _holm_reject(holm: dict, label: str) -> bool | None:
     for row in holm.get("results", []):
         if row.get("label") == label:
@@ -639,9 +895,13 @@ def _flatten_family_result(family_result: dict) -> list[dict]:
             "ci_method": f"95% zweiseitig, Perzentil {config.EVAL_BOOTSTRAP_CI_LO}/{config.EVAL_BOOTSTRAP_CI_HI}",
             "script_commit_hash": commit_hash,
         }
-        # Statistik-Felder je Test-Typ (AUC- vs. ΔAUC-basiert) additiv.
+        if "protocol_ref" in family_result:
+            row["protocol_ref"] = family_result["protocol_ref"]
+        # Statistik-Felder je Test-Typ (AUC- vs. ΔAUC- vs. gepaarte-pp-Δ-
+        # basiert) additiv.
         for k in ("statistic", "cluster_double_run", "auc_conviction_component",
-                 "delta_statistic"):
+                 "delta_statistic", "mann_whitney_holm_input",
+                 "wilcoxon_exploratory", "regime_split"):
             if k in test:
                 row[k] = test[k]
         out.append(row)
@@ -717,11 +977,16 @@ def _append_results(results_path, rows: list[dict]) -> None:
 
 def run_due_evaluations(*, export_path=None, results_path=None,
                         now: datetime | None = None) -> dict:
-    """Prüft beide Test-Familien auf ihren Auslöser, wertet eine Familie
-    GENAU EINMAL aus, sobald `n>=250` erreicht ist UND noch keine Zeile für
-    ihre Test-IDs in ``eval_results.jsonl`` existiert (Sperre). Hängt neue
-    Zeilen an, returnt ``{"new_rows": [...], "just_triggered": [family,...],
-    "setup_edge_status": (n, target), "ki_score_status": (n, target)}``.
+    """Prüft ALLE DREI Test-Familien (Setup-Edge/Conviction, KI-Score,
+    Exit-B.1) auf ihren Auslöser, wertet eine Familie GENAU EINMAL aus,
+    sobald `n>=250` erreicht ist UND noch keine Zeile für ihre Test-IDs
+    in ``eval_results.jsonl`` existiert (Sperre). Hängt neue Zeilen an,
+    returnt ``{"new_rows": [...], "just_triggered": [family,...],
+    "setup_edge_status": (n, target), "ki_score_status": (n, target),
+    "exit_b1_status": (n, target)}``. Exit-B.1 nutzt
+    ``hc.retest_counter_value()`` als Auslöser-Quelle (Single-Source-of-
+    Truth mit dem täglichen §4-Zähler) statt einer eigenen
+    Populations-Zähl-Funktion wie die anderen zwei Familien.
 
     KEIN Eingriff in score()/Top-10/Filter/Push/Conviction. Fail-soft nach
     außen NICHT nötig hier (der Caller in health_check_digest.py wrappt
@@ -767,6 +1032,23 @@ def run_due_evaluations(*, export_path=None, results_path=None,
                         for t in family_result["tests"].values()},
         })
 
+    # Exit-B.1 (§4) — datumsfrei, Auslöser n>=250 laut hc.retest_counter_value()
+    # (Single-Source-of-Truth, identisch zum täglichen §4-Zähler). Eigene
+    # Holm-Familie k=2 (siehe evaluate_exit_b1_family-Modul-Kommentar).
+    exit_b1_ids = {"exit_b1_a", "exit_b1_b"}
+    exit_b1_pop = hc.retest_counter_value(str(export_path))
+    exit_b1_n = exit_b1_pop[0] if exit_b1_pop is not None else 0
+    if (exit_b1_n >= hc._RETEST_N_TARGET and not (exit_b1_ids & existing_ids)):
+        family_result = evaluate_exit_b1_family(export_rows, now=now)
+        rows = _flatten_family_result(family_result)
+        new_rows.extend(rows)
+        just_triggered.append({
+            "family": "exit_b1",
+            "label": "Exit-B.1",
+            "verdicts": {t["test_id"]: (t["verdict"], t["verdict_reason"])
+                        for t in family_result["tests"].values()},
+        })
+
     if new_rows:
         _append_results(str(results_path), new_rows)
 
@@ -775,8 +1057,11 @@ def run_due_evaluations(*, export_path=None, results_path=None,
         "just_triggered": just_triggered,
         "setup_edge_status": (setup_n, config.SETUP_EDGE_FREEZE_N_TARGET),
         "ki_score_status": (ki_n, config.KI_SCORE_FREEZE_N_TARGET),
+        "exit_b1_status": (exit_b1_n, hc._RETEST_N_TARGET),
         "setup_edge_locked": bool(setup_edge_ids & existing_ids) or any(
             j["family"] == "setup_edge_conviction" for j in just_triggered),
         "ki_score_locked": bool(ki_ids & existing_ids) or any(
             j["family"] == "ki_score" for j in just_triggered),
+        "exit_b1_locked": bool(exit_b1_ids & existing_ids) or any(
+            j["family"] == "exit_b1" for j in just_triggered),
     }

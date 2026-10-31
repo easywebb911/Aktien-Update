@@ -2614,6 +2614,58 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   innerhalb bestehender YAML, kein neues Workflow-File, kein Score-/
   Filter-/Exit-/Alert-Pfad berührt).
 
+### 31.10.2026 — §4-Exit-B.1 Freeze-Auswertungs-Autorun (1 PR, Manual-Merge)
+
+- Easy-Auftrag: automatischer, einmaliger Auswertungslauf für den
+  vorabregistrierten §4-Exit-B.1-Re-Test, analog den bestehenden
+  Setup-Edge/Conviction- und KI-Score-Freezes. `#621` (Branch-Commits
+  `db271b31` + `b35ffd84`, 31.10., kein Merge-Hash — Regel a, PR noch
+  offen/Ready).
+- **Guardian-Finding vor Ready behoben** (zweiter Commit): Regime-
+  Widerspruch-Verdikt ("widerlegt" vs. "nicht_pruefbar") war in drei
+  Ständen (Easys Chat-Entscheidung, Protokolltext-Entwurf, Code)
+  uneinheitlich — siehe „Protokolleintrag 31.10.2026 (b)" im §4-Block.
+  Easy-Entscheidung Option B: "nicht_pruefbar" → "bedingt",
+  "widerlegt" → "Unklar" (strenger, da echter Gegenbeleg statt
+  Datenmangel). Code war bereits so gebaut, nur Text synchronisiert +
+  neuer End-to-End-Test ergänzt (35 statt 34 Tests).
+- **Mini-STOPP vor dem Bau** (Schritt 1): drei Verfahrens-Lücken im
+  Ur-Text gefunden und mit Easy VOR Erreichen von n=250 (Stand n=242,
+  Ergebnis unbekannt) geklärt — siehe „Protokolleintrag 31.10.2026" im
+  §4-Block oben (Δ-Mechanik, Regime-Split-Mechanik, Seed=42).
+- **Gebaut:** `hc._is_exit_b1_population_row` (Single-Source mit dem
+  §4-Zähler), `paired_bootstrap_mean_delta` +
+  `evaluate_exit_b1_family` (`scripts/freeze_eval.py`, Holm-Familie
+  k=2, DREI-Zustands-Verdikt Beleg/bedingt/Unklar),
+  `wilcoxon_signed_rank_paired` (`scripts/stats_helpers.py`, rein
+  explorativ). `run_due_evaluations` erweitert (Auslöser n≥250 via
+  `hc.retest_counter_value()`). `scripts/health_check_digest.py`:
+  Status-Zeile „Exit-B.1 (§4)" in allen 3 Digest-Klassen, ntfy-Push
+  bei Trigger (generischer `just_triggered`-Loop deckt die neue
+  Familie automatisch ab, keine Sonderlogik nötig).
+- **35 neue Tests** (`mock_test_exit_b1_autorun.py`) + 6 neue in
+  `mock_test_stats_helpers.py`, in `run_ci_mock_tests.py` ALLOWLIST
+  registriert (168 Tests gesamt, Drift-Guard sauber). Determinismus,
+  Auslöser 249/250/Sperre, Fehlende-Werte-Pfade, End-to-End-Digest-
+  Push alle verifiziert.
+- **Verbot eingehalten:** keine Auswertung auf echten Daten (Stand
+  n=242/250) — nur synthetische Fixtures in den Tests.
+- **`open_items.json`**: neues Item
+  `exit-b1-freeze-autorun-vorab-check` (Vorab-Check 31.10. bestanden,
+  GRPN-Frage mit Option A geschlossen — Population ist der allgemeine
+  Top-10-Scoring-Pool, nicht die persönliche Watchlist/Position, daher
+  kein Zusatzfilter —, Auto-Lauf gebaut).
+- **`lint_protected_zones.py` meldet absichtlich 3 Funde**
+  (`SESSION_HANDOVER.md` §4-Block, `freeze_eval.py`, `stats_helpers.py`
+  — alle "Freeze-Methodik"-Zonen) — erwartet, da dieser PR bewusst die
+  eingefrorene Methodik-Infrastruktur auf Easys Auftrag ändert. Easy
+  muss das `protected-ok`-Label setzen, damit der Lint grün wird.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#620`,
+  höchste hier erwähnte PR = `#620` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe Bericht.
+- **Klasse: Manual-Merge** (vorregistrierte Auswertungslogik, Freeze-
+  Methodik — CLAUDE.md-Ausnahmeliste). Easy mergt selbst.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
@@ -3466,6 +3518,96 @@ Wert n=144 statt des eingefrorenen `n=0` vom 05.08.-Freeze-Moment. **Die
 eingefrorene §4-Definition selbst (`score≥70 ∧ provenance=forward`,
 Brutto-Bindung) ist NICHT verändert** — nur die angezeigte Zählung wurde
 aktualisiert und ihre Historie erklärt.
+
+**Protokolleintrag 31.10.2026 — drei Verfahrens-Lücken im Ur-Text GEKLÄRT,
+VOR Erreichen von n=250 (Stand bei Klärung: n=242, Ergebnis unbekannt,
+keine Auswertung auf echten Daten erfolgt)** (bindend gemäß Änderungs-
+Protokoll-Regel oben; Anlass: Mini-STOPP-Diagnose beim Bau des
+Auto-Auswertungslaufs fand drei offene Stellen im 05.08.-Ur-Text, die
+für eine deterministische, einmalige Auswertung geschlossen werden
+mussten, BEVOR der Auslöser erreicht wird — sonst wäre die Lesart erst
+am lebenden Ergebnis entschieden worden, was die Vorab-Registrierung
+entwertet hätte). Der Ur-Text selbst (Zielgröße, Kriterien a/b/c,
+Altzahlen-Referenz) bleibt **unverändert** — diese drei Klärungen
+ergänzen nur, WIE die bereits benannten Begriffe mechanisch umgesetzt
+werden:
+
+1. **Δ-Mechanik.** Der Ur-Text nennt als Zielgröße eine pp-Differenz
+   (Δ(5d−10d)/Δ(3d−10d)), als Verfahren aber `mann_whitney_u_auc`
+   (ein AUC-Maß) — beides passt nicht direkt zusammen. Geklärt:
+   **Δ = Mittel(`return_5d`) − Mittel(`return_10d`)** in Prozentpunkten
+   über die `score≥70`-Population, **gepaarter Bootstrap** (identischer
+   Resample-Index für beide Felder pro Iteration, N=2000). Mann-Whitney
+   liefert **ausschließlich den Holm-p-Wert** (Stichprobe `return_5d`
+   vs. Stichprobe `return_10d`) — nicht die Δ-Schätzung selbst.
+   **Erfolg = Holm-signifikant (k=2) UND Bootstrap-CI-Untergrenze > 0 pp**
+   (für die erwartete Richtung). **Zusatz:** ein gepaarter Wilcoxon-Test
+   läuft **zusätzlich als rein explorative Nebenzahl**, klar als
+   „explorativ, ohne Einfluss auf die Entscheidung" gelabelt — ändert
+   das Erfolgskriterium selbst nicht.
+2. **Regime-Split-Mechanik (Kriterium c), PRÄZISIERT durch
+   Protokolleintrag (b) unten.** Der Ur-Text nennt keinen Schwellenwert/
+   Mechanismus für „plausibel im Regime-Split reproduzierbar". Geklärt:
+   Vorzeichen von Δ(5d−10d) wird je `market_regime`-Bucket (bull/bear/
+   neutral) mit **n ≥ 10** geprüft. „Plausibel" = **kein** Bucket mit
+   n ≥ 10 zeigt ein Gegen-Vorzeichen zum Gesamt-Δ. Ein Bucket mit
+   n < 10 gilt als **„nicht prüfbar"** — das zählt **NICHT** als
+   erfüllt. **Welches Gesamt-Verdikt „zu dünn besetzt" vs. „Gegen-
+   Vorzeichen" jeweils auslöst, ist NICHT mehr binär „bedingt" für
+   beide — siehe Protokolleintrag (b) unten (31.10.2026, zweiter
+   Nachtrag) für die endgültige, verbindliche Dreiteilung.**
+3. **Seed-Wert.** Das Erratum 22.10.2026 (Seed=42/N=2000/95% zweiseitig)
+   ist laut eigener Überschrift ausdrücklich nur für die Setup-Edge/
+   Conviction- UND KI-Score-Freezes gültig, nicht für Exit-B.1 (dessen
+   Ur-Text nur „fester Seed" ohne Zahl nennt, N=2000 aber schon dort
+   selbst fixiert). Geklärt: **derselbe Seed = 42** (`config.
+   EVAL_BOOTSTRAP_SEED`) wird für Exit-B.1 wiederverwendet — ein
+   projektweit einheitlicher Bootstrap-Seed statt einer neuen,
+   unbegründeten Zahl.
+
+Easy-Entscheidung 31.10.2026 (vor n=250, Ergebnis unbekannt) — alle drei
+Punkte wie oben bestätigt. Implementierung: `scripts/freeze_eval.py`
+(Familie `exit_b1`, Auslöser `n ≥ 250` laut `retest_counter_value()`,
+analog den beiden bestehenden Familien).
+
+**Protokolleintrag 31.10.2026 (b) — vierte Verfahrens-Lücke GEKLÄRT,
+VOR Erreichen von n=250 (Stand bei Klärung: n=242, Ergebnis unbekannt,
+keine Auswertung auf echten Daten erfolgt)** (bindend gemäß Änderungs-
+Protokoll-Regel oben; Anlass: Guardian-Review des Auto-Auswertungslauf-
+PRs fand einen Widerspruch zwischen drei Ständen zu Kriterium (c) —
+Easys Chat-Entscheidung zum obigen Punkt 2 adressierte nur den
+„nicht prüfbar"-Fall, der damalige Entwurf dieses Protokolleintrags
+hatte eigenmächtig „ODER Gegen-Vorzeichen" ergänzt, und der tatsächlich
+gebaute Code wich wiederum von diesem Entwurfstext ab. Alle drei Stände
+werden hiermit auf EINEN, von Easy jetzt explizit bestätigten Stand
+gebracht):
+
+Die zwei Teil-Fälle von Kriterium (c), die NICHT „plausibel" sind,
+bekommen **unterschiedliche** Gesamt-Verdikte — **nicht**, wie der
+erste Entwurf dieses Eintrags fälschlich nahelegte, beide dasselbe
+„bedingt":
+
+- **„Nicht prüfbar"** (alle Buckets mit n ≥ 10 fehlen — zu wenig Daten,
+  keine Aussage möglich) UND Holm-signifikant (k=2) UND Bootstrap-CI-
+  Untergrenze > 0 pp erfüllt → Gesamtergebnis **„bedingt"** (nicht
+  „Beleg", aber auch kein Widerspruch — reiner Daten-Mangel).
+- **„Widerlegt"** (mindestens ein Bucket mit n ≥ 10 zeigt ein
+  tatsächliches Gegen-Vorzeichen zum Gesamt-Δ — ein echter, prüfbarer
+  Gegenbeleg, nicht bloß fehlende Daten) UND Holm-signifikant UND
+  Bootstrap-CI-Untergrenze > 0 pp erfüllt → Gesamtergebnis **„Unklar"**
+  (strenger als „bedingt", weil hier tatsächliche Evidenz GEGEN die
+  Reproduzierbarkeit vorliegt, nicht nur ihr Fehlen).
+
+Beide Fälle bleiben innerhalb der Freeze-Grenze „Punktschätzung ist nie
+Beleg, ein schwacher/widersprüchlicher Befund ist nie ‚keine Edge'" —
+weder „bedingt" noch „Unklar" ist eine Edge-Widerlegung, nur „Beleg"
+ist ein tatsächlicher Erfolgsnachweis. Easy-Entscheidung 31.10.2026
+(Option B, vor n=250, Ergebnis unbekannt): wie oben bestätigt.
+Implementierung unverändert bei `scripts/freeze_eval.py`
+(`_verdict_exit_b1_test` — Code war bereits vor diesem Protokolleintrag
+exakt so gebaut; dieser Eintrag synchronisiert ausschließlich den
+Text mit dem Code, keine Code-Änderung ausgelöst durch diesen Eintrag
+selbst).
 
 ### VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026
 

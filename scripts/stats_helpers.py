@@ -19,7 +19,8 @@ from __future__ import annotations
 import math
 from typing import Sequence
 
-__all__ = ["mann_whitney_u_auc", "multiple_testing_correction"]
+__all__ = ["mann_whitney_u_auc", "multiple_testing_correction",
+          "wilcoxon_signed_rank_paired"]
 
 
 def _ranks_with_ties(values: list[float]) -> tuple[list[float], list[int]]:
@@ -146,6 +147,75 @@ def mann_whitney_u_auc(group_a: Sequence[float],
                 "grob, exakter Test nicht implementiert.")
 
     return {"n_a": n_a, "n_b": n_b, "u": u_a, "auc": auc,
+            "p_two_sided": p_two_sided, "note": note}
+
+
+def wilcoxon_signed_rank_paired(values_a: Sequence[float],
+                                values_b: Sequence[float]) -> dict:
+    """Gepaarter Wilcoxon-Signed-Rank-Test (Normal-Approximation, Tie-
+    korrigiert, Null-Differenzen ausgeschlossen — Standard-Konvention).
+    Pure stdlib, deterministisch.
+
+    VORGESEHEN ALS EXPLORATIVE NEBENZAHL (§4-Exit-B.1-Protokolleintrag
+    31.10.2026, Punkt 1): dieser Test prüft, anders als
+    ``mann_whitney_u_auc`` auf zwei UNABHÄNGIGEN Stichproben, die
+    paarweise Differenz ``values_a[i] - values_b[i]`` direkt — mächtiger
+    bei echter Paarung, aber NICHT das registrierte Holm-Kriterium. Der
+    Caller entscheidet und labelt entsprechend; diese Funktion selbst
+    trifft keine Beleg-Aussage.
+
+    ``values_a``/``values_b`` müssen gleich lang sein (Zeile i in a
+    gehört zu Zeile i in b). Paare mit Differenz exakt 0 werden vor der
+    Rang-Bildung entfernt (Standard-Wilcoxon-Konvention).
+
+    Returnt Dict mit:
+      ``n``              — Anzahl Paare nach Null-Differenz-Ausschluss.
+      ``n_zero_dropped``  — Anzahl entfernter Null-Differenzen.
+      ``w_plus``          — Summe der Ränge positiver Differenzen.
+      ``p_two_sided``     — Normal-Approximation mit Tie- und
+                            Stetigkeitskorrektur. ``None`` bei ``n == 0``
+                            oder Varianz 0 (alle |Differenzen| identisch).
+      ``note``            — Hinweis (z. B. kleines n, Längen-Mismatch).
+    """
+    a = list(values_a)
+    b = list(values_b)
+    if len(a) != len(b):
+        return {"n": 0, "n_zero_dropped": 0, "w_plus": None,
+                "p_two_sided": None,
+                "note": "values_a/values_b unterschiedlich lang — "
+                        "kein gültiges Paar-Array."}
+    diffs = [x - y for x, y in zip(a, b)]
+    nonzero = [d for d in diffs if d != 0.0]
+    n_zero = len(diffs) - len(nonzero)
+    n = len(nonzero)
+    if n == 0:
+        return {"n": 0, "n_zero_dropped": n_zero, "w_plus": None,
+                "p_two_sided": None,
+                "note": "Keine Differenz ≠ 0 — p nicht berechenbar."}
+
+    abs_diffs = [abs(d) for d in nonzero]
+    ranks, tie_sizes = _ranks_with_ties(abs_diffs)
+    w_plus = sum(r for r, d in zip(ranks, nonzero) if d > 0)
+
+    mean_w = n * (n + 1) / 4.0
+    tie_term = sum(t * t * t - t for t in tie_sizes)
+    var_w = n * (n + 1) * (2 * n + 1) / 24.0 - tie_term / 48.0
+
+    if var_w <= 0:
+        return {"n": n, "n_zero_dropped": n_zero, "w_plus": w_plus,
+                "p_two_sided": None,
+                "note": "Varianz 0 — p nicht berechenbar."}
+
+    diff = abs(w_plus - mean_w)
+    diff_corrected = max(0.0, diff - 0.5)   # Stetigkeitskorrektur, analog AUC
+    z = diff_corrected / math.sqrt(var_w)
+    p_two_sided = 2.0 * (1.0 - _normal_cdf(z))
+    p_two_sided = max(0.0, min(1.0, p_two_sided))
+
+    note = None
+    if n < 10:
+        note = f"n={n} < 10 — Normal-Approximation grob."
+    return {"n": n, "n_zero_dropped": n_zero, "w_plus": w_plus,
             "p_two_sided": p_two_sided, "note": note}
 
 

@@ -474,9 +474,14 @@ def main(*, now_ts: datetime | None = None,
         setup_rate = hc._freeze_rate_last_14d(ROOT / hc.MATURED_EXPORT_FILE, now=now_ts)
         ki_pop = hc._count_ki_score_freeze_population(ROOT / hc.MATURED_EXPORT_FILE)
         ki_rate = hc._ki_score_freeze_rate_last_14d(ROOT / hc.MATURED_EXPORT_FILE, now=now_ts)
+        # Exit-B.1 (§4): datumsfrei, kein eigener Rate-Helper nötig — der
+        # tägliche §4-Zähler (retest_counter_line) zeigt die Rate bereits
+        # separat im Digest.
+        exit_b1_pop = hc.retest_counter_value(ROOT / hc.MATURED_EXPORT_FILE)
 
         setup_verdict_text = None
         ki_verdict_text = None
+        exit_b1_verdict_text = None
 
         if EVAL_AUTORUN_ENABLED:
             import freeze_eval  # noqa: E402  (lazy — nur wenn Autorun aktiv)
@@ -501,6 +506,8 @@ def main(*, now_ts: datetime | None = None,
                     setup_verdict_text = summary
                 elif trig["family"] == "ki_score":
                     ki_verdict_text = summary
+                elif trig["family"] == "exit_b1":
+                    exit_b1_verdict_text = summary
             # Status nach einem evtl. gerade erfolgten Trigger neu lesen
             # (verdict_text gewinnt gegen die Vor-Auslöser-Zahlen).
             if eval_out["setup_edge_locked"] and setup_verdict_text is None:
@@ -512,6 +519,9 @@ def main(*, now_ts: datetime | None = None,
             if eval_out["ki_score_locked"] and ki_verdict_text is None:
                 ki_verdict_text = freeze_eval.summarize_existing_verdict(
                     ROOT / EVAL_RESULTS_FILE, {"ki_score_a", "ki_score_b"})
+            if eval_out["exit_b1_locked"] and exit_b1_verdict_text is None:
+                exit_b1_verdict_text = freeze_eval.summarize_existing_verdict(
+                    ROOT / EVAL_RESULTS_FILE, {"exit_b1_a", "exit_b1_b"})
 
         eval_lines.append(hc.eval_status_line(
             "Setup-Edge/Conviction", setup_pop, SETUP_EDGE_FREEZE_N_TARGET,
@@ -519,6 +529,9 @@ def main(*, now_ts: datetime | None = None,
         eval_lines.append(hc.eval_status_line(
             "KI-Score", ki_pop, KI_SCORE_FREEZE_N_TARGET, ki_rate,
             verdict_text=ki_verdict_text))
+        eval_lines.append(hc.eval_status_line(
+            "Exit-B.1 (§4)", exit_b1_pop, hc._RETEST_N_TARGET, None,
+            verdict_text=exit_b1_verdict_text))
     except Exception as _eval_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Freeze-Eval-Autorun unerwartet: %r", _eval_exc)
         eval_lines = []
