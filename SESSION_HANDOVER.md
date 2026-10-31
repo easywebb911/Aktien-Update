@@ -2151,6 +2151,76 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   geändert). **Klasse: Auto-Merge.** **Rückweg:** `git revert` des
   Merge-Commits.
 
+### 31.10.2026 — Geister-Positionen-Mechanismus vollständig geklärt: Positions-Panel ist nur über Watchlist/Top-10-Karte erreichbar (1 PR, Doku-only)
+
+- **Vertiefte Diagnose, Easy-Entscheidung unverändert** (dieselbe wie im
+  PR direkt davor — IONQ/PDYN keine echten Positionen, AMC echt):
+  `#613` (Branch-Commit `2c3e2160`, 31.10., kein Merge-Hash — Regel a,
+  PR noch offen/Ready).
+- **Duplikat-Hinweis (Exzellenz-Block, nicht umgangen):** die im Auftrag
+  beschriebenen Teil-2a/2b-Schritte („exit-shadow-log-quelle per
+  NACHTRAG korrigieren", „neues Item Geister-Positionen anlegen") waren
+  **bereits durch den direkt vorangegangenen PR erledigt** (identische
+  Zahlen 296/13/67 %/≈34, identisches Item `geister-positionen-ionq-
+  pdyn`). Statt eines zweiten, doppelten NACHTRAGs oder eines
+  Duplikat-Items wurde nur `geister-positionen-ionq-pdyn` um die unten
+  stehenden, tatsächlich neuen Erkenntnisse per weiterem NACHTRAG
+  ergänzt — `exit-shadow-log-quelle` blieb unverändert (keine neuen
+  Zahlen seit dem letzten PR).
+- **Theorie (a) bestätigt, Theorie (b) widerlegt:** `positions.json`
+  kennt kein Status-/Closed-Feld (geprüft an allen 5 aktuellen
+  Einträgen — identische Feldmenge, kein Soft-Delete-Konzept im Schema).
+  `gist_pull_state.json` zeigt `last_successful_gist_pull:
+  2026-10-31T05:42:05Z` — der Gist-Pull war zuletzt frisch erfolgreich,
+  IONQ/PDYN stehen also nachweislich **echt im Gist**, nicht nur in
+  einem veralteten `_recover_positions_from_app_data`-Snapshot
+  (`scripts/pull_gist_data.py:180-237`, greift nur bei API-Fehler).
+- **Warum Easy sie nicht entfernen kann — vollständig im Code belegt:**
+  das Positions-Panel samt Lösch-Button ist ausschließlich über eine
+  aufgeklappte Karte erreichbar (`wlExpand`, `generate_report.py:14782`).
+  Welche Ticker überhaupt eine Karte bekommen, bestimmt
+  `const arr = await wlLoad();` in `wlRender()`
+  (`generate_report.py:14605`) — das ist die WATCHLIST, keine Positions-
+  Liste. Es gibt **keine** zweite, unabhängige „Meine Positionen"-Ansicht
+  im Code. Da IONQ/PDYN seit 24.08. nicht auf der Watchlist stehen und
+  nicht in der heutigen Top-10 sind, existiert für sie **normalerweise**
+  keine Karte.
+- **KORREKTUR (Guardian-Fund, vor Merge eingearbeitet):** „buchstäblich
+  keine Karte, kein erreichbarer Lösch-Pfad" war UNVOLLSTÄNDIG — es
+  gibt bereits einen funktionierenden Weg ohne neuen Workflow:
+  `window.wlAddManual` (`generate_report.py:14862`, Ticker-Regex
+  `generate_report.py:14840`) lässt JEDEN syntaktisch gültigen Ticker
+  manuell in die Watchlist eintragen — auch IONQ/PDYN. Das erzeugt eine
+  Karte, `wlExpand` fällt auf `buildWlSparkOnly`
+  (`generate_report.py:14434`) zurück, die laut eigenem Kommentar
+  („Position-Panel auch im History-only-Fall", `:14509`) TROTZDEM
+  `buildPositionPanel(ticker, null)` samt „Aus Watchlist entfernen"-
+  Button rendert. **Easy kann IONQ/PDYN also schon heute in ~10
+  Sekunden selbst entfernen** (Ticker ins Watchlist-Feld eintippen →
+  Karte erscheint → „Aus Watchlist entfernen" antippen) — ohne jeden
+  neuen Workflow.
+- **Vorschlag Wegwerf-Workflow** (jetzt nur noch Alternative, nicht
+  mehr einziger Weg; nicht gebaut, Easy entscheidet): neuer
+  `on: workflow_dispatch`-Workflow mit den zu löschenden Tickern
+  HARTCODIERT im Code (kein Freitext-Feld — kein Verschreib-Risiko für
+  AMC, da AMC im Code gar nicht vorkommt). Liest den Gist, löscht nur
+  die zwei hartcodierten Keys, schreibt per PATCH zurück, loggt vorher/
+  nachher zur Kontrolle. Rückweg: GitHub-Gists führen automatisch
+  Revisionen — bei einem Fehler kann Easy im Browser (kein Terminal)
+  die vorige Revision öffnen und zurückkopieren. Falls je gebaut:
+  „Neue Workflow-Datei" = Manual-Merge-Pflicht laut CLAUDE.md.
+- **Konsumenten-Rundgang bestätigt** (keine neuen Stellen gegenüber dem
+  Vor-PR, nochmal gegengeprüft): KI-Insight-Stream, Health-Check S3,
+  Exit-Push-Pfad Phase 1+2 — alle ungefiltert, aber Pushes weiterhin
+  stumm seit 06.09.2026. Trade-Journal/`closed_trades` unbetroffen.
+  Backtest unbetroffen (`_append_backtest_entries` kennt kein
+  `positions`-Argument).
+- **Kein Code/Daten/Logdatei/Gist berührt** — reine `open_items.json`-
+  NACHTRAG-Ergänzung, Diagnose vollständig read-only (`git status` zeigt
+  nur diese eine Datei). `lint_protected_zones.py` grün, 165 Tests grün,
+  alle Lints grün, Golden byte-identisch. **Klasse: Auto-Merge.**
+  **Rückweg:** `git revert` des Merge-Commits.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
