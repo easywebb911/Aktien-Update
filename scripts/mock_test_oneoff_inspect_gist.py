@@ -182,6 +182,22 @@ def test_no_patch_call_anywhere_in_script():
     assert "method=" not in _PY_BLOCK.replace(" ", ""), (
         "Kein method=-Kwarg -- urllib.request.Request nutzt hier nur GET "
         "(Default-Methode)")
+    # Guardian-Fund (31.10.2026): reines String-Matching auf "PATCH" ist
+    # nicht wasserdicht gegen jeden denkbaren Schreib-Call -- ein
+    # `data=`-Kwarg an urllib.request.Request() macht die Anfrage
+    # automatisch zu POST, OHNE dass ein "method="-String je auftaucht.
+    # Zusaetzlicher struktureller AST-Check: JEDER Request(...)-Aufruf im
+    # Skript darf NIE ein `data`-Keyword-Argument haben.
+    import ast
+    tree = ast.parse(_PY_BLOCK)
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "Request"):
+            kw_names = {kw.arg for kw in node.keywords}
+            assert "data" not in kw_names, (
+                "Request(...)-Aufruf mit data=-Kwarg gefunden -- das waere "
+                "ein versteckter Schreib-Call (urllib macht daraus "
+                "automatisch POST, auch ohne method=-String)")
 
 
 # === 4 — Happy-Path: Ticker-Namen gelistet =================================
