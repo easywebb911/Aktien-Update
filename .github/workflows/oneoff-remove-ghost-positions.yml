@@ -1,0 +1,271 @@
+name: One-off Remove Ghost Positions
+
+# WEGWERF-WORKFLOW (Diagnose PR #612/#613, Easy-Entscheid 31.10.2026):
+# IONQ und PDYN sind KEINE echten offenen Positionen mehr, stehen aber
+# weiterhin im Positions-Gist (squeeze_data.json["positions"]) und laufen
+# dadurch als "Geister-Positionen" in exit_shadow_log.jsonl/Health-Check/
+# KI-Insight-Stream mit. In der App nicht entfernbar erreicht (kein Karten-
+# Zugriff ohne den window.wlAddManual-Workaround), Easy hat keinen
+# Terminal-/curl-Zugang.
+#
+# SICHERHEIT (nicht verhandelbar):
+#   - Ticker-Eingabe ist ein 'choice'-Input, NUR IONQ/PDYN -- kein Freitext.
+#   - Zusaetzliche Code-Allowlist (ALLOWLIST unten) als zweite Schranke --
+#     AMC wird im Code dieser Datei an KEINER Stelle als Lösch-Ziel
+#     verwendet oder verwendbar -- der einzige Lösch-Trigger ist der
+#     allowlist-geprüfte 'ticker'-Wert. AMC kommt NUR defensiv vor (als
+#     Verifikations-Anker, um zu BEWEISEN, dass es unveraendert bleibt --
+#     siehe amc_before/amc_after unten), kann also auch bei einem
+#     manipulierten API-Dispatch nicht getroffen werden.
+#   - dry_run=true (Default) liest nur und berichtet, schreibt NICHTS.
+#   - Der echte Lauf (dry_run=false) aendert NUR den einen positions[ticker]-
+#     Eintrag, liest danach frisch zur Verifikation (Ticker weg, Zaehler
+#     exakt -1, AMC byte-identisch) und meldet KRITISCH, falls die
+#     Verifikation nicht passt.
+#   - Logs zeigen NUR Tickernamen, Zaehler und HTTP-Status -- NIEMALS
+#     Preise, Stueckzahlen, Einstiegskurse oder sonstige Gist-Inhalte.
+#     Dieses Repo ist OEFFENTLICH -- Workflow-Logs sind oeffentlich lesbar.
+#   - Bewusst KEIN Checkout -- der Lauf braucht kein Repo-File, nur die
+#     Gist-Secrets + die zwei Inputs (analog agent_ntfy_relay.yml).
+#   - Gist-PATCH ueberschreibt den GESAMTEN Dateiinhalt, deshalb wird immer
+#     das komplette gelesene Objekt (watchlist UNVERAENDERT + positions
+#     minus einem Schluessel) zurückgeschrieben -- nie ein Teil-Patch.
+#
+# ABLAUF FUER EASY (siehe PR-Beschreibung fuer die exakte Klick-Anleitung):
+#   1. Diesen PR mergen.
+#   2. Probelauf: Actions -> dieser Workflow -> "Run workflow",
+#      ticker=PDYN, dry_run=true (Default) -> Ergebnis im Log pruefen.
+#   3. Echter Lauf PDYN: dry_run=false -> Log pruefen (ERFOLG-Zeile).
+#   4. Echter Lauf IONQ: dry_run=false -> Log pruefen.
+#   5. Rueckweg-PR (loescht diese Datei wieder) mergen.
+#
+# RUECKWEG: `git revert <merge-commit>` dieses PR entfernt die Datei
+# wieder -- reine Doku-/Tooling-Aenderung, keine Code-Abhaengigkeit sonst
+# im Repo. Datenseitig: GitHub-Gists fuehren automatisch eine
+# Revisions-Historie -- bei einem Fehler oeffnet Easy im Browser (kein
+# Terminal) https://gist.github.com/<username>/<gist-id>/revisions und
+# stellt die vorige Revision wieder her.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticker:
+        description: "Zu entfernender Ticker (NUR IONQ oder PDYN)"
+        required: true
+        type: choice
+        options:
+          - IONQ
+          - PDYN
+      dry_run:
+        description: "true = nur lesen und berichten, NICHTS schreiben (Default)"
+        required: false
+        default: true
+        type: boolean
+
+permissions: {}
+
+concurrency:
+  group: oneoff-remove-ghost-positions
+  # Ein laufender Schreib-Versuch darf nicht mitten im Write abgeschossen
+  # werden (analog backfill_max_gain_pct.yml) -- ein zweiter Dispatch
+  # waehrend ein Lauf noch aktiv ist, wartet stattdessen.
+  cancel-in-progress: false
+
+jobs:
+  remove-ghost-position:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Remove ghost position from Gist (dry-run or real)
+        env:
+          GIST_ID:        ${{ secrets.GIST_ID }}
+          GIST_TOKEN:     ${{ secrets.GIST_TOKEN }}
+          TARGET_TICKER:  ${{ inputs.ticker }}
+          DRY_RUN:        ${{ inputs.dry_run }}
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          GIST_API = "https://api.github.com/gists/{}"
+          DATA_FILENAME = "squeeze_data.json"
+          # Hartcodierte Allowlist -- AMC wird hier an KEINER Stelle als
+          # Lösch-Ziel verwendet (nur unten defensiv zur Verifikation
+          # gelesen, siehe amc_before/amc_after).
+          ALLOWLIST = {"IONQ", "PDYN"}
+
+
+          def _headers(token: str) -> dict:
+              return {
+                  "Authorization": f"Bearer {token}",
+                  "Accept": "application/vnd.github+json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "Aktien-Update-OneOff-Cleanup",
+              }
+
+
+          def _get_gist(gist_id: str, token: str) -> dict:
+              req = urllib.request.Request(GIST_API.format(gist_id), headers=_headers(token))
+              with urllib.request.urlopen(req, timeout=20) as resp:
+                  return json.loads(resp.read().decode("utf-8"))
+
+
+          def _extract_data(gist: dict) -> dict:
+              files = (gist or {}).get("files") or {}
+              entry = files.get(DATA_FILENAME) or {}
+              if entry.get("truncated"):
+                  raise RuntimeError(
+                      f"{DATA_FILENAME} ist truncated (>1MB) im Gist -- Abbruch, "
+                      f"kein Risiko-Write auf unvollstaendigen Daten.")
+              raw = entry.get("content")
+              if not raw:
+                  raise RuntimeError(f"{DATA_FILENAME} leer/fehlt im Gist -- Abbruch.")
+              try:
+                  data = json.loads(raw)
+              except json.JSONDecodeError as exc:
+                  raise RuntimeError(
+                      f"{DATA_FILENAME} ist kein gueltiges JSON ({exc}) -- Abbruch.")
+              if not isinstance(data, dict) or not isinstance(data.get("positions"), dict):
+                  raise RuntimeError(
+                      f"{DATA_FILENAME} hat kein gueltiges 'positions'-Objekt -- Abbruch.")
+              return data
+
+
+          def _patch_gist(gist_id: str, token: str, data: dict) -> int:
+              body = json.dumps({
+                  "files": {
+                      DATA_FILENAME: {
+                          "content": json.dumps(data, ensure_ascii=False, indent=2)
+                      }
+                  }
+              }).encode("utf-8")
+              req = urllib.request.Request(
+                  GIST_API.format(gist_id),
+                  data=body,
+                  headers={**_headers(token), "Content-Type": "application/json"},
+                  method="PATCH",
+              )
+              with urllib.request.urlopen(req, timeout=20) as resp:
+                  return resp.status
+
+
+          def main() -> int:
+              gist_id = os.environ.get("GIST_ID", "").strip()
+              token = os.environ.get("GIST_TOKEN", "").strip()
+              ticker = os.environ.get("TARGET_TICKER", "").strip().upper()
+              dry_run = os.environ.get("DRY_RUN", "true").strip().lower() != "false"
+
+              if not gist_id or not token:
+                  print("FEHLER: GIST_ID/GIST_TOKEN nicht gesetzt -- Abbruch, "
+                        "keine Aenderung.", file=sys.stderr)
+                  return 1
+
+              # Allowlist-Check ZUERST, noch VOR jedem Gist-Zugriff -- sofortiger
+              # Abbruch fuer jeden Ticker ausser IONQ/PDYN, auch wenn der
+              # 'choice'-Input umgangen wuerde (z.B. direkter API-Dispatch).
+              if ticker not in ALLOWLIST:
+                  print(f"FEHLER: Ticker '{ticker}' ist NICHT in der Allowlist "
+                        f"{sorted(ALLOWLIST)} -- Abbruch, KEINE Aenderung "
+                        f"(betrifft auch AMC oder jeden anderen Ticker).",
+                        file=sys.stderr)
+                  return 1
+
+              try:
+                  gist = _get_gist(gist_id, token)
+              except Exception as exc:
+                  print(f"FEHLER: Gist-Lesen fehlgeschlagen ({type(exc).__name__}) "
+                        f"-- Abbruch, keine Aenderung.", file=sys.stderr)
+                  return 1
+
+              try:
+                  data = _extract_data(gist)
+              except RuntimeError as exc:
+                  print(f"FEHLER: {exc}", file=sys.stderr)
+                  return 1
+
+              positions = data["positions"]
+              count_before = len(positions)
+              present = ticker in positions
+
+              print(f"Gist gelesen: {count_before} Positions-Eintraege insgesamt.")
+              print(f"Ziel-Ticker {ticker}: "
+                    f"{'vorhanden' if present else 'NICHT vorhanden'}.")
+
+              if not present:
+                  print(f"Ticker {ticker} steht nicht (mehr) im Gist -- KEINE "
+                        f"Aenderung noetig. Hinweis: 'nicht vorhanden' heisst "
+                        f"NICHT automatisch 'in diesem Lauf erledigt' -- er kann "
+                        f"auch nie da gewesen sein oder bereits anders entfernt "
+                        f"worden sein.")
+                  return 0
+
+              if dry_run:
+                  print(f"PROBELAUF (dry_run=true): wuerde {ticker} entfernen, "
+                        f"{count_before} -> {count_before - 1} Positions-"
+                        f"Eintraege. KEIN Schreibzugriff in diesem Lauf.")
+                  return 0
+
+              # ---- Echter Lauf ---------------------------------------------
+              import copy
+              amc_before = copy.deepcopy(positions.get("AMC"))
+
+              del data["positions"][ticker]
+
+              try:
+                  status = _patch_gist(gist_id, token, data)
+              except Exception as exc:
+                  print(f"FEHLER: Gist-Schreiben fehlgeschlagen "
+                        f"({type(exc).__name__}) -- nichts wurde garantiert "
+                        f"geaendert (GitHub hat den PATCH ggf. nicht "
+                        f"angenommen). Bitte Zustand vor einem erneuten Lauf "
+                        f"pruefen.", file=sys.stderr)
+                  return 1
+              print(f"Gist-Schreiben: HTTP {status}.")
+
+              # Verifikation: FRISCH lesen, nicht dem lokalen Stand vertrauen.
+              try:
+                  gist_after = _get_gist(gist_id, token)
+                  data_after = _extract_data(gist_after)
+              except Exception as exc:
+                  print(f"WARNUNG: Schreiben wurde angenommen (HTTP {status}), "
+                        f"aber die Verifikations-Lesung schlug fehl "
+                        f"({type(exc).__name__}) -- bitte Gist manuell pruefen.",
+                        file=sys.stderr)
+                  return 1
+
+              positions_after = data_after["positions"]
+              count_after = len(positions_after)
+              still_present = ticker in positions_after
+              amc_after = positions_after.get("AMC")
+              amc_unchanged = amc_after == amc_before
+
+              ok = (not still_present) and (count_after == count_before - 1) and amc_unchanged
+
+              print(f"Nach dem Schreiben: {count_after} Positions-Eintraege "
+                    f"(vorher {count_before}). {ticker} noch vorhanden: "
+                    f"{still_present}. AMC unveraendert: {amc_unchanged}.")
+
+              if not ok:
+                  print("KRITISCH: Verifikation nach dem Schreiben zeigt ein "
+                        "unerwartetes Ergebnis -- bitte Gist-Revisionshistorie "
+                        "pruefen (https://gist.github.com/<username>/<gist-id>/"
+                        "revisions), NICHT erneut laufen lassen, Easy "
+                        "informieren.", file=sys.stderr)
+                  return 1
+
+              print(f"ERFOLG: {ticker} entfernt und verifiziert "
+                    f"({count_before} -> {count_after} Positions-Eintraege).")
+              return 0
+
+
+          if __name__ == "__main__":
+              sys.exit(main())
+          PYEOF

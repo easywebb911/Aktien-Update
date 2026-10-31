@@ -39,6 +39,7 @@ SCRIPTS = ROOT / "scripts"
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
     "agent_ntfy_relay",
+    "oneoff_remove_ghost_positions",
     "apewisdom_shadow",
     "lint_protected_zones",
     "backfill_entry_past_return_5d", "backfill_max_gain", "backtest_data_integrity", "backtest_history_writepath", "backtest_return_vs_spy", "backtest_writepath_nan_guard", "bootstrap_shell_phase0", "bootstrap_shell_phase1", "borrow_iborrowdesk", "card_cockpit_stage1", "card_cockpit_stage2",

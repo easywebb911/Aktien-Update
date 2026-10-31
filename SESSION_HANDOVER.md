@@ -2221,6 +2221,83 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   alle Lints grün, Golden byte-identisch. **Klasse: Auto-Merge.**
   **Rückweg:** `git revert` des Merge-Commits.
 
+### 31.10.2026 — Wegwerf-Workflow zum Entfernen der Geister-Positionen IONQ/PDYN (1 PR, Manual-Merge)
+
+- Easy-Auftrag nach dem vorigen Diagnose-PR: ein `workflow_dispatch`-
+  Workflow, der NUR per Tap (kein Terminal) den Positions-Gist-Eintrag
+  von IONQ oder PDYN entfernt, mit Probelauf vor dem echten Lauf.
+  `#614` (Branch-Commit `f3e59ae1`, 31.10., kein Merge-Hash — Regel a,
+  PR noch offen/Ready).
+- **Neue Datei** `.github/workflows/oneoff-remove-ghost-positions.yml`
+  (`on: workflow_dispatch` ausschließlich). Zwei Inputs: `ticker`
+  (Typ `choice`, NUR `IONQ`/`PDYN`, kein Freitext) und `dry_run`
+  (Boolean, Default `true`). Checkout-frei (analog
+  `agent_ntfy_relay.yml`) — braucht kein Repo-File, nur `GIST_ID`/
+  `GIST_TOKEN` (dieselben Secrets wie `scripts/pull_gist_data.py`,
+  reine GET-Wiederverwendung dort + neues PATCH nach dem exakten
+  Browser-`gistSave`-Muster aus `generate_report.py:15005-15013`:
+  volles Datei-Overwrite von `squeeze_data.json`, nicht Teil-Patch).
+- **Sicherheits-Mechanik:** hartcodierte `ALLOWLIST = {"IONQ", "PDYN"}`
+  im Python-Block, geprüft VOR jedem Gist-Zugriff — AMC wird im Code
+  an keiner Stelle als Lösch-Ziel verwendet (nur defensiv zur
+  Verifikation gelesen, siehe unten), kann also auch bei einem
+  manipulierten API-Dispatch nicht getroffen werden. Ticker nicht im Gist vorhanden
+  → Abbruch ohne Schreiben mit expliziter „nicht vorhanden ≠ erledigt"-
+  Meldung. Echter Lauf verifiziert nach dem Schreiben per frischem GET
+  (nicht dem lokalen Stand vertrauend): Ticker weg, Zähler exakt −1,
+  AMC-Teilbaum deep-copy-verglichen byte-identisch — bei Abweichung
+  `KRITISCH` + exit 1 + Verweis auf die Gist-Revisionshistorie. Logs
+  zeigen NUR Tickernamen/Zähler/HTTP-Status — das Repo ist öffentlich
+  (`visibility: public`, per GitHub-API verifiziert), Workflow-Logs
+  sind also öffentlich lesbar; keine Preise/Einstiegskurse/Daten je
+  geloggt.
+- **Konflikt-Risiko (Lost Update) benannt, per Fenster entschärft:**
+  GitHub-Gist-PATCH unterstützt laut externer Entwickler-Rückmeldung
+  **keine** ETag/If-Match-Conditional-Requests (400 statt 412 bei
+  gesetztem `If-Match` — keine offizielle GH-Doku dazu gefunden, als
+  externer Beleg eingeordnet, nicht als Garantie). Mitigation: GET
+  unmittelbar vor dem PATCH im selben Kurzlauf (enges Fenster),
+  Verifikations-GET danach fängt eine Diskrepanz (inkl. eines
+  Lost-Update durch einen parallelen Browser-Save) als `KRITISCH`
+  statt sie unbemerkt durchrutschen zu lassen. Reales Restrisiko
+  bleibt, wenn Easy im exakt selben Moment in der App speichert —
+  Empfehlung an Easy: App-Tab während des Laufs geschlossen halten.
+- **closed_trades/Trade-Journal nicht betroffen** — belegt:
+  `wlRemoveFromExpanded` (`generate_report.py:15741-15752`) löscht
+  `positions[ticker]` ebenfalls ohne Journal-Eintrag zu erzeugen; der
+  Workflow repliziert exakt dieses Verhalten, nur serverseitig.
+- **Test** `scripts/mock_test_oneoff_remove_ghost_positions.py` (26
+  Fälle, Regex-Extraktion des Python-Heredocs aus der YAML — eine
+  Quelle der Wahrheit, keine Logik-Drift zum Workflow): YAML-Struktur,
+  Allowlist/AMC-Schutz (inkl. „Allowlist-Check läuft vor jedem
+  Gist-Zugriff"), Ticker-nicht-vorhanden, dry_run, Happy-Path inkl.
+  watchlist-Unverändert-Check, PATCH-Fehler, Verifikations-Mismatch
+  (Ticker noch da / AMC verändert) → `KRITISCH`, Log-Hygiene (keine
+  Preise/Daten in stdout/stderr, dry_run **und** echter Lauf **und**
+  Fehlerpfade), truncated/kaputtes JSON. In `run_ci_mock_tests.py`
+  ALLOWLIST registriert (Drift-Guard sauber, 166 Tests).
+- **Gefundener Bug beim eigenen Testen (vor Commit gefixt):**
+  `_extract_data` fing `json.JSONDecodeError` nicht ab — ein kaputtes
+  `squeeze_data.json`-Body hätte den Workflow mit unbehandeltem
+  Traceback crashen lassen statt sauber mit klarer Fehlermeldung
+  abzubrechen. Fix: `try/except json.JSONDecodeError` mit
+  `RuntimeError`-Weiterleitung, Test deckt den Fall jetzt ab.
+- **Rückweg-PR folgt separat** nach den echten Läufen — löscht diese
+  eine Workflow-Datei wieder (`git revert`), reine Tooling-Entfernung,
+  keine Code-Abhängigkeit sonst im Repo.
+- **Guardian-Fund (vor Merge eingearbeitet):** alle sicherheitskritischen
+  Mechanismen (Allowlist vor jedem Netzwerkzugriff, choice-Input exakt
+  IONQ/PDYN, voller Datei-Overwrite inkl. unveränderter watchlist,
+  echte Frisch-Verifikation nach dem Schreiben, kein Zusatz-PATCH bei
+  Fehlern, Log-Hygiene, dry_run-Default) wurden unabhängig nachgeprüft
+  und bestätigt — einziger Fund war eine sachlich ungenaue
+  Kommentar-Formulierung ("AMC kommt im Code an keiner Stelle vor" war
+  falsch, da AMC defensiv zur Verifikation gelesen wird — nie als
+  Lösch-Ziel). Kommentare in der Workflow-Datei + hier präzisiert, kein
+  Verhaltens-Fix nötig.
+- **Klasse: Manual-Merge** (neue Workflow-Datei, schreibt in den Gist —
+  CLAUDE.md-Ausnahmeliste). Easy mergt selbst.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
