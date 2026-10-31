@@ -2226,7 +2226,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - Easy-Auftrag nach dem vorigen Diagnose-PR: ein `workflow_dispatch`-
   Workflow, der NUR per Tap (kein Terminal) den Positions-Gist-Eintrag
   von IONQ oder PDYN entfernt, mit Probelauf vor dem echten Lauf.
-  `#PENDING` (Branch-Commit folgt — Regel a, PR noch nicht angelegt).
+  `#614` (Branch-Commit `f3e59ae1`, 31.10., kein Merge-Hash — Regel a,
+  PR noch offen/Ready).
 - **Neue Datei** `.github/workflows/oneoff-remove-ghost-positions.yml`
   (`on: workflow_dispatch` ausschließlich). Zwei Inputs: `ticker`
   (Typ `choice`, NUR `IONQ`/`PDYN`, kein Freitext) und `dry_run`
