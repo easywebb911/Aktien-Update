@@ -2154,9 +2154,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 ### 31.10.2026 — Geister-Positionen-Mechanismus vollständig geklärt: Positions-Panel ist nur über Watchlist/Top-10-Karte erreichbar (1 PR, Doku-only)
 
 - **Vertiefte Diagnose, Easy-Entscheidung unverändert** (dieselbe wie im
-  PR direkt davor — IONQ/PDYN keine echten Positionen, AMC echt): PR-
-  Nummer wird per Follow-up-Commit nachgetragen (Regel a), Branch
-  `claude/ghost-positions-invisible-diagnose`.
+  PR direkt davor — IONQ/PDYN keine echten Positionen, AMC echt):
+  `#613` (Branch-Commit `2c3e2160`, 31.10., kein Merge-Hash — Regel a,
+  PR noch offen/Ready).
 - **Duplikat-Hinweis (Exzellenz-Block, nicht umgangen):** die im Auftrag
   beschriebenen Teil-2a/2b-Schritte („exit-shadow-log-quelle per
   NACHTRAG korrigieren", „neues Item Geister-Positionen anlegen") waren
