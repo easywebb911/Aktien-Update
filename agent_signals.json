@@ -1,10 +1,10 @@
 {
-  "updated": "2026-11-01T08:33:13.894035+01:00",
+  "updated": "2026-11-01T16:09:53.494275+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 13.7,
+    "elapsed_s": 15.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -103,7 +103,7 @@
     "JACK": {
       "score": 48,
       "confidence": 33,
-      "drivers": "News: breakout, squeeze + Earnings in 38d + UOA Call/Put 4.9×",
+      "drivers": "News: squeeze, breakout + Earnings in 38d + UOA Call/Put 4.9×",
       "price": 13.02,
       "chg_pct": 0.0,
       "rvol_4d": 0.85,
@@ -191,9 +191,9 @@
       "uoa_cp_ratio": 5.233333333333333
     },
     "TRIP": {
-      "score": 20,
+      "score": 23,
       "confidence": 33,
-      "drivers": "Earnings in 4 Tagen (05.11.2026) + News-KI 5/30: Neutral market news with no negative catalysts or indicators of high short interest and forced covering pressure. + Earnings in 4d",
+      "drivers": "Earnings in 4 Tagen (05.11.2026) + News-KI 8/30: Neutral headlines focused on business operations and travel trends; no catalyst for short squeeze pressure, bearish sent + Earnings in 4d",
       "price": 9.22,
       "chg_pct": 0.0,
       "rvol_4d": 1.42,
@@ -212,9 +212,9 @@
       "uoa_cp_ratio": 0.3204633204633205
     },
     "VEEA": {
-      "score": 50,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 6.2% + News: merger + FINRA Short-Vol 26180%",
+      "drivers": "Spanne 6.2% + News-KI 8/30: Positive business developments and partnership announcements lack the high short interest, low float, and technical cata + FINRA Short-Vol 26180%",
       "price": 4.82,
       "chg_pct": 0.0,
       "rvol_4d": 0.18,
@@ -225,8 +225,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -277,9 +277,9 @@
       "uoa_cp_ratio": 1.6575682382133996
     },
     "XPOF": {
-      "score": 94,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (05.11.2026) + Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 29.9% + News-KI 18/30: Takeover bid interest is positive, but recent sharp plunge and mixed earnings headlines suggest institutional selling pr + Earnings in 4d + 3/4 Trigger",
+      "drivers": "Earnings in 4 Tagen (05.11.2026) + Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 29.9% + News: acquisition, takeover + Earnings in 4d + 3/4 Trigger",
       "price": 4.46,
       "chg_pct": 0.0,
       "rvol_4d": 3.0,
@@ -291,7 +291,7 @@
       "stocktwits": null,
       "combo_mult": 1.2,
       "active_triggers": 3,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
