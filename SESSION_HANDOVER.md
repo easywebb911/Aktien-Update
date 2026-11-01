@@ -2840,7 +2840,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 01.11.2026 — NACHTRAG Regel (b): Merge bei rotem Check nur mit begründeter Ursache (1 PR, Auto-Merge)
 
-- Easy-NACHTRAG 01.11.2026 zu `#625`: `__PR__` (Branch
+- Easy-NACHTRAG 01.11.2026 zu `#625`: `#626` (Branch
   `claude/regel-b-rot-merge-n4x8`, kein Merge-Hash — Regel a).
 - **CLAUDE.md Regel (b):** Check muss fertig sein; Rot → nur mergen, wenn
   die Ursache bekannt und im PR-Text begründet ist (z. B. erwartete
