@@ -150,9 +150,9 @@ vor dem Merge fertig laufen lassen** (siehe Regel „Merge- und Datenkorrektur-
 Disziplin" unten) — das Ergebnis bleibt advisory. Bei Rot: nachfixen,
 neu pushen, dann mergen — oder nur mergen, wenn die Ursache bekannt und
 im PR-Text begründet ist (Regel (b) unten; bei rotem
-`lint_protected_zones` gilt allein die protected-ok-Label-Regel). **Kein** anderer Workflow triggert auf PR-Push
-(die Cron-Workflows laufen unverändert nur per `schedule`/`dispatch`/`push
-to main`).
+`lint_protected_zones` gilt allein die protected-ok-Label-Regel).
+**Kein** anderer Workflow triggert auf PR-Push (die Cron-Workflows laufen
+unverändert nur per `schedule`/`dispatch`/`push to main`).
 
 **Konsequenz fürs Warten:** Nach PR-Push KANN jetzt ein `check_run`-Event
 kommen (von pr-checks.yml). Das passive Warten darauf bleibt trotzdem
