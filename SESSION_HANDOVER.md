@@ -1498,11 +1498,17 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
     Garantie — ein reines Label-Modell wäre schwächer, weil derselbe
     Wächter-Token, der mergen darf, vermutlich auch Labels setzen könnte).
     Sonst (Nicht-Wächter-PR, i. d. R. ein von Easy angestoßener manueller
-    PR) → Ausnahme NUR über das Label `protected-ok` (nur von Easy gesetzt,
-    GitHub-Repo-Berechtigung regelt das, nicht der Lint selbst) — ein
-    reines Titel-Modell allein hätte JEDEN Nicht-Wächter-PR stillschweigend
-    befreit, auch versehentliche Score-Eingriffe in eigentlich unrelated
-    PRs. Die Kombination schließt beide Lücken.
+    PR) → Ausnahme NUR über das Label `protected-ok` (**Stand bei
+    Einführung 22./23.10.2026:** nur von Easy gesetzt, GitHub-Repo-
+    Berechtigung regelt das, nicht der Lint selbst — **mit Easy-Entscheid
+    01.11.2026 für den engen Fall a) der protected-ok-Label-Regel [§9m]
+    explizit aufgehoben:** reine Zähler-/Daten-Stand-/Status-/
+    Wiedervorlage-/Doku-Text-Treffer mit Guardian-Bestätigung darf Code
+    selbst labeln; bei jedem Logik-Touch [Fall b] gilt diese ursprüngliche
+    Einschränkung unverändert weiter) — ein reines Titel-Modell allein
+    hätte JEDEN Nicht-Wächter-PR stillschweigend befreit, auch
+    versehentliche Score-Eingriffe in eigentlich unrelated PRs. Die
+    Kombination schließt beide Lücken.
   - Neuer 8. Step in `.github/workflows/pr-checks.yml` ("Lint protected
     zones"), direkt nach "Lint open-items consistency" — nutzt denselben
     bereits gefetchten PR-Basis-SHA, zusätzlich `PR_TITLE` +
@@ -2728,6 +2734,61 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Guardian-Lauf vor Ready:** siehe Bericht.
 - **Klasse: Auto-Merge nach Guardian** (Doku-only) — benötigt aber
   trotzdem das `protected-ok`-Label wegen des §4-Zonentreffers.
+
+### 01.11.2026 — protected-ok-Label-Regel fest verankert (1 PR, Auto-Merge)
+
+- Easy-Entscheid (01.11.2026): feste Prozessregel für das Label
+  `protected-ok` in CLAUDE.md + SESSION_HANDOVER.md verankern — Anlass
+  war die zweifach belegte Re-Run-liest-alte-Labels-Falle (`#621`,
+  `#622`). `#623` (Branch-Commit `b785d815`, 01.11., kein Merge-Hash —
+  Regel a, PR noch offen/Ready).
+- **CLAUDE.md:** neuer Unterabschnitt „protected-ok-Label-Regel" im
+  Block „Arbeits-Regeln für Claude Code" (nach „Block-1-Pflicht") — vier
+  Punkte: (a) Code darf das Label selbst setzen, wenn ein PR eine
+  geschützte Zone NUR über Zähler/Daten-Stand/Status/Wiedervorlage-
+  Daten/Doku-Text trifft UND Guardian das vor dem Setzen bestätigt
+  (Einzelfall-Begründung im PR-Text Pflicht); (b) bei jeder Änderung an
+  Definitionen/Schwellen/Filtern/Seeds/Erfolgskriterien/Auswertungslogik
+  selbst bleibt die inhaltliche Freigabe bei Easy; (c) danach immer
+  frischer Push (leerer Commit), NIEMALS Re-Run — erst bei grünem Check
+  mergen, bleibt er rot: melden statt Retry; (d) die technische
+  Setz-Aktion übernimmt grundsätzlich Code (Easy kann die Label-Funktion
+  am iPhone nicht bedienen), bei (b) erst nach Easys expliziter
+  Chat-Freigabe für den konkreten PR.
+- **SESSION_HANDOVER.md:** kompakter Pointer-Eintrag (9m.) im Abschnitt
+  9, verweist auf CLAUDE.md als Volltext-Quelle (Codebase-Wahrheit-
+  Konvention, §9 letzter Satz).
+- **Kein Score-/Filter-/Exit-/Freeze-Touch, keine `.py`-Datei berührt**
+  — `run_ci_mock_tests.py` unverändert 168/168 grün.
+- **`lint_protected_zones.py` meldet KEINEN Fund** (lokal gegen
+  `origin/main` geprüft) — die SESSION_HANDOVER.md-Änderung liegt in
+  Abschnitt 9, außerhalb jeder `VORABREGISTRIERUNG`/`ERRATUM`-Zone.
+  Kein Label für diesen PR selbst nötig.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` =
+  `#622`, höchste hier erwähnte PR = `#622` — kein Rückstand vor diesem
+  Eintrag.
+- **Guardian-Lauf vor Ready — 2 Findings, beide im selben PR behoben:**
+  (1) die ursprüngliche Design-Beschreibung des `protected-ok`-
+  Mechanismus (Einführungs-PR 22./23.10.2026, hier oben in diesem
+  Block) sagte „nur von Easy gesetzt" ohne Bezug auf die neue Fall-a)-
+  Ausnahme — Reconciliation-Satz ergänzt, der die 01.11.-Aufhebung für
+  den engen Fall a) explizit benennt und Fall b) unverändert lässt.
+  (2) die aktive CLI-Fehlermeldung in `scripts/lint_protected_zones.py`
+  (Zeile ~371) sagte wortwörtlich „(nur Easy)" — reiner Text-Fix, kein
+  Logik-Touch, Meldung verweist jetzt auf die neue Regel. Drittes
+  Finding (Guardian als De-facto-Mindestbedingung für die Fall-a)-
+  Label-Aktion vs. „Bonus, kein Gatekeeper") als bewusst eng gescopte
+  Beobachtung akzeptiert, kein Fix nötig — gilt nur für diese eine
+  technische Aktion, nicht fürs generelle Merge-Urteil. Viertes Finding
+  (Fall-a)/b)-Abgrenzung selbst) war Nullbefund (Klarheit bestätigt).
+- **Datei-Scope durch Guardian-Fix erweitert:** `scripts/
+  lint_protected_zones.py` jetzt auch berührt (reiner Text in der
+  CLI-Ausgabe, keine Logik-/Zonen-Änderung) — Datei ist selbst nicht in
+  `_ALL_WATCHED_FILES`, daher kein Zonentreffer durch diese Änderung.
+  168/168 Tests weiterhin grün nach dem Fix.
+- **Klasse: Auto-Merge nach Guardian** (Doku-Text + Text-Fix in einer
+  Python-Datei, kein Score-/Filter-/Exit-/Freeze-Logik-Touch, kein
+  Zonentreffer).
 
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
@@ -6077,6 +6138,23 @@ hier nachgetragen):**
 **Pflege:** Neue Agent-Regeln ändert Claude im Projekt-Chat (Scheduled-Task-
 Prompt), nicht im Repo. Wiederholt ein Lit-Check bereits gelistete Funde,
 diese Liste ergänzen.
+
+### 9m. protected-ok-Label-Regel (Entscheidung Easy 01.11.2026)
+
+Volltext in CLAUDE.md, Abschnitt „Arbeits-Regeln für Claude Code" (gleich
+benannter Unterabschnitt). Kurz: (a) Code darf `protected-ok` selbst
+setzen, wenn ein PR eine geschützte Zone NUR über Zähler/Daten-Stand/
+Status/Wiedervorlage-Daten/Doku-Text trifft UND der Guardian das vor dem
+Setzen bestätigt (Begründung Pflicht im PR-Text) — (b) bei jeder
+Änderung an Definitionen/Schwellen/Filtern/Seeds/Erfolgskriterien/
+Auswertungslogik selbst bleibt die inhaltliche Freigabe bei Easy — (c)
+nach dem Setzen IMMER frischer Push (leerer Commit), NIEMALS Re-Run
+(`rerun_workflow_run` liest die Labels aus dem alten Event-Payload —
+belegt an `#621` + `#622`, beide blieben nach reinem Re-Run rot); erst
+bei grünem Check mergen, bleibt er rot: melden, nicht mergen — (d) die
+technische Setz-Aktion (API-Call) übernimmt grundsätzlich Code, weil
+Easy die Label-Funktion am iPhone nicht zuverlässig bedienen kann; bei
+(b) erst nach Easys expliziter Chat-Freigabe für den konkreten PR.
 
 ---
 
