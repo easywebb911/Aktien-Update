@@ -2819,7 +2819,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 01.11.2026 — Arbeitsregel „Merge- und Datenkorrektur-Disziplin" verankert (1 PR, Auto-Merge)
 
-- Easy-Entscheid 01.11.2026, Lehre aus `#608`/`#624`. `__PR__` (Branch
+- Easy-Entscheid 01.11.2026, Lehre aus `#608`/`#624`. `#625` (Branch
   `claude/arbeitsregeln-nachtrag-r7q2`, kein Merge-Hash — Regel a).
 - **CLAUDE.md:** neuer Unterabschnitt „Merge- und Datenkorrektur-
   Disziplin" (nach „protected-ok-Label-Regel"): (a) Einmal-Korrekturen
