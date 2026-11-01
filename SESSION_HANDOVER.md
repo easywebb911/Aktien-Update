@@ -2790,6 +2790,33 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Python-Datei, kein Score-/Filter-/Exit-/Freeze-Logik-Touch, kein
   Zonentreffer).
 
+### 01.11.2026 — Postclose-Datums-Rest 27.–30.10. als Open-Item + fda_calendar-Nachtrag (1 PR, Auto-Merge)
+
+- Easy-Entscheid 01.11.2026 zu Befund 2: die nach `#608` verbliebenen
+  +1-Tag-Postclose-Zeilen 27.–30.10.2026 werden **NICHT nachkorrigiert**.
+  `__PR__` (Branch `claude/postclose-datum-rest-docs-k3v7`, kein
+  Merge-Hash — Regel a).
+- **Read-only-Diagnose vorab:** alle Datums-schreibenden Dateien gegen den
+  eigenen Zeitstempel (US/Eastern) geprüft. Zusätzlich zu
+  `news_coverage_history`/`coverage_history` dasselbe Muster in
+  `apewisdom_attention_history.jsonl`, `options_chain_raw.jsonl` und den
+  Dict-Historien `options_oi_history`/`reg_sho_history` (evtl.
+  `inst_ownership_history`, `ftd_history.first_available`) — alles reine
+  Sammel-Historien. **Nicht betroffen:** `score_history`,
+  `backtest_history`, `matured_backtest_export` (Freeze-/§4-Population),
+  `exit_shadow_log` — Datum seit vor 01.09. aus ET-`report_date`.
+  **Keine Freeze-/Score-relevante Datei betroffen** → kein STOPP.
+- **`open_items.json`:** neues Item `postclose-datum-rest-27-30okt`
+  (`beobachtet`) mit Diagnose-NACHTRAG; `bekannt-tote-quellen-digest`
+  NACHTRAG (fda_calendar lieferte 31.10. 21:35 UTC einmalig Daten, sonst
+  weiter HTTPError — bleibt als tot geführt, Status unverändert
+  `beobachtet`, Known-Dead-Mapping bleibt aktiv).
+- **Keine `.py`-Datei, kein Score-/Filter-/Exit-/Freeze-Touch.**
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#623`,
+  höchste hier erwähnte PR = `#623` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Klasse: Auto-Merge nach Guardian** (Doku-only).
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
