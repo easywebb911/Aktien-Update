@@ -368,8 +368,11 @@ def main() -> int:
     print()
     print("Kein '[Wächter]'-PR darf geschützte Zonen jemals automatisch "
           "passieren — dafür gibt es KEINE Ausnahme (auch nicht per Label).")
-    print("Für Nicht-Wächter-PRs: Label 'protected-ok' auf dem PR setzen "
-          "(nur Easy), falls der Eingriff beabsichtigt ist.")
+    print("Für Nicht-Wächter-PRs: Label 'protected-ok' auf dem PR setzen, "
+          "falls der Eingriff beabsichtigt ist. Inhaltliche Freigabe bei "
+          "Logik-Änderungen bleibt bei Easy; bei reinen Zähler-/Status-/"
+          "Doku-Treffern mit Guardian-Bestätigung darf Code selbst setzen "
+          "(CLAUDE.md: protected-ok-Label-Regel).")
     return 1
 
 

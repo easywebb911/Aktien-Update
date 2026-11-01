@@ -1498,11 +1498,17 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
     Garantie — ein reines Label-Modell wäre schwächer, weil derselbe
     Wächter-Token, der mergen darf, vermutlich auch Labels setzen könnte).
     Sonst (Nicht-Wächter-PR, i. d. R. ein von Easy angestoßener manueller
-    PR) → Ausnahme NUR über das Label `protected-ok` (nur von Easy gesetzt,
-    GitHub-Repo-Berechtigung regelt das, nicht der Lint selbst) — ein
-    reines Titel-Modell allein hätte JEDEN Nicht-Wächter-PR stillschweigend
-    befreit, auch versehentliche Score-Eingriffe in eigentlich unrelated
-    PRs. Die Kombination schließt beide Lücken.
+    PR) → Ausnahme NUR über das Label `protected-ok` (**Stand bei
+    Einführung 22./23.10.2026:** nur von Easy gesetzt, GitHub-Repo-
+    Berechtigung regelt das, nicht der Lint selbst — **mit Easy-Entscheid
+    01.11.2026 für den engen Fall a) der protected-ok-Label-Regel [§9m]
+    explizit aufgehoben:** reine Zähler-/Daten-Stand-/Status-/
+    Wiedervorlage-/Doku-Text-Treffer mit Guardian-Bestätigung darf Code
+    selbst labeln; bei jedem Logik-Touch [Fall b] gilt diese ursprüngliche
+    Einschränkung unverändert weiter) — ein reines Titel-Modell allein
+    hätte JEDEN Nicht-Wächter-PR stillschweigend befreit, auch
+    versehentliche Score-Eingriffe in eigentlich unrelated PRs. Die
+    Kombination schließt beide Lücken.
   - Neuer 8. Step in `.github/workflows/pr-checks.yml` ("Lint protected
     zones"), direkt nach "Lint open-items consistency" — nutzt denselben
     bereits gefetchten PR-Basis-SHA, zusätzlich `PR_TITLE` +
@@ -2761,8 +2767,28 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` =
   `#622`, höchste hier erwähnte PR = `#622` — kein Rückstand vor diesem
   Eintrag.
-- **Guardian-Lauf vor Ready:** siehe Bericht.
-- **Klasse: Auto-Merge nach Guardian** (Doku-only, kein Zonentreffer).
+- **Guardian-Lauf vor Ready — 2 Findings, beide im selben PR behoben:**
+  (1) die ursprüngliche Design-Beschreibung des `protected-ok`-
+  Mechanismus (Einführungs-PR 22./23.10.2026, hier oben in diesem
+  Block) sagte „nur von Easy gesetzt" ohne Bezug auf die neue Fall-a)-
+  Ausnahme — Reconciliation-Satz ergänzt, der die 01.11.-Aufhebung für
+  den engen Fall a) explizit benennt und Fall b) unverändert lässt.
+  (2) die aktive CLI-Fehlermeldung in `scripts/lint_protected_zones.py`
+  (Zeile ~371) sagte wortwörtlich „(nur Easy)" — reiner Text-Fix, kein
+  Logik-Touch, Meldung verweist jetzt auf die neue Regel. Drittes
+  Finding (Guardian als De-facto-Mindestbedingung für die Fall-a)-
+  Label-Aktion vs. „Bonus, kein Gatekeeper") als bewusst eng gescopte
+  Beobachtung akzeptiert, kein Fix nötig — gilt nur für diese eine
+  technische Aktion, nicht fürs generelle Merge-Urteil. Viertes Finding
+  (Fall-a)/b)-Abgrenzung selbst) war Nullbefund (Klarheit bestätigt).
+- **Datei-Scope durch Guardian-Fix erweitert:** `scripts/
+  lint_protected_zones.py` jetzt auch berührt (reiner Text in der
+  CLI-Ausgabe, keine Logik-/Zonen-Änderung) — Datei ist selbst nicht in
+  `_ALL_WATCHED_FILES`, daher kein Zonentreffer durch diese Änderung.
+  168/168 Tests weiterhin grün nach dem Fix.
+- **Klasse: Auto-Merge nach Guardian** (Doku-Text + Text-Fix in einer
+  Python-Datei, kein Score-/Filter-/Exit-/Freeze-Logik-Touch, kein
+  Zonentreffer).
 
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
