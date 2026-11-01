@@ -2846,8 +2846,11 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   die Ursache bekannt und im PR-Text begründet ist (z. B. erwartete
   protected-zones-Sperre), sonst melden, nicht mergen. Die zwei
   Folgestellen im Abschnitt „PR-Status-Meldung nach Push" inline
-  angeglichen; Pointer 9n ergänzt. protected-ok-Label-Regel c) bleibt
-  unverändert (dort: nach Label-Setzen muss der Lint grün sein).
+  angeglichen; Pointer 9n ergänzt. **Klarstellung (Guardian-Finding,
+  Easy-Entscheid 01.11.):** bei rotem `lint_protected_zones` gilt allein
+  die protected-ok-Label-Regel a)–d) — ohne Label nie mergen; das
+  Beispiel „erwartete protected-zones-Sperre" deckt nur den Fall mit
+  gesetztem Label.
 - **Keine `.py`-Datei, kein Score-/Filter-/Exit-/Freeze-Touch.**
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#625`,
   höchste hier erwähnte PR = `#625` — kein Rückstand vor diesem Eintrag.
@@ -6229,7 +6232,8 @@ Merge des Code-Fixes ausführen oder unmittelbar davor wiederholen — Beleg
 (b) auch beratende Checks (`pr-checks.yml`) vor dem Merge fertig laufen
 lassen; Rot → nur mergen, wenn die Ursache bekannt und im PR-Text
 begründet ist (z. B. erwartete protected-zones-Sperre), sonst melden
-(NACHTRAG 01.11.) — (c) ein 403 von GitHub in Skripten wie
+(NACHTRAG 01.11.); bei rotem `lint_protected_zones` gilt allein die
+protected-ok-Label-Regel 9m — ohne Label nie mergen — (c) ein 403 von GitHub in Skripten wie
 ein mögliches Rate-Limit behandeln: Ursache prüfen und im Bericht nennen.
 
 ---
