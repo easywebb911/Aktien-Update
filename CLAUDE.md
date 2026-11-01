@@ -93,7 +93,9 @@ sein **Urteil** bleibt aber ausdrücklich **BONUS, kein Gatekeeper**:
   Mensch validiert Bedeutung).
 - Liefert der (immer durchgeführte) Lauf keine Findings → das blockiert
   **nichts**; lokale Tests grün + keine Review-Comments — nach dem
-  Guardian-Lauf mit Bericht — bleibt die kanonische Freigabe. Der **Lauf**
+  Guardian-Lauf mit Bericht und mit fertig gelaufenem `pr-checks.yml`
+  (seit 01.11.2026, Regel „Merge- und Datenkorrektur-Disziplin") — bleibt
+  die kanonische Freigabe. Der **Lauf**
   ist Pflicht, aber bewusst **keine GitHub-Actions-Automatik**, sondern
   modell-initiierte Disziplin (Diagnose 03.06.2026: Headless-Automatisierung
   verworfen — Non-Determinismus, Selbst-Review-Blindheit, Alarm-Müdigkeit,
@@ -143,7 +145,9 @@ liefert ein **`check_run`-Event** (rot/grün) an den PR.
 Merge NICHT (keine Branch-Protection-Einstellung). Die Self-Merge-Mechanik
 bleibt unberührt — Claude merged weiter via MCP nach grünen lokalen Tests.
 Der CI-Check ist ein **zusätzliches Sicherheitsnetz** (fängt still gerissene
-Golden-/Lint-Brüche, siehe PR #313), kein Gatekeeper. Bei Rot: nachfixen,
+Golden-/Lint-Brüche, siehe PR #313), kein Gatekeeper. **Seit 01.11.2026:
+vor dem Merge fertig laufen lassen** (siehe Regel „Merge- und Datenkorrektur-
+Disziplin" unten) — das Ergebnis bleibt advisory. Bei Rot: nachfixen,
 neu pushen, dann mergen. **Kein** anderer Workflow triggert auf PR-Push
 (die Cron-Workflows laufen unverändert nur per `schedule`/`dispatch`/`push
 to main`).
@@ -159,7 +163,7 @@ PR-Klassifikation:
 
 | Klassifikation | Lokale Validierung | Standard-Abschluss-Meldung |
 |---|---|---|
-| **Auto-Merge erlaubt** | Mock-Tests grün + AST-Compile grün + Linter grün | Direkt mergen, „PR #N gemerged, branch gelöscht" |
+| **Auto-Merge erlaubt** | Mock-Tests grün + AST-Compile grün + Linter grün + `pr-checks.yml` fertig gelaufen (seit 01.11.2026) | Direkt mergen, „PR #N gemerged, branch gelöscht" |
 | **Manuell-Merge-Pflicht** (Score-Logik, neue Schemas, neue Workflows) | dito | „PR #N **ready for merge** — wartet auf Easy-Freigabe (Klassifikation: \<grund\>)" |
 | **Lokale Tests rot** | irgendein Check fehlgeschlagen | „PR #N **gepusht aber blockiert** — \<konkrete Fehlermeldung\>" |
 
@@ -175,10 +179,16 @@ Gatekeeper).
 
 - „Warte passiv auf Webhook-Events" als Selbstzweck → die Ready-/Merge-
   Meldung kommt zuerst. Der advisory `pr-checks.yml`-Lauf liefert zwar ein
-  `check_run`-Event, blockiert aber nichts — kein Grund, den Merge davon
-  abhängig zu machen (lokale Tests sind die kanonische Freigabe).
-- „CI muss erst grün sein bevor ich mergen darf" → falsch, der Check ist
-  advisory. Lokale Tests grün + keine Review-Comments reicht.
+  `check_run`-Event, blockiert aber nichts — lokale Tests sind die
+  kanonische Freigabe. **Angeglichen 01.11.2026:** der Merge selbst wartet
+  trotzdem, bis der Lauf **fertig** ist (Ergebnis lesen, nicht passiv auf
+  Events warten — Check-Status aktiv abfragen); siehe Regel „Merge- und
+  Datenkorrektur-Disziplin" unten.
+- „CI muss erst grün sein bevor ich mergen darf" → als Gatekeeper-Aussage
+  weiterhin falsch, der Check ist advisory. **Angeglichen 01.11.2026:** er
+  muss aber **fertig gelaufen** sein; bei Rot nachfixen statt mergen (wie
+  oben unter „Wichtig"). Lokale Tests grün + keine Review-Comments + Check
+  durchgelaufen reicht.
 
 **Ausnahme — `subscribe_pr_activity` aktiv:** Wenn Easy explizit „watch
 PR #N" anweist und `subscribe_pr_activity` aufgerufen wurde, dann ist
@@ -4387,6 +4397,41 @@ Claude Code — bei Fall a) eigenständig nach Guardian-Bestätigung, bei
 Fall b) erst nachdem Easy die inhaltliche Freigabe für den konkreten
 PR im Chat explizit erteilt hat. Easy trifft in Fall b) weiterhin die
 Entscheidung; Code führt nur die technische Aktion aus, nie eigenmächtig.
+
+### Merge- und Datenkorrektur-Disziplin (Entscheidung Easy 01.11.2026)
+
+**a) Einmal-Datenkorrekturen erst NACH Merge des zugehörigen Code-Fixes
+ausführen — oder unmittelbar vor dem Merge wiederholen.** Ein Korrektur-
+Skript, das im Fix-PR läuft, erfasst nur die Daten bis zu seinem Lauf;
+alles, was der noch ungefixte Code auf `main` bis zum Merge weiter
+schreibt, bleibt falsch. **Beleg `#608`:** Einmal-Korrektur am 26.10.,
+Merge erst am 30.10. → unkorrigierte +1-Tag-Datierung der Postclose-
+Zeilen 27.–30.10. (zusätzlich teilweise fehlender Postclose-Lauf 30.10.)
+in 6 Dateien (news_coverage_
+history, coverage_history, apewisdom_attention_history, options_chain_raw,
+options_oi_history, reg_sho_history; siehe open_items
+`postclose-datum-rest-27-30okt`). Liegt zwischen Korrektur und Merge
+mehr als ein Daily-/ki_agent-Lauf: Korrektur direkt vor dem Merge erneut
+ausführen (Idempotenz vorausgesetzt) oder als Folge-Schritt nach dem
+Merge.
+
+**b) Auch beratende (advisory) Checks vor dem Merge fertig laufen
+lassen.** `pr-checks.yml` bleibt advisory (blockiert nicht, kein
+Gatekeeper) — gemergt wird aber erst, wenn der Lauf abgeschlossen ist und
+sein Ergebnis gelesen wurde. Rot → erst nachfixen. Anlass: `#624` wurde
+gemergt, während der Check noch lief (Ergebnis nachträglich grün — aber
+das war Glück, nicht Prüfung; Session-Beleg: Check-Status `in_progress`
+11:14 UTC, Merge 11:15:23 UTC, Check `success` 11:15:30 UTC).
+
+**c) Ein HTTP 403 von GitHub in Skripten wie ein mögliches Rate-Limit
+behandeln:** kein Retry-Reflex, Ursache prüfen (Rate-Limit-Header/
+`gh api rate_limit`, Fehlermeldungstext, Berechtigung/Token-Scope,
+gesperrter Endpoint) und die gefundene Ursache im Bericht nennen — nicht
+nur „fail-soft übersprungen". Beispiel `#624`: `check_handover_
+staleness.py` bekam 403 wegen „GitHub GraphQL is not available from
+Claude Code sessions" (gesperrter Endpoint, KEIN Rate-Limit — Session-
+Beleg aus der Skript-Ausgabe; der Fehlertext stammt von `gh`, nicht aus
+dem Skript selbst) → Vergleich von Hand gemacht.
 
 ---
 

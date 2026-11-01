@@ -2817,6 +2817,27 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 - **Klasse: Auto-Merge nach Guardian** (Doku-only).
 
+### 01.11.2026 — Arbeitsregel „Merge- und Datenkorrektur-Disziplin" verankert (1 PR, Auto-Merge)
+
+- Easy-Entscheid 01.11.2026, Lehre aus `#608`/`#624`. `#625` (Branch
+  `claude/arbeitsregeln-nachtrag-r7q2`, kein Merge-Hash — Regel a).
+- **CLAUDE.md:** neuer Unterabschnitt „Merge- und Datenkorrektur-
+  Disziplin" (nach „protected-ok-Label-Regel"): (a) Einmal-Korrekturen
+  nach Merge des Fixes bzw. direkt davor wiederholen, (b) advisory Checks
+  vor dem Merge fertig laufen lassen, (c) GitHub-403 in Skripten als
+  mögliches Rate-Limit behandeln, Ursache im Bericht nennen.
+  **Angeglichen statt Widerspruch stehenlassen:** die zwei Stellen im
+  Abschnitt „PR-Status-Meldung nach Push" („kein Grund, den Merge davon
+  abhängig zu machen" / „CI muss erst grün sein … falsch") tragen jetzt
+  inline den Zusatz „muss fertig gelaufen sein"; advisory-Charakter des
+  Ergebnisses bleibt unverändert.
+- **SESSION_HANDOVER.md:** Pointer-Eintrag 9n.
+- **Keine `.py`-Datei, kein Score-/Filter-/Exit-/Freeze-Touch.**
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#624`,
+  höchste hier erwähnte PR = `#624` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Klasse: Auto-Merge nach Guardian** (Doku-only).
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
@@ -6182,6 +6203,16 @@ bei grünem Check mergen, bleibt er rot: melden, nicht mergen — (d) die
 technische Setz-Aktion (API-Call) übernimmt grundsätzlich Code, weil
 Easy die Label-Funktion am iPhone nicht zuverlässig bedienen kann; bei
 (b) erst nach Easys expliziter Chat-Freigabe für den konkreten PR.
+
+### 9n. Merge- und Datenkorrektur-Disziplin (Entscheidung Easy 01.11.2026)
+
+Volltext in CLAUDE.md, Abschnitt „Arbeits-Regeln für Claude Code" (gleich
+benannter Unterabschnitt). Kurz: (a) Einmal-Datenkorrekturen erst NACH
+Merge des Code-Fixes ausführen oder unmittelbar davor wiederholen — Beleg
+`#608` (Korrektur 26.10., Merge 30.10., Lücke 26.–30.10. in 6 Dateien) —
+(b) auch beratende Checks (`pr-checks.yml`) vor dem Merge fertig laufen
+lassen, Ergebnis bleibt advisory — (c) ein 403 von GitHub in Skripten wie
+ein mögliches Rate-Limit behandeln: Ursache prüfen und im Bericht nennen.
 
 ---
 
