@@ -1,4 +1,4 @@
-# Automatisch aktualisiert: 2026-10-25 12:21 UTC
+# Automatisch aktualisiert: 2026-11-01 14:03 UTC
 """
 Auto-generated watchlist of curated local-exchange tickers per market.
 Updated weekly by update_watchlist.py — do not edit manually.
