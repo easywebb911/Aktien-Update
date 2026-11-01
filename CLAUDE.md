@@ -4340,6 +4340,54 @@ gemergte PR = die eigene Nummer, Rückstand 0) als Fund — der Check
 bleibt unverändert korrekt, keine Anpassung an `check_handover_
 staleness.py` nötig oder vorgenommen.
 
+### protected-ok-Label-Regel (Entscheidung Easy 01.11.2026)
+
+Regelt, wer das Label `protected-ok` — den Ausnahme-Mechanismus von
+`scripts/lint_protected_zones.py` (siehe dessen Docstring für die
+technische Mechanik) — setzen darf, und wie nach dem Setzen vorzugehen
+ist. Gilt für jeden PR (egal ob Claude-initiiert oder `[Wächter]`-PR —
+Letztere bleiben über die Lint-eigene Kern-Garantie ohnehin immer
+ausgenommen, siehe `_pr_is_exempt()`).
+
+**a) Code darf das Label selbst setzen — nur für reine Anzeige-/
+Daten-Stand-Treffer.** Trifft ein PR eine geschützte Zone AUSSCHLIESSLICH
+dadurch, dass er Zähler, Daten-Stände, Status-Felder, Wiedervorlage-
+Daten (`faellig_am`, Terminvermerke) oder reinen Doku-Fließtext ändert —
+NICHT Definitionen, Schwellen, Filter, Seeds, Erfolgskriterien oder
+Auswertungslogik selbst —, darf Claude Code das Label `protected-ok`
+selbst setzen. Voraussetzung: der squeeze-guardian-Lauf bestätigt das
+vor dem Setzen ausdrücklich. Der PR-Text muss im Einzelfall begründen,
+warum dieser Fall vorliegt (welche Zone, welche Art Änderung) — keine
+pauschale Berufung auf diese Regel ohne Einzelbegründung.
+
+**b) Bei jeder Änderung an der Logik selbst bleibt das Label bei Easy.**
+Jede Änderung an Definitionen, Schwellen, Filtern, Seeds,
+Erfolgskriterien oder Auswertungslogik (die Methodik HINTER einer
+geschützten Zone, nicht nur ihr angezeigter Stand) fällt NICHT unter a)
+— das Label setzt dort weiterhin ausschließlich Easy inhaltlich frei,
+auch wenn die technische Setz-Aktion laut d) bei Code liegt.
+
+**c) Nach dem Label-Setzen: frischer Push, NIEMALS Re-Run.**
+`rerun_workflow_run` liest die PR-Labels aus dem ursprünglichen
+Event-Payload (Zustand VOR dem Label-Setzen) und holt sie nicht live
+nach — belegt an `#621` und `#622`, beide Male blieb der Check nach
+einem reinen Re-Run rot, obwohl das Label bereits gesetzt war. Nach
+jedem Setzen von `protected-ok` (ob nach a) oder nach b)) IMMER einen
+frischen Push auslösen (z. B. leerer Commit via
+`git commit --allow-empty`) — das erzeugt ein neues `pull_request`-
+Event mit aktuellem Label-Stand. Erst wenn `lint_protected_zones`
+danach grün ist, mergen. Bleibt er rot: melden, nicht mergen (kein
+zweiter Retry-Reflex per Re-Run — das würde denselben Fehler nur
+wiederholen).
+
+**d) Die technische Setz-Aktion liegt grundsätzlich bei Code.** Easy
+kann die GitHub-Label-Funktion am iPhone nicht zuverlässig bedienen.
+Das Setzen des Labels (der API-Call) übernimmt deshalb grundsätzlich
+Claude Code — bei Fall a) eigenständig nach Guardian-Bestätigung, bei
+Fall b) erst nachdem Easy die inhaltliche Freigabe für den konkreten
+PR im Chat explizit erteilt hat. Easy trifft in Fall b) weiterhin die
+Entscheidung; Code führt nur die technische Aktion aus, nie eigenmächtig.
+
 ---
 
 ## Session-Handover-Regel

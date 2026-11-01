@@ -6078,6 +6078,23 @@ hier nachgetragen):**
 Prompt), nicht im Repo. Wiederholt ein Lit-Check bereits gelistete Funde,
 diese Liste ergänzen.
 
+### 9m. protected-ok-Label-Regel (Entscheidung Easy 01.11.2026)
+
+Volltext in CLAUDE.md, Abschnitt „Arbeits-Regeln für Claude Code" (gleich
+benannter Unterabschnitt). Kurz: (a) Code darf `protected-ok` selbst
+setzen, wenn ein PR eine geschützte Zone NUR über Zähler/Daten-Stand/
+Status/Wiedervorlage-Daten/Doku-Text trifft UND der Guardian das vor dem
+Setzen bestätigt (Begründung Pflicht im PR-Text) — (b) bei jeder
+Änderung an Definitionen/Schwellen/Filtern/Seeds/Erfolgskriterien/
+Auswertungslogik selbst bleibt die inhaltliche Freigabe bei Easy — (c)
+nach dem Setzen IMMER frischer Push (leerer Commit), NIEMALS Re-Run
+(`rerun_workflow_run` liest die Labels aus dem alten Event-Payload —
+belegt an `#621` + `#622`, beide blieben nach reinem Re-Run rot); erst
+bei grünem Check mergen, bleibt er rot: melden, nicht mergen — (d) die
+technische Setz-Aktion (API-Call) übernimmt grundsätzlich Code, weil
+Easy die Label-Funktion am iPhone nicht zuverlässig bedienen kann; bei
+(b) erst nach Easys expliziter Chat-Freigabe für den konkreten PR.
+
 ---
 
 **Ziel dieses Dokuments:** neue Session arbeitet ab Prompt 1 im selben Modus,
