@@ -93,7 +93,9 @@ sein **Urteil** bleibt aber ausdrücklich **BONUS, kein Gatekeeper**:
   Mensch validiert Bedeutung).
 - Liefert der (immer durchgeführte) Lauf keine Findings → das blockiert
   **nichts**; lokale Tests grün + keine Review-Comments — nach dem
-  Guardian-Lauf mit Bericht — bleibt die kanonische Freigabe. Der **Lauf**
+  Guardian-Lauf mit Bericht und mit fertig gelaufenem `pr-checks.yml`
+  (seit 01.11.2026, Regel „Merge- und Datenkorrektur-Disziplin") — bleibt
+  die kanonische Freigabe. Der **Lauf**
   ist Pflicht, aber bewusst **keine GitHub-Actions-Automatik**, sondern
   modell-initiierte Disziplin (Diagnose 03.06.2026: Headless-Automatisierung
   verworfen — Non-Determinismus, Selbst-Review-Blindheit, Alarm-Müdigkeit,
@@ -161,7 +163,7 @@ PR-Klassifikation:
 
 | Klassifikation | Lokale Validierung | Standard-Abschluss-Meldung |
 |---|---|---|
-| **Auto-Merge erlaubt** | Mock-Tests grün + AST-Compile grün + Linter grün | Direkt mergen, „PR #N gemerged, branch gelöscht" |
+| **Auto-Merge erlaubt** | Mock-Tests grün + AST-Compile grün + Linter grün + `pr-checks.yml` fertig gelaufen (seit 01.11.2026) | Direkt mergen, „PR #N gemerged, branch gelöscht" |
 | **Manuell-Merge-Pflicht** (Score-Logik, neue Schemas, neue Workflows) | dito | „PR #N **ready for merge** — wartet auf Easy-Freigabe (Klassifikation: \<grund\>)" |
 | **Lokale Tests rot** | irgendein Check fehlgeschlagen | „PR #N **gepusht aber blockiert** — \<konkrete Fehlermeldung\>" |
 
@@ -4403,7 +4405,9 @@ ausführen — oder unmittelbar vor dem Merge wiederholen.** Ein Korrektur-
 Skript, das im Fix-PR läuft, erfasst nur die Daten bis zu seinem Lauf;
 alles, was der noch ungefixte Code auf `main` bis zum Merge weiter
 schreibt, bleibt falsch. **Beleg `#608`:** Einmal-Korrektur am 26.10.,
-Merge erst am 30.10. → Lücke 26.–30.10. in 6 Dateien (news_coverage_
+Merge erst am 30.10. → unkorrigierte +1-Tag-Datierung der Postclose-
+Zeilen 27.–30.10. (zusätzlich teilweise fehlender Postclose-Lauf 30.10.)
+in 6 Dateien (news_coverage_
 history, coverage_history, apewisdom_attention_history, options_chain_raw,
 options_oi_history, reg_sho_history; siehe open_items
 `postclose-datum-rest-27-30okt`). Liegt zwischen Korrektur und Merge
@@ -4416,7 +4420,8 @@ lassen.** `pr-checks.yml` bleibt advisory (blockiert nicht, kein
 Gatekeeper) — gemergt wird aber erst, wenn der Lauf abgeschlossen ist und
 sein Ergebnis gelesen wurde. Rot → erst nachfixen. Anlass: `#624` wurde
 gemergt, während der Check noch lief (Ergebnis nachträglich grün — aber
-das war Glück, nicht Prüfung).
+das war Glück, nicht Prüfung; Session-Beleg: Check-Status `in_progress`
+11:14 UTC, Merge 11:15:23 UTC, Check `success` 11:15:30 UTC).
 
 **c) Ein HTTP 403 von GitHub in Skripten wie ein mögliches Rate-Limit
 behandeln:** kein Retry-Reflex, Ursache prüfen (Rate-Limit-Header/
@@ -4424,8 +4429,9 @@ behandeln:** kein Retry-Reflex, Ursache prüfen (Rate-Limit-Header/
 gesperrter Endpoint) und die gefundene Ursache im Bericht nennen — nicht
 nur „fail-soft übersprungen". Beispiel `#624`: `check_handover_
 staleness.py` bekam 403 wegen „GitHub GraphQL is not available from
-Claude Code sessions" (gesperrter Endpoint, KEIN Rate-Limit) → Vergleich
-von Hand gemacht.
+Claude Code sessions" (gesperrter Endpoint, KEIN Rate-Limit — Session-
+Beleg aus der Skript-Ausgabe; der Fehlertext stammt von `gh`, nicht aus
+dem Skript selbst) → Vergleich von Hand gemacht.
 
 ---
 
