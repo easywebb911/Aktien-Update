@@ -148,9 +148,11 @@ Der CI-Check ist ein **zusätzliches Sicherheitsnetz** (fängt still gerissene
 Golden-/Lint-Brüche, siehe PR #313), kein Gatekeeper. **Seit 01.11.2026:
 vor dem Merge fertig laufen lassen** (siehe Regel „Merge- und Datenkorrektur-
 Disziplin" unten) — das Ergebnis bleibt advisory. Bei Rot: nachfixen,
-neu pushen, dann mergen. **Kein** anderer Workflow triggert auf PR-Push
-(die Cron-Workflows laufen unverändert nur per `schedule`/`dispatch`/`push
-to main`).
+neu pushen, dann mergen — oder nur mergen, wenn die Ursache bekannt und
+im PR-Text begründet ist (Regel (b) unten; bei rotem
+`lint_protected_zones` gilt allein die protected-ok-Label-Regel).
+**Kein** anderer Workflow triggert auf PR-Push (die Cron-Workflows laufen
+unverändert nur per `schedule`/`dispatch`/`push to main`).
 
 **Konsequenz fürs Warten:** Nach PR-Push KANN jetzt ein `check_run`-Event
 kommen (von pr-checks.yml). Das passive Warten darauf bleibt trotzdem
@@ -186,8 +188,10 @@ Gatekeeper).
   Datenkorrektur-Disziplin" unten.
 - „CI muss erst grün sein bevor ich mergen darf" → als Gatekeeper-Aussage
   weiterhin falsch, der Check ist advisory. **Angeglichen 01.11.2026:** er
-  muss aber **fertig gelaufen** sein; bei Rot nachfixen statt mergen (wie
-  oben unter „Wichtig"). Lokale Tests grün + keine Review-Comments + Check
+  muss aber **fertig gelaufen** sein; bei Rot nachfixen statt mergen,
+  außer die Ursache ist bekannt und im PR-Text begründet (Regel (b)
+  unten; protected-zones nur über die protected-ok-Label-Regel) — sonst
+  melden. Lokale Tests grün + keine Review-Comments + Check
   durchgelaufen reicht.
 
 **Ausnahme — `subscribe_pr_activity` aktiv:** Wenn Easy explizit „watch
@@ -4418,7 +4422,15 @@ Merge.
 **b) Auch beratende (advisory) Checks vor dem Merge fertig laufen
 lassen.** `pr-checks.yml` bleibt advisory (blockiert nicht, kein
 Gatekeeper) — gemergt wird aber erst, wenn der Lauf abgeschlossen ist und
-sein Ergebnis gelesen wurde. Rot → erst nachfixen. Anlass: `#624` wurde
+sein Ergebnis gelesen wurde. **Rot → nur mergen, wenn die Ursache
+bekannt und im PR-Text begründet ist** (z. B. erwartete
+protected-zones-Sperre); **sonst melden, nicht mergen** (NACHTRAG Easy
+01.11.2026). **Ist `lint_protected_zones` rot, gilt ausschließlich die
+protected-ok-Label-Regel a)–d) oben — ohne gesetztes Label wird nie
+gemergt** (Klarstellung Easy 01.11.2026; „erwartete protected-zones-
+Sperre" meint also nur den Fall, dass das Label nach a)/b) bereits
+gesetzt ist bzw. gesetzt wird). Regel c) dort (nach dem Label-Setzen
+frischer Push, Lint muss grün sein, sonst melden) bleibt unberührt. Anlass: `#624` wurde
 gemergt, während der Check noch lief (Ergebnis nachträglich grün — aber
 das war Glück, nicht Prüfung; Session-Beleg: Check-Status `in_progress`
 11:14 UTC, Merge 11:15:23 UTC, Check `success` 11:15:30 UTC).
