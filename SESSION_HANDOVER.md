@@ -2838,6 +2838,22 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 - **Klasse: Auto-Merge nach Guardian** (Doku-only).
 
+### 01.11.2026 — NACHTRAG Regel (b): Merge bei rotem Check nur mit begründeter Ursache (1 PR, Auto-Merge)
+
+- Easy-NACHTRAG 01.11.2026 zu `#625`: `__PR__` (Branch
+  `claude/regel-b-rot-merge-n4x8`, kein Merge-Hash — Regel a).
+- **CLAUDE.md Regel (b):** Check muss fertig sein; Rot → nur mergen, wenn
+  die Ursache bekannt und im PR-Text begründet ist (z. B. erwartete
+  protected-zones-Sperre), sonst melden, nicht mergen. Die zwei
+  Folgestellen im Abschnitt „PR-Status-Meldung nach Push" inline
+  angeglichen; Pointer 9n ergänzt. protected-ok-Label-Regel c) bleibt
+  unverändert (dort: nach Label-Setzen muss der Lint grün sein).
+- **Keine `.py`-Datei, kein Score-/Filter-/Exit-/Freeze-Touch.**
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#625`,
+  höchste hier erwähnte PR = `#625` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Klasse: Auto-Merge nach Guardian** (Doku-only).
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
@@ -6211,7 +6227,9 @@ benannter Unterabschnitt). Kurz: (a) Einmal-Datenkorrekturen erst NACH
 Merge des Code-Fixes ausführen oder unmittelbar davor wiederholen — Beleg
 `#608` (Korrektur 26.10., Merge 30.10., Lücke 26.–30.10. in 6 Dateien) —
 (b) auch beratende Checks (`pr-checks.yml`) vor dem Merge fertig laufen
-lassen, Ergebnis bleibt advisory — (c) ein 403 von GitHub in Skripten wie
+lassen; Rot → nur mergen, wenn die Ursache bekannt und im PR-Text
+begründet ist (z. B. erwartete protected-zones-Sperre), sonst melden
+(NACHTRAG 01.11.) — (c) ein 403 von GitHub in Skripten wie
 ein mögliches Rate-Limit behandeln: Ursache prüfen und im Bericht nennen.
 
 ---
