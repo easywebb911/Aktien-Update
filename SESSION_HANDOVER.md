@@ -2794,7 +2794,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 - Easy-Entscheid 01.11.2026 zu Befund 2: die nach `#608` verbliebenen
   +1-Tag-Postclose-Zeilen 27.–30.10.2026 werden **NICHT nachkorrigiert**.
-  `__PR__` (Branch `claude/postclose-datum-rest-docs-k3v7`, kein
+  `#624` (Branch `claude/postclose-datum-rest-docs-k3v7`, kein
   Merge-Hash — Regel a).
 - **Read-only-Diagnose vorab:** alle Datums-schreibenden Dateien gegen den
   eigenen Zeitstempel (US/Eastern) geprüft. Zusätzlich zu
