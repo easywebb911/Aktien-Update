@@ -2729,6 +2729,41 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Klasse: Auto-Merge nach Guardian** (Doku-only) — benötigt aber
   trotzdem das `protected-ok`-Label wegen des §4-Zonentreffers.
 
+### 01.11.2026 — protected-ok-Label-Regel fest verankert (1 PR, Auto-Merge)
+
+- Easy-Entscheid (01.11.2026): feste Prozessregel für das Label
+  `protected-ok` in CLAUDE.md + SESSION_HANDOVER.md verankern — Anlass
+  war die zweifach belegte Re-Run-liest-alte-Labels-Falle (`#621`,
+  `#622`). `#623` (Branch-Commit `b785d815`, 01.11., kein Merge-Hash —
+  Regel a, PR noch offen/Ready).
+- **CLAUDE.md:** neuer Unterabschnitt „protected-ok-Label-Regel" im
+  Block „Arbeits-Regeln für Claude Code" (nach „Block-1-Pflicht") — vier
+  Punkte: (a) Code darf das Label selbst setzen, wenn ein PR eine
+  geschützte Zone NUR über Zähler/Daten-Stand/Status/Wiedervorlage-
+  Daten/Doku-Text trifft UND Guardian das vor dem Setzen bestätigt
+  (Einzelfall-Begründung im PR-Text Pflicht); (b) bei jeder Änderung an
+  Definitionen/Schwellen/Filtern/Seeds/Erfolgskriterien/Auswertungslogik
+  selbst bleibt die inhaltliche Freigabe bei Easy; (c) danach immer
+  frischer Push (leerer Commit), NIEMALS Re-Run — erst bei grünem Check
+  mergen, bleibt er rot: melden statt Retry; (d) die technische
+  Setz-Aktion übernimmt grundsätzlich Code (Easy kann die Label-Funktion
+  am iPhone nicht bedienen), bei (b) erst nach Easys expliziter
+  Chat-Freigabe für den konkreten PR.
+- **SESSION_HANDOVER.md:** kompakter Pointer-Eintrag (9m.) im Abschnitt
+  9, verweist auf CLAUDE.md als Volltext-Quelle (Codebase-Wahrheit-
+  Konvention, §9 letzter Satz).
+- **Kein Score-/Filter-/Exit-/Freeze-Touch, keine `.py`-Datei berührt**
+  — `run_ci_mock_tests.py` unverändert 168/168 grün.
+- **`lint_protected_zones.py` meldet KEINEN Fund** (lokal gegen
+  `origin/main` geprüft) — die SESSION_HANDOVER.md-Änderung liegt in
+  Abschnitt 9, außerhalb jeder `VORABREGISTRIERUNG`/`ERRATUM`-Zone.
+  Kein Label für diesen PR selbst nötig.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` =
+  `#622`, höchste hier erwähnte PR = `#622` — kein Rückstand vor diesem
+  Eintrag.
+- **Guardian-Lauf vor Ready:** siehe Bericht.
+- **Klasse: Auto-Merge nach Guardian** (Doku-only, kein Zonentreffer).
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
