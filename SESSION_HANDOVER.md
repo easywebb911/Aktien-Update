@@ -2908,7 +2908,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — Gruppe A: Kollisions-Zählung im Einmal-Skript fix_trading_dates_oneoff (1 PR, Auto-Merge)
 
-- Monatsrundgang 02.11.2026, Gruppe A: `__PR__` (Branch
+- Monatsrundgang 02.11.2026, Gruppe A: `#629` (Branch
   `claude/oneoff-collision-count-p2w8`, kein Merge-Hash — Regel a).
 - **`scripts/fix_trading_dates_oneoff.py`:** `fix_jsonl` sammelt alle Zeilen
   je Ziel-Key; Gruppe mit >1 verschiedenen Inhalten → **jede** Zeile
