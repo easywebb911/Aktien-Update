@@ -3048,11 +3048,14 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Abgleich als Multiset (`collections.Counter`) — ein Eintrag deckt genau ein
   Vorkommen. Eingefügte Leerzeilen/Zeilen oberhalb lassen den Lint grün; neue
   Fundstelle, Kopie einer gedeckten Zeile, andere Funktion oder geänderter
-  Zeilentext machen weiter rot.
+  Zeilentext machen weiter rot. **Guardian-Finding** umgesetzt: ein
+  unverbrauchter (stale) Baseline-Eintrag macht den Lint ebenfalls rot —
+  die Baseline darf nur schrumpfen.
 - **Nachweis:** alter vs. neuer Lint auf `main` decken exakt dieselben 36
   Fundstellen (maschinell verglichen, Gegenüberstellung im PR-Text).
 - **Tests** `mock_test_lint_nan_bypass_fields.py`: F/F2/F2b/F3/F3b/F3c/F4
-  ersetzen die alten Zeilennummern-Tests, 11/11 grün; CI-Runner 169/169.
+  ersetzen die alten Zeilennummern-Tests, + F5/F5b/F5c (stale), 12/12 grün;
+  CI-Runner 169/169.
 - `open_items`: `nan-lint-baseline-zeilennummern-fragil` → `erledigt`.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#635`,
   höchste hier erwähnte PR = `#635` — kein Rückstand vor diesem Eintrag.

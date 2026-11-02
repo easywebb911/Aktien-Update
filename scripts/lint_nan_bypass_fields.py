@@ -66,6 +66,8 @@ sondern „bekannt offen, noch nicht gefixt"). Der Lint ist dadurch bei
 Einführung grün, fängt aber jede NEUE Instanz (andere Datei/Zeile/Feld)
 sofort (Multiset: ein Eintrag deckt genau ein Vorkommen). Jede Baseline-Zeile ist ein offener Fix-Kandidat für einen
 eigenen Folge-PR — beim Fixen den Eintrag entfernen, nicht stehen lassen.
+Seit #636 erzwungen: ein Baseline-Eintrag ohne passenden Fund
+(stale) macht den Lint ebenfalls rot — die Baseline darf nur schrumpfen.
 
 Exit-Code 0 = OK, 1 = Fail. Bei Fail werden Datei, Funktion, Zeile und
 Feldname geloggt.
@@ -332,9 +334,12 @@ class _RiskyOrVisitor(ast.NodeVisitor):
         self.parent_stack.pop()
 
 
-def _scan_file(rel_path: str) -> list[tuple[str, int, str, str, str]]:
-    """Returnt Liste (rel_path, lineno, func_name, field, snippet) für
-    NICHT-ausgeschlossene Funde in dieser Datei."""
+def _scan_file_with_budget(rel_path: str):
+    """Wie _scan_file, liefert zusätzlich das UNVERBRAUCHTE Baseline-Budget
+    dieser Datei als Liste (rel_path, func, field, text) — ein Eintrag pro
+    nicht gedecktem Vorkommen (Guardian-Finding #636: stale Einträge dürfen
+    nicht liegen bleiben, sonst deckt eine später neu kopierte identische
+    Zeile still einen echten NEUEN Fund)."""
     path = ROOT / rel_path
     src = path.read_text(encoding="utf-8")
     tree = ast.parse(src, filename=rel_path)
@@ -352,21 +357,51 @@ def _scan_file(rel_path: str) -> list[tuple[str, int, str, str, str]]:
             budget[key] -= 1
             continue
         out.append((rel_path, lineno, func_name, field, snippet))
-    return out
+    stale = [(rel_path, fn, fld, txt)
+             for (fn, fld, txt), n in sorted(budget.items()) for _ in range(n)]
+    return out, stale
+
+
+def _scan_file(rel_path: str) -> list[tuple[str, int, str, str, str]]:
+    """Returnt Liste (rel_path, lineno, func_name, field, snippet) für
+    NICHT-ausgeschlossene Funde in dieser Datei."""
+    return _scan_file_with_budget(rel_path)[0]
 
 
 def main() -> int:
     all_findings: list[tuple[str, int, str, str, str]] = []
+    stale: list[tuple[str, str, str, str]] = []
+    scanned: set[str] = set()
     for rel_path in _SCAN_FILES:
         if not (ROOT / rel_path).exists():
             continue
-        all_findings.extend(_scan_file(rel_path))
+        scanned.add(rel_path)
+        found, left = _scan_file_with_budget(rel_path)
+        all_findings.extend(found)
+        stale.extend(left)
+    # Baseline-Einträge für nicht (mehr) gescannte Dateien sind ebenfalls stale.
+    stale.extend(e for e in _BASELINE_KNOWN_OPEN if e[0] not in scanned)
 
-    if not all_findings:
+    if stale:
+        print(f"FEHLER: {len(stale)} veraltete Baseline-Einträge in "
+              f"_BASELINE_KNOWN_OPEN (kein passender Fund mehr im Code):",
+              file=sys.stderr)
+        for rel_path, func_name, field, text in stale:
+            print(f"  {rel_path}  in {func_name}()  Feld={field!r}",
+                  file=sys.stderr)
+            print(f"    {text}", file=sys.stderr)
+        print("\nFix: Fundstelle repariert oder Zeile geändert -> den Eintrag\n"
+              "aus _BASELINE_KNOWN_OPEN entfernen (bzw. bei reinem Umbau den\n"
+              "Zeilentext nachziehen). Die Baseline darf nur schrumpfen.",
+              file=sys.stderr)
+
+    if not all_findings and not stale:
         print(f"OK: Keine unbewachten '.get(feld) or 0'-Muster bei "
               f"{len(_ALLOWLIST_FIELDS)} Allowlist-Feldern in "
               f"{len(_SCAN_FILES)} Dateien gefunden.")
         return 0
+    if not all_findings:
+        return 1
 
     print(f"FEHLER: {len(all_findings)} unbewachte NaN-Bypass-Muster "
           f"(.get(feld) or 0 bei bekannten NaN-fähigen Feldern):",
