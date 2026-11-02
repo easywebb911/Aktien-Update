@@ -3063,7 +3063,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — Earnings-Termin auf Watchlist-Karten außerhalb der Top-10 (1 PR, Anzeige)
 
-- Easy-Entscheid 02.11.2026: `#__PR__` (Branch
+- Easy-Entscheid 02.11.2026: `#637` (Branch
   `claude/watchlist-earnings-datum-k7q3`, kein Merge-Hash — Regel a).
 - **`generate_report.py`:** neuer Helper `_wl_earnings_from_agent_signals`
   (+ `_load_agent_signals_for_display`). Watchlist-Ticker **außerhalb** der
