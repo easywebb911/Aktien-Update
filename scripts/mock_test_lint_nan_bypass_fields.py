@@ -14,8 +14,9 @@ Pflicht-Szenarien laut Aufgabenstellung:
 Zusätzlich (Robustheit der zweistufigen Sicherheits-Gegenprobe):
   (d) int(...)-Cast um den ganzen Ausdruck -> kein Fund (ValueError-Guard)
   (e) .get(...) in eine Wrapper-Funktion eingebettet -> kein Fund
-  (f) Baseline-Mechanismus (_BASELINE_KNOWN_OPEN, Datei+Zeile+Feld) statt
-      _EXCEPTIONS (Funktions-Name+Feld) unterdrückt denselben Fund
+  (f) Baseline-Mechanismus (_BASELINE_KNOWN_OPEN, seit 02.11.2026
+      Datei+Funktion+Feld+Zeilentext, Multiset): unterdrückt den Fund, bleibt
+      bei eingefügten Leerzeilen grün, meldet neue echte Funde weiterhin
   (g) Regression: der echte, aktuelle Repo-Code ist grün (kein neuer,
       unbewachter Fund außerhalb Baseline/Exceptions) — das ist der
       tatsächliche CI-Gate-Zustand, den dieser Linter ab jetzt hält.
@@ -165,38 +166,70 @@ def test_e_wrapped_in_function_no_finding():
                rc == 0, f"rc={rc}")
 
 
-# ── (f) Baseline-Mechanismus (Datei+Zeile+Feld statt Funktion+Feld) ─────
+# ── (f) Baseline-Mechanismus, inhaltsbasiert seit 02.11.2026 ────────────
+#    (Datei, Funktion, Feld, normalisierter Zeilentext) statt Zeilennummer.
+
+_BL_RISKY = (("generate_report.py", "risk_assessment", "short_float",
+              'sf = stock.get("short_float") or 0'),)
+
+_SRC_RISKY_DUP = '''
+def risk_assessment(stock):
+    sf = stock.get("short_float") or 0
+    sf = stock.get("short_float") or 0
+    return sf
+'''
+
+_SRC_RISKY_OTHER_FUNC = _SRC_RISKY + '''
+def short_situation(stock):
+    sf = stock.get("short_float") or 0
+    return sf
+'''
 
 
-def test_f_baseline_suppresses_by_file_line_field():
-    orig_baseline = lint._BASELINE_KNOWN_OPEN
+def _with_baseline(bl, src):
+    orig = lint._BASELINE_KNOWN_OPEN
     try:
-        lint._BASELINE_KNOWN_OPEN = frozenset({
-            ("generate_report.py", 3, "short_float"),
-        })
-        with _FixtureRepo("generate_report.py", _SRC_RISKY):
-            rc = lint.main()
-            _check("F Baseline (Datei+Zeile+Feld) -> exit 0", rc == 0, f"rc={rc}")
+        lint._BASELINE_KNOWN_OPEN = bl
+        with _FixtureRepo("generate_report.py", src):
+            return lint.main()
     finally:
-        lint._BASELINE_KNOWN_OPEN = orig_baseline
+        lint._BASELINE_KNOWN_OPEN = orig
 
 
-def test_f2_baseline_does_not_suppress_different_line():
-    """Baseline ist zeilen-scharf — verschiebt sich der Fund auf eine
-    ANDERE Zeile im selben (Datei,Feld), bleibt es ein Fund (bewusst
-    fragiler als _EXCEPTIONS, siehe Docstring)."""
-    src_shifted = '\n\n' + _SRC_RISKY  # verschiebt die Fund-Zeile um 2
-    orig_baseline = lint._BASELINE_KNOWN_OPEN
-    try:
-        lint._BASELINE_KNOWN_OPEN = frozenset({
-            ("generate_report.py", 3, "short_float"),  # alte Zeile
-        })
-        with _FixtureRepo("generate_report.py", src_shifted):
-            rc = lint.main()
-            _check("F2 Baseline greift NICHT bei verschobener Zeile -> exit 1",
-                   rc == 1, f"rc={rc}")
-    finally:
-        lint._BASELINE_KNOWN_OPEN = orig_baseline
+def test_f_baseline_suppresses_by_content():
+    rc = _with_baseline(_BL_RISKY, _SRC_RISKY)
+    _check("F Baseline (Datei+Funktion+Feld+Text) -> exit 0", rc == 0, f"rc={rc}")
+
+
+def test_f2_blank_line_shift_stays_green():
+    """Kern der Umstellung: eine eingefügte Leerzeile (oder neue Zeilen
+    oberhalb) darf den Lint NICHT mehr rot machen."""
+    rc = _with_baseline(_BL_RISKY, "\n\n" + _SRC_RISKY)
+    _check("F2 eingefügte Leerzeilen -> weiterhin exit 0", rc == 0, f"rc={rc}")
+    src_ws = _SRC_RISKY.replace('sf = stock.get("short_float") or 0',
+                                'sf  =  stock.get("short_float")  or 0')
+    rc2 = _with_baseline(_BL_RISKY, src_ws)
+    _check("F2b nur Whitespace in der Zeile geändert -> exit 0", rc2 == 0, f"rc={rc2}")
+
+
+def test_f3_new_real_finding_still_red():
+    """Eine NEUE echte Fundstelle muss weiterhin rot machen — auch als
+    identische Kopie einer gedeckten Zeile (Multiset: 1 Eintrag deckt 1
+    Vorkommen), in einer anderen Funktion, oder bei geändertem Zeilentext."""
+    rc = _with_baseline(_BL_RISKY, _SRC_RISKY_DUP)
+    _check("F3 identische zweite Zeile (nicht in Baseline) -> exit 1", rc == 1, f"rc={rc}")
+    rc2 = _with_baseline(_BL_RISKY, _SRC_RISKY_OTHER_FUNC)
+    _check("F3b gleiche Zeile in anderer Funktion -> exit 1", rc2 == 1, f"rc={rc2}")
+    rc3 = _with_baseline(_BL_RISKY, _SRC_RISKY.replace(
+        'sf = stock.get("short_float") or 0', 'sf = 1 + (stock.get("short_float") or 0)'))
+    _check("F3c Zeilentext inhaltlich geändert -> exit 1 (Refactor wird sichtbar)",
+           rc3 == 1, f"rc={rc3}")
+
+
+def test_f4_multiset_two_entries_cover_two():
+    rc = _with_baseline(_BL_RISKY + _BL_RISKY, _SRC_RISKY_DUP)
+    _check("F4 zwei identische Baseline-Einträge decken genau zwei Vorkommen -> exit 0",
+           rc == 0, f"rc={rc}")
 
 
 # ── (g) Regression: echter, aktueller Repo-Code ist grün ────────────────
@@ -205,7 +238,7 @@ def test_f2_baseline_does_not_suppress_different_line():
 def test_g_real_repo_is_currently_clean():
     """Kein Fixture-Test — bewusste EINZIGE Ausnahme, die den echten
     Repo-Code prüft: bestätigt den GEGENWÄRTIGEN CI-Gate-Zustand (Baseline
-    deckt exakt die 70 bekannten Funde ab). Nicht Teil der isolierten
+    deckt exakt die bekannten offenen Funde ab). Nicht Teil der isolierten
     Determinismus-Tests oben — dient nur als Smoke-Test, dass main() nach
     Einführung tatsächlich grün ist."""
     rc = lint.main()
@@ -221,8 +254,10 @@ def main() -> int:
         test_c_non_allowlist_field_no_false_positive,
         test_d_int_cast_guard_no_finding,
         test_e_wrapped_in_function_no_finding,
-        test_f_baseline_suppresses_by_file_line_field,
-        test_f2_baseline_does_not_suppress_different_line,
+        test_f_baseline_suppresses_by_content,
+        test_f2_blank_line_shift_stays_green,
+        test_f3_new_real_finding_still_red,
+        test_f4_multiset_two_entries_cover_two,
         test_g_real_repo_is_currently_clean,
     ]
     for t in tests:

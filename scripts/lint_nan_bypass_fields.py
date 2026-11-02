@@ -59,11 +59,12 @@ Gruppe-A-Bugs (z. B. ``risk_assessment()``, ``short_situation()``,
 „Konsument-bereits-sicher"-Fälle. Ein Lint, der ab Einführung dauerhaft
 rot ist, widerspricht dem Repo-Grundsatz „Signal statt Rauschen"
 (Alarm-Müdigkeit) — deshalb wurden alle 70 als Momentaufnahme in
-``_BASELINE_KNOWN_OPEN`` eingetragen (Schlüssel MIT Zeilennummer, bewusst
+``_BASELINE_KNOWN_OPEN`` eingetragen (seit 02.11.2026 inhaltsbasiert:
+Datei+Funktion+Feld+Zeilentext statt Zeilennummer, bewusst
 GETRENNT von ``_EXCEPTIONS`` — Baseline heißt NICHT „geprüft und sicher",
 sondern „bekannt offen, noch nicht gefixt"). Der Lint ist dadurch bei
 Einführung grün, fängt aber jede NEUE Instanz (andere Datei/Zeile/Feld)
-sofort. Jede Baseline-Zeile ist ein offener Fix-Kandidat für einen
+sofort (Multiset: ein Eintrag deckt genau ein Vorkommen). Jede Baseline-Zeile ist ein offener Fix-Kandidat für einen
 eigenen Folge-PR — beim Fixen den Eintrag entfernen, nicht stehen lassen.
 
 Exit-Code 0 = OK, 1 = Fail. Bei Fail werden Datei, Funktion, Zeile und
@@ -83,6 +84,7 @@ Verdrahtung; korrigiert).
 from __future__ import annotations
 
 import ast
+import collections
 import pathlib
 import sys
 
@@ -139,115 +141,112 @@ _EXCEPTIONS: frozenset[tuple[str, str, str]] = frozenset({
     ("backtest_history.py", "_build_backtest_extension", "avg_vol_20d"),
 })
 
-# ── Baseline: Alt-Bestand zum Zeitpunkt der Lint-Einführung ─────────────
+# ── Baseline: bekannt offene Alt-Funde (inhaltsbasiert seit 02.11.2026) ─
 # NICHT zu verwechseln mit _EXCEPTIONS oben (dort: nachweislich sicher).
-# Diese Liste sind GENUINE, noch OFFENE Gruppe-A-Fundstellen (Diagnose
-# 21.-22.09.2026), die beim ersten echten Lint-Lauf (22.09.2026) auftraten
-# -- absichtlich NICHT in diesem PR mitgefixt (Sequenz-Regel: nur melden,
-# nicht mitfixen). Ohne diese Baseline wäre der Lint ab Einführung dauerhaft
-# rot -- Alarm-Müdigkeit, widerspricht dem Repo-Grundsatz "Signal statt
-# Rauschen". Schlüssel bewusst (Datei, Zeile, Feld) MIT Zeilennummer --
-# anders als _EXCEPTIONS (dort: strukturelle Funktions-Eigenschaft, Zeile
-# irrelevant) ist eine Baseline-Zeile ein MOMENTAUFNAHME-Fund: verschiebt
-# sich der Code, soll ein Refactor das erneut sichtbar machen, statt
-# stillschweigend weiter zu decken (bewusst fragiler als _EXCEPTIONS).
+# Diese Liste sind GENUINE, noch OFFENE Fundstellen -- seit 02.11.2026 genau
+# die geparkte "Gruppe 1" (Score-/Freeze-/Push-/Exit-Pfad, open_items
+# nan-bypass-baseline-70, Wiedervorlage 03.12.2026). Sie decken einen Fund
+# nur, solange er unverändert an seiner Stelle steht -- NICHT "geprüft und
+# sicher".
 #
-# ABBAU-PFAD: jede Zeile hier ist ein offener Fix-Kandidat für einen
-# eigenen Folge-PR (Klassifikation dort selbst prüfen -- viele davon
-# berühren risk_assessment()/short_situation()/_build_card_ctx()/
-# compute_exit_score() u.ä., die laut Diagnose potenziell Manual-Merge-
-# pflichtig sind). Bei einem Fix: den Eintrag HIER entfernen, nicht stehen
-# lassen -- sonst verdeckt die Baseline den eigenen Fortschritt.
-# 70 Einträge, generiert 22.09.2026 aus dem ersten echten Lint-Lauf
-# LINE-SHIFT-FRAGILITÄT (bereits einmal in PR #565 aufgetreten, hier
-# erneut 30.09.2026 durch den hist_5d_gap_log-Folge-PR zu #561): jede
-# Einfügung VOR einer der generate_report.py-Zeilennummern unten
-# verschiebt ALLE nachfolgenden Einträge. Bei Drift: den exakten Diff
-# einsehen (git diff -- generate_report.py), pro Hunk die addierten
-# Zeilen zählen, die Verschiebung kumulativ auf die betroffenen
-# Zeilennummern anwenden -- NICHT den Lint deaktivieren oder blind neu
-# generieren (das würde echte neue Funde verschlucken).
-_BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
-    ("alert.py", 217, "regularMarketChangePercent"),
-    ("alert.py", 218, "shortPercentOfFloat"),
-    ("alert.py", 219, "shortRatio"),
-    ("alert.py", 261, "shortPercentOfFloat"),
-    ("alert.py", 267, "shortRatio"),
-    ("alert.py", 268, "regularMarketPrice"),
-    ("alert.py", 269, "regularMarketChangePercent"),
-    ("backtest_bootstrap.py", 146, "shortRatio"),
-    ("generate_report.py", 672, "shortPercentOfFloat"),
-    ("generate_report.py", 679, "regularMarketChangePercent"),
-    ("generate_report.py", 682, "shortRatio"),
-    ("generate_report.py", 1064, "shortRatio"),
-    ("generate_report.py", 1065, "shortPercentOfFloat"),
-    ("generate_report.py", 1078, "floatShares"),
-    ("generate_report.py", 1523, "shortRatio"),
-    ("generate_report.py", 1524, "shortPercentOfFloat"),
-    ("generate_report.py", 1542, "floatShares"),
-    # Stiller-Leer-Ausfall-PR (22.10.2026): neue n_mit_daten-Akkumulator-
-    # Felder/Call-Site-Zähler in generate_report.py UND ki_agent.py, plus
-    # 4 neue Import-Zeilen in health_check.py (COVERAGE_SILENT_EMPTY_*)
-    # verschieben ALLE folgenden Funde weiter. Reine Zeilen-Nachführung
-    # derselben, weiterhin offenen Funde — KEIN inhaltlicher Fix, die NaN-
-    # Bypass-Stellen selbst sind unverändert und bleiben eigene Fix-
-    # Kandidaten für Folge-PRs. Werte unten sind die aktuelle, per Lint-Lauf
-    # verifizierte Ist-Lage (``python3 scripts/lint_nan_bypass_fields.py``
-    # nach diesem PR), nicht erneut manuell nachgerechnet.
-    #
-    # Reddit-Aufmerksamkeits-Schattensammlung (ApeWisdom, 23.10.2026): neue
-    # Fetch-/Persist-Funktionen in generate_report.py (vor Zeile 4471) + eine
-    # neue Import-Zeile in health_check.py (APEWISDOM_ATTENTION_LOG_FILE)
-    # verschieben erneut ALLE generate_report.py-Funde ab Zeile 3017 (alt)
-    # sowie die eine health_check.py-Zeile. Per Diff-Hunk-Arithmetik exakt
-    # nachgerechnet und gegen den frischen Lint-Lauf verifiziert (reine
-    # Zeilen-Nachführung, KEIN inhaltlicher Fix).
-    ("generate_report.py", 3394, "float_shares"),
-    ("generate_report.py", 3419, "float_shares"),
-    ("generate_report.py", 4865, "rsi14"),
-    ("generate_report.py", 4897, "score"),
-    ("generate_report.py", 5583, "float_shares"),
-    # Trading-Date-Fix (26.10.2026, Wächter-Befund): neue `import
-    # trading_date`-Zeilen in generate_report.py/health_check.py/
-    # ki_agent.py + ein neuer `_us_trading_date_iso`-Berechnungs-Block in
-    # main() verschieben ALLE folgenden Funde in diesen drei Dateien
-    # weiter. Reine Zeilen-Nachführung derselben, weiterhin offenen
-    # Funde — KEIN inhaltlicher Fix. Werte unten per frischem Lint-Lauf
-    # nach diesem PR verifiziert.
-    # Exit-Druck-Unvalidiert-Caption (30.10.2026, Easy-Entscheid Variante B):
-    # buildPositionStatus()'s pressureLine-Template wuchs von 1 auf 6 Zeilen
-    # (Kommentar + zweizeiliges Template-Literal) -- verschiebt ALLE
-    # folgenden Funde in generate_report.py um +5. Reine Zeilen-Nachführung
-    # derselben, weiterhin offenen Funde -- KEIN inhaltlicher Fix.
-    #
-    # Lost-Update-Fix gistLoad/gistSave (31.10.2026): ein 12-Zeilen-
-    # Kommentarblock + ``force``-Parameter in ``gistLoad()`` verschiebt
-    # ALLE folgenden Funde um weitere +12, plus ein Guardian-Fund-
-    # Nachtrag (ehrliche Race-Window-Grenze, 13 weitere Zeilen) um
-    # nochmal +13. Erneut reine Zeilen-Nachführung derselben, weiterhin
-    # offenen Funde -- KEIN inhaltlicher Fix. Werte unten per frischem
-    # Lint-Lauf nach diesem PR verifiziert.
-    ("generate_report.py", 17281, "entry_price"),
-    ("generate_report.py", 17290, "price"),
-    ("generate_report.py", 17314, "setup_today"),
-    ("generate_report.py", 18071, "score"),
-    ("generate_report.py", 18580, "score"),
-    ("generate_report.py", 19140, "score"),
-    ("generate_report.py", 19183, "score"),
-    ("generate_report.py", 19373, "score"),
-    # Position-Watchlist-Wächter (31.10.2026): eine neue ``import re``-
-    # Zeile ganz oben in health_check.py (für den Ticker-Validierungs-
-    # Regex des neuen Wächters) verschiebt den einzigen health_check.py-
-    # Fund um +1. Reine Zeilen-Nachführung desselben, weiterhin offenen
-    # Funds — KEIN inhaltlicher Fix. Per frischem Lint-Lauf nach diesem
-    # PR verifiziert.
-    ("health_check.py", 649, "score"),
-    ("ki_agent.py", 1368, "last_price"),
-    ("ki_agent.py", 2730, "score"),
-    ("ki_agent.py", 2738, "rvol_4d"),
-    ("ki_agent.py", 2742, "rvol_4d"),
-    ("ki_agent.py", 3206, "rvol_4d"),
-})
+# SCHLÜSSEL (Easy-Entscheid 02.11.2026, open_items
+# nan-lint-baseline-zeilennummern-fragil): (Datei, umgebende Funktion, Feld,
+# normalisierter Zeilentext) statt (Datei, Zeile, Feld). Grund: der alte
+# Zeilen-Schlüssel riss bei JEDER Einfügung oberhalb einer Fundstelle
+# (#565, hist_5d-Folge-PR, #623, #630, #633, #635) und musste von Hand per
+# Diff-Abbildung nachgezogen werden. Normalisierung = Whitespace auf ein
+# Leerzeichen zusammengezogen, Ränder abgeschnitten (_norm_snippet).
+#   - Verschiebt sich der Code (Leerzeilen, neue Funktionen darüber):
+#     Lint bleibt grün.
+#   - Wird die Fund-ZEILE selbst geändert (Refactor, anderer Ausdruck) oder
+#     wandert sie in eine andere Funktion: Fund wird wieder SICHTBAR (gewollt).
+#   - MULTISET: ein Eintrag deckt genau EIN Vorkommen. Steht dieselbe Zeile
+#     (gleiche Funktion/Feld/Text) zweimal in der Baseline, sind genau zwei
+#     Vorkommen gedeckt; eine dritte, neu kopierte identische Zeile wird
+#     trotzdem gemeldet.
+# ABBAU-PFAD: beim Fix den Eintrag HIER entfernen -- die Liste darf nur
+# schrumpfen.
+_BASELINE_KNOWN_OPEN: tuple[tuple[str, str, str, str], ...] = (
+    ("alert.py", "fetch_live", "regularMarketChangePercent",
+     "chg_pct = float(info.get(\"regularMarketChangePercent\") or 0.0)"),
+    ("alert.py", "fetch_live", "shortPercentOfFloat",
+     "sf = float(info.get(\"shortPercentOfFloat\") or 0.0) * 100"),
+    ("alert.py", "fetch_live", "shortRatio",
+     "sr = float(info.get(\"shortRatio\") or 0.0)"),
+    ("alert.py", "fetch_screener_candidates", "regularMarketChangePercent",
+     "\"change_pct\": float(q.get(\"regularMarketChangePercent\") or 0.0),"),
+    ("alert.py", "fetch_screener_candidates", "regularMarketPrice",
+     "\"price\": float(q.get(\"regularMarketPrice\") or 0.0),"),
+    ("alert.py", "fetch_screener_candidates", "shortPercentOfFloat",
+     "sf = float(q.get(\"shortPercentOfFloat\") or 0.0)"),
+    ("alert.py", "fetch_screener_candidates", "shortRatio",
+     "\"short_ratio\": float(q.get(\"shortRatio\") or 0.0),"),
+    ("backtest_bootstrap.py", "_process_ticker", "shortRatio",
+     "dtc_est = float(info.get(\"shortRatio\") or 0.0)"),
+    ("generate_report.py", "_add_quotes", "regularMarketChangePercent",
+     "\"change\": float(q.get(\"regularMarketChangePercent\") or 0),"),
+    ("generate_report.py", "_add_quotes", "shortPercentOfFloat",
+     "sf_raw = float(q.get(\"shortPercentOfFloat\") or 0)"),
+    ("generate_report.py", "_add_quotes", "shortRatio",
+     "\"short_ratio\": float(q.get(\"shortRatio\") or 0),"),
+    ("generate_report.py", "_compute_exit_state", "score",
+     "weighted += float(t.get(\"score\") or 0) * weights[k]"),
+    ("generate_report.py", "_compute_sub_scores", "float_shares",
+     "fl = s.get(\"float_shares\") or 0"),
+    ("generate_report.py", "_float_turnover_pts", "float_shares",
+     "fl = stock.get(\"float_shares\") or 0"),
+    ("generate_report.py", "apply_late_runner_penalty", "rsi14",
+     "rsi14 = _safe_float(s.get(\"rsi14\") or 0)"),
+    ("generate_report.py", "apply_late_runner_penalty", "score",
+     "before = _safe_float(s.get(\"score\") or 0)"),
+    ("generate_report.py", "compute_exit_score", "entry_price",
+     "entry_price = float(position.get(\"entry_price\") or 0.0)"),
+    ("generate_report.py", "compute_exit_score", "price",
+     "cur_price = float(current_data.get(\"price\") or 0.0)"),
+    ("generate_report.py", "compute_exit_score", "setup_today",
+     "setup_today = float(current_data.get(\"setup_today\") or 0.0)"),
+    ("generate_report.py", "get_yfinance_batch", "floatShares",
+     "\"float_shares\": info.get(\"floatShares\") or 0,"),
+    ("generate_report.py", "get_yfinance_batch", "shortPercentOfFloat",
+     "\"short_float_yf\": (info.get(\"shortPercentOfFloat\") or 0.0) * 100,"),
+    ("generate_report.py", "get_yfinance_batch", "shortRatio",
+     "\"short_ratio\": info.get(\"shortRatio\") or 0.0,"),
+    ("generate_report.py", "get_yfinance_data", "floatShares",
+     "\"float_shares\": info.get(\"floatShares\") or 0,"),
+    ("generate_report.py", "get_yfinance_data", "shortPercentOfFloat",
+     "\"short_float_yf\": (info.get(\"shortPercentOfFloat\") or 0.0) * 100,"),
+    ("generate_report.py", "get_yfinance_data", "shortRatio",
+     "\"short_ratio\": info.get(\"shortRatio\") or 0.0,"),
+    ("generate_report.py", "main", "score",
+     "candidates.sort(key=lambda x: x.get(\"score\") or 0, reverse=True)"),
+    ("generate_report.py", "main", "score",
+     "enriched.sort(key=lambda x: x.get(\"score\") or 0, reverse=True)"),
+    ("generate_report.py", "main", "score",
+     "top10.sort(key=lambda x: x.get(\"score\") or 0, reverse=True)"),
+    ("generate_report.py", "main", "score",
+     "top10.sort(key=lambda x: x.get(\"score\") or 0, reverse=True)"),
+    ("generate_report.py", "score", "float_shares",
+     "_float = stock.get(\"float_shares\") or 0"),
+    ("health_check.py", "evaluate_data_maturity_gate", "score",
+     "ge70 = [e for e in v4 if (e.get(\"score\") or 0) >= 70]"),
+    ("ki_agent.py", "_process_ticker", "rvol_4d",
+     "prev_rvol_4d=float(old_sigs.get(ticker, {}).get(\"rvol_4d\", 0) or 0),"),
+    ("ki_agent.py", "detect_anomalies", "rvol_4d",
+     "rvol_prev_4d = float((prev_signal or {}).get(\"rvol_4d\") or 0.0)"),
+    ("ki_agent.py", "detect_anomalies", "rvol_4d",
+     "rvol_today_4d = float(signal.get(\"rvol_4d\") or 0.0)"),
+    ("ki_agent.py", "detect_anomalies", "score",
+     "ki_score = signal.get(\"score\") or 0"),
+    ("ki_agent.py", "fetch_uoa_signal", "last_price",
+     "spot = float(getattr(tk, \"fast_info\", {}).get(\"last_price\") or 0.0)"),
+)
+
+
+def _norm_snippet(text: str) -> str:
+    """Zeilentext für den Baseline-Schlüssel: Whitespace zusammengezogen,
+    Ränder abgeschnitten (Einrückungs-/Leerzeichen-Änderungen sollen den
+    Schlüssel nicht brechen, jede inhaltliche Änderung schon)."""
+    return " ".join((text or "").split())
 
 
 class _RiskyOrVisitor(ast.NodeVisitor):
@@ -341,11 +340,16 @@ def _scan_file(rel_path: str) -> list[tuple[str, int, str, str, str]]:
     tree = ast.parse(src, filename=rel_path)
     visitor = _RiskyOrVisitor(src.splitlines())
     visitor.visit(tree)
+    budget = collections.Counter(
+        (fn, fld, txt) for (f, fn, fld, txt) in _BASELINE_KNOWN_OPEN
+        if f == rel_path)
     out = []
     for lineno, func_name, field, snippet in visitor.findings:
         if (rel_path, func_name, field) in _EXCEPTIONS:
             continue
-        if (rel_path, lineno, field) in _BASELINE_KNOWN_OPEN:
+        key = (func_name, field, _norm_snippet(snippet))
+        if budget[key] > 0:
+            budget[key] -= 1
             continue
         out.append((rel_path, lineno, func_name, field, snippet))
     return out
