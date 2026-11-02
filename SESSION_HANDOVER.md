@@ -2923,13 +2923,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — Gruppe A: einmalige Log-Warnung für drei stille Parse-Fehler (1 PR, Auto-Merge)
 
-- Monatsrundgang 02.11.2026, Gruppe A: `__PR__` (Branch
+- Monatsrundgang 02.11.2026, Gruppe A: `#630` (Branch
   `claude/silent-parse-logging-r4n6`, kein Merge-Hash — Regel a).
 - **`generate_report.py`:** `_parse_de_date`, `_si_pub_date` und das
   Pruning in `_save_si_position_history` loggen beim ersten Parse-Fehler je
   Lauf genau eine `log.warning` (Modul-Zähler je Funktion, Muster #578).
   Rückgabewerte/Verhalten unverändert. Tests 7k–7p.
 - `open_items`: `timestamp-silent-fail-siblings-unlogged` → `erledigt`.
+- **`scripts/lint_nan_bypass_fields.py`:** 40 Baseline-Zeilennummern
+  (`generate_report.py`) wegen der eingefügten Zeilen per Diff-Abbildung
+  nachgezogen (dokumentierte Line-Shift-Fragilität, 70 Einträge unverändert,
+  nichts hinzugefügt/entfernt).
 - State-Logging, kein Score-/Filter-/Freeze-Touch; Golden byte-identisch,
   `lint_protected_zones` OK.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#629`,
