@@ -6,8 +6,10 @@ Backtest-Schutz, aber Label "Pre-Open-Vorschau" passt semantisch nur
 fuer Pre-Open-Runs.
 
 Fix: dritte Anzeige-Klasse via generated_at-Disambiguation:
-  premarket + UTC ∈ [13:30, 20:00) → "Intraday-Snapshot"
-  premarket + UTC außerhalb         → "Pre-Open-Vorschau"
+  premarket + US-Session (09:30–16:00 ET) → "Intraday-Snapshot"
+  premarket + außerhalb                    → "Pre-Open-Vorschau"
+  (seit 02.11.2026 in US-Ostküstenzeit; vorher feste UTC-Grenzen
+  13:30/20:00 = nur Sommerzeit)
   postclose                          → "Post-Close"
 
 Tests:
@@ -28,6 +30,8 @@ from datetime import datetime, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+sys.path.insert(0, str(ROOT))
+import trading_date  # noqa: E402
 
 
 def _function_body(name: str) -> str:
@@ -63,14 +67,17 @@ def test_all_three_labels_present():
 
 
 def test_us_session_window_constants_in_logic():
-    """Pille prüft UTC-Fenster 13:30–20:00 für Intraday-Klassifikation."""
+    """Pille klassifiziert über _usSessionStateET (US/Eastern, DST-korrekt),
+    nicht mehr über feste UTC-Minuten (Fix 02.11.2026)."""
     body = _function_body("_renderRunPhasePill")
-    # UTC-Minuten-of-day-Berechnung
-    assert "getUTCHours" in body and "getUTCMinutes" in body, (
-        "UTC-Wallclock-Berechnung fehlt")
-    # 13:30 = 13*60+30 = 810 min, 20:00 = 20*60 = 1200 min
-    assert "13 * 60 + 30" in body, "US-Session-Start (13:30 UTC) fehlt"
-    assert "20 * 60" in body, "US-Session-Ende (20:00 UTC) fehlt"
+    assert "_usSessionStateET(t)" in body, "Pille nutzt _usSessionStateET nicht"
+    assert "=== 'open'" in body, "Intraday-Klassifikation über 'open' fehlt"
+    assert "getUTCHours" not in body and "13 * 60 + 30" not in body, (
+        "feste UTC-Grenzen noch in der Pille")
+    helper = _function_body("_usSessionStateET")
+    assert "America/New_York" in helper, "Helper rechnet nicht in US/Eastern"
+    assert "{_US_SESSION_OPEN_ET_MIN}" in helper and "{_US_SESSION_CLOSE_ET_MIN}" in helper, (
+        "Grenzen nicht aus der Python-Quelle (trading_date) eingebrannt")
 
 
 def test_caller_passes_generated_at():
@@ -121,8 +128,7 @@ def _label_for(phase: str, generated_at: datetime | None) -> str | None:
             t = generated_at or datetime.now(timezone.utc)
         else:
             t = generated_at
-        utc_min = t.hour * 60 + t.minute   # UTC-Minutes-of-day
-        in_us = 13 * 60 + 30 <= utc_min < 20 * 60
+        in_us = trading_date.us_session_state(t) == "open"   # US/Eastern
         return " · Intraday-Snapshot" if in_us else " · Pre-Open-Vorschau"
     if phase == "postclose":
         return " · Post-Close"
@@ -194,15 +200,66 @@ def test_after_close_late_evening():
     assert _label_for("premarket", t) == " · Pre-Open-Vorschau"
 
 
+def test_winter_intraday_2030_utc():
+    """Winter: 20:30 UTC = 15:30 ET → noch Intraday (Fix 02.11.2026)."""
+    t = datetime(2026, 11, 2, 20, 30, tzinfo=timezone.utc)
+    assert _label_for("premarket", t) == " · Intraday-Snapshot"
+
+
+def test_winter_1400_utc_pre_open():
+    """Winter: 14:00 UTC = 09:00 ET → noch Pre-Open."""
+    t = datetime(2026, 11, 2, 14, 0, tzinfo=timezone.utc)
+    assert _label_for("premarket", t) == " · Pre-Open-Vorschau"
+
+
+def test_summer_2030_utc_after_close():
+    """Sommer: 20:30 UTC = 16:30 ET → nach Close → Pre-Open-Label."""
+    t = datetime(2026, 7, 15, 20, 30, tzinfo=timezone.utc)
+    assert _label_for("premarket", t) == " · Pre-Open-Vorschau"
+
+
+def test_js_helper_matches_python_source():
+    """Funktionstest (nur wenn ``node`` vorhanden): die ECHTE JS-Funktion
+    ``_usSessionStateET`` aus dem Golden-HTML liefert für Sommer, Winter und
+    die Umstellungstage dasselbe wie ``trading_date.us_session_state``.
+    Determinismus: feste Zeitpunkte, kein Wall-Clock-Bezug."""
+    import shutil
+    import subprocess
+    node = shutil.which("node")
+    if not node:
+        print("     (node nicht vorhanden — Funktionstest übersprungen)")
+        return
+    golden = (ROOT / "tests" / "golden" / "report_outer_page.html").read_text(encoding="utf-8")
+    i = golden.index("function _usSessionStateET(d) {")
+    j = golden.index("\nfunction _renderRunPhasePill", i)
+    js_fn = golden[i:j]
+    stamps = [
+        "2026-05-13T13:29:00Z", "2026-05-13T13:30:00Z", "2026-05-13T19:59:00Z",
+        "2026-05-13T20:00:00Z", "2026-05-13T20:30:00Z",
+        "2026-11-02T14:29:00Z", "2026-11-02T14:30:00Z", "2026-11-02T20:30:00Z",
+        "2026-11-02T20:59:00Z", "2026-11-02T21:00:00Z",
+        "2026-10-30T20:30:00Z", "2026-03-06T14:00:00Z", "2026-03-09T14:00:00Z",
+    ]
+    code = js_fn + "\n" + "const ts=" + repr(stamps).replace("'", '"') + ";\n" + \
+        "console.log(JSON.stringify(ts.map(x=>_usSessionStateET(new Date(x)))));"
+    out = subprocess.run([node, "-e", code], capture_output=True, text=True, check=True)
+    import json as _json
+    got = _json.loads(out.stdout)
+    exp = [trading_date.us_session_state(datetime.fromisoformat(x.replace("Z", "+00:00")))
+           for x in stamps]
+    assert got == exp, f"JS {got} != Python {exp}"
+
+
 # === 3 — Backend-Unveraendert (Vorsichts-Prinzip) =========================
 
 
 def test_resolve_run_phase_untouched():
-    """Strikt: dieser PR aendert resolve_run_phase.py nicht."""
+    """resolve_run_phase nutzt seit 02.11.2026 die gemeinsame ET-Quelle
+    (trading_date.us_session_state); die Override-Logik bleibt intakt."""
     path = ROOT / "scripts" / "resolve_run_phase.py"
     src = path.read_text(encoding="utf-8")
-    assert "US_SESSION_START = time(13, 30)" in src
-    assert "US_SESSION_END   = time(20, 0)" in src
+    assert "from trading_date import us_session_state" in src
+    assert "US_SESSION_START = time(13, 30)" not in src
     # Override-Logik intakt
     assert 'return "premarket", "us_session_override"' in src
     assert 'return "postclose", "post_close_override"' in src
@@ -211,7 +268,7 @@ def test_resolve_run_phase_untouched():
 def test_redeploy_workflow_run_phase_logic_untouched():
     path = ROOT / ".github" / "workflows" / "redeploy-on-source-change.yml"
     src = path.read_text(encoding="utf-8")
-    assert 'if [ "$NOW_HHMM" -ge 1330 ] && [ "$NOW_HHMM" -lt 2000 ]; then' in src
+    assert 'if [ "$NOW_HHMM" -ge 930 ] && [ "$NOW_HHMM" -lt 1600 ]; then' in src
     assert 'RUN_PHASE="premarket"' in src
 
 
@@ -257,6 +314,10 @@ def main() -> None:
         ("Unbekannte phase → Pill hidden",                  test_unknown_phase_hidden),
         ("19:59 UTC → noch Intraday-Snapshot",              test_late_intraday_just_before_close),
         ("22:00 UTC premarket → wieder Pre-Open",           test_after_close_late_evening),
+        ("Winter 20:30 UTC → Intraday (15:30 ET)",          test_winter_intraday_2030_utc),
+        ("Winter 14:00 UTC → Pre-Open (09:00 ET)",          test_winter_1400_utc_pre_open),
+        ("Sommer 20:30 UTC → Pre-Open (16:30 ET)",          test_summer_2030_utc_after_close),
+        ("JS-Helper == Python-Quelle (node, beide Regime)", test_js_helper_matches_python_source),
         # Backend-Unveraendert
         ("resolve_run_phase.py unveraendert",              test_resolve_run_phase_untouched),
         ("redeploy-on-source-change.yml unveraendert",     test_redeploy_workflow_run_phase_logic_untouched),

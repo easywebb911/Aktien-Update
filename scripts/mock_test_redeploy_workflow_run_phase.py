@@ -7,10 +7,11 @@ rief ``gh workflow run`` jedoch ohne ``-f run_phase=...`` auf →
 GitHub-API antwortete HTTP 422 und der Auto-Redeploy nach Source-Pushes
 schlug fehl (mehrfach an PR-#133/#134-Merges sichtbar).
 
-Fix: Phase clientseitig aus aktueller UTC-Zeit bestimmen (analog
-scripts/resolve_run_phase.py + Client-Logik aus PR #133):
-  - 13:30 ≤ UTC < 20:00 → premarket
-  - sonst                → postclose
+Fix: Phase clientseitig bestimmen (analog scripts/resolve_run_phase.py +
+Client-Logik aus PR #133). Seit 02.11.2026 aus US-Ostküstenzeit:
+  - 09:30 ≤ ET < 16:00 → premarket
+  - sonst               → postclose
+(vorher feste UTC-Grenzen 13:30/20:00 — nur in der Sommerzeit richtig).
 
 Tests:
   1. YAML enthält -f run_phase=... beim gh workflow run
@@ -31,19 +32,47 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
-def _phase_for(hour: int, minute: int) -> str:
-    """Pythonische Nachbildung der Bash-Logik im Workflow.
+import subprocess  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
+from zoneinfo import ZoneInfo  # noqa: E402
+
+_ET = ZoneInfo("America/New_York")
+
+
+def _phase_for(hour: int, minute: int, *, month: int = 5, day: int = 13) -> str:
+    """Pythonische Nachbildung der Bash-Logik im Workflow (UTC-Eingabe,
+    Umrechnung in ET wie ``TZ=America/New_York date +%H%M``).
 
     Bash:
-        NOW_HHMM=$(date -u +%H%M)
-        if [ "$NOW_HHMM" -ge 1330 ] && [ "$NOW_HHMM" -lt 2000 ]; then
+        NOW_HHMM=$(TZ=America/New_York date +%H%M)
+        if [ "$NOW_HHMM" -ge 930 ] && [ "$NOW_HHMM" -lt 1600 ]; then
             RUN_PHASE="premarket"
         else
             RUN_PHASE="postclose"
         fi
+    Default-Datum 13.05.2026 = Sommerzeit; Winter mit month=11, day=2.
     """
-    hhmm = hour * 100 + minute
-    return "premarket" if 1330 <= hhmm < 2000 else "postclose"
+    et = datetime(2026, month, day, hour, minute, tzinfo=timezone.utc).astimezone(_ET)
+    hhmm = et.hour * 100 + et.minute
+    return "premarket" if 930 <= hhmm < 1600 else "postclose"
+
+
+def _bash_if_block() -> str:
+    yml = (ROOT / ".github" / "workflows" / "redeploy-on-source-change.yml"
+           ).read_text(encoding="utf-8")
+    m = re.search(r"(if \[ \"\$NOW_HHMM\".*?fi)", yml, re.S)
+    assert m, "if-Block mit NOW_HHMM nicht gefunden"
+    return "\n".join(line.strip() for line in m.group(1).splitlines())
+
+
+def _bash_phase(utc_dt: datetime) -> str:
+    """Führt die ECHTE Bash-Logik aus dem Workflow aus — mit der ET-Uhrzeit,
+    die ``TZ=America/New_York date -d @epoch +%H%M`` für ``utc_dt`` liefert."""
+    epoch = int(utc_dt.timestamp())
+    script = (f'NOW_HHMM=$(TZ=America/New_York date -d @{epoch} +%H%M)\n'
+              + _bash_if_block() + '\necho "$RUN_PHASE"\n')
+    out = subprocess.run(["bash", "-c", script], capture_output=True, text=True, check=True)
+    return out.stdout.strip()
 
 
 # === 1 — YAML enthält den Fix ==============================================
@@ -55,13 +84,14 @@ def test_workflow_yaml_passes_run_phase():
     assert "-f run_phase=" in yml, (
         "redeploy-on-source-change.yml ruft gh workflow run noch ohne "
         "-f run_phase=... auf — HTTP 422 droht beim nächsten Source-Push")
-    # NOW_HHMM-Variable für UTC-Zeit-Berechnung
-    assert "date -u +%H%M" in yml, (
-        "UTC-Zeit-Bestimmung via `date -u +%H%M` fehlt im Workflow")
-    # Bash-Integer-Vergleich mit den richtigen Grenzen
-    assert "-ge 1330" in yml and "-lt 2000" in yml, (
-        "US-Session-Grenzen 1330 (Open inkl.) und 2000 (Close exkl.) "
+    # NOW_HHMM-Variable in US-Ostküstenzeit (Fix 02.11.2026)
+    assert "TZ=America/New_York date +%H%M" in yml, (
+        "ET-Zeit-Bestimmung via `TZ=America/New_York date +%H%M` fehlt im Workflow")
+    # Bash-Integer-Vergleich mit den ET-Grenzen
+    assert "-ge 930" in yml and "-lt 1600" in yml, (
+        "US-Session-Grenzen 930 (Open inkl.) und 1600 (Close exkl.) "
         "fehlen in der Bash-Logik")
+    assert "-ge 1330" not in yml and "-lt 2000" not in yml, "alte UTC-Grenzen noch drin"
     # Beide Phasen werden gesetzt
     assert 'RUN_PHASE="premarket"' in yml, "premarket-Branch fehlt"
     assert 'RUN_PHASE="postclose"' in yml, "postclose-Branch fehlt"
@@ -103,9 +133,35 @@ def test_bash_uses_hhmm_integer_format():
     assert "%H:%M" not in yml, (
         "Format %H:%M würde String-Compare statt Integer-Compare auslösen — "
         "%H%M (vierstellig, kein Doppelpunkt) verwenden")
-    # Konkret muss `date -u +%H%M` vorkommen
-    assert re.search(r"date\s+-u\s+\+%H%M", yml), (
-        "Exakte Bash-Form `date -u +%H%M` nicht gefunden")
+    # Konkret muss `TZ=America/New_York date +%H%M` vorkommen
+    assert re.search(r"TZ=America/New_York\s+date\s+\+%H%M", yml), (
+        "Exakte Bash-Form `TZ=America/New_York date +%H%M` nicht gefunden")
+
+
+# === 8 — Winterzeit + echte Bash-Ausführung (Fix 02.11.2026) ================
+
+def test_winter_and_summer_edges_python():
+    w = dict(month=11, day=2)
+    assert _phase_for(14, 29, **w) == "postclose"
+    assert _phase_for(14, 30, **w) == "premarket"
+    assert _phase_for(20, 30, **w) == "premarket"
+    assert _phase_for(21, 0, **w) == "postclose"
+    assert _phase_for(20, 30) == "postclose"
+
+
+def test_real_bash_logic_both_regimes():
+    cases = [
+        (datetime(2026, 5, 13, 13, 30, tzinfo=timezone.utc), "premarket"),   # 09:30 EDT
+        (datetime(2026, 5, 13, 20, 0, tzinfo=timezone.utc), "postclose"),    # 16:00 EDT
+        (datetime(2026, 5, 13, 20, 30, tzinfo=timezone.utc), "postclose"),   # 16:30 EDT
+        (datetime(2026, 11, 2, 14, 29, tzinfo=timezone.utc), "postclose"),   # 09:29 EST
+        (datetime(2026, 11, 2, 14, 30, tzinfo=timezone.utc), "premarket"),   # 09:30 EST
+        (datetime(2026, 11, 2, 20, 30, tzinfo=timezone.utc), "premarket"),   # 15:30 EST
+        (datetime(2026, 11, 2, 21, 0, tzinfo=timezone.utc), "postclose"),    # 16:00 EST
+    ]
+    for dt, exp in cases:
+        got = _bash_phase(dt)
+        assert got == exp, f"{dt.isoformat()}: Bash liefert {got}, erwartet {exp}"
 
 
 # === Runner =================================================================
@@ -126,6 +182,10 @@ def main() -> None:
          test_us_close_20_00_postclose),
         ("Bash-Format %H%M (kein Doppelpunkt → kein String-Compare-Bug)",
          test_bash_uses_hhmm_integer_format),
+        ("Winter-/Sommer-Kanten (Python-Nachbildung)",
+         test_winter_and_summer_edges_python),
+        ("Echte Bash-Logik, beide Zeitregime",
+         test_real_bash_logic_both_regimes),
     ]
     failed = 0
     for name, fn in tests:
