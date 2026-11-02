@@ -41,6 +41,7 @@ ALLOWLIST = [
     "positions_asof",
     "wl_earnings_fallback",
     "halfrow_probe",
+    "s4_sensitivity_eval",
     "agent_ntfy_relay",
     "gist_lost_update_fix",
     "position_watchlist_watchdog",

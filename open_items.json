@@ -425,6 +425,38 @@
       "description": "Easy-Entscheid 02.11.2026: Item anlegen, NUR Vorschlag, nicht bauen. Befund: _BASELINE_KNOWN_OPEN in scripts/lint_nan_bypass_fields.py schluesselt (Datei, Zeile, Feld); jede Einfuegung oberhalb einer Fundstelle verschiebt die Zeilennummern und macht den Lint rot, obwohl kein neuer Fund entstanden ist (dokumentiert bei #565 und dem hist_5d_gap_log-Folge-PR, erneut bei #623 und #630; Nachzug jeweils per Diff-Abbildung von Hand). VORSCHLAG (Empfehlung zuerst): (1) Schluessel (Datei, umgebende Funktion, Feld, normalisierter Zeilentext) statt Zeilennummer -- robust gegen Verschiebung, reisst aber bewusst weiter, sobald die Zeile selbst geaendert wird (gewollt: ein Refactor soll den Fund wieder sichtbar machen); Funktion ueber ast wie im Lint ohnehin ermittelt. (2) Alternative: Marker-Kommentar an der Fundstelle (z. B. '# nan-bypass-baseline: <item-id>'), der Lint ueberspringt markierte Zeilen und zaehlt sie -- noch robuster, aber die Ausnahme steht dann im Produktivcode statt zentral, und ein Kopieren der Zeile kopiert den Marker mit. Risiko bei beiden: die Baseline darf nicht still echte NEUE Funde decken -- deshalb Feld + Text/Funktion im Schluessel und eine Zaehl-Invariante (Baseline-Groesse darf nur sinken). Umbau des Lints selbst = eigener PR, Lint ist CI-Gate (Klasse: Workflow-/Lint-Logik, Easy-Freigabe). NACHTRAG 02.11.2026 (Easy-Entscheid): Variante (1) umgesetzt -- Schluessel (Datei, Funktion, Feld, normalisierter Zeilentext), Multiset-Abgleich; vorher/nachher exakt dieselben 36 Ausnahmen. Erledigt.",
       "status": "erledigt",
       "status_date": "2026-11-02"
+    },
+    {
+      "id": "postclose-halbe-tageszeile-preis-score-pfad",
+      "title": "Postclose: halbe yfinance-Tageszeile im Preis-/Score-Pfad (cur_close ohne dropna)",
+      "opened": "2026-11-02",
+      "description": "Diagnose 02.11.2026: In Postclose-Läufen (vor allem nach 00:00 UTC, belegt ab ca. 21.09.2026; im August trotz Läufen nach Mitternacht nicht) liefert yfinance für 50–80 Pool-Ticker die Zeile des Entry-Tags halb leer (Volume da, High/Low/Close NaN; hist_5d_gap_log.jsonl). generate_report.py:1413 liest cur_close = Close.iloc[-1] ohne Bereinigung → price fällt auf den Screener-Kurs zurück (für Ticker ohne Screener-Kurs, z. B. Watchlist-Ticker außerhalb der Top-10, None → leere Karte); change_2d/3d/5d = None (_finite_cell auf der leeren Zelle) → Late-Runner-Abzug über die 2-Tages-Bewegung blind, Exit-Trigger overheated ohne change_3d; rsi14/ma21/ma50/ma200/perf_20d (→ RS vs. SPY) vom Vortag (_compute_indicators mit dropna); Gap & Hold je nach Open-Zelle (nicht belegt). Renditen im Backtest NICHT betroffen (entry_basis aus vollständigem Download). Ursache der halben Zeile nicht belegt (kein Cron-/Code-/requirements-Wechsel gefunden; installierte yfinance-Version je Lauf ungeprüft). Fix (Kurs/Werte aus der letzten vollständigen Zeile, Datum ehrlich ausweisen) wartet auf Easys Entscheid wegen laufender Freezes (§4-Sensitivität vorab registriert 02.11.2026; Setup-Edge/KI-Score betroffen am Entry-Tag 13.10.).",
+      "status": "offen",
+      "status_date": "2026-11-02"
+    },
+    {
+      "id": "exit-current-price-postclose-vortag",
+      "title": "Exit current_price im Postclose einen Tag alt bei frischem price_asof",
+      "opened": "2026-11-02",
+      "description": "Diagnose 02.11.2026: _fetch_position_market_data (generate_report.py ~17288) entfernt leere Zeilen (dropna) und nimmt dann den letzten vollständigen Schlusskurs — in Postclose-Läufen mit halber Tageszeile ist das der VORTAG, price_asof trägt aber die Laufzeit. Beleg Lauf 31.10.2026 00:53 UTC: WOLF current_price 24,95 (Schluss 29.10.) statt 21,98 (30.10., Screener/KI-Agent); AMC 3,08 statt 3,06. Wirkt auf exit_pressure, trend_break und PnL-Anzeige; Exit-Pushes sind aus (PUSH_EXIT_P1/P2_NTFY_ENABLED=False). Kein Fix ohne Easys Entscheid (Exit-Pfad).",
+      "status": "offen",
+      "status_date": "2026-11-02"
+    },
+    {
+      "id": "provider-health-nan-pct-fehlt",
+      "title": "provider_health zählt keine leeren Zellen (nan_pct immer null)",
+      "opened": "2026-11-02",
+      "description": "Diagnose 02.11.2026: yfinance_batch meldet in Postclose-Läufen coverage_pct 100.0 und nan_pct null, obwohl 50–80 Ticker eine halbe Tageszeile (Close NaN) hatten. Deshalb fiel die Halbzeile keinem Wächter auf (hist_5d_gap_log ist nur ein Protokoll ohne Alarm; S3 prüft nur Existenz, nicht Alter des Positionspreises). Vorschlag: nan_pct für den Batch messen (Anteil Ticker mit nicht-endlichem Close in der letzten Zeile) und im Digest ausweisen. Nicht gebaut.",
+      "status": "offen",
+      "status_date": "2026-11-02"
+    },
+    {
+      "id": "github-schedule-ausgesetzt-2026-11-02",
+      "title": "Geplante GitHub-Läufe seit 02.11.2026 06:03 UTC ausgesetzt (Beobachtung)",
+      "opened": "2026-11-02",
+      "description": "Beobachtung 02.11.2026 (Actions-API, Stand ca. 15:40 UTC): letzter KI-Agent-Lauf 06:03 UTC (Cron stündlich), letzter Daily-Run 31.10. 00:51 UTC; Premarket 02.11. nie gestartet (kein Run-Eintrag), Workflows laut API 'active'. Ursache unbekannt (GitHub-seitig?). Beobachten; bei Fortbestehen prüfen, ob GitHub die Schedules pausiert hat. Wirkung: keine neuen Daten, §4-Export wächst nicht. NACHTRAG 02.11.2026: Läufe ab ca. 15:54 UTC wieder angelaufen (KI-Agent 15:54/15:56 UTC, Daily squeeze report 15:56 UTC); weiter beobachten.",
+      "status": "beobachtet",
+      "status_date": "2026-11-02"
     }
   ]
 }
