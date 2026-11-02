@@ -653,6 +653,11 @@
       "date": "2026-10-30",
       "inst_ownership": 1.38766,
       "insider_ownership": 0.008669999
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.3897301,
+      "insider_ownership": 0.00937
     }
   ],
   "RES": [
@@ -1510,6 +1515,11 @@
     {
       "date": "2026-10-30",
       "inst_ownership": 0.49863997,
+      "insider_ownership": 0.00585
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.51853,
       "insider_ownership": 0.00585
     }
   ],
@@ -2700,6 +2710,11 @@
       "date": "2026-10-28",
       "inst_ownership": 1.02226,
       "insider_ownership": 0.08976
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.0190899,
+      "insider_ownership": 0.08976
     }
   ],
   "PTLO": [
@@ -2739,6 +2754,11 @@
       "date": "2026-08-19",
       "inst_ownership": 0.47701,
       "insider_ownership": 0.45472
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.47772,
+      "insider_ownership": 0.45518002
     }
   ],
   "PHAT": [
@@ -2879,6 +2899,11 @@
     {
       "date": "2026-10-29",
       "inst_ownership": 0.999,
+      "insider_ownership": 0.03384
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.99908996,
       "insider_ownership": 0.03384
     }
   ],
@@ -3048,6 +3073,11 @@
     {
       "date": "2026-10-30",
       "inst_ownership": 0.73894,
+      "insider_ownership": 0.09437
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.7395,
       "insider_ownership": 0.09437
     }
   ],
@@ -3610,6 +3640,11 @@
     {
       "date": "2026-10-30",
       "inst_ownership": 0.87711,
+      "insider_ownership": 0.07143
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.87902,
       "insider_ownership": 0.07143
     }
   ],
@@ -4424,6 +4459,11 @@
       "date": "2026-10-30",
       "inst_ownership": 0.33109,
       "insider_ownership": 0.03375
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.33105,
+      "insider_ownership": 0.03375
     }
   ],
   "CABA": [
@@ -4815,6 +4855,11 @@
     {
       "date": "2026-10-30",
       "inst_ownership": 1.07423,
+      "insider_ownership": 0.0952
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.06987,
       "insider_ownership": 0.0952
     }
   ],
@@ -5829,6 +5874,11 @@
       "date": "2026-10-19",
       "inst_ownership": 1.20272,
       "insider_ownership": 0.01642
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.19196,
+      "insider_ownership": 0.01642
     }
   ],
   "MPLT": [
@@ -5897,6 +5947,11 @@
     {
       "date": "2026-10-30",
       "inst_ownership": 1.0224099,
+      "insider_ownership": 0.02724
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.02318,
       "insider_ownership": 0.02724
     }
   ],
@@ -6193,6 +6248,11 @@
     {
       "date": "2026-10-16",
       "inst_ownership": 0.9286,
+      "insider_ownership": 0.0030399999
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.94857,
       "insider_ownership": 0.0030399999
     }
   ],
@@ -6640,6 +6700,11 @@
     {
       "date": "2026-10-28",
       "inst_ownership": 0.63595,
+      "insider_ownership": 0.29787
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.65953004,
       "insider_ownership": 0.29787
     }
   ],
@@ -7429,6 +7494,11 @@
       "date": "2026-10-30",
       "inst_ownership": 0.88223,
       "insider_ownership": 0.10516
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.88228995,
+      "insider_ownership": 0.10516
     }
   ],
   "KSS": [
@@ -7873,6 +7943,11 @@
       "date": "2026-10-30",
       "inst_ownership": 1.04392,
       "insider_ownership": 0.06197
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.04491,
+      "insider_ownership": 0.06197
     }
   ],
   "XRX": [
@@ -8078,6 +8153,11 @@
       "date": "2026-10-29",
       "inst_ownership": 0.59556,
       "insider_ownership": 0.43435
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.59516,
+      "insider_ownership": 0.43397
     }
   ],
   "GAP": [
@@ -8188,6 +8268,11 @@
     {
       "date": "2026-10-30",
       "inst_ownership": 1.24749,
+      "insider_ownership": 0.00942
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.24757,
       "insider_ownership": 0.00942
     }
   ],
@@ -8532,6 +8617,11 @@
     {
       "date": "2026-10-30",
       "inst_ownership": 1.06452,
+      "insider_ownership": 0.05594
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.06408,
       "insider_ownership": 0.05594
     }
   ],
@@ -9086,6 +9176,11 @@
     {
       "date": "2026-10-27",
       "inst_ownership": 0.93639,
+      "insider_ownership": 0.02861
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.93534,
       "insider_ownership": 0.02861
     }
   ],
@@ -9691,6 +9786,11 @@
       "date": "2026-10-26",
       "inst_ownership": 0.68027997,
       "insider_ownership": 0.15449001
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.67934,
+      "insider_ownership": 0.15449001
     }
   ],
   "UP": [
@@ -10012,6 +10112,11 @@
       "date": "2026-10-28",
       "inst_ownership": 1.4770199,
       "insider_ownership": 0.00786
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.47846,
+      "insider_ownership": 0.00786
     }
   ],
   "GENI": [
@@ -10151,6 +10256,11 @@
       "date": "2026-10-30",
       "inst_ownership": 0.72353,
       "insider_ownership": 0.14247
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.72393,
+      "insider_ownership": 0.14247
     }
   ],
   "OI": [
@@ -10195,6 +10305,11 @@
       "date": "2026-10-23",
       "inst_ownership": 0.88654,
       "insider_ownership": 0.04803
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.88648003,
+      "insider_ownership": 0.06318
     }
   ],
   "TSHA": [
@@ -10245,6 +10360,11 @@
     {
       "date": "2026-10-30",
       "inst_ownership": 0.22075,
+      "insider_ownership": 0.117860004
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.22076,
       "insider_ownership": 0.117860004
     }
   ],
@@ -10478,6 +10598,11 @@
       "date": "2026-10-30",
       "inst_ownership": 0.95603997,
       "insider_ownership": 0.07231
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.93319,
+      "insider_ownership": 0.070539996
     }
   ],
   "PRKS": [
@@ -10485,6 +10610,11 @@
       "date": "2026-10-06",
       "inst_ownership": 1.3544999,
       "insider_ownership": 0.02388
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.3562,
+      "insider_ownership": 0.0254
     }
   ],
   "EROC": [
@@ -10715,6 +10845,11 @@
       "date": "2026-10-30",
       "inst_ownership": 1.06522,
       "insider_ownership": 0.01441
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.06624,
+      "insider_ownership": 0.01441
     }
   ],
   "NGNE": [
@@ -10768,12 +10903,22 @@
       "date": "2026-10-15",
       "inst_ownership": 0.57986,
       "insider_ownership": 0.04897
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.58416003,
+      "insider_ownership": 0.04896
     }
   ],
   "PMT": [
     {
       "date": "2026-10-15",
       "inst_ownership": 0.77772003,
+      "insider_ownership": 0.01193
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.77164,
       "insider_ownership": 0.01193
     }
   ],
@@ -10825,6 +10970,11 @@
     {
       "date": "2026-10-30",
       "inst_ownership": 1.03688,
+      "insider_ownership": 0.03941
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.0511,
       "insider_ownership": 0.03941
     }
   ],
@@ -10990,6 +11140,11 @@
     {
       "date": "2026-10-23",
       "inst_ownership": 1.04056,
+      "insider_ownership": 0.05271
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.04826,
       "insider_ownership": 0.05271
     }
   ],
