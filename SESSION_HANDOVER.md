@@ -2965,6 +2965,24 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#630` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — NaN-Baseline Gruppe 2, Teil 1: 11 Anzeige-Stellen (1 PR, Auto-Merge)
+
+- `__PR__` (Branch `claude/nan-display-fix-1-m2c5`, kein Merge-Hash — Regel a).
+- **`generate_report.py`:** `.get(feld) or 0` → `_safe_float(...)` in
+  `_float_turnover_row_html`, `risk_assessment`, `short_situation`,
+  `_float_display` (dort zusätzlich: NaN-`yf_market_cap` fällt auf
+  `market_cap` zurück), `_score_block_inner_html`, `_build_context`.
+  Reine Anzeige (Guardian #631 hat die Konsumenten verfolgt).
+- **Lint-Baseline:** 11 Einträge entfernt (70 → 59), Zeilen 1:1 ersetzt,
+  keine Verschiebung.
+- **Test:** `mock_test_short_situation_none_guard.py` 13–17 (NaN wie None).
+  Gegenprobe alter Code: 16/17 scheitern dort, 13–15 liefen auch alt grün
+  (NaN verliert dort jeden Vergleich wie 0 → reine Lint-Hygiene).
+- Golden byte-identisch, 168/168, `lint_protected_zones` OK.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#631`,
+  höchste hier erwähnte PR = `#631` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
