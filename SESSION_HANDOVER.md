@@ -3041,7 +3041,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — NaN-Lint-Baseline inhaltsbasiert statt Zeilennummern (1 PR, Lint-Logik)
 
-- Easy-Entscheid 02.11.2026: `#__PR__` (Branch
+- Easy-Entscheid 02.11.2026: `#636` (Branch
   `claude/nan-lint-content-keys-b6x2`, kein Merge-Hash — Regel a).
 - **`scripts/lint_nan_bypass_fields.py`:** `_BASELINE_KNOWN_OPEN` schlüsselt
   jetzt (Datei, Funktion, Feld, normalisierter Zeilentext) statt Zeilennummer;
