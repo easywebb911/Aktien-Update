@@ -2983,6 +2983,23 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#631` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — NaN-Baseline Gruppe 2, Teil 2: Karten (v1/v2) + Watchlist-Payload (1 PR, Auto-Merge)
+
+- `__PR__` (Branch `claude/nan-display-fix-2-k7d1`, kein Merge-Hash — Regel a).
+- **`generate_report.py`:** neuer Helper `_finite_or_zero(v)` (Wert
+  unverändert inkl. int, wenn endlich; sonst 0) ersetzt `.get(feld) or 0`
+  an 19 Stellen in `_card` (v1), `_build_card_ctx` (v2) und
+  `_wl_card_payload` (`market_cap`: NaN-`yf_market_cap` → Fallback
+  `market_cap`). Typ-erhaltend → In-Page-JSON/Golden byte-identisch.
+- **Lint-Baseline:** 19 Einträge entfernt (59 → 40), 17 Folgeeinträge per
+  Diff-Abbildung verschoben (Helper-Einfügung).
+- **Tests 18–23** (`mock_test_short_situation_none_guard.py`): Helper-
+  Semantik, v1 und v2 rendern NaN wie None, Payload-Fallback.
+- Golden byte-identisch, 168/168, `lint_protected_zones` OK.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#632`,
+  höchste hier erwähnte PR = `#632` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
