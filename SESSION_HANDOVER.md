@@ -3061,6 +3061,33 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#635` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — Earnings-Termin auf Watchlist-Karten außerhalb der Top-10 (1 PR, Anzeige)
+
+- Easy-Entscheid 02.11.2026: `#637` (Branch
+  `claude/watchlist-earnings-datum-k7q3`, kein Merge-Hash — Regel a).
+- **`generate_report.py`:** neuer Helper `_wl_earnings_from_agent_signals`
+  (+ `_load_agent_signals_for_display`). Watchlist-Ticker **außerhalb** der
+  Top-10 ohne eigenen Termin bekommen das Datum aus dem bereits vorhandenen
+  `agent_signals.json` (Feld `earnings`, letzter ki_agent-Tick); Tage werden
+  aus dem **Datum** neu berechnet, vergangen/unbekannt → nichts, heute → 0.
+  Frische-Gate `WL_EARNINGS_FALLBACK_MAX_AGE_HOURS = 36` (neu, `config.py`)
+  auf `agent_signals.updated`. Nur auf einer Kopie des Stock-Dicts — kein
+  Score-/Filter-/Push-/Exit-/Backtest-Effekt; Top-10 unverändert. Badge im
+  Top-10-Format („Earnings in Nd (TT.MM.)", ≤ 14 Tage).
+- Kommentar zum EarningsWhispers-Override an den Ist-Stand angepasst (seit
+  18.05.2026 aus).
+- **Test** `mock_test_wl_earnings_fallback.py` (19 Checks; Gegenprobe auf
+  altem Code 7 FAIL), in ALLOWLIST; CI-Runner 170/170, Golden byte-identisch.
+  CI-Erstlauf rot (Test importierte `requests` ohne Stub — CI hat nur
+  stdlib+jinja2+pyyaml), behoben mit dem Stub-Satz aus
+  `mock_test_atm_iv_zero_guard.py`; in nachgestellter CI-Umgebung 170/170.
+- `open_items`: `earnings-date-abdeckung-10-4` → `erledigt` (Berichtssaison
+  belegt); NACHTRAG an `postclose-datum-rest-27-30okt` (fehlende
+  coverage_history-Zeilen 30.10. postclose).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#636`,
+  höchste hier erwähnte PR = `#636` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-

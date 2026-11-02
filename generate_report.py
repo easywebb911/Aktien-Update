@@ -2978,6 +2978,67 @@ def _wl_full_card_html(s: dict) -> str:
     return raw.strip()
 
 
+_KI_EARN_DATE_RE = re.compile(r"\((\d{2})\.(\d{2})\.(\d{4})\)")
+
+
+def _wl_earnings_from_agent_signals(ticker: str, agent_signals: dict | None, *,
+                                    today=None, now_utc=None) -> dict:
+    """Earnings-Termin für eine Watchlist-Karte außerhalb der Top-10 aus dem
+    BEREITS vorhandenen ``agent_signals.json`` (02.11.2026, REIN ANZEIGE).
+
+    Quelle: ``agent_signals["signals"][ticker]["earnings"]`` im Format
+    ``"in N Tagen (TT.MM.JJJJ)"`` (ki_agent ``fetch_earnings_date``). Übernommen
+    wird NUR das Datum; die Tage werden hier gegen ``today`` (US/Eastern)
+    neu berechnet — die gespeicherte Tageszahl kann veraltet sein.
+
+    Liefert ``{"earnings_days": int, "earnings_date_str": "TT.MM."}`` oder
+    ``{}`` (nichts anzeigen) wenn: Datei/Feld fehlt, Datum nicht parsebar,
+    Termin in der Vergangenheit, oder ``updated`` fehlt/unparsebar/älter als
+    ``WL_EARNINGS_FALLBACK_MAX_AGE_HOURS``. Termin heute → 0 (korrekt).
+    Nie ein alter Wert, nie eine erfundene 0. Pure Funktion, fail-soft.
+    """
+    try:
+        if not isinstance(agent_signals, dict):
+            return {}
+        upd = agent_signals.get("updated")
+        if not isinstance(upd, str) or not upd:
+            return {}
+        upd_dt = datetime.fromisoformat(upd)
+        if upd_dt.tzinfo is None:
+            return {}
+        now_utc = now_utc or datetime.now(timezone.utc)
+        age_h = (now_utc - upd_dt).total_seconds() / 3600.0
+        if not (-1.0 <= age_h <= WL_EARNINGS_FALLBACK_MAX_AGE_HOURS):
+            return {}
+        sig = (agent_signals.get("signals") or {}).get(ticker)
+        if not isinstance(sig, dict):
+            return {}
+        raw = sig.get("earnings")
+        if not isinstance(raw, str):
+            return {}
+        m = _KI_EARN_DATE_RE.search(raw)
+        if not m:
+            return {}
+        edate = datetime(int(m.group(3)), int(m.group(2)), int(m.group(1))).date()
+        today = today or datetime.now(ZoneInfo("America/New_York")).date()
+        days = (edate - today).days
+        if days < 0:
+            return {}
+        return {"earnings_days": days, "earnings_date_str": edate.strftime("%d.%m.")}
+    except Exception:
+        return {}
+
+
+def _load_agent_signals_for_display() -> dict:
+    """Liest ``agent_signals.json`` fail-soft (leeres Dict bei Fehler)."""
+    try:
+        with open("agent_signals.json", "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
 def _wl_card_payload(_s: dict) -> dict:
     """Baut das Watchlist-Karten-Payload aus einem angereicherten Stock-Dict.
 
@@ -19467,8 +19528,11 @@ def main():
           f"{_opts_elapsed:.1f}s abgerufen — {_n_ok} mit Daten, {_n_na} ohne", flush=True)
 
     # Parallel earnings date fetch (US-only, max 5 threads).
-    # EarningsWhispers-Override: falls der Ticker im RSS-Cache ist, nutzen wir
-    # dessen präziseren Termin + EPS-Schätzung statt yfinance.calendar.
+    # EarningsWhispers-Override: seit 18.05.2026 AUS (EARNINGSWHISPERS_ENABLED
+    # = False, RSS-Feed tot) — ew_calendar ist dann leer, die Schleife unten
+    # wendet nichts an und die Log-Zeile "EarningsWhispers-Override angewendet"
+    # erscheint nicht. Alle Termine kommen aus yfinance.calendar. Der Pfad
+    # bleibt für eine spätere Re-Aktivierung stehen.
     _t_earn = time.time()
     log.info("Step 3c – Fetching earnings dates for %d US stocks …", len(us_top10))
     _today_et = datetime.now(EASTERN).date() if 'EASTERN' in globals() else datetime.now(ZoneInfo("America/New_York")).date()
@@ -19702,8 +19766,29 @@ def main():
     # nach app_data.json geschriebene watchlist_cards-Feld — wir bauen
     # sie hier einmal und reichen sie sowohl in den Render als auch in
     # _write_app_data_json weiter (Z. ~13927).
+    # Earnings-Termin für Watchlist-Ticker AUSSERHALB der Top-10 (02.11.2026,
+    # REIN ANZEIGE): der Earnings-Abruf (Step 3c) läuft nur für die US-Top-10.
+    # Für die übrigen Watchlist-Karten das Datum aus dem bereits vorhandenen
+    # agent_signals.json übernehmen (Tage neu berechnet, Frische-Gate) — nur
+    # auf einer KOPIE des Stock-Dicts (``enriched`` bleibt unverändert, kein
+    # Effekt auf Score/Backtest/Exit). Top-10-Ticker und bereits gesetzte
+    # Earnings-Werte bleiben unangetastet.
+    _wl_top10_set = {s["ticker"] for s in top10}
+    _wl_agent_sigs = _load_agent_signals_for_display()
+    _wl_earn_filled = 0
+
+    def _wl_payload_with_earnings(c: dict) -> dict:
+        nonlocal _wl_earn_filled
+        if c["ticker"] in _wl_top10_set or c.get("earnings_days") is not None:
+            return _wl_card_payload(c)
+        _extra = _wl_earnings_from_agent_signals(c["ticker"], _wl_agent_sigs)
+        if not _extra:
+            return _wl_card_payload(c)
+        _wl_earn_filled += 1
+        return _wl_card_payload({**c, **_extra})
+
     _wl_card_data = {
-        c["ticker"]: _wl_card_payload(c)
+        c["ticker"]: _wl_payload_with_earnings(c)
         for c in enriched
         if c.get("manual_personal")
     }
@@ -19711,8 +19796,11 @@ def main():
     _fallback_added = 0
     for c in enriched:
         if c["ticker"] in _personal_tickers and c["ticker"] not in _wl_card_data:
-            _wl_card_data[c["ticker"]] = _wl_card_payload(c)
+            _wl_card_data[c["ticker"]] = _wl_payload_with_earnings(c)
             _fallback_added += 1
+    if _wl_earn_filled:
+        log.info("Watchlist-Karten: Earnings-Termin für %d Ticker außerhalb "
+                 "der Top-10 aus agent_signals.json übernommen", _wl_earn_filled)
     if _fallback_added:
         log.info("Watchlist-Karten: %d Ticker per manual_personal-Flag, "
                  "%d zusätzlich per Namens-Fallback gefunden",
