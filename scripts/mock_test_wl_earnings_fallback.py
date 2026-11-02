@@ -29,12 +29,38 @@ import types
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-for _name in ("yfinance", "bs4", "deep_translator"):
-    sys.modules.setdefault(_name, types.ModuleType(_name))
-sys.modules["yfinance"].download = lambda *a, **k: None
-sys.modules["yfinance"].Ticker = lambda *a, **k: None
-sys.modules["bs4"].BeautifulSoup = lambda *a, **k: None
-sys.modules["deep_translator"].GoogleTranslator = lambda *a, **k: None
+
+def _install_stubs() -> None:
+    """CI läuft auf stdlib + jinja2 + pyyaml (pr-checks.yml) — Drittlibs
+    stubben, analog mock_test_atm_iv_zero_guard.py."""
+    if "yfinance" not in sys.modules:
+        yf = types.ModuleType("yfinance")
+        yf.download = lambda *a, **k: None
+        yf.Ticker = lambda *a, **k: None
+        sys.modules["yfinance"] = yf
+    if "requests" not in sys.modules:
+        rq = types.ModuleType("requests")
+        rq.Session = lambda *a, **k: types.SimpleNamespace(
+            headers=types.SimpleNamespace(update=lambda *a, **k: None))
+        rq.get = lambda *a, **k: None
+        rq.exceptions = types.SimpleNamespace(RequestException=Exception)
+        sys.modules["requests"] = rq
+    if "bs4" not in sys.modules:
+        bs4 = types.ModuleType("bs4")
+        bs4.BeautifulSoup = lambda *a, **k: None
+        sys.modules["bs4"] = bs4
+    if "deep_translator" not in sys.modules:
+        dt_mod = types.ModuleType("deep_translator")
+        dt_mod.GoogleTranslator = lambda *a, **k: types.SimpleNamespace(
+            translate=lambda s: s)
+        sys.modules["deep_translator"] = dt_mod
+    if "watchlist" not in sys.modules:
+        wl = types.ModuleType("watchlist")
+        wl.WATCHLIST = []
+        sys.modules["watchlist"] = wl
+
+
+_install_stubs()
 
 import generate_report as g  # noqa: E402
 
