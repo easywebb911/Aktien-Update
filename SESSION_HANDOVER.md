@@ -2840,10 +2840,26 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 01.11.2026 — NACHTRAG Regel (b): Merge bei rotem Check nur mit begründeter Ursache (1 PR, Auto-Merge)
 
+- Easy-NACHTRAG 01.11.2026 zu `#625`: `#626` (Branch
+  `claude/regel-b-rot-merge-n4x8`, kein Merge-Hash — Regel a).
+- **CLAUDE.md Regel (b):** Check muss fertig sein; Rot → nur mergen, wenn
+  die Ursache bekannt und im PR-Text begründet ist (z. B. erwartete
+  protected-zones-Sperre), sonst melden, nicht mergen. Die zwei
+  Folgestellen im Abschnitt „PR-Status-Meldung nach Push" inline
+  angeglichen; Pointer 9n ergänzt. **Klarstellung (Guardian-Finding,
+  Easy-Entscheid 01.11.):** bei rotem `lint_protected_zones` gilt allein
+  die protected-ok-Label-Regel a)–d) — ohne Label nie mergen; das
+  Beispiel „erwartete protected-zones-Sperre" deckt nur den Fall mit
+  gesetztem Label.
+- **Keine `.py`-Datei, kein Score-/Filter-/Exit-/Freeze-Touch.**
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#625`,
+  höchste hier erwähnte PR = `#625` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Klasse: Auto-Merge nach Guardian** (Doku-only).
 
 ### 02.11.2026 — B3: Exit-B.1-Verdikt-Hinweis „>20 % ausgeschlossen" (1 PR, Label-Regel Fall a)
 
-- Easy-Entscheid Monatsrundgang 02.11.2026 (Teil 1, vor n=250): `__PR__`
+- Easy-Entscheid Monatsrundgang 02.11.2026 (Teil 1, vor n=250): `#627`
   (Branch `claude/exit-b1-excluded-hint-q7m3`, kein Merge-Hash — Regel a).
 - **`scripts/freeze_eval.py`:** `evaluate_exit_b1_family._finish` hängt bei
   `pct_excluded > 20` an `verdict_reason` den Zusatz „(Einschränkung: X% der
@@ -2861,22 +2877,6 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#626`,
   höchste hier erwähnte PR = `#626` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
-- Easy-NACHTRAG 01.11.2026 zu `#625`: `#626` (Branch
-  `claude/regel-b-rot-merge-n4x8`, kein Merge-Hash — Regel a).
-- **CLAUDE.md Regel (b):** Check muss fertig sein; Rot → nur mergen, wenn
-  die Ursache bekannt und im PR-Text begründet ist (z. B. erwartete
-  protected-zones-Sperre), sonst melden, nicht mergen. Die zwei
-  Folgestellen im Abschnitt „PR-Status-Meldung nach Push" inline
-  angeglichen; Pointer 9n ergänzt. **Klarstellung (Guardian-Finding,
-  Easy-Entscheid 01.11.):** bei rotem `lint_protected_zones` gilt allein
-  die protected-ok-Label-Regel a)–d) — ohne Label nie mergen; das
-  Beispiel „erwartete protected-zones-Sperre" deckt nur den Fall mit
-  gesetztem Label.
-- **Keine `.py`-Datei, kein Score-/Filter-/Exit-/Freeze-Touch.**
-- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#625`,
-  höchste hier erwähnte PR = `#625` — kein Rückstand vor diesem Eintrag.
-- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
-- **Klasse: Auto-Merge nach Guardian** (Doku-only).
 
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
