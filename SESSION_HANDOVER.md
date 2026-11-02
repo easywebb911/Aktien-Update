@@ -3091,7 +3091,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 ### 02.11.2026 — §4-Sensitivitätsprüfung vorab registriert (1 PR, Manual-Merge)
 
 - Easy-Entscheid 02.11.2026 (Option c der Postclose-Halbzeilen-Diagnose):
-  `#__PR__` (Branch `claude/s4-sensitivitaet-vorab-r8m2`, kein Merge-Hash —
+  `#638` (Branch `claude/s4-sensitivitaet-vorab-r8m2`, kein Merge-Hash —
   Regel a). Registriert VOR jedem Ergebnis: §4-Zähler n=242/250,
   `eval_results.jsonl` existiert nicht.
 - **SESSION_HANDOVER:** neuer Abschnitt „§4-Protokolleintrag 02.11.2026 —
