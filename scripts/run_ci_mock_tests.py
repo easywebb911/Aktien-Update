@@ -39,6 +39,7 @@ SCRIPTS = ROOT / "scripts"
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
     "positions_asof",
+    "wl_earnings_fallback",
     "agent_ntfy_relay",
     "gist_lost_update_fix",
     "position_watchlist_watchdog",

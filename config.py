@@ -1686,6 +1686,18 @@ US_MARKET_HOLIDAYS = frozenset(
 STALENESS_FRESH_MAX_HOURS = 15   # < 15 h → frisch (kein Hinweis, dezent versteckt)
 STALENESS_STALE_MIN_HOURS = 24   # 15–24 h → verspätet (gelb) · > 24 h → stale (rot)
 
+# ── Watchlist-Karten: Earnings-Termin für Ticker außerhalb der Top-10 ────────
+# (02.11.2026, Easy-Entscheid). Der Daily-Run holt Earnings-Termine nur für
+# die US-Top-10; Watchlist-Ticker außerhalb tragen deshalb keinen Termin auf
+# der Karte. Quelle für die Lücke ist das BEREITS vorhandene
+# agent_signals.json (Feld ``earnings`` = "in N Tagen (TT.MM.JJJJ)" aus dem
+# letzten ki_agent-Tick) — KEIN neuer Abruf. Nur das DATUM wird übernommen,
+# die Tage werden beim Rendern neu berechnet. Ist die Datei älter als diese
+# Schwelle (Feld ``updated``), wird nichts angezeigt (Frische-Gate; ki_agent
+# tickt stündlich, 36 h decken einen ausgefallenen Tag ab). REIN ANZEIGE —
+# kein Score-/Filter-/Push-/Exit-Effekt.
+WL_EARNINGS_FALLBACK_MAX_AGE_HOURS = 36
+
 # ── Markt-Stress-Banner (§6h, Anzeige-only, 08.08.2026) ──────────────────────
 # Dezenter Header-Hinweis, wenn der heutige S&P-500-Tagesmove schwach/panisch
 # ist. Quelle ist der BEREITS gefetchte ^GSPC-Tagesmove (spx_daily_perf, aus
