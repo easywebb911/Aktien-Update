@@ -379,6 +379,34 @@ def test_missing_values_per_test_exclusion():
            abs(res["tests"]["b"]["pct_excluded"] - 10.0) < 0.01)
 
 
+def test_excluded_hint_only_text_above_20pct():
+    """Hinweis '>20 % ausgeschlossen' (open_items exit-b1-verdict-missing-
+    pct-excluded-hint): erscheint nur bei pct_excluded > 20, ändert nur
+    verdict_reason — verdict/n/criteria bleiben identisch."""
+    base = _effect_rows(100, seed=72)
+    res_lo = fe.evaluate_exit_b1_family(base)
+    _check("<=20% ausgeschlossen -> kein Einschränkungs-Hinweis",
+           "Einschränkung" not in res_lo["tests"]["b"]["verdict_reason"])
+    rows = _effect_rows(100, seed=72)
+    for r in rows[:30]:
+        r["return_3d"] = None
+    res_hi = fe.evaluate_exit_b1_family(rows)
+    tb = res_hi["tests"]["b"]
+    _check(">20% ausgeschlossen -> Hinweis im verdict_reason",
+           "Einschränkung: 30.0% der Population ohne verwertbare Return-Werte ausgeschlossen"
+           in tb["verdict_reason"])
+    _check("Hinweis nur bei betroffenem Test (a ohne Hinweis)",
+           "Einschränkung" not in res_hi["tests"]["a"]["verdict_reason"])
+    # Gegenprobe: Hinweis entfernt -> Rest des Texts = reines Verdikt-Ergebnis
+    expected_reason = fe._verdict_exit_b1_test(
+        tb["criteria"]["holm_significant"], tb["criteria"]["ci_above_zero"],
+        tb["criteria"]["regime_split_status"])
+    _check("verdict unverändert aus _verdict_exit_b1_test",
+           tb["verdict"] == expected_reason[0])
+    _check("verdict_reason = Basis-Text + nur Hinweis",
+           tb["verdict_reason"].startswith(expected_reason[1] + " (Einschränkung:"))
+
+
 def test_empty_population_no_crash():
     res = fe.evaluate_exit_b1_family([])
     _check("leere Population -> n_pop=0, kein Crash", res["n_pop"] == 0)
@@ -585,6 +613,7 @@ def run_all():
         test_wilcoxon_does_not_influence_verdict,
         test_holm_family_k2_independent_from_other_freezes,
         test_missing_values_per_test_exclusion,
+        test_excluded_hint_only_text_above_20pct,
         test_empty_population_no_crash,
         test_all_rows_missing_return_10d,
         test_trigger_at_249_no_250_yes_and_lock,

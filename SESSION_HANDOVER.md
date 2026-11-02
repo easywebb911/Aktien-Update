@@ -2840,6 +2840,27 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 01.11.2026 — NACHTRAG Regel (b): Merge bei rotem Check nur mit begründeter Ursache (1 PR, Auto-Merge)
 
+
+### 02.11.2026 — B3: Exit-B.1-Verdikt-Hinweis „>20 % ausgeschlossen" (1 PR, Label-Regel Fall a)
+
+- Easy-Entscheid Monatsrundgang 02.11.2026 (Teil 1, vor n=250): `__PR__`
+  (Branch `claude/exit-b1-excluded-hint-q7m3`, kein Merge-Hash — Regel a).
+- **`scripts/freeze_eval.py`:** `evaluate_exit_b1_family._finish` hängt bei
+  `pct_excluded > 20` an `verdict_reason` den Zusatz „(Einschränkung: X% der
+  Population ohne verwertbare Return-Werte ausgeschlossen)" an — analog
+  KI-Score-Familie. **Reiner Ausgabetext:** `verdict`, Population,
+  Kriterien, Statistik, Seed, Auslöser unverändert.
+- **Test:** `test_excluded_hint_only_text_above_20pct` in
+  `mock_test_exit_b1_autorun.py` (Hinweis nur >20 %, nur im betroffenen
+  Test, `verdict` = `_verdict_exit_b1_test`-Ergebnis, Text = Basis +
+  Hinweis). 36/36 + 168/168 grün.
+- **`open_items.json`:** `exit-b1-verdict-missing-pct-excluded-hint` →
+  `erledigt` (NACHTRAG).
+- **Protected-Zone:** `freeze_eval.py` ist Freeze-Zone → Label-Regel Fall a)
+  (reiner Text, Guardian-bestätigt), Label von Code gesetzt, frischer Push.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#626`,
+  höchste hier erwähnte PR = `#626` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 - Easy-NACHTRAG 01.11.2026 zu `#625`: `#626` (Branch
   `claude/regel-b-rot-merge-n4x8`, kein Merge-Hash — Regel a).
 - **CLAUDE.md Regel (b):** Check muss fertig sein; Rot → nur mergen, wenn
