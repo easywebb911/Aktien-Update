@@ -1,4 +1,4 @@
-# SESSION_HANDOVER.md — Stand 09.10.2026 (Woche 15.08.–09.10.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix + Handover-Staleness-CI-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix, S10-crit seit 03.10. abgeklungen) + NYSE-empty-Detail-Logging + Open-Items-Oktober-Rundgang + US-Feiertage algorithmisch + SI-Timestamp-Logging + NaN-Guard-Symmetrie entry_past_return_5d + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel)
+# SESSION_HANDOVER.md — Stand 02.11.2026 (Bogen 01.–02.11.: Monatsrundgang + Merge-/Datenkorrektur-Disziplin + NaN-Baseline-Abbau + Positions-Stand + Watchlist-Earnings + Postclose-Halbzeilen-Diagnose + §4-Sensitivität vorab registriert + [halfrow_probe]; davor: Woche 15.08.–09.10.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix + Handover-Staleness-CI-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix, S10-crit seit 03.10. abgeklungen) + NYSE-empty-Detail-Logging + Open-Items-Oktober-Rundgang + US-Feiertage algorithmisch + SI-Timestamp-Logging + NaN-Guard-Symmetrie entry_past_return_5d + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
@@ -17,6 +17,16 @@ einem ad-hoc-PR ist der Check präventiv-sichtbar VOR dem Merge; beim
 ein zweiter, push-getriggerter Workflow **erst NACH** dem Commit — rein
 detektiv, verhindert den Verlust nicht, macht ihn nur sichtbar. Ein
 roter Check-Run auf einem main-Commit braucht also einen Follow-up-Fix.
+
+**Aktueller Bogen 01.–02.11.2026** (PRs `#624`–`#639`, alle git-belegt
+gemergt, Details in „## 1) HEUTE IMPLEMENTIERT“): Monatsrundgang November ·
+CLAUDE.md-Regel „Merge- und Datenkorrektur-Disziplin“ (`#625`/`#626`) ·
+NaN-Lint-Baseline 70 → 36 und inhaltsbasiert (`#631`–`#634`, `#636`) ·
+Positions-Stand (`#635`) · Earnings-Termin auf Watchlist-Karten (`#637`) ·
+**Postclose-Halbzeile** (yfinance liefert in Abendläufen die Tageszeile halb
+leer — Diagnose 02.11.) → **§4-Sensitivitätsprüfung vorab registriert**
+(`#638`, n=242/250, kein Ergebnis) + Log-Probe `[halfrow_probe]` (`#639`).
+Nächste Schritte siehe Block 4, „Wiedervorlagen Postclose-Halbzeile“.
 
 **Datums-Basis (belegt, nicht Erinnerung):** Repo-Stand **27.09.2026**.
 **15.08.–27.09.2026** (PRs #533–#566, 33 PRs, alle git-belegt gemergt,
@@ -3116,8 +3126,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Ergebnis):** Sensitivität `bedingt` zählt als robust (Gesamturteil
   „belegt“), nur Sensitivität `Unklar` → „belegt, aber nicht robust“;
   `combine_verdict` + Test (alle 9 Kombinationen) mitgezogen.
-- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#637`,
-  höchste hier erwähnte PR = `#637` — kein Rückstand vor diesem Eintrag.
+- **Staleness-Grep vor Ready (Stand Merge, nach Rebase auf `#639`):** höchste
+  gemergte PR auf `main` = `#639`, höchste in Block 1 erwähnte PR = `#639` —
+  kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
 ### 02.11.2026 — [halfrow_probe] Log-Probe für Fix-Variante B (1 PR, State-Logging)
@@ -3142,6 +3153,23 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Konflikt/Doppel-ID zu vermeiden).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#637`,
   höchste hier erwähnte PR = `#638` (offen) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
+### 02.11.2026 — Handover-Konsistenz nach Session 02.11. (1 PR, Doku)
+
+- `#640` (Branch `claude/handover-konsistenz-0211-h3n7`, kein Merge-Hash —
+  Regel a). Kopfzeile auf Stand 02.11.2026 + Absatz „Aktueller Bogen
+  01.–02.11.“; Staleness-Satz im `#638`-Eintrag auf den Merge-Stand (`#639`)
+  korrigiert; Block 4 „Wiedervorlagen Postclose-Halbzeile“ (a)–(e);
+  RE-TEST-KALENDER: Setup-Edge-Zeile als ÜBERHOLT 10.10.2026 markiert
+  (Widerspruch zum eingefrorenen Setup-Edge-Freeze).
+- `open_items`: Postclose-Halbzeile + „Log-Probe [halfrow_probe] seit #639“;
+  `cur-close-close-5td-before-entry-unguarded-source` Parkung aufgehoben
+  (offen, `faellig_am` entfernt); `github-schedule-ausgesetzt-2026-11-02`
+  bleibt beobachtet (seit 15:56 UTC kein weiterer geplanter Lauf).
+- Freeze-Blöcke byte-identisch (MD5 abschnittsweise).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#639`,
+  höchste in Block 1 erwähnte PR = `#639` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
@@ -3847,6 +3875,31 @@ neu getestet.
 
 ## 4) GEPLANTE AUFGABEN + WIEDERVORLAGEN (mit Daten)
 
+### Wiedervorlagen Postclose-Halbzeile (Stand 02.11.2026, Reihenfolge = Easy-Entscheid)
+
+Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
+**jetzt** repariert (systematisch, 15/22 Abendläufe im Oktober), nicht bis
+03.12. geparkt. Ein PR zur Zeit, in dieser Reihenfolge:
+
+- **(a) Auswertung `[halfrow_probe]`** nach dem nächsten Postclose- **und**
+  dem folgenden Premarket-Lauf: Probe-Zeilen (`.info`-Kurs/-Hoch/-Tief/
+  -Eröffnung/-Volumen, `regularMarketTime`) gegen die dann vollständige
+  Tageszeile prüfen. Entscheidet, ob Variante B tragfähig ist.
+- **(b) Setup-Edge-Protokolleintrag** nach Freeze-Punkt 8c (Score-/Daten-
+  Änderung während des Tests) — Punkt 8c verlangt den Eintrag **im**
+  eingefrorenen Block → Schutzzone, **protected-ok-Label nach Regel b,
+  Freigabe Easy**. Naht = Fix-Merge-Datum, Zusatzprüfung nur abschwächend.
+- **(c) Fix B mit A-Rückfall** in `generate_report.py`: halbe Zeile aus dem
+  bereits geladenen `.info` füllen (nur bei gleichem ET-Datum), sonst
+  verwerfen und Vortag ehrlich ausweisen; Bar-Datum korrekt (Vintage-Guard
+  beachten — reine Variante A würde Backtest-Einträge überspringen).
+  Easy-Merge (Score-Datenpfad). Probe wird dort entfernt oder überführt.
+- **(d) Exit `price_asof` = Bar-Datum + `nan_pct`** in `provider_health`
+  (Alarm auf „ungefüllt“: warn ≥ 10 % und ≥ 5 Ticker, crit ≥ 50 %).
+- **(e) KI-Agent bewusst zurückgestellt:** `ki_agent.fetch_yfinance` rechnet
+  nach 00:00 UTC Volumen/RVOL auf dem Vortag. Ein Fix dort bräuchte einen
+  KI-Score-Freeze-Eintrag — **Entscheidung offen (Easy)**.
+
 ### RE-TEST-KALENDER (kanonisch, Stand 05.08.2026)
 
 | Datum | Was | n-Ziel | Notiz |
@@ -3854,7 +3907,7 @@ neu getestet.
 | ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
 | **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. **ERSETZT (10.10.2026)** — kein Zielgröße/Kriterium war hier je festgelegt; siehe Erratum-Block „Erweiterung vor Auswertung — Test (c) Conviction-Zusatznutzen" im Setup-Edge-Re-Test-Freeze unten (Test (c), Holm k=3). Diese Zeile bleibt als Historie stehen, nicht gelöscht. |
 | **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf **aktiv** seit `#621` (31.10.2026) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
-| **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. |
+| **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. **ÜBERHOLT 10.10.2026:** neu registriert und eingefroren — siehe „VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026“ unten (Stand 02.11.: n=50/250). Diese Zeile bleibt als Historie. |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
 
