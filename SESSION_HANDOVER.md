@@ -2932,8 +2932,10 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - `open_items`: `timestamp-silent-fail-siblings-unlogged` → `erledigt`.
 - **`scripts/lint_nan_bypass_fields.py`:** 40 Baseline-Zeilennummern
   (`generate_report.py`) wegen der eingefügten Zeilen per Diff-Abbildung
-  nachgezogen (dokumentierte Line-Shift-Fragilität, 70 Einträge unverändert,
-  nichts hinzugefügt/entfernt).
+  nachgezogen (dokumentierte Line-Shift-Fragilität; Baseline gesamt
+  weiterhin 70 Einträge, davon 56 in `generate_report.py`: 40 verschoben,
+  16 unverändert; nichts hinzugefügt/entfernt, Zeileninhalt je Eintrag
+  identisch).
 - State-Logging, kein Score-/Filter-/Freeze-Touch; Golden byte-identisch,
   `lint_protected_zones` OK.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#629`,
