@@ -3198,6 +3198,30 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#640` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — Alter des KI-Agent-Stands im App-Kopf (1 PR, Frontend)
+
+- Easy-Entscheid 02.11.2026 (Stillstands-Diagnose, Option b): `#__PR__` (Branch
+  `claude/ki-stand-alter-k7p2`, kein Merge-Hash — Regel a). Die Kopf-Anzeige
+  „· KI HH:MM“ zeigt jetzt das Alter des KI-Agent-Stands, im Browser berechnet
+  (wirkt auch bei GitHub-Zeitplan-Stillstand): < 12 h wie bisher, ab 12 h gelb
+  „(N h alt)“, ab 24 h rot „(N Tag(e) alt)“, Datum wenn nicht heute
+  (Berlin-Zeit). Fehlender Zeitstempel / `app_data.json` nicht ladbar →
+  „· KI-Stand unbekannt“ statt versteckt.
+- Anker `agent_signals.updated` (setzt nur `ki_agent.main()` am Tick-Ende; der
+  Daily-Run kopiert unverändert). NICHT `app_data.generated_at` (schreiben
+  Daily-Run und ki_agent). Schwellen `config.KI_AGENT_AGE_WARN_HOURS = 12` /
+  `KI_AGENT_AGE_STALE_HOURS = 24`, kalibriert an den gemessenen Lücken bis
+  10,6 h. Farbklassen des Staleness-Banners wiederverwendet.
+- Test `mock_test_ki_age_header.py` (inkl. node-Funktionstest des echten JS,
+  festes „jetzt“; Gegenprobe: scheitert auf altem Code). Golden nur an den
+  beabsichtigten Stellen.
+- `open_items` neu: `ki-agent-faktisch-5x-taeglich`, `premarket-lauf-nach-us-open`,
+  `health-digest-24h-fenster-wandert`, `stillstands-alarm-extern`.
+- REIN ANZEIGE — kein Score-/Push-/Exit-/Freeze-Touch.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#641`,
+  höchste in Block 1 erwähnte PR = `#641` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-

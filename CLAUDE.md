@@ -677,6 +677,19 @@ HTML einen alten `_DAILY_RUN_TS` → der Banner zeigt das **korrekt** als STALE
 (flaggt den veralteten Snapshot), kann ihn aber nicht selbst auffrischen — das
 bleibt der separate Cache-Bust-Folge-PR (SESSION_HANDOVER §6 (a)).
 
+### KI-Agent-Stand-Alter im Kopf (seit 02.11.2026)
+
+Die Anzeige „· KI HH:MM“ (`#hdr-kitime`) zeigt das Alter des KI-Agent-Stands
+— im Browser berechnet (`_kiAgeInfo` / `_renderKiAge`), also auch bei einem
+GitHub-Zeitplan-Stillstand ehrlich. Anker **`agent_signals.updated`** (setzt
+nur `ki_agent.main()` am Tick-Ende), NICHT `app_data.generated_at`. < 12 h
+normal, ab `KI_AGENT_AGE_WARN_HOURS` (12) gelb „(N h alt)“, ab
+`KI_AGENT_AGE_STALE_HOURS` (24) rot „(N Tag(e) alt)“, Datum wenn nicht heute
+(Berlin). Kalibrierung: der stündliche KI-Cron startet faktisch nur 3–7×/Tag,
+normale Lücken bis 10,6 h (Messung 16.09.–02.11.2026). Fehlender Zeitstempel
+oder `app_data.json` nicht ladbar → „· KI-Stand unbekannt“. Wiederverwendet die
+Farbklassen `hdr-staleness-delayed/-stale`. Test `mock_test_ki_age_header.py`.
+
 ### Pflege
 
 Schwellen-Anpassung nur in `config.py` (`STALENESS_*`). Score-Methodik-Sync

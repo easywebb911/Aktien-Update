@@ -8793,6 +8793,8 @@ def _build_context(stocks: list[dict], report_date: str,
         "daily_run_ts_js": daily_run_ts_js,
         "staleness_fresh_h": STALENESS_FRESH_MAX_HOURS,
         "staleness_stale_h": STALENESS_STALE_MIN_HOURS,
+        "ki_age_warn_h":  KI_AGENT_AGE_WARN_HOURS,
+        "ki_age_stale_h": KI_AGENT_AGE_STALE_HOURS,
         # Markt-Stress-Banner (§6h, 08.08.2026): heutiger SPY-Tagesmove (float
         # oder JS-``null`` bei nicht-endlichem/fehlendem Wert) + zwei Schwellen
         # aus config. Reine Anzeige, kein Score-/Push-/Filter-Effekt.
@@ -8882,6 +8884,8 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     daily_run_ts_js   = ctx.get("daily_run_ts_js", "")
     staleness_fresh_h = ctx.get("staleness_fresh_h", 15)
     staleness_stale_h = ctx.get("staleness_stale_h", 24)
+    ki_age_warn_h     = ctx.get("ki_age_warn_h", 12)
+    ki_age_stale_h    = ctx.get("ki_age_stale_h", 24)
     # Markt-Stress-Banner (§6h, 08.08.2026): Defaults defensiv (alter Context
     # ohne Keys → ``null``/Schwellen → Banner bleibt versteckt). Reine Anzeige.
     market_stress_spx_js      = ctx.get("market_stress_spx_js", "null")
@@ -11318,6 +11322,61 @@ function _renderStaleness(anchorIso) {{
 // PWA-Snapshot) — genau der Fall, in dem Easy die Warnung am meisten braucht.
 window.addEventListener('DOMContentLoaded', function() {{ _renderStaleness(_DAILY_RUN_TS); }});
 
+// KI-Agent-Stand-Alter (Easy-Entscheid 02.11.2026, Stillstands-Diagnose Option b).
+// Ergänzt die Kopf-Anzeige „· KI HH:MM" um das ALTER des KI-Agent-Stands —
+// im Browser berechnet, also auch dann ehrlich, wenn GitHub keine Läufe startet.
+// Anker = ``agent_signals.updated`` (setzt NUR ki_agent.main() am Ende jedes
+// vollständigen Ticks; der Daily-Run kopiert die Datei unverändert nach
+// app_data.agent_signals). NICHT ``app_data.generated_at`` — das schreiben
+// Daily-Run UND ki_agent, es misst also nicht den KI-Stand.
+// Schwellen aus config.py (KI_AGENT_AGE_*): gemessene normale Lücken zwischen
+// KI-Läufen bis 10,6 h → erst ab 12 h gelb, ab 24 h rot.
+// Pure Hilfsfunktion (``nowMs`` injizierbar, Berlin-Zeit fest) → per node testbar.
+// Fehlender/ungültiger Zeitstempel → ehrlicher Hinweis statt frisch wirkender Uhrzeit.
+// REIN ANZEIGE — kein Score-/Push-/Exit-/Freeze-Effekt.
+function _kiAgeInfo(updatedIso, nowMs) {{
+  const t = updatedIso ? new Date(updatedIso) : null;
+  if (!t || isNaN(t.getTime())) {{
+    return {{text: ' · KI-Stand unbekannt', cls: 'hdr-staleness-delayed'}};
+  }}
+  const now = (typeof nowMs === 'number') ? nowMs : Date.now();
+  const ageH = Math.max(0, (now - t.getTime()) / 3600000);
+  const tz = {{timeZone: 'Europe/Berlin'}};
+  const dayKey = (d) => d.toLocaleDateString('de-DE', Object.assign({{year: 'numeric', month: '2-digit', day: '2-digit'}}, tz));
+  const hhmm = t.toLocaleTimeString('de-DE', Object.assign({{hour: '2-digit', minute: '2-digit'}}, tz));
+  const notToday = dayKey(t) !== dayKey(new Date(now));
+  const dd = notToday
+    ? t.toLocaleDateString('de-DE', Object.assign({{day: '2-digit', month: '2-digit'}}, tz)) + ' '
+    : '';
+  let text = ' · KI ' + dd + hhmm;
+  let cls = '';
+  if (ageH >= _KI_AGE_STALE_H) {{
+    const days = Math.floor(ageH / 24);
+    text += ' (' + days + ' Tag' + (days > 1 ? 'e' : '') + ' alt)';
+    cls = 'hdr-staleness-stale';
+  }} else if (ageH >= _KI_AGE_WARN_H) {{
+    text += ' (' + Math.floor(ageH) + ' h alt)';
+    cls = 'hdr-staleness-delayed';
+  }}
+  return {{text: text, cls: cls}};
+}}
+
+function _renderKiAge(updatedIso) {{
+  // Fail-soft DOM-Teil zu _kiAgeInfo (Kopf-Span #hdr-kitime). Wiederverwendet
+  // die Farbklassen des Staleness-Banners (gelb/rot) — kein zweites System.
+  try {{
+    const el = document.getElementById('hdr-kitime');
+    if (!el) return;
+    const info = _kiAgeInfo(updatedIso);
+    el.classList.remove('hdr-staleness-delayed', 'hdr-staleness-stale');
+    if (info.cls) el.classList.add(info.cls);
+    el.textContent = info.text;
+    el.hidden = false;
+  }} catch (e) {{
+    console.warn('_renderKiAge error:', e);
+  }}
+}}
+
 function _renderMarketStress(spxPerf) {{
   // Markt-Stress-Banner (§6h, 08.08.2026): dezenter Header-Hinweis neben der
   // Staleness-/Run-Phase-Pill, wenn der heutige S&P-500-Tagesmove schwach
@@ -12299,6 +12358,9 @@ const QUOTE_PROXY_URL = '{quote_proxy_url_js}';
 const _DAILY_RUN_TS      = '{daily_run_ts_js}';
 const _STALE_FRESH_MAX_H = {staleness_fresh_h};
 const _STALE_STALE_MIN_H = {staleness_stale_h};
+// KI-Agent-Stand-Alter (02.11.2026): Schwellen aus config.py (KI_AGENT_AGE_*).
+const _KI_AGE_WARN_H     = {ki_age_warn_h};
+const _KI_AGE_STALE_H    = {ki_age_stale_h};
 // Markt-Stress-Banner (§6h, 08.08.2026): heutiger ^GSPC-Tagesmove (server-
 // eingebrannt aus dem bereits gefetchten spx_daily_perf — kein neuer Fetch),
 // float ODER null (nicht-endlich/fehlend → kein Banner). Schwellen aus config.
@@ -14058,18 +14120,9 @@ function _fmtGerman(d) {{
     // eingebrannt aus dem Daily-Run; die KI-Agent-Tick-Zeit ist separat und
     // client-seitig aus _AGENT_SIGNALS.updated. Trennt die zwei Frische-Achsen,
     // die sich vorher in einem "Stand:"-Wert verschmolzen. Fail-soft.
-    try {{
-      const kiEl = document.getElementById('hdr-kitime');
-      if (kiEl) {{
-        if (updated) {{
-          const kiStr = updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}});
-          kiEl.textContent = ' · KI ' + kiStr;
-          kiEl.hidden = false;
-        }} else {{
-          kiEl.hidden = true;
-        }}
-      }}
-    }} catch (e) {{}}
+    // Seit 02.11.2026 mit Alter + Farbe + Datum (nicht heute) via _renderKiAge;
+    // fehlender Zeitstempel → „KI-Stand unbekannt" statt versteckt.
+    _renderKiAge(data.updated);
 
     // Status-Bar — 24/7, vereinfacht
     if (!updated) {{
@@ -14363,6 +14416,8 @@ function _fmtGerman(d) {{
     .catch(() => {{
       const el = document.getElementById('agent-status');
       if (el) el.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
+      // KI-Stand nicht ladbar → ehrlicher Hinweis im Kopf statt leerer Stelle.
+      if (typeof _renderKiAge === 'function') _renderKiAge(null);
     }});
 }})();
 // ── Persönliche Watchlist ─────────────────────────────────────────────────────
