@@ -3002,7 +3002,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — NaN-Baseline Gruppe 2, Teil 3: DRIVER_CLASSIFICATIONS (1 PR, Auto-Merge)
 
-- `__PR__` (Branch `claude/nan-display-fix-3-w9e4`, kein Merge-Hash — Regel a).
+- `#634` (Branch `claude/nan-display-fix-3-w9e4`, kein Merge-Hash — Regel a).
 - **`generate_report.py`:** Float-Treiber in `DRIVER_CLASSIFICATIONS`
   (4 Stellen) nutzen `_finite_or_zero`. **Verhaltensneutral:** `field_check`
   war für NaN schon False (`0 < nan`), `label`/`weight` werden dann nicht
