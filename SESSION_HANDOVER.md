@@ -3088,6 +3088,32 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#636` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — §4-Sensitivitätsprüfung vorab registriert (1 PR, Manual-Merge)
+
+- Easy-Entscheid 02.11.2026 (Option c der Postclose-Halbzeilen-Diagnose):
+  `#__PR__` (Branch `claude/s4-sensitivitaet-vorab-r8m2`, kein Merge-Hash —
+  Regel a). Registriert VOR jedem Ergebnis: §4-Zähler n=242/250,
+  `eval_results.jsonl` existiert nicht.
+- **SESSION_HANDOVER:** neuer Abschnitt „§4-Protokolleintrag 02.11.2026 —
+  Sensitivitätsprüfung“ AUSSERHALB des eingefrorenen §4-Blocks (MD5 aller
+  Freeze-Blöcke vorher = nachher); Kriterium K1 (Gap-Log ≥ 20 Ticker mit
+  leerem Close am Entry-Tag, ab 01.10.) / K2 (`vol_stability_5d` leer bei
+  ≥ 80 % der Records, 15.07.–30.09.), daraus 22 Tage (identisch zur
+  Diagnose-Liste), 57 von 242 Records ausgeschlossen; Entscheidungsregel
+  wörtlich; Zuordnung `Beleg` = belegt, `bedingt`/`Unklar` = nicht belegt.
+  Hinweis-Satz in der RE-TEST-KALENDER-Tabelle.
+- **`scripts/s4_sensitivity_eval.py`** (neu, nur lesend/rechnend, ruft die
+  eingefrorene `evaluate_exit_b1_family` unverändert auf, schreibt nur mit
+  `--write` nach `eval_results_sensitivity.jsonl`; NICHT gegen die echte
+  Population ausgeführt) + Test `mock_test_s4_sensitivity_eval.py` (in
+  ALLOWLIST). `freeze_eval.py` unverändert.
+- `open_items`: 4 neue Items (Postclose-Halbzeile Preis-/Score-Pfad,
+  Exit-current_price Vortag, provider_health ohne nan_pct, GitHub-Schedules
+  ausgesetzt).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#637`,
+  höchste hier erwähnte PR = `#637` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 02.11.2026 — [halfrow_probe] Log-Probe für Fix-Variante B (1 PR, State-Logging)
 
 - Easy-Entscheid 02.11.2026: `#639` (Branch `claude/halfrow-log-probe-p4k8`,
@@ -3821,7 +3847,7 @@ neu getestet.
 |---|---|---|---|
 | ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
 | **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. **ERSETZT (10.10.2026)** — kein Zielgröße/Kriterium war hier je festgelegt; siehe Erratum-Block „Erweiterung vor Auswertung — Test (c) Conviction-Zusatznutzen" im Setup-Edge-Re-Test-Freeze unten (Test (c), Holm k=3). Diese Zeile bleibt als Historie stehen, nicht gelöscht. |
-| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf **aktiv** seit `#621` (31.10.2026) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
+| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf **aktiv** seit `#621` (31.10.2026) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
@@ -4961,6 +4987,108 @@ konkrete Berechnungsvorschrift für `p_c` ist jetzt fixiert.
   siehe `open_items.json`-ID `nyse-regsho-empty-streak`), §4-Re-Test-Stand,
   SEC/FINRA-Nachfolger-Filing (siehe Beobachtungseintrag oben), Block-1-
   Rückstand.
+
+#### §4-Protokolleintrag 02.11.2026 — Sensitivitätsprüfung (Postclose-Halbzeile), VOR jedem Ergebnis registriert
+
+**Bindend gemäß Änderungs-Protokoll-Regel des §4-Blocks (05.08.2026).** Dieser
+Eintrag steht bewusst als **eigener Abschnitt außerhalb** des eingefrorenen
+§4-Registrierungsblocks („### VORABREGISTRIERUNG — eingefroren 05.08.2026“):
+der Block selbst bleibt **byte-identisch** (MD5 vorher = nachher
+`5455c67fccc1fab2463b8b9a0b2477fc`, Abschnitt bis zur nächsten `###`-
+Überschrift). Die früheren Protokolleinträge (18.09., 27.09., 31.10.) stehen
+innerhalb des Blocks; dieser hier nicht, damit der eingefrorene Text
+nachweisbar unverändert bleibt. Er **ändert die Hauptauswertung nicht**,
+er legt nur eine zusätzliche Prüfung und deren Wertung fest.
+
+**Zeitpunkt (VOR jedem Ergebnis):** 02.11.2026, §4-Zählerstand
+`health_check.retest_counter_value()` = **n=242/250**, `eval_results.jsonl`
+existiert nicht — der Auto-Lauf hat noch nichts ausgewertet, kein Ergebnis
+war sichtbar.
+
+**1) Anlass + Befund** (read-only-Diagnose 02.11.2026, Session-Bericht):
+In Postclose-Läufen liefert yfinance für einen Großteil des Pools die
+letzte Tageszeile (= der Entry-Tag) halb leer (Volume vorhanden,
+High/Low/Close NaN; `hist_5d_gap_log.jsonl`: `nonfinite_cell` +
+`last_day_incomplete_shifted`). `generate_report.py` liest `cur_close`
+ohne Bereinigung → Preis fällt auf den Screener-Kurs zurück;
+`change_2d/3d/5d` = None (Late-Runner-Abzug über die 2-Tages-Bewegung
+blind), `rsi14`/`ma*`/`perf_20d` vom Vortag. **Renditen NICHT betroffen:**
+`return_3d/5d/10d` rechnet `ki_agent.update_backtest_returns` später aus
+neu geladenen, vollständigen Schlusskursen (`entry_basis` = Close am
+Entry-Tag aus demselben Download), nicht aus dem gespeicherten
+Entry-Preis. Betroffen ist nur die **Auswahl** `score≥70`. Von den 242
+§4-Records stammen **57** aus betroffenen Lauf-Tagen.
+
+**2) Hauptauswertung: UNVERÄNDERT** wie eingefroren (Definition A,
+Kriterien a/b, Verdikt-Logik laut Protokolleinträgen 31.10.2026). **Sie
+liefert das Verdikt.**
+
+**3) Sensitivitätsprüfung:** identisches Verfahren — dieselbe Funktion
+`freeze_eval.evaluate_exit_b1_family` (unverändert), dieselben Kriterien,
+derselbe Bootstrap-Seed, dieselbe Population-Bedingung — nur **ohne
+Records, deren Entry-Tag ein betroffener Lauf-Tag ist**. Entry-Tag = das
+`date`-Feld des Records = US/Eastern-Handelstag des Postclose-Laufs
+(`report_date` in `generate_report.py`, ET-basiert; kein Wochenend-Datum im
+Export — die `#608`-Datumskorrektur betraf andere Dateien, nicht
+`backtest_history.json`/den Export).
+
+Kriterium „betroffener Lauf-Tag“ (mechanisch):
+- **K1** (Entry-Tage ab 01.10.2026, Quelle `hist_5d_gap_log.jsonl`): Anzahl
+  **verschiedener Ticker** mit `reason == "nonfinite_cell"`, `"Close"` in
+  `missing_cells` und `dropped_day` = Entry-Tag, in Läufen mit `run_ts` in
+  US/Eastern ≥ 16:00 des Entry-Tags (Postclose). **Betroffen bei ≥ 20.**
+  Begründung X=20: betroffene Tage 52–80, saubere 0–2 (01.10.–30.10.).
+- **K2** (Entry-Tage 15.07.–30.09.2026, vor dem Gap-Log; Quelle
+  `backtest_history.json` Schema v4, gekürzte Juli-Tage aus dem Git-Stand
+  `f5a80d81`): Anteil der Records des Tages mit `vol_stability_5d` leer.
+  **Betroffen bei ≥ 0,8** (8 von 10). Begründung Y=0,8: betroffene Tage
+  0,8–1,0, saubere höchstens 0,4. Vor dem Verschiebe-Fix `#572` (02.10.)
+  leerte die halbe Zeile das 5-Tage-Fenster → `vol_stability_5d` leer. (Vor
+  15.07. nicht angewandt: 14.–20.05. wären Treffer, nur weil das Feld neu
+  war; dort liegt kein §4-Record — frühester §4-Entry 21.07.)
+
+**Abgeleitete Tagesliste (bindend für Entry-Tage bis einschließlich
+30.10.2026, weil die Quell-Logs gekürzt werden):** K2: 01.09., 21.09.,
+23.09., 24.09., 28.09., 29.09., 30.09. · K1: 01.10., 02.10., 06.10.,
+07.10., 08.10., 09.10., 13.10., 19.10., 21.10., 22.10., 26.10., 27.10.,
+28.10., 29.10., 30.10. — **22 Tage.** Abgleich mit der Diagnose-Liste vom
+02.11. (01.09., 21./23./24.09., 28.09.–02.10., 06.–09.10., 13.10.,
+19./21./22.10., 26.–30.10.): **identisch, keine Abweichung.** Nicht
+betroffen trotz Lauf nach Mitternacht UTC: 05.10. (K1 = 1) und 12.10.
+(kein Gap-Log-Eintrag) — das Kriterium, nicht die Uhrzeit, entscheidet.
+Für **Entry-Tage nach dem 30.10.2026** gilt **K1** (Kriterium bindend,
+nicht die Liste); ist ein solcher Tag im Gap-Log nicht mehr prüfbar
+(älter als das 30-Tage-Fenster), ist die Sensitivität „nicht prüfbar“ und
+wird nicht mit stillem Einschluss gerechnet. Bei heutigem Stand werden
+**57** Records ausgeschlossen, **185** bleiben.
+
+**Rechenweg (festgeschrieben):** `scripts/s4_sensitivity_eval.py` — liest
+den Matured-Export, entfernt die Records der betroffenen Tage, ruft die
+eingefrorene Funktion unverändert auf und schreibt nur mit `--write` nach
+`eval_results_sensitivity.jsonl` (nie nach `eval_results.jsonl`). Kein
+Workflow, kein Auto-Lauf-Hook; Ausführung erst nach dem Hauptergebnis.
+Test `scripts/mock_test_s4_sensitivity_eval.py` (bei leerer
+Ausschlussliste identisch zur Hauptfunktion).
+
+**4) ENTSCHEIDUNGSREGEL** (wörtlich, Easy-Entscheid 02.11.2026):
+- Hauptergebnis "belegt" UND Sensitivität "belegt" → belegt.
+- Hauptergebnis "belegt" UND Sensitivität "nicht belegt" → "belegt,
+  aber nicht robust". Zählt NICHT als Edge-Beleg (auch nicht für eine
+  Wiederfreigabe von Pushes).
+- Hauptergebnis "nicht belegt" → bleibt "nicht belegt", unabhängig von
+  der Sensitivität. Die Sensitivität kann nur abschwächen, nie aufwerten.
+- Die Sensitivität hat geringere Fallzahl (~185) — das ist bekannt und
+  kein Grund, die Regel später anzupassen.
+
+**Zuordnung zu den Verdikten der eingefrorenen Auswertung** (je Test a/b
+getrennt): „belegt“ = Verdikt `Beleg`; „nicht belegt“ = `bedingt` oder
+`Unklar` (laut Protokolleintrag 31.10.2026 zählt `bedingt` nicht als
+erfüllt). Folge: auch eine Sensitivität, die nur wegen kleinerer Fallzahl
+`bedingt` ergibt (Regime-Split nicht prüfbar), macht ein Haupt-`Beleg` zu
+„belegt, aber nicht robust“.
+
+**5) Datum + Grund:** 02.11.2026, Datenqualitäts-Befund der Postclose-
+Halbzeile; festgelegt bei n=242/250 ohne vorliegendes Ergebnis.
 
 #### ⚠ Datenherkunft des vorabregistrierten Exit-B.1-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
 
