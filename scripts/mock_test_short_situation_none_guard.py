@@ -169,6 +169,14 @@ def main() -> int:
     except Exception as exc:
         _check(f"23 _wl_card_payload NaN — CRASH: {type(exc).__name__}: {exc}", False)
 
+    # ── Teil 3: DRIVER_CLASSIFICATIONS (Float-Treiber), verhaltensneutral ──
+    d_nan  = gr._drivers_breakdown(dict(s, float_shares=nan))
+    d_none = gr._drivers_breakdown(dict(s, float_shares=None))
+    d_fin  = gr._drivers_breakdown(dict(s, float_shares=2e7))
+    _check("24 _drivers_breakdown: NaN-Float wie None", d_nan == d_none)
+    _check("25 _drivers_breakdown: endlicher kleiner Float erzeugt Float-Treiber",
+           any("Float klein" in it["label"] for it in d_fin["strengths"]))
+
     print()
     if _fails:
         print(f"{len(_fails)} FAIL: {_fails}")

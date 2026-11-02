@@ -207,10 +207,6 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     ("generate_report.py", 4865, "rsi14"),
     ("generate_report.py", 4897, "score"),
     ("generate_report.py", 5583, "float_shares"),
-    ("generate_report.py", 5902, "float_shares"),
-    ("generate_report.py", 5903, "float_shares"),
-    ("generate_report.py", 5904, "float_shares"),
-    ("generate_report.py", 5905, "float_shares"),
     # Trading-Date-Fix (26.10.2026, Wächter-Befund): neue `import
     # trading_date`-Zeilen in generate_report.py/health_check.py/
     # ki_agent.py + ein neuer `_us_trading_date_iso`-Berechnungs-Block in
