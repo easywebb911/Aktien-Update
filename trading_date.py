@@ -26,7 +26,7 @@ matured_backtest_export oder freeze_eval ein).
 """
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timezone
 from zoneinfo import ZoneInfo
 
 _NY = ZoneInfo("America/New_York")
@@ -59,3 +59,31 @@ def us_trading_date_iso(now_utc: datetime | None = None) -> str:
     das Format, das alle betroffenen ``report_date_iso``-Parameter
     erwarten."""
     return us_trading_date(now_utc).isoformat()
+
+
+# ── US-Börsenzeiten (reguläre Session) in US/Eastern — EINE Quelle ─────────
+# Fix 02.11.2026: Börsenzeiten standen an mehreren Stellen fest in UTC
+# (13:30–20:00 = nur die Sommerzeit-Projektion). Seit der US-Zeitumstellung
+# (01.11.2026) öffnet die Börse 14:30 UTC und schließt 21:00 UTC. Die Grenzen
+# werden deshalb aus der Ostküstenzeit abgeleitet (DST-korrekt über
+# ``zoneinfo``). Wochenenden/Feiertage werden hier bewusst NICHT
+# berücksichtigt (unverändert zum bisherigen Verhalten der Aufrufer).
+US_SESSION_OPEN_ET  = time(9, 30)
+US_SESSION_CLOSE_ET = time(16, 0)
+
+
+def us_session_state(now_utc: datetime | None = None) -> str:
+    """``"pre"`` (vor 09:30 ET), ``"open"`` (09:30 ≤ ET < 16:00) oder
+    ``"post"`` (ab 16:00 ET) zum Zeitpunkt ``now_utc`` — gerechnet in
+    US/Eastern, also im Sommer 13:30/20:00 UTC, im Winter 14:30/21:00 UTC.
+    ``now_utc`` injizierbar; naiv = UTC (wie ``us_trading_date``)."""
+    if now_utc is None:
+        now_utc = datetime.now(timezone.utc)
+    elif now_utc.tzinfo is None:
+        now_utc = now_utc.replace(tzinfo=timezone.utc)
+    t = now_utc.astimezone(_NY).time()
+    if t < US_SESSION_OPEN_ET:
+        return "pre"
+    if t < US_SESSION_CLOSE_ET:
+        return "open"
+    return "post"

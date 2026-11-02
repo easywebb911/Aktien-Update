@@ -66,22 +66,25 @@ jobs:
           # daily-squeeze-report.yml verlangt seit PR #132 einen
           # workflow_dispatch.inputs.run_phase (required: true). Ohne
           # antwortet die GitHub-API HTTP 422 und der gesamte Auto-
-          # Redeploy schlägt fehl. Phase clientseitig aus aktueller
-          # UTC-Zeit bestimmen — analog zu scripts/resolve_run_phase.py
-          # und der client-side-Logik in generate_report.py (PR #133):
-          #   US-Session [13:30, 20:00) UTC → premarket
-          #   sonst                          → postclose
+          # Redeploy schlägt fehl. Phase clientseitig aus der aktuellen
+          # US-OSTKÜSTENZEIT bestimmen (Fix 02.11.2026 — vorher feste
+          # UTC-Grenzen 13:30/20:00, nur in der Sommerzeit richtig) —
+          # analog zu scripts/resolve_run_phase.py (trading_date.
+          # us_session_state) und _computeClientRunPhase im Frontend:
+          #   US-Session [09:30, 16:00) ET → premarket
+          #   sonst                         → postclose
+          # Vergleich als Ganzzahl HHMM (930/1600, ohne führende Null).
           # Der Plausibilitäts-Override (resolve_run_phase.py) im
           # Daily-Run-Workflow korrigiert ohnehin Inkonsistenzen, der
           # Wert hier ist also nur ein „bester Vorschlag" und keine
           # harte Anforderung.
-          NOW_HHMM=$(date -u +%H%M)
-          if [ "$NOW_HHMM" -ge 1330 ] && [ "$NOW_HHMM" -lt 2000 ]; then
+          NOW_HHMM=$(TZ=America/New_York date +%H%M)
+          if [ "$NOW_HHMM" -ge 930 ] && [ "$NOW_HHMM" -lt 1600 ]; then
             RUN_PHASE="premarket"
           else
             RUN_PHASE="postclose"
           fi
-          echo "UTC-Zeit ${NOW_HHMM} → run_phase=${RUN_PHASE}"
+          echo "ET-Zeit ${NOW_HHMM} → run_phase=${RUN_PHASE}"
           gh workflow run daily-squeeze-report.yml \
             --repo "${{ github.repository }}" \
             --ref main \

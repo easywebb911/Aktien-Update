@@ -7,7 +7,7 @@ aber kein ``inputs``-Feld → GitHub-API antwortete HTTP 422 und der
 Workflow ließ sich gar nicht mehr manuell starten.
 
 Fix in generate_report.py: ``_computeClientRunPhase()`` bestimmt die
-Phase aus der aktuellen UTC-Zeit und das Dispatch-Body sendet jetzt
+Phase (seit 02.11.2026 aus US-Ostküstenzeit) und das Dispatch-Body sendet jetzt
 ``inputs: {run_phase: <phase>}``. Der Plausibilitäts-Override in
 ``scripts/resolve_run_phase.py`` bleibt als Safety-Net aktiv.
 
@@ -32,18 +32,26 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
-def _phase_for(hour: int, minute: int) -> str:
+sys.path.insert(0, str(ROOT))
+from datetime import datetime, timezone  # noqa: E402
+import trading_date  # noqa: E402
+
+
+def _phase_for(hour: int, minute: int, *, month: int = 5, day: int = 13) -> str:
     """Pythonische Nachbildung der JS-Logik in _computeClientRunPhase().
 
-    Single-Source-of-Truth-Konstanten:
-      US_OPEN_UTC  = 13*60+30 = 810  (inklusiv)
-      US_CLOSE_UTC = 20*60    = 1200 (exklusiv)
+    Seit 02.11.2026 aus US-Ostküstenzeit (EINE Quelle:
+    ``trading_date.us_session_state``): Session (09:30–16:00 ET) →
+    premarket, sonst postclose. Default-Datum 13.05.2026 = Sommerzeit
+    (EDT, Grenzen 13:30/20:00 UTC); Winterfälle mit month=11, day=2
+    (EST, Grenzen 14:30/21:00 UTC).
     """
-    utc_min = hour * 60 + minute
-    return "premarket" if 810 <= utc_min < 1200 else "postclose"
+    st = trading_date.us_session_state(
+        datetime(2026, month, day, hour, minute, tzinfo=timezone.utc))
+    return "premarket" if st == "open" else "postclose"
 
 
-# === Spec-Cases =============================================================
+# === Spec-Cases (Sommerzeit, unverändert gültig) =============================
 
 def test_14_00_utc_premarket():
     assert _phase_for(14, 0) == "premarket", "14:00 UTC sollte premarket sein"
@@ -68,6 +76,18 @@ def test_20_00_utc_postclose_at_close():
         "20:00 UTC = exakt US-Close → postclose (exklusiv)")
 
 
+# === Winterzeit (Fix 02.11.2026) =============================================
+
+def test_winter_edges():
+    w = dict(month=11, day=2)
+    assert _phase_for(14, 29, **w) == "postclose", "Winter 14:29 UTC = 09:29 ET"
+    assert _phase_for(14, 30, **w) == "premarket", "Winter 14:30 UTC = 09:30 ET"
+    assert _phase_for(20, 30, **w) == "premarket", "Winter 20:30 UTC = 15:30 ET"
+    assert _phase_for(20, 59, **w) == "premarket", "Winter 20:59 UTC = 15:59 ET"
+    assert _phase_for(21, 0, **w) == "postclose", "Winter 21:00 UTC = 16:00 ET"
+    assert _phase_for(20, 30) == "postclose", "Sommer 20:30 UTC = 16:30 ET"
+
+
 # === Source-Inspektion ======================================================
 
 def test_js_function_exists_in_generate_report():
@@ -75,9 +95,14 @@ def test_js_function_exists_in_generate_report():
     src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
     assert "function _computeClientRunPhase()" in src, (
         "JS-Helper _computeClientRunPhase fehlt in generate_report.py")
-    # Die Konstanten 810 und 1200 müssen in der Logik vorkommen
-    assert "810" in src and "1200" in src, (
-        "Erwartete Konstanten 810 (US-Open) / 1200 (US-Close) fehlen")
+    # Seit 02.11.2026: Grenzen über _usSessionStateET (US/Eastern), keine
+    # festen UTC-Minuten (810/1200) mehr in der Funktion.
+    i = src.index("function _computeClientRunPhase()")
+    body = src[i:src.index("}}", i)]
+    assert "_usSessionStateET(" in body, "_computeClientRunPhase nutzt _usSessionStateET nicht"
+    assert "810" not in body and "1200" not in body and "getUTCHours" not in body, (
+        "feste UTC-Grenzen noch in _computeClientRunPhase")
+    assert "function _usSessionStateET(d)" in src and "America/New_York" in src
 
 
 def test_dispatch_body_sends_inputs_run_phase():
@@ -137,6 +162,7 @@ def main() -> None:
         ("13:29 UTC → postclose (vor Open)",            test_13_29_utc_postclose_before_open),
         ("13:30 UTC → premarket (genau Open, inklusiv)", test_13_30_utc_premarket_at_open),
         ("20:00 UTC → postclose (genau Close, exklusiv)", test_20_00_utc_postclose_at_close),
+        ("Winterzeit-Kanten 14:30/21:00 UTC",           test_winter_edges),
         ("_computeClientRunPhase existiert in JS",       test_js_function_exists_in_generate_report),
         ("Dispatch-Body sendet inputs.run_phase",         test_dispatch_body_sends_inputs_run_phase),
         ("KI-Agent-Dispatch unverändert (kein inputs)",   test_ki_agent_dispatch_unchanged),

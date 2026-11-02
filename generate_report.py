@@ -931,6 +931,15 @@ def get_finviz_screener_v111(max_tickers: int | None = None) -> list[dict]:
 # ===========================================================================
 
 # US-Market-Phase-Grenzen (UTC). Single Source of Truth für _normalize_rvol.
+# US-Börsenzeiten in Minuten ET — für das Frontend-JS (_usSessionStateET),
+# EINE Quelle: trading_date.US_SESSION_OPEN_ET/CLOSE_ET (Fix 02.11.2026).
+_US_SESSION_OPEN_ET_MIN  = trading_date.US_SESSION_OPEN_ET.hour * 60 + trading_date.US_SESSION_OPEN_ET.minute
+_US_SESSION_CLOSE_ET_MIN = trading_date.US_SESSION_CLOSE_ET.hour * 60 + trading_date.US_SESSION_CLOSE_ET.minute
+# ACHTUNG (02.11.2026): die beiden Konstanten unten sind nur die SOMMERZEIT-
+# Projektion (EDT). Sie werden ausschließlich von _normalize_rvol gelesen
+# (Flag RVOL_NORMALIZATION_ENABLED=False → heute ohne Wirkung). Umstellung auf
+# ET ist eine Änderung an einer geschützten Funktion → eigener PR mit
+# Easy-Freigabe (open_items us-boersenzeiten-fest-utc).
 _US_OPEN_MIN_UTC  = 13 * 60 + 30   # 13:30 UTC = regular market open
 _US_CLOSE_MIN_UTC = 20 * 60        # 20:00 UTC = regular market close
 
@@ -11182,6 +11191,30 @@ window._tjResolvePnlEur = _tjResolvePnlEur;
 // dem Setzen werden alle drei Klassen entfernt — bei geschlossener Position
 // oder gefallenem exit_pressure verschwindet der Glow.
 const _PSTATUS_GLOW_CLASSES = ['exit-glow-warn', 'exit-glow-mid', 'exit-glow-crit'];
+function _usSessionStateET(d) {{
+  // US-Börsen-Session in US-Ostküstenzeit (DST-korrekt via Intl), Fix
+  // 02.11.2026: vorher feste UTC-Grenzen 13:30/20:00 (nur Sommerzeit).
+  // Liefert 'pre' (vor 09:30 ET) / 'open' (09:30–16:00 ET) / 'post' (ab
+  // 16:00 ET) oder null bei Fehler. Grenzen aus trading_date (Python).
+  try {{
+    const parts = new Intl.DateTimeFormat('en-US', {{
+      timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit',
+      hourCycle: 'h23'}}).formatToParts(d);
+    let h = null, m = null;
+    for (const p of parts) {{
+      if (p.type === 'hour') h = parseInt(p.value, 10);
+      else if (p.type === 'minute') m = parseInt(p.value, 10);
+    }}
+    if (h == null || m == null || isNaN(h) || isNaN(m)) return null;
+    const mins = (h % 24) * 60 + m;
+    if (mins < {_US_SESSION_OPEN_ET_MIN}) return 'pre';
+    if (mins < {_US_SESSION_CLOSE_ET_MIN}) return 'open';
+    return 'post';
+  }} catch (e) {{
+    return null;
+  }}
+}}
+
 function _renderRunPhasePill(phase, generatedAt) {{
   // Header-Pill für Zwei-Run-Architektur (12.05.2026) + Intraday-
   // Disambiguation (15.05.2026).
@@ -11193,7 +11226,7 @@ function _renderRunPhasePill(phase, generatedAt) {{
   //
   // ``generatedAt`` (ISO-String aus ``app_data.json.generated_at``) erlaubt
   // Drei-Klassen-Disambiguation:
-  //   premarket + UTC ∈ [13:30, 20:00) → "Intraday-Snapshot"
+  //   premarket + US-Session (09:30–16:00 ET, _usSessionStateET) → "Intraday-Snapshot"
   //     (US-Session läuft, run_phase=premarket gepinnt fürs Backtest-Schutz)
   //   premarket + UTC außerhalb        → "Pre-Open-Vorschau"
   //     (echter Pre-Open-Run vor US-Open)
@@ -11206,17 +11239,15 @@ function _renderRunPhasePill(phase, generatedAt) {{
     const el = document.getElementById('hdr-runphase');
     if (!el) return;
     if (phase === 'premarket') {{
-      // UTC-Minuten-of-day aus generatedAt (oder now)
-      let utcMinutes = null;
+      // Session-Zustand in US-Ostküstenzeit aus generatedAt (oder now)
+      let sessionState = null;
       try {{
         const t = generatedAt ? new Date(generatedAt) : new Date();
         if (!isNaN(t.getTime())) {{
-          utcMinutes = t.getUTCHours() * 60 + t.getUTCMinutes();
+          sessionState = _usSessionStateET(t);
         }}
       }} catch(_) {{ /* fall through */ }}
-      const inUsSession = (utcMinutes != null
-                           && utcMinutes >= 13 * 60 + 30
-                           && utcMinutes <  20 * 60);
+      const inUsSession = (sessionState === 'open');
       el.textContent = inUsSession
         ? ' · Intraday-Snapshot'
         : ' · Pre-Open-Vorschau';
@@ -13320,14 +13351,14 @@ function triggerWorkflow(){{
 // _computeClientRunPhase — bestimmt run_phase aus aktueller UTC-Zeit für
 // den Recalculate-Dispatch. Workflow erwartet seit PR #132 das Feld als
 // required (Default raus); ohne Wert antwortet die GitHub-API HTTP 422.
-// US-Session [13:30, 20:00) UTC → 'premarket', sonst 'postclose'. Der
-// Plausibilitäts-Override in scripts/resolve_run_phase.py bleibt als
-// Safety-Net aktiv (Clock-Drift, Timezone-Bugs).
+// US-Session (09:30–16:00 ET, DST-korrekt via _usSessionStateET) →
+// 'premarket', sonst 'postclose'. Unbestimmbar (Intl-Fehler) → 'premarket'
+// (sicher: kein Backtest-Befüllen). Der Plausibilitäts-Override in
+// scripts/resolve_run_phase.py bleibt als Safety-Net aktiv.
 function _computeClientRunPhase(){{
-  const now = new Date();
-  const utcMin = now.getUTCHours() * 60 + now.getUTCMinutes();
-  // 810 = 13*60+30 (US-Open), 1200 = 20*60 (US-Close)
-  return (utcMin >= 810 && utcMin < 1200) ? 'premarket' : 'postclose';
+  const st = _usSessionStateET(new Date());
+  if (st == null) return 'premarket';
+  return (st === 'open') ? 'premarket' : 'postclose';
 }}
 // showTokenInput / saveTokenAndDispatch sind nach Phase 3 entfallen —
 // _ensureToken übernimmt den Token-Pfad via Setup/Unlock/Migrate-Modal.
@@ -13340,7 +13371,7 @@ async function dispatchWorkflow(token){{
   _pollStart = Date.now(); _pollToken = token; _noRunPolls = 0;
   console.log(`[Recalculate] _pollStart=${{_pollStart}} (${{new Date(_pollStart).toISOString()}})`);
   const _runPhase = _computeClientRunPhase();
-  console.log(`[Recalculate] run_phase=${{_runPhase}} (client-side aus UTC bestimmt)`);
+  console.log(`[Recalculate] run_phase=${{_runPhase}} (client-side aus US-Ostküstenzeit bestimmt)`);
   try {{
     const r = await fetch(
       `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{GH_WORKFLOW}}/dispatches`,

@@ -638,6 +638,9 @@ RVOL_VELOCITY_MIN       = 1.5   # current_rvol-Mindestschwelle für Velocity-Che
 #       premarket (< 13:30 UTC): raw_vol / (avg_20d × PREMARKET_RVOL_SCALER)
 #       intraday  (13:30-20:00): raw_vol / (avg_20d × max(h/6.5, INTRADAY_RVOL_MIN_FRAC))
 #       postclose (≥ 20:00 UTC): raw_vol / avg_20d (unverändert, EOD-Wahrheit)
+#   ACHTUNG (02.11.2026): die UTC-Grenzen oben sind nur die SOMMERZEIT-Projektion
+#   (EDT); im Winter 14:30/21:00 UTC. Umstellung in _normalize_rvol offen
+#   (geschützte Funktion, open_items us-boersenzeiten-fest-utc).
 #
 # PR-α (diese PR): Helper + Konstanten, ENABLED=False. Kein Verhaltens-Drift.
 # PR-β: 14 Tage Empirik-Daten sammeln über rvol_20d in agent_signals.json.

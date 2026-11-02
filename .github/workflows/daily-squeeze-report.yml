@@ -15,7 +15,8 @@ on:
     # zur vollen Stunde (analog ki_agent.yml PR #143). Beleg: 14.05.2026
     # 10:00-UTC-Cron komplett ausgefallen.
     # 6:17 UTC absorbiert beobachtete Max-Actions-Drift 5.76h → Ankunft
-    # ~12:06 UTC, weiter vor US-Open 13:30 UTC. Diagnose 31.05.: Actions-
+    # ~12:06 UTC, weiter vor US-Open (09:30 ET = 13:30 UTC Sommer / 14:30 UTC
+    # Winter). Diagnose 31.05.: Actions-
     # Drift variabel, kein cron-Bug.
     - cron: '17 6 * * 1-5'
     # 21:17 UTC = 23:17 CEST / 22:17 CET — `postclose`-Run, ~47min nach
@@ -27,9 +28,10 @@ on:
     inputs:
       run_phase:
         description: >-
-          WICHTIG: 'premarket' während US-Session (13:30–20:00 UTC,
-          Vorschau ohne Backtest-Append). 'postclose' NUR nach US-Close
-          (≥20:00 UTC, EOD-konsolidiert, schreibt Backtest-Eintrag).
+          WICHTIG: 'premarket' während US-Session (09:30–16:00 ET = Sommer
+          13:30–20:00 UTC / Winter 14:30–21:00 UTC, Vorschau ohne
+          Backtest-Append). 'postclose' NUR nach US-Close (≥16:00 ET,
+          EOD-konsolidiert, schreibt Backtest-Eintrag).
           Plausibilitäts-Override aktiv — falscher Input wird mit
           Warnung im Run-Log korrigiert (siehe scripts/resolve_run_phase.py).
         required: true

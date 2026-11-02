@@ -10,11 +10,15 @@ Resolution-Logik:
 2. ``workflow_dispatch``-Trigger: User-Input wird gegen die aktuelle UTC-Zeit
    plausibilitäts-geprüft:
 
-   - US-Session (13:30 ≤ UTC < 20:00) + `postclose` → **Override auf premarket**.
+   - US-Session (09:30 ≤ ET < 16:00) + `postclose` → **Override auf premarket**.
      Backtest-History würde sonst mit Intraday-Mid-Day-Werten gefüllt.
-   - Post-Close (UTC ≥ 20:00) + `premarket` → **Override auf postclose**.
+   - Post-Close (ET ≥ 16:00) + `premarket` → **Override auf postclose**.
      Backtest-History würde sonst ausbleiben, obwohl konsolidierte Daten da.
-   - Pre-US-Session (UTC < 13:30) → kein Override (User-Wahl bleibt).
+   - Pre-US-Session (ET < 09:30) → kein Override (User-Wahl bleibt).
+
+   Grenzen seit 02.11.2026 in US-Ostküstenzeit (``trading_date.us_session_
+   state``, DST-korrekt): Sommer 13:30/20:00 UTC, Winter 14:30/21:00 UTC.
+   Vorher standen sie fest auf 13:30/20:00 UTC (nur Sommerzeit richtig).
    - US-Session + `premarket` / Post-Close + `postclose` → kein Override
      (User-Wahl ist plausibel).
 
@@ -29,10 +33,10 @@ from __future__ import annotations
 
 import os
 import sys
-from datetime import datetime, time, timezone
+from datetime import datetime, timezone
 
-US_SESSION_START = time(13, 30)
-US_SESSION_END   = time(20, 0)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from trading_date import us_session_state  # noqa: E402  (EINE Quelle, ET-basiert)
 
 _VALID_PHASES = ("premarket", "postclose")
 
@@ -61,11 +65,11 @@ def resolve_run_phase(
     if chosen not in _VALID_PHASES:
         return "premarket", "no_input_fallback"
 
-    now_t = now_utc.time()
-    if US_SESSION_START <= now_t < US_SESSION_END:
+    state = us_session_state(now_utc)
+    if state == "open":
         if chosen == "postclose":
             return "premarket", "us_session_override"
-    elif now_t >= US_SESSION_END:
+    elif state == "post":
         if chosen == "premarket":
             return "postclose", "post_close_override"
 
@@ -75,12 +79,12 @@ def resolve_run_phase(
 _REASON_TEXTS = {
     "us_session_override": (
         "⚠ Override: workflow_dispatch wurde mit run_phase=postclose getriggert, "
-        "aber aktuelle UTC-Zeit liegt in der US-Session (13:30–20:00). "
+        "aber die aktuelle Zeit liegt in der US-Session (09:30–16:00 ET). "
         "Forciere premarket — Backtest-Pollution wird so vermieden."
     ),
     "post_close_override": (
         "⚠ Override: workflow_dispatch wurde mit run_phase=premarket getriggert, "
-        "aber aktuelle UTC-Zeit liegt nach US-Close (≥20:00). "
+        "aber die aktuelle Zeit liegt nach US-Close (≥16:00 ET). "
         "Forciere postclose — Backtest würde sonst trotz EOD-Daten leer bleiben."
     ),
     "no_input_fallback": (

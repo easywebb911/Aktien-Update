@@ -19,6 +19,7 @@ Zusatz-Cases:
   7. Edge: 20:00 UTC + premarket → wird zu postclose (Close-Grenze inkl.)
   8. Empty/garbage Input → premarket-Fallback
   9. CLI-Skript schreibt RUN_PHASE in $GITHUB_ENV
+ 10.–15. Winterzeit (14:30/21:00 UTC), Kanten, Umstellungstage (Fix 02.11.2026)
 
 Ausführung: ``python scripts/mock_test_run_phase_resolution.py``
 """
@@ -177,6 +178,60 @@ def test_garbage_input_falls_back_to_premarket():
     assert reason == "no_input_fallback", reason
 
 
+# === Winterzeit / Umstellungstage (Fix 02.11.2026: Grenzen in US/Eastern) ===
+# Sommer (EDT, UTC-4): Open 13:30 UTC, Close 20:00 UTC.
+# Winter (EST, UTC-5): Open 14:30 UTC, Close 21:00 UTC.
+# Umstellung 2026: Beginn So 08.03., Ende So 01.11.
+
+def _d(y, mo, d, h, mi=0):
+    return datetime(y, mo, d, h, mi, 0, tzinfo=timezone.utc)
+
+
+def _disp(choice, when):
+    return resolve_run_phase(event_name="workflow_dispatch", schedule=None,
+                             user_input=choice, now_utc=when)
+
+
+def test_winter_2030_postclose_is_overridden():
+    # 20:30 UTC im Winter = 15:30 ET → Session läuft → Override auf premarket.
+    assert _disp("postclose", _d(2026, 11, 2, 20, 30)) == ("premarket", "us_session_override")
+
+
+def test_summer_2030_postclose_not_overridden():
+    # 20:30 UTC im Sommer = 16:30 ET → nach Close → postclose bleibt.
+    assert _disp("postclose", _d(2026, 7, 15, 20, 30)) == ("postclose", None)
+
+
+def test_winter_open_and_close_edges():
+    assert _disp("postclose", _d(2026, 11, 2, 14, 29)) == ("postclose", None)          # 09:29 ET
+    assert _disp("postclose", _d(2026, 11, 2, 14, 30)) == ("premarket", "us_session_override")  # 09:30 ET
+    assert _disp("postclose", _d(2026, 11, 2, 20, 59)) == ("premarket", "us_session_override")  # 15:59 ET
+    assert _disp("premarket", _d(2026, 11, 2, 21, 0)) == ("postclose", "post_close_override")   # 16:00 ET
+    assert _disp("premarket", _d(2026, 11, 2, 20, 59)) == ("premarket", None)
+
+
+def test_winter_1400_postclose_not_overridden():
+    # 14:00 UTC im Winter = 09:00 ET → vor Open → User-Wahl bleibt.
+    assert _disp("postclose", _d(2026, 11, 2, 14, 0)) == ("postclose", None)
+
+
+def test_dst_switch_days():
+    # Fr 30.10. (noch EDT): 20:30 UTC = 16:30 ET → nach Close.
+    assert _disp("postclose", _d(2026, 10, 30, 20, 30)) == ("postclose", None)
+    # Mo 02.11. (erster Handelstag EST): 20:30 UTC = 15:30 ET → Session.
+    assert _disp("postclose", _d(2026, 11, 2, 20, 30)) == ("premarket", "us_session_override")
+    # Fr 06.03. (noch EST): 14:00 UTC = 09:00 ET → vor Open.
+    assert _disp("postclose", _d(2026, 3, 6, 14, 0)) == ("postclose", None)
+    # Mo 09.03. (erster Handelstag EDT): 14:00 UTC = 10:00 ET → Session.
+    assert _disp("postclose", _d(2026, 3, 9, 14, 0)) == ("premarket", "us_session_override")
+
+
+def test_cron_still_ignores_override_in_winter():
+    p, r = resolve_run_phase(event_name="schedule", schedule="17 21 * * 1-5",
+                             user_input=None, now_utc=_d(2026, 11, 2, 20, 30))
+    assert (p, r) == ("postclose", None)
+
+
 # === CLI-Skript-Smoke-Test ==================================================
 
 def test_cli_writes_run_phase_to_github_env():
@@ -234,6 +289,18 @@ def main() -> None:
          test_garbage_input_falls_back_to_premarket),
         ("CLI schreibt RUN_PHASE in $GITHUB_ENV",
          test_cli_writes_run_phase_to_github_env),
+        ("Winter 20:30 UTC + postclose → Override (15:30 ET)",
+         test_winter_2030_postclose_is_overridden),
+        ("Sommer 20:30 UTC + postclose → kein Override (16:30 ET)",
+         test_summer_2030_postclose_not_overridden),
+        ("Winter Kanten 14:29/14:30/20:59/21:00 UTC",
+         test_winter_open_and_close_edges),
+        ("Winter 14:00 UTC + postclose → kein Override (09:00 ET)",
+         test_winter_1400_postclose_not_overridden),
+        ("Umstellungstage März/November",
+         test_dst_switch_days),
+        ("Cron im Winter ignoriert Override",
+         test_cron_still_ignores_override_in_winter),
     ]
     failed = 0
     for name, fn in tests:

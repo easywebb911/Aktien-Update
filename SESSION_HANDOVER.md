@@ -3172,6 +3172,32 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#639` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — US-Börsenzeiten in US-Ostküstenzeit statt fester UTC-Werte (1 PR)
+
+- Easy-Befund 02.11.2026: `#641` (Branch `claude/us-session-et-grenzen-q5w1`,
+  kein Merge-Hash — Regel a). Seit der US-Zeitumstellung (01.11.) lagen die
+  festen Grenzen 13:30/20:00 UTC eine Stunde daneben (Winter: 14:30/21:00 UTC).
+- **Eine Quelle:** `trading_date.US_SESSION_OPEN_ET/CLOSE_ET` (09:30/16:00 ET) +
+  `us_session_state(now_utc)` (DST-korrekt). Umgestellt:
+  `scripts/resolve_run_phase.py` (Override für Hand-Starts), Frontend
+  `_computeClientRunPhase` + `_renderRunPhasePill` (neuer JS-Helper
+  `_usSessionStateET`, Grenzen aus Python eingebrannt),
+  `redeploy-on-source-change.yml` (`TZ=America/New_York`, 930/1600).
+  Nicht umgestellt: `_normalize_rvol` (geschützte Funktion, Flag aus) →
+  `open_items` `us-boersenzeiten-fest-utc` (offen).
+- **Schaden bisher: keiner** — seit 01.11. nur ein Daily-Lauf (02.11. 15:54 UTC,
+  Zeitplan, vom Override ausgenommen), keine Hand-Starts.
+- **Tests:** `mock_test_run_phase_resolution.py` 18 (Winter-/Sommer-Kanten,
+  Umstellungstage; Gegenprobe: 4 Winter-Tests scheitern auf altem Code),
+  `mock_test_recalc_dispatch_run_phase.py`, `mock_test_runphase_pill.py`
+  (inkl. node-Funktionstest JS == Python), `mock_test_redeploy_workflow_
+  run_phase.py` (inkl. echter Bash-Ausführung) angepasst statt gelöscht.
+  Golden aktualisiert (nur die zwei JS-Funktionen + neuer Helper).
+- CLAUDE.md „Zwei-Run-Architektur“ + RVOL-Hinweis, `config.py`-Kommentar.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#640`,
+  höchste in Block 1 erwähnte PR = `#640` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-

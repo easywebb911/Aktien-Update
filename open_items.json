@@ -456,6 +456,14 @@
       "description": "Beobachtung 02.11.2026 (Actions-API, Stand ca. 15:40 UTC): letzter KI-Agent-Lauf 06:03 UTC (Cron stündlich), letzter Daily-Run 31.10. 00:51 UTC; Premarket 02.11. nie gestartet (kein Run-Eintrag), Workflows laut API 'active'. Ursache unbekannt (GitHub-seitig?). Beobachten; bei Fortbestehen prüfen, ob GitHub die Schedules pausiert hat. Wirkung: keine neuen Daten, §4-Export wächst nicht. NACHTRAG 02.11.2026: Läufe ab ca. 15:54 UTC wieder angelaufen (KI-Agent 15:54/15:56 UTC, Daily squeeze report 15:56 UTC); weiter beobachten. NACHTRAG 02.11.2026 18:36 UTC: noch NICHT normal — nach dem Wiederanlauf gab es nur einen geplanten KI-Agent-Lauf (15:53 UTC) plus einen vom Daily-Run ausgelösten (15:56 UTC), seitdem keinen (stündlicher Cron). Bleibt beobachtet; relevant für die heutige Postclose-Probe.",
       "status": "beobachtet",
       "status_date": "2026-11-02"
+    },
+    {
+      "id": "us-boersenzeiten-fest-utc",
+      "title": "US-Börsenzeiten fest in UTC (Sommerzeit) statt US-Ostküstenzeit",
+      "opened": "2026-11-02",
+      "description": "Befund 02.11.2026 (Easy): Börsenzeiten standen fest auf 13:30/20:00 UTC (nur Sommerzeit/EDT). Seit der US-Umstellung 01.11.2026 öffnet die Börse 14:30 UTC und schließt 21:00 UTC — ein Hand-Start 'postclose' zwischen 20:00 und 21:00 UTC wäre NICHT auf premarket korrigiert worden (Wiederholungsgefahr 13.05.). Schaden bisher: KEINER (Actions-API: seit 01.11. nur ein Daily-Lauf, 02.11. 15:54 UTC per Zeitplan; Zeitplan-Läufe sind vom Override ausgenommen; keine Hand-Starts). GEFIXT mit #641 (Branch claude/us-session-et-grenzen-q5w1): eine Quelle trading_date.us_session_state / US_SESSION_OPEN_ET/CLOSE_ET (09:30–16:00 ET); umgestellt: scripts/resolve_run_phase.py, Frontend _computeClientRunPhase + _renderRunPhasePill (neuer Helper _usSessionStateET, Grenzen aus Python eingebrannt), redeploy-on-source-change.yml (TZ=America/New_York, 930/1600); CLAUDE.md Zwei-Run-Architektur. OFFEN: _normalize_rvol (_US_OPEN_MIN_UTC/_US_CLOSE_MIN_UTC, nur Sommerzeit) — geschützte Funktion, Flag RVOL_NORMALIZATION_ENABLED=False (heute ohne Wirkung); Umstellung braucht eigenen PR mit protected-ok-Label (Regel b, Easy) und muss VOR einer Aktivierung (PR-γ) erfolgen. Nicht betroffen (schon ET-basiert): score_inflation_log._session_phase, ki_agent.get_market_phase, health_check S12-Uhrzeit, trading_date.us_trading_date.",
+      "status": "offen",
+      "status_date": "2026-11-02"
     }
   ]
 }

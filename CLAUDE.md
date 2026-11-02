@@ -692,7 +692,7 @@ Datenqualität:
 
 | Cron | Phase | Daten | Push-Pipeline | Backtest-History |
 |---|---|---|---|---|
-| `17 6 * * 1-5` (06:17 UTC) | `premarket` | Vorschau, RVOL strukturell unter-skaliert (vor US-Open 13:30 UTC; real ~12 UTC nach Actions-Drift) | Anomaly-Pushes **aktiv** (Aktions-Fenster für die KI-Agent-Ticks) | **kein** Backtest-Eintrag |
+| `17 6 * * 1-5` (06:17 UTC) | `premarket` | Vorschau, RVOL strukturell unter-skaliert (vor US-Open 09:30 ET = 13:30 UTC Sommer / 14:30 UTC Winter; real ~12 UTC nach Actions-Drift) | Anomaly-Pushes **aktiv** (Aktions-Fenster für die KI-Agent-Ticks) | **kein** Backtest-Eintrag |
 | `17 21 * * 1-5` (21:17 UTC) | `postclose` | EOD-konsolidiert = „Wahrheit" | Anomaly-Pushes **aus** (kein abendliches Rauschen) | Backtest-Eintrag wird angelegt |
 | `workflow_dispatch` (manuell) | per User-Input, **required, kein Default** — Plausibilitäts-Override aktiv (siehe unten) | wie oben | wie oben | wie oben |
 
@@ -709,23 +709,34 @@ Die RUN_PHASE-Resolution lebt jetzt in
 `Resolve run phase` aufgerufen (schreibt `RUN_PHASE` nach
 `$GITHUB_ENV`). Logik:
 
-| Trigger | Input | Aktuelle UTC-Zeit | Resultat | Override-Reason |
+| Trigger | Input | Aktuelle Zeit (US-Ostküste, ET) | Resultat | Override-Reason |
 |---|---|---|---|---|
 | `schedule` `17 6 * * 1-5` | — | — | `premarket` | — (fester Cron-Mapping) |
 | `schedule` `17 21 * * 1-5` | — | — | `postclose` | — (fester Cron-Mapping) |
-| `workflow_dispatch` | `postclose` | 13:30 ≤ UTC < 20:00 (US-Session) | **`premarket`** | `us_session_override` |
-| `workflow_dispatch` | `premarket` | UTC ≥ 20:00 (Post-Close) | **`postclose`** | `post_close_override` |
-| `workflow_dispatch` | `premarket` | 13:30 ≤ UTC < 20:00 | `premarket` | — (plausibel) |
-| `workflow_dispatch` | `postclose` | UTC ≥ 20:00 | `postclose` | — (plausibel) |
-| `workflow_dispatch` | `postclose` / `premarket` | UTC < 13:30 (pre-Open) | unverändert | — (User-Wahl gilt) |
+| `workflow_dispatch` | `postclose` | 09:30 ≤ ET < 16:00 (US-Session) | **`premarket`** | `us_session_override` |
+| `workflow_dispatch` | `premarket` | ET ≥ 16:00 (Post-Close) | **`postclose`** | `post_close_override` |
+| `workflow_dispatch` | `premarket` | 09:30 ≤ ET < 16:00 | `premarket` | — (plausibel) |
+| `workflow_dispatch` | `postclose` | ET ≥ 16:00 | `postclose` | — (plausibel) |
+| `workflow_dispatch` | `postclose` / `premarket` | ET < 09:30 (pre-Open) | unverändert | — (User-Wahl gilt) |
 | `workflow_dispatch` | empty / garbage | — | `premarket` | `no_input_fallback` |
 
-US-Session-Grenzen: `US_SESSION_START = 13:30 UTC` (inkl.) =
-US-Market-Open, `US_SESSION_END = 20:00 UTC` (exkl.) = US-Market-Close.
-Zeitfenster `[13:30, 20:00)` als „US-Session". Die 30-Minuten-Schonfrist
-vor Open (13:00–13:30 UTC) ist intentional kein Override-Pfad — wer in
-diesem Slot manuell triggert, will typischerweise einen Pre-Open-
-Snapshot (= premarket) und kann das frei wählen.
+US-Session-Grenzen (**seit 02.11.2026 in US-Ostküstenzeit**, EINE Quelle:
+`trading_date.US_SESSION_OPEN_ET = 09:30` (inkl.) / `US_SESSION_CLOSE_ET =
+16:00` (exkl.), Helper `trading_date.us_session_state(now_utc)`, DST-korrekt
+über `zoneinfo`). In UTC heißt das: **Sommerzeit (EDT) 13:30–20:00 UTC,
+Winterzeit (EST) 14:30–21:00 UTC.** Vorher standen die Grenzen fest auf
+13:30/20:00 UTC — nach der Umstellung am 01.11.2026 wäre ein Hand-Start
+`postclose` zwischen 20:00 und 21:00 UTC (= 15:00–16:00 ET, Börse offen)
+NICHT auf premarket korrigiert worden (Wiederholungsgefahr des 13.05.-
+Fehlers). Dieselbe Quelle nutzen das Frontend (`_usSessionStateET` →
+`_computeClientRunPhase`, `_renderRunPhasePill`; Grenzen aus Python
+eingebrannt) und der Redeploy-Workflow (`TZ=America/New_York date +%H%M`,
+930/1600). Ausnahme: `_normalize_rvol` (`_US_OPEN_MIN_UTC/_US_CLOSE_MIN_UTC`,
+nur Sommerzeit) — geschützte Funktion, Flag aus, Umstellung offen
+(`open_items` `us-boersenzeiten-fest-utc`). Die 30-Minuten-Schonfrist vor
+Open ist intentional kein Override-Pfad — wer kurz vor Open manuell
+triggert, will typischerweise einen Pre-Open-Snapshot (= premarket) und
+kann das frei wählen.
 
 **Cron-Trigger sind vom Override ausgenommen** — der Schedule-Wert
 ist YAML-festgelegt und konsistent zur jeweiligen Cron-Zeit, kein
@@ -741,8 +752,9 @@ User-Input.
 hat keinen Default mehr — User muss bewusst wählen (zwingt zur
 Entscheidung statt unbemerktem Falsch-Default).
 
-Tests: `scripts/mock_test_run_phase_resolution.py` (12 Cases,
-inkl. Edge-Boundary 13:29/13:30/20:00 UTC).
+Tests: `scripts/mock_test_run_phase_resolution.py` (18 Cases,
+inkl. Edge-Boundary 13:29/13:30/20:00 UTC im Sommer, 14:29/14:30/20:59/
+21:00 UTC im Winter und die Umstellungstage März/November).
 
 ### Felder & Persistenz
 
@@ -2186,6 +2198,11 @@ lassen den Default `False` — Verhalten unverändert solange
 _normalize_rvol(raw_vol, avg_20d, *, run_phase=None, now_utc=None) -> float
 ```
 
+Hinweis (02.11.2026): die UTC-Grenzen 13:30/20:00 in dieser Tabelle sind nur die
+**Sommerzeit-Projektion** (im Winter 14:30/21:00 UTC). Umstellung von
+`_normalize_rvol` auf US-Ostküstenzeit offen (geschützte Funktion, Flag aus,
+`open_items` `us-boersenzeiten-fest-utc`).
+
 | ENABLED | Pfad | Resultat |
 |---|---|---|
 | `False` (Default) | jeder | `raw_vol / avg_20d` (Status quo) |
@@ -2238,10 +2255,14 @@ Alle drei nutzen `_normalize_rvol(cur_vol, avg_vol_20)` ohne explizite
   Median-Faktor zwischen frühen (06:17 UTC) und späten (21:17 UTC)
   Ticks pro Ticker als ground truth.
 - **Markt-Phase-Grenzen** (`_US_OPEN_MIN_UTC = 810`,
-  `_US_CLOSE_MIN_UTC = 1200`) sind hartkodiert im Helper als „Single
-  Source of Truth" — analog zu `US_SESSION_START/END` im
-  `resolve_run_phase`-Skript (CLAUDE.md → Zwei-Run-Architektur). Bei
-  Änderung beide synchron halten.
+  `_US_CLOSE_MIN_UTC = 1200`) sind hartkodiert im Helper — das ist nur die
+  **Sommerzeit-Projektion** (13:30/20:00 UTC). `resolve_run_phase` und das
+  Frontend rechnen seit 02.11.2026 in US-Ostküstenzeit
+  (`trading_date.us_session_state`, siehe Zwei-Run-Architektur). Weil
+  `_normalize_rvol` eine geschützte Funktion ist und das Flag aus ist,
+  bleibt die Umstellung hier ein eigener Schritt mit Easy-Freigabe
+  (`open_items` `us-boersenzeiten-fest-utc`) — **vor** einer Aktivierung
+  (PR-γ) zwingend nachziehen.
 - **Helper-Signatur** ist `*-keyword-only` für `run_phase`/`now_utc`
   — zukünftige Erweiterung (z. B. `ticker`-spezifischer Skalierer)
   kann via Keyword angehängt werden ohne Call-Site-Drift.
