@@ -2944,7 +2944,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — Easy-Entscheide Gruppe A: drei Items geparkt, NaN-Baseline sortiert, zwei Vorschläge (1 PR, Auto-Merge)
 
-- Easy-Entscheide 02.11.2026: `__PR__` (Branch
+- Easy-Entscheide 02.11.2026: `#631` (Branch
   `claude/parken-nan-triage-doku-h8t2`, kein Merge-Hash — Regel a).
 - **Geparkt bis nach Freeze-Auswertung** (NACHTRAG je Item, `faellig_am`
   2026-12-03, Grund: kein Eingriff in laufenden Freeze, sonst gemischte
