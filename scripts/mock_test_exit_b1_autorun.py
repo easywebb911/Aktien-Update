@@ -527,6 +527,9 @@ def test_digest_end_to_end_trigger_and_push():
         return True
     mod._ntfy_send = _spy
     mod.NTFY_TOPIC = "test-topic"
+    # Produktions-Default seit 02.11.2026 pausiert (False) — hier wird der
+    # scharfe Pfad geprüft, daher lokal True (Pause: mock_test_freeze_autorun_pause.py).
+    mod.EVAL_AUTORUN_ENABLED = True
 
     rc = mod.main(now_ts=datetime(2026, 10, 31, 21, 0, tzinfo=timezone.utc))
     _check("main() exit 0 bei Trigger", rc == 0)
@@ -564,6 +567,9 @@ def test_digest_no_trigger_under_250_no_push():
     sent = []
     mod._ntfy_send = lambda *a, **kw: sent.append(a) or True
     mod.NTFY_TOPIC = "test-topic"
+    # Produktions-Default seit 02.11.2026 pausiert (False) — hier wird der
+    # scharfe Pfad geprüft, daher lokal True (Pause: mock_test_freeze_autorun_pause.py).
+    mod.EVAL_AUTORUN_ENABLED = True
 
     rc = mod.main(now_ts=datetime(2026, 10, 31, 21, 0, tzinfo=timezone.utc))
     _check("main() exit 0 unter dem Auslöser", rc == 0)

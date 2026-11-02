@@ -155,7 +155,19 @@ KI_SCORE_FREEZE_N_TARGET  = 250            # Auslöser n>=250, eigene Holm-Famil
 # eingesehen): Setup-Edge/Conviction n=0/250, KI-Score n=0/250 (beide aus
 # matured_backtest_export.jsonl, 1247 Export-Zeilen gesamt). Rückweg:
 # False setzen UND git revert des einführenden Merge-Commits.
-EVAL_AUTORUN_ENABLED      = True
+# PAUSIERT 02.11.2026 (Easy-Entscheid, VOR jedem Ergebnis): return_3d/5d/10d
+# können aus dem LAUFENDEN Handelstag T+N stammen (ki_agent.
+# _trading_days_elapsed zählt heute mit, update_backtest_returns füllt meist
+# 13–20 UTC und überschreibt nie) — genau diese Felder liest jede Freeze-
+# Auswertung. Stand beim Pausieren: §4 n=242/250, Setup-Edge/Conviction
+# 50/250, KI-Score 50/250, kein eval_results.jsonl. Wiederaufnahme NUR wenn
+# die Rendite-Diagnose abgeschlossen UND Easys Entscheid datiert in
+# SESSION_HANDOVER.md („§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf
+# pausiert") dokumentiert ist. Bei False läuft KEINE Auswertung (kein
+# freeze_eval-Import im Digest, kein eval_results.jsonl-Write); die Zähler-
+# Zeilen laufen weiter, der Digest zeigt zusätzlich die Pause-Zeile.
+EVAL_AUTORUN_ENABLED      = False
+EVAL_AUTORUN_PAUSE_REASON = "Rendite-Diagnose"   # nur Anzeige im Digest
 # Bootstrap-Verfahrensdetails, Erratum 22.10.2026 Punkt 1+2 — bindend für
 # BEIDE Test-Familien. NICHT eigenmächtig ändern ohne neuen, datierten
 # Erratum-Eintrag in SESSION_HANDOVER.md (analog Änderungs-Protokoll-Pflicht

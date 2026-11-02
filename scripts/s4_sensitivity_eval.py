@@ -201,6 +201,15 @@ def main(argv: list[str] | None = None) -> int:
 
     import freeze_eval as fe
     import health_check as hc
+    from config import EVAL_AUTORUN_ENABLED
+
+    # Pause der Freeze-Auswertungen (02.11.2026): solange der Auto-Lauf
+    # pausiert ist, darf auch diese Sensitivität kein Ergebnis erzeugen
+    # (sie ruft dieselbe eingefrorene Auswertungsfunktion auf).
+    if not EVAL_AUTORUN_ENABLED:
+        print("PAUSIERT: Freeze-Auswertungen sind angehalten "
+              "(config.EVAL_AUTORUN_ENABLED=False) — keine Berechnung.")
+        return 3
 
     now = datetime.now(timezone.utc)
     rows = _read_jsonl(ROOT / hc.MATURED_EXPORT_FILE) or []

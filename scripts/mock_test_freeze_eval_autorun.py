@@ -496,8 +496,12 @@ def test_digest_main_autorun_scharf_aber_kein_trigger_bei_n_unter_250():
     echten Repo-Daten — heute n=0/250 für beide Familien — ist Teil des
     PR-Berichts, nicht dieser deterministischen CI-Regression.)"""
     mod = _load_digest_module()
-    _check("EVAL_AUTORUN_ENABLED scharf geschaltet (True, Produktions-Default)",
-           mod.EVAL_AUTORUN_ENABLED is True)
+    # Seit 02.11.2026 PAUSIERT (Produktions-Default False, Grund: Rendite-
+    # Diagnose; siehe mock_test_freeze_autorun_pause.py). Dieser Test prüft
+    # den scharfen Pfad weiter, indem er den Schalter lokal auf True setzt.
+    _check("EVAL_AUTORUN_ENABLED Produktions-Default pausiert (False)",
+           mod.EVAL_AUTORUN_ENABLED is False)
+    mod.EVAL_AUTORUN_ENABLED = True
     d = tempfile.mkdtemp()
     export_path = str(pathlib.Path(d) / "export.jsonl")
     results_path = str(pathlib.Path(d) / "eval_results.jsonl")

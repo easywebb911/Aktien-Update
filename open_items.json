@@ -496,6 +496,14 @@
       "description": "Aus der Stillstands-Diagnose 02.11.2026: ein Wächter, der selbst per GitHub-Zeitplan läuft, fällt bei einem Zeitplan-Stillstand mit aus. Optionen zur Entscheidung durch Easy: (d) Cloudflare-Worker mit Cron-Trigger liest die öffentlichen app_data.json/agent_signals.json von GitHub Pages und schickt bei Überalterung ntfy — OHNE GitHub-Token (nur ntfy-Topic als Secret); Variante mit Lauf-Auslösung bräuchte PAT mit actions:write bei Fremd-Anbieter → abgeraten. (e) healthchecks.io-Totmann: Daily-Run/KI-Agent pingen am Ende eine URL, Dienst alarmiert bei Ausbleiben (Schonfrist KI ≥ 12 h, Daily ~26 h) — kein GitHub-Token. Beides neue externe Anbindung → Easy-Merge + einmalige Einrichtung. In-App-Teil (Option b) erledigt mit #642. NACHTRAG 02.11.2026: Easy-Entscheid Option (e) — Totmann-Signal an healthchecks.io gebaut mit #643 (letzter Schritt in daily-squeeze-report.yml + ki_agent.yml, scripts/hc_ping.sh, Secrets HC_PING_URL_DAILY / HC_PING_URL_KI). Wirksam erst, wenn Easy die zwei Checks bei healthchecks.io anlegt und die Secrets setzt (Schwellen siehe CLAUDE.md „Totmann-Signal“); bis dahin überspringt der Schritt still. Beobachten: erster Alarm/Fehlalarm.",
       "status": "beobachtet",
       "status_date": "2026-11-02"
+    },
+    {
+      "id": "backtest-rendite-aus-laufendem-handelstag",
+      "title": "Backtest-Renditen können aus dem laufenden Handelstag T+N stammen",
+      "opened": "2026-11-02",
+      "description": "Lücken-Inventur 02.11.2026, Punkt 1: ki_agent._trading_days_elapsed (ki_agent.py ~448) zählt den heutigen Tag mit; update_backtest_returns (ki_agent.py ~603-613) füllt entry_price_t1 und return_Nd/_t1, sobald der Bar T+N existiert — meist 13–20 UTC, also mit dem laufenden Tageskurs — und überschreibt nie. Alle Freeze-Auswertungen lesen genau diese Felder. Vorsorglich Freeze-Auto-Lauf pausiert mit #644 (EVAL_AUTORUN_ENABLED=False, Stand §4 n=242/250, kein Ergebnis). Offen: Messung gegen echte Schlusskurse (eigener Auftrag), danach Easy-Entscheid (Datenkorrektur/Ausschluss/unverändert) als datierter Protokolleintrag, erst dann Wiederaufnahme.",
+      "status": "offen",
+      "status_date": "2026-11-02"
     }
   ]
 }
