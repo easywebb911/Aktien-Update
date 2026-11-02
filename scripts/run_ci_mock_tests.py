@@ -40,6 +40,7 @@ SCRIPTS = ROOT / "scripts"
 ALLOWLIST = [
     "positions_asof",
     "wl_earnings_fallback",
+    "halfrow_probe",
     "agent_ntfy_relay",
     "gist_lost_update_fix",
     "position_watchlist_watchdog",
