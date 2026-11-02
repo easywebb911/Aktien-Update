@@ -2198,6 +2198,11 @@ lassen den Default `False` — Verhalten unverändert solange
 _normalize_rvol(raw_vol, avg_20d, *, run_phase=None, now_utc=None) -> float
 ```
 
+Hinweis (02.11.2026): die UTC-Grenzen 13:30/20:00 in dieser Tabelle sind nur die
+**Sommerzeit-Projektion** (im Winter 14:30/21:00 UTC). Umstellung von
+`_normalize_rvol` auf US-Ostküstenzeit offen (geschützte Funktion, Flag aus,
+`open_items` `us-boersenzeiten-fest-utc`).
+
 | ENABLED | Pfad | Resultat |
 |---|---|---|
 | `False` (Default) | jeder | `raw_vol / avg_20d` (Status quo) |
