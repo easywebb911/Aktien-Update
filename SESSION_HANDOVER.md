@@ -3222,6 +3222,29 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#641` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — Totmann-Signal an healthchecks.io (1 PR, Workflow-Erweiterung + externe Anbindung)
+
+- Easy-Entscheid 02.11.2026 (Stillstands-Diagnose, Option e): `#__PR__` (Branch
+  `claude/healthchecks-ping-t4m8`, kein Merge-Hash — Regel a). MANUAL-MERGE
+  (neue externe Anbindung).
+- Letzter Schritt „Totmann-Ping healthchecks.io“ in `daily-squeeze-report.yml`
+  und `ki_agent.yml` (`if: success()`, `continue-on-error`, 1 min) →
+  `scripts/hc_ping.sh`: Secret leer → übersprungen; nur
+  `https://hc-ping.com/…`; Fehler → Warnung, Lauf bleibt grün; URL nie im Log;
+  leerer GET, `curl -m 10 --retry 2`. Secrets `HC_PING_URL_DAILY` /
+  `HC_PING_URL_KI` (setzt Easy). Kein `/fail`-Ping, kein neuer Workflow.
+- Test `mock_test_hc_ping.py` (YAML: letzter Schritt + nur bei Erfolg; echtes
+  Bash mit curl-Shim: leer / Erfolg / nicht erreichbar / Timeout / HTTP-Fehler
+  / fremde URL; URL nie in der Ausgabe). Zusätzlich echtes curl gegen
+  hc-ping.com mit Fake-UUID (Code 22) und toten Proxy (Code 7): Schritt Exit 0.
+- CLAUDE.md-Abschnitt „Totmann-Signal“ (Zweck, Secrets, Einrichtung,
+  Schwellen KI 6 h + 6 h, Daily `17 6,21 * * 1-5` UTC + 12 h).
+- `open_items` `stillstands-alarm-extern` → beobachtet.
+- Kein Score-/Push-/Exit-/Freeze-Touch.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#642`,
+  höchste in Block 1 erwähnte PR = `#642` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
