@@ -2985,7 +2985,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — NaN-Baseline Gruppe 2, Teil 2: Karten (v1/v2) + Watchlist-Payload (1 PR, Auto-Merge)
 
-- `__PR__` (Branch `claude/nan-display-fix-2-k7d1`, kein Merge-Hash — Regel a).
+- `#633` (Branch `claude/nan-display-fix-2-k7d1`, kein Merge-Hash — Regel a).
 - **`generate_report.py`:** neuer Helper `_finite_or_zero(v)` (Wert
   unverändert inkl. int, wenn endlich; sonst 0) ersetzt `.get(feld) or 0`
   an 19 Stellen in `_card` (v1), `_build_card_ctx` (v2) und
