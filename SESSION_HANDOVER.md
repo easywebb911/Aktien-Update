@@ -3039,6 +3039,25 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#634` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — NaN-Lint-Baseline inhaltsbasiert statt Zeilennummern (1 PR, Lint-Logik)
+
+- Easy-Entscheid 02.11.2026: `#__PR__` (Branch
+  `claude/nan-lint-content-keys-b6x2`, kein Merge-Hash — Regel a).
+- **`scripts/lint_nan_bypass_fields.py`:** `_BASELINE_KNOWN_OPEN` schlüsselt
+  jetzt (Datei, Funktion, Feld, normalisierter Zeilentext) statt Zeilennummer;
+  Abgleich als Multiset (`collections.Counter`) — ein Eintrag deckt genau ein
+  Vorkommen. Eingefügte Leerzeilen/Zeilen oberhalb lassen den Lint grün; neue
+  Fundstelle, Kopie einer gedeckten Zeile, andere Funktion oder geänderter
+  Zeilentext machen weiter rot.
+- **Nachweis:** alter vs. neuer Lint auf `main` decken exakt dieselben 36
+  Fundstellen (maschinell verglichen, Gegenüberstellung im PR-Text).
+- **Tests** `mock_test_lint_nan_bypass_fields.py`: F/F2/F2b/F3/F3b/F3c/F4
+  ersetzen die alten Zeilennummern-Tests, 11/11 grün; CI-Runner 169/169.
+- `open_items`: `nan-lint-baseline-zeilennummern-fragil` → `erledigt`.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#635`,
+  höchste hier erwähnte PR = `#635` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
