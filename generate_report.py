@@ -3229,7 +3229,7 @@ def _float_turnover_row_html(stock: dict) -> str:
     codierung der Punkte über den Standard-`color`-Wert.
     """
     ratio, pts = _float_turnover_pts(stock)
-    if (stock.get("float_shares") or 0) <= 0 or (stock.get("cur_vol") or 0) <= 0:
+    if _safe_float(stock.get("float_shares")) <= 0 or _safe_float(stock.get("cur_vol")) <= 0:
         return ""
     if pts >= FLOAT_TURNOVER_PTS_HIGH:
         col = "#22c55e"
@@ -5313,7 +5313,7 @@ def risk_assessment(stock: dict) -> tuple[str, str, str]:
     pts = 0
     reasons = []
 
-    sf = stock.get("short_float", 0) or 0   # None-Guard (present-but-None)
+    sf = _safe_float(stock.get("short_float"))   # None-/NaN-Guard (present-but-None/NaN)
     if sf > 40:
         pts += 2
         reasons.append(
@@ -5335,7 +5335,7 @@ def risk_assessment(stock: dict) -> tuple[str, str, str]:
             pts += 1
             reasons.append(f"Small-Cap ({fmt_cap(cap)}) mit eingeschränkter Liquidität.")
 
-    rv = stock.get("rel_volume", 0) or 0   # None-Guard (present-but-None)
+    rv = _safe_float(stock.get("rel_volume"))   # None-/NaN-Guard (present-but-None/NaN)
     if rv > 5:
         pts += 1
         reasons.append(
@@ -5353,9 +5353,9 @@ def short_situation(stock: dict) -> str:
     parts = []
     # None-Guard: yfinance kann ein Feld als present-but-None liefern → `.get(k,0)`
     # schützt NICHT (Default greift nur bei fehlendem Key). `or 0` fängt None ab.
-    sf = stock.get("short_float", 0) or 0
-    sr = stock.get("short_ratio", 0) or 0
-    rv = stock.get("rel_volume", 0) or 0
+    sf = _safe_float(stock.get("short_float"))
+    sr = _safe_float(stock.get("short_ratio"))
+    rv = _safe_float(stock.get("rel_volume"))
     # chg bleibt nullable: None = UNBEKANNTE Bewegung ≠ 0 % flach → keine
     # Bewegungs-Aussage statt fälschlich „0 %". Branches unten sind None-geguardet.
     chg = stock.get("change")
@@ -5487,9 +5487,9 @@ def _float_display(s: dict) -> tuple[str, str, str, bool]:
     * color      — Kacheln-Farbe
     * is_estimated — True wenn der Wert aus market_cap / price geschätzt wurde
     """
-    raw = s.get("float_shares") or 0
-    price = s.get("price") or 0
-    cap   = s.get("yf_market_cap") or s.get("market_cap") or 0
+    raw = _safe_float(s.get("float_shares"))
+    price = _safe_float(s.get("price"))
+    cap   = _safe_float(s.get("yf_market_cap")) or _safe_float(s.get("market_cap"))
     estimated = False
     if FLOAT_MIN_VALID <= raw <= FLOAT_MAX_VALID:
         shares = raw
@@ -6506,7 +6506,7 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
             f'</div>'
         )
 
-    setup_val = s.get("score") or 0.0
+    setup_val = _safe_float(s.get("score"))
     setup_pct = max(0.0, min(100.0, float(setup_val)))
     setup_col = _tri_score_color(setup_val)
     s_css, s_title, s_aria = _conf_class("setup")
@@ -8455,7 +8455,7 @@ def _build_context(stocks: list[dict], report_date: str,
     _avg_mom = sum(mom_vals) / len(mom_vals) if mom_vals else None
     avg_mom_str = f"{_avg_mom:+.1f}%" if _avg_mom is not None else "—"
     # Ø Float (Mio.)
-    float_vals = [s["float_shares"] / 1_000_000 for s in stocks if (s.get("float_shares") or 0) > 0]
+    float_vals = [s["float_shares"] / 1_000_000 for s in stocks if _safe_float(s.get("float_shares")) > 0]
     avg_float_str = f"{sum(float_vals)/len(float_vals):.1f} Mio.".replace(".", ",") if float_vals else "—"
     # Ø SI-Trend
     si_vals = [
