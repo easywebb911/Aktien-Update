@@ -3224,7 +3224,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — Totmann-Signal an healthchecks.io (1 PR, Workflow-Erweiterung + externe Anbindung)
 
-- Easy-Entscheid 02.11.2026 (Stillstands-Diagnose, Option e): `#__PR__` (Branch
+- Easy-Entscheid 02.11.2026 (Stillstands-Diagnose, Option e): `#643` (Branch
   `claude/healthchecks-ping-t4m8`, kein Merge-Hash — Regel a). MANUAL-MERGE
   (neue externe Anbindung).
 - Letzter Schritt „Totmann-Ping healthchecks.io“ in `daily-squeeze-report.yml`
