@@ -119,6 +119,28 @@ def main() -> int:
     except Exception as exc:
         _check(f"12 _build_card_ctx(v2) — CRASH: {type(exc).__name__}", False)
 
+    # ── NaN-Guards Anzeige-Gruppe (open_items nan-bypass-baseline-70,
+    # Gruppe 2, 02.11.2026): NaN verhält sich jetzt wie None/0 ──────────
+    nan = float("nan")
+    base = {"ticker": "NAN", "change": 0.0}
+    r_none = gr.risk_assessment(dict(base, short_float=None, rel_volume=None))
+    r_nan  = gr.risk_assessment(dict(base, short_float=nan, rel_volume=nan))
+    _check("13 risk_assessment: NaN wie None", r_nan == r_none)
+    t_none = gr.short_situation(dict(base, short_float=None, short_ratio=None, rel_volume=None))
+    t_nan  = gr.short_situation(dict(base, short_float=nan, short_ratio=nan, rel_volume=nan))
+    _check("14 short_situation: NaN wie None", t_nan == t_none)
+    f_none = gr._float_display({"float_shares": None, "price": None, "market_cap": None})
+    f_nan  = gr._float_display({"float_shares": nan, "price": nan, "market_cap": nan})
+    _check("15 _float_display: NaN wie None", f_nan == f_none)
+    f_fb = gr._float_display({"float_shares": None, "price": 10.0,
+                              "yf_market_cap": nan, "market_cap": 2.5e8})
+    f_ok = gr._float_display({"float_shares": None, "price": 10.0,
+                              "market_cap": 2.5e8})
+    _check("16 _float_display: NaN-yf_market_cap fällt auf market_cap zurück", f_fb == f_ok)
+    _check("17 _float_turnover_row_html: NaN-Float → leer wie None",
+           gr._float_turnover_row_html({"float_shares": nan, "cur_vol": 1e6})
+           == gr._float_turnover_row_html({"float_shares": None, "cur_vol": 1e6}))
+
     print()
     if _fails:
         print(f"{len(_fails)} FAIL: {_fails}")

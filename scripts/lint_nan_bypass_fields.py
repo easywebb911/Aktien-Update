@@ -206,19 +206,10 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     ("generate_report.py", 3033, "52w_high"),
     ("generate_report.py", 3034, "52w_low"),
     ("generate_report.py", 3039, "market_cap"),
-    ("generate_report.py", 3232, "float_shares"),
     ("generate_report.py", 3384, "float_shares"),
     ("generate_report.py", 3409, "float_shares"),
     ("generate_report.py", 4855, "rsi14"),
     ("generate_report.py", 4887, "score"),
-    ("generate_report.py", 5316, "short_float"),
-    ("generate_report.py", 5338, "rel_volume"),
-    ("generate_report.py", 5356, "short_float"),
-    ("generate_report.py", 5357, "short_ratio"),
-    ("generate_report.py", 5358, "rel_volume"),
-    ("generate_report.py", 5490, "float_shares"),
-    ("generate_report.py", 5491, "price"),
-    ("generate_report.py", 5492, "market_cap"),
     ("generate_report.py", 5573, "float_shares"),
     ("generate_report.py", 5892, "float_shares"),
     ("generate_report.py", 5893, "float_shares"),
@@ -231,7 +222,6 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     # weiter. Reine Zeilen-Nachführung derselben, weiterhin offenen
     # Funde — KEIN inhaltlicher Fix. Werte unten per frischem Lint-Lauf
     # nach diesem PR verifiziert.
-    ("generate_report.py", 6509, "score"),
     ("generate_report.py", 6965, "short_float"),
     ("generate_report.py", 6966, "short_ratio"),
     ("generate_report.py", 6967, "rel_volume"),
@@ -247,7 +237,6 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     ("generate_report.py", 7774, "float_shares"),
     ("generate_report.py", 7782, "52w_high"),
     ("generate_report.py", 7783, "52w_low"),
-    ("generate_report.py", 8458, "float_shares"),
     # Exit-Druck-Unvalidiert-Caption (30.10.2026, Easy-Entscheid Variante B):
     # buildPositionStatus()'s pressureLine-Template wuchs von 1 auf 6 Zeilen
     # (Kommentar + zweizeiliges Template-Literal) -- verschiebt ALLE
