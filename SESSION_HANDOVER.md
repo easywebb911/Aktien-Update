@@ -2878,6 +2878,34 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#626` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — Monatsrundgang Teil 2–4: ApeWisdom-Test, exit_pressure-Bestätigung, open_items-Aufräumen (1 PR, Auto-Merge)
+
+- Easy-Entscheide Monatsrundgang 02.11.2026: `__PR__` (Branch
+  `claude/monatsrundgang-teil2-4-v5k1`, kein Merge-Hash — Regel a).
+- **B2 (`config.py`):** `APEWISDOM_API_PAGES` 2 → 5 (Top-500) als Test
+  02.–16.11.2026. Vorab-Prüfung: Fetch fail-soft (Fehler → `{}` →
+  `FetchFailed` im Coverage-Wächter, kein Daily-Run-Abbruch), Laufzeit-
+  Obergrenze +30 s nur bei Komplett-Timeout (Workflow-Limit 10 min).
+  Live-Probe aus der Sandbox nicht möglich: der Sandbox-Proxy antwortet 403
+  auf apewisdom.io (Netzwerkregel, **kein** Rate-Limit). Rate-Limit der Quelle
+  undokumentiert, 5 GETs je Lauf unkritisch. Item `apewisdom-abdeckung`
+  NACHTRAG mit VORAB-Abbruchkriterium (Treffer-Quote < 15 % → abschalten,
+  FetchFailed-Läufe ausgeschlossen), `faellig_am` 2026-11-16.
+- **B1:** `exit-shadow-log-quelle` NACHTRAG (Variante B bestätigt,
+  weitersammeln, Prüfung nur mit Vorabregistrierung + Geister-Filter;
+  geparkte Idee Phase-3-Blow-off-Exit-Trigger, Wiedervorlage nach §4).
+- **Aufräumen:** `freeze-zaehler-stagnation`,
+  `ki-score-coverage-diagnose-10-10-2026`, `postclose-datum-rest-27-30okt`
+  → `erledigt` (je ein Satz Begründung). `faellig_am` von
+  `ki-score-edge-freeze` und `options-chain-raw-sammelfeld` → 2026-12-03
+  (nach erwartetem n=250). Neues Item `earnings-date-abdeckung-10-4`
+  (`beobachtet`, coverage_history 10/10 → 4/10 am 29./30.10.).
+- Kein Score-/Filter-/Push-/Exit-/Freeze-Touch; Golden byte-identisch,
+  168/168 grün, `lint_protected_zones` OK.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#627`,
+  höchste hier erwähnte PR = `#627` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
