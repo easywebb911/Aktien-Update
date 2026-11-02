@@ -805,6 +805,12 @@ def evaluate_exit_b1_family(export_rows: Sequence[dict], *,
         ci_above_zero = (ci_lo is not None and ci_lo > 0.0)
         verdict, reason = _verdict_exit_b1_test(
             holm_sig, ci_above_zero, test["regime_split"]["status"])
+        # Reiner Ausgabetext-Zusatz (Konsistenz mit evaluate_ki_score_family,
+        # open_items exit-b1-verdict-missing-pct-excluded-hint, 02.11.2026):
+        # verändert WEDER verdict NOCH Population/Kriterien/Statistik/Seed.
+        if test["pct_excluded"] > 20.0:
+            reason += (f" (Einschränkung: {test['pct_excluded']:.1f}% der "
+                       f"Population ohne verwertbare Return-Werte ausgeschlossen)")
         out = dict(test)
         out["test_id"] = f"exit_b1_{label}"
         out["criteria"] = {

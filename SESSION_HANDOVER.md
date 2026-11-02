@@ -2857,6 +2857,27 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 - **Klasse: Auto-Merge nach Guardian** (Doku-only).
 
+### 02.11.2026 — B3: Exit-B.1-Verdikt-Hinweis „>20 % ausgeschlossen" (1 PR, Label-Regel Fall a)
+
+- Easy-Entscheid Monatsrundgang 02.11.2026 (Teil 1, vor n=250): `#627`
+  (Branch `claude/exit-b1-excluded-hint-q7m3`, kein Merge-Hash — Regel a).
+- **`scripts/freeze_eval.py`:** `evaluate_exit_b1_family._finish` hängt bei
+  `pct_excluded > 20` an `verdict_reason` den Zusatz „(Einschränkung: X% der
+  Population ohne verwertbare Return-Werte ausgeschlossen)" an — analog
+  KI-Score-Familie. **Reiner Ausgabetext:** `verdict`, Population,
+  Kriterien, Statistik, Seed, Auslöser unverändert.
+- **Test:** `test_excluded_hint_only_text_above_20pct` in
+  `mock_test_exit_b1_autorun.py` (Hinweis nur >20 %, nur im betroffenen
+  Test, `verdict` = `_verdict_exit_b1_test`-Ergebnis, Text = Basis +
+  Hinweis). 36/36 + 168/168 grün.
+- **`open_items.json`:** `exit-b1-verdict-missing-pct-excluded-hint` →
+  `erledigt` (NACHTRAG).
+- **Protected-Zone:** `freeze_eval.py` ist Freeze-Zone → Label-Regel Fall a)
+  (reiner Text, Guardian-bestätigt), Label von Code gesetzt, frischer Push.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#626`,
+  höchste hier erwähnte PR = `#626` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-

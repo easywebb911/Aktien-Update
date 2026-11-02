@@ -393,9 +393,9 @@
       "id": "exit-b1-verdict-missing-pct-excluded-hint",
       "title": "exit_b1-Verdikt-Text fehlt der '>20% ausgeschlossen'-Hinweis (Konsistenz zur KI-Score-Familie)",
       "opened": "2026-10-31",
-      "description": "Guardian-Finding beim Review von PR #621 (als Minor/kein Blocker eingestuft, hier nachgetragen statt verloren zu gehen): freeze_eval.evaluate_exit_b1_family._build_test berechnet pct_excluded korrekt, haengt aber -- anders als die KI-Score-Familie (freeze_eval.py, evaluate_ki_score_family, Zeilen ~584-597: 'Einschraenkung: X% der Kandidaten ohne verwertbaren Score ausgeschlossen' im verdict_reason bei >20% Ausschluss) -- keinen entsprechenden Zusatztext an verdict_reason an. Keine Protokollvorgabe dazu fuer Exit-B.1, daher kein Pflicht-Fix, nur ein Konsistenz-Wunsch. Fix-Vorschlag: in evaluate_exit_b1_family._build_test denselben >20%-Schwellenwert-Zusatztext wie bei evaluate_ki_score_family anhaengen, wenn pct_excluded > 20. Niedrige Prioritaet -- rein kosmetischer Verdikt-Text, keine Berechnung betroffen.",
-      "status": "offen",
-      "status_date": "2026-10-31"
+      "description": "Guardian-Finding beim Review von PR #621 (als Minor/kein Blocker eingestuft, hier nachgetragen statt verloren zu gehen): freeze_eval.evaluate_exit_b1_family._build_test berechnet pct_excluded korrekt, haengt aber -- anders als die KI-Score-Familie (freeze_eval.py, evaluate_ki_score_family, Zeilen ~584-597: 'Einschraenkung: X% der Kandidaten ohne verwertbaren Score ausgeschlossen' im verdict_reason bei >20% Ausschluss) -- keinen entsprechenden Zusatztext an verdict_reason an. Keine Protokollvorgabe dazu fuer Exit-B.1, daher kein Pflicht-Fix, nur ein Konsistenz-Wunsch. Fix-Vorschlag: in evaluate_exit_b1_family._build_test denselben >20%-Schwellenwert-Zusatztext wie bei evaluate_ki_score_family anhaengen, wenn pct_excluded > 20. Niedrige Prioritaet -- rein kosmetischer Verdikt-Text, keine Berechnung betroffen. NACHTRAG 02.11.2026 (Easy-Entscheid Monatsrundgang, B3, vor n=250 umgesetzt): in evaluate_exit_b1_family._finish haengt verdict_reason jetzt bei pct_excluded > 20 den Zusatz '(Einschraenkung: X% der Population ohne verwertbare Return-Werte ausgeschlossen)' an -- reiner Ausgabetext, verdict/Population/Kriterien/Statistik/Seed/Ausloeser unveraendert; Test test_excluded_hint_only_text_above_20pct in mock_test_exit_b1_autorun.py.",
+      "status": "erledigt",
+      "status_date": "2026-11-02"
     },
     {
       "id": "postclose-datum-rest-27-30okt",
