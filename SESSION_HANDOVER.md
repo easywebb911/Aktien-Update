@@ -3090,7 +3090,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — [halfrow_probe] Log-Probe für Fix-Variante B (1 PR, State-Logging)
 
-- Easy-Entscheid 02.11.2026: `#__PR__` (Branch `claude/halfrow-log-probe-p4k8`,
+- Easy-Entscheid 02.11.2026: `#639` (Branch `claude/halfrow-log-probe-p4k8`,
   kein Merge-Hash — Regel a). Muss vor dem Postclose-Lauf 02.11. (Cron
   21:17 UTC, real ~00:30 UTC) auf `main` sein.
 - **`generate_report.py`:** neuer Modul-Helper `_halfrow_probe_lines` (+
