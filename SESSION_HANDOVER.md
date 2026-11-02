@@ -3157,7 +3157,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — Handover-Konsistenz nach Session 02.11. (1 PR, Doku)
 
-- `#__PR__` (Branch `claude/handover-konsistenz-0211-h3n7`, kein Merge-Hash —
+- `#640` (Branch `claude/handover-konsistenz-0211-h3n7`, kein Merge-Hash —
   Regel a). Kopfzeile auf Stand 02.11.2026 + Absatz „Aktueller Bogen
   01.–02.11.“; Staleness-Satz im `#638`-Eintrag auf den Merge-Stand (`#639`)
   korrigiert; Block 4 „Wiedervorlagen Postclose-Halbzeile“ (a)–(e);
