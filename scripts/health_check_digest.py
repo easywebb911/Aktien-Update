@@ -43,6 +43,7 @@ from config import (                # noqa: E402
     NTFY_ENABLED,
     NTFY_TOPIC,
     EVAL_AUTORUN_ENABLED,
+    EVAL_AUTORUN_PAUSE_REASON,
     SETUP_EDGE_FREEZE_N_TARGET,
     KI_SCORE_FREEZE_N_TARGET,
     EVAL_RESULTS_FILE,
@@ -535,6 +536,13 @@ def main(*, now_ts: datetime | None = None,
     except Exception as _eval_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Freeze-Eval-Autorun unerwartet: %r", _eval_exc)
         eval_lines = []
+    # Pause sichtbar machen (02.11.2026): bei abgeschaltetem Auto-Lauf steht
+    # täglich eine eigene Zeile im Digest — AUSSERHALB des try, damit sie
+    # auch dann erscheint, wenn die Zähler-Zeilen scheitern. Reine Anzeige,
+    # löst nichts aus.
+    if not EVAL_AUTORUN_ENABLED:
+        eval_lines.insert(0, f"⏸ Freeze-Auto-Lauf pausiert "
+                             f"(Grund: {EVAL_AUTORUN_PAUSE_REASON or 'nicht angegeben'})")
 
     # Wöchentlicher Zusammenfassungs-Block (25.09.2026, nur Montag): reine
     # Funktion, ``state`` wird NICHT direkt mutiert — die Updates werden erst

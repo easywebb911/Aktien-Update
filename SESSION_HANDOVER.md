@@ -3245,6 +3245,28 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#642` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — Freeze-Auto-Lauf pausiert (1 PR, Manual-Merge)
+
+- Easy-Entscheid 02.11.2026 (Lücken-Inventur Punkt 1): `#__PR__` (Branch
+  `claude/freeze-autorun-pause-r2d9`, kein Merge-Hash — Regel a).
+  `config.EVAL_AUTORUN_ENABLED = False` + `EVAL_AUTORUN_PAUSE_REASON`;
+  Digest-Zeile „⏸ Freeze-Auto-Lauf pausiert (Grund: Rendite-Diagnose)“ (auch
+  bei Zähler-Fehler); `scripts/s4_sensitivity_eval.py` rechnet bei Pause
+  nicht. Zählerstand beim Pausieren: §4 n=242/250, Setup-Edge/Conviction und
+  KI-Score je 50/250, kein `eval_results.jsonl`.
+- „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ (außerhalb
+  der Freeze-Blöcke, MD5 aller Freeze-Blöcke unverändert); RE-TEST-KALENDER-
+  Zeile ergänzt. `scripts/freeze_eval.py` unverändert.
+- Test `mock_test_freeze_autorun_pause.py` (Auslöser in allen drei Familien
+  erreicht → bei Pause keine Auswertung, kein `eval_results.jsonl`, kein
+  Push; Pause-Zeile + Zähler sichtbar; Gegenprobe True → Auswertung wird
+  aufgerufen). `mock_test_freeze_eval_autorun.py` /
+  `mock_test_exit_b1_autorun.py`: scharfer Pfad jetzt lokal auf True gesetzt.
+- `open_items` neu: `backtest-rendite-aus-laufendem-handelstag` (offen).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#643`,
+  höchste in Block 1 erwähnte PR = `#643` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
@@ -3979,7 +4001,7 @@ Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
 |---|---|---|---|
 | ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
 | **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. **ERSETZT (10.10.2026)** — kein Zielgröße/Kriterium war hier je festgelegt; siehe Erratum-Block „Erweiterung vor Auswertung — Test (c) Conviction-Zusatznutzen" im Setup-Edge-Re-Test-Freeze unten (Test (c), Holm k=3). Diese Zeile bleibt als Historie stehen, nicht gelöscht. |
-| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf **aktiv** seit `#621` (31.10.2026) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
+| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf seit `#621` (31.10.2026), **PAUSIERT 02.11.2026** (`#__PR__`, Rendite-Diagnose — siehe „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ unten) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. **ÜBERHOLT 10.10.2026:** neu registriert und eingefroren — siehe „VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026“ unten (Stand 02.11.: n=50/250). Diese Zeile bleibt als Historie. |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
@@ -5231,6 +5253,53 @@ ursprüngliche Zuordnung desselben Tages, nach der auch ein Sensitivitäts-
 
 **5) Datum + Grund:** 02.11.2026, Datenqualitäts-Befund der Postclose-
 Halbzeile; festgelegt bei n=242/250 ohne vorliegendes Ergebnis.
+
+#### §4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert (Rendite-Diagnose), VOR jedem Ergebnis
+
+**Bindend gemäß Änderungs-Protokoll-Regel des §4-Blocks (05.08.2026).** Eigener
+Abschnitt **außerhalb** des eingefrorenen §4-Registrierungsblocks (wie der
+Eintrag zur Sensitivitätsprüfung oben); alle Freeze-Blöcke bleiben
+**byte-identisch** (MD5 vorher = nachher, im PR-Bericht #__PR__ belegt).
+
+**Grund.** Lücken-Inventur 02.11.2026, Punkt 1: `return_3d/5d/10d` können aus
+dem **laufenden** Handelstag T+N stammen — `ki_agent._trading_days_elapsed`
+zählt den heutigen Tag mit, `update_backtest_returns` füllt den Wert, sobald
+der Bar-Index T+N existiert (meist 13–20 UTC, also während der US-Börsenzeit),
+und überschreibt ihn nie. Genau diese Felder lesen alle Freeze-Auswertungen.
+Die Messung mit echten Schlusskursen steht aus (eigener Auftrag).
+
+**Zeitpunkt (VOR jedem Ergebnis):** 02.11.2026, §4-Zählerstand
+`health_check.retest_counter_value()` = **n=242/250**; Setup-Edge/Conviction
+**n=50/250**, KI-Score **n=50/250**; `eval_results.jsonl` existiert **nicht**
+— es wurde kein Ergebnis erzeugt oder eingesehen.
+
+**Maßnahme (#__PR__, Easy-Entscheid 02.11.2026):** `config.EVAL_AUTORUN_ENABLED
+= False` (Grund `EVAL_AUTORUN_PAUSE_REASON = "Rendite-Diagnose"`). Wirkung:
+der Digest ruft `freeze_eval` nicht auf, schreibt kein `eval_results.jsonl`
+und sendet keinen Freeze-Push; die Zähler-Zeilen laufen weiter, zusätzlich
+steht täglich „⏸ Freeze-Auto-Lauf pausiert (Grund: Rendite-Diagnose)“ im
+Digest. Auch `scripts/s4_sensitivity_eval.py` rechnet bei Pause nicht.
+Betrifft **alle drei** Freezes (§4 Exit-B.1, Setup-Edge/Conviction,
+KI-Score) — bewusst. An den eingefrorenen Definitionen, Kriterien,
+Populationen, Seeds und an `scripts/freeze_eval.py` ändert sich **nichts**;
+verschoben wird nur der Zeitpunkt des Laufs.
+
+**Bindung bis zur Wiederaufnahme:** Vor der Wiederaufnahme darf **kein**
+Freeze-Ergebnis erzeugt oder gelesen werden — auch nicht manuell, nicht
+teilweise, nicht über die Sensitivitätsprüfung.
+
+**Wiederaufnahme-Bedingung (beide nötig):** (1) die Rendite-Diagnose ist
+abgeschlossen (Messung gegen echte Schlusskurse, Ausmaß je Freeze-
+Population) UND (2) Easys Entscheid dazu ist hier als datierter
+Protokolleintrag dokumentiert (z. B. Korrektur der Daten, Ausschluss
+betroffener Zeilen oder unveränderte Wiederaufnahme). Erst danach
+`EVAL_AUTORUN_ENABLED = True`.
+
+**Andere Freezes:** Setup-Edge/Conviction (Punkt 8c) und KI-Score (Regel 8c-
+Erweiterung (e)) verlangen Einträge nur bei Score-/Daten-Änderungen während
+des Tests; eine Pause des Auslösers ist keine solche Änderung. Deshalb hier
+kein Eintrag in diesen Blöcken. Sollte die Rendite-Diagnose eine
+**Daten**-Korrektur nach sich ziehen, ist dafür der 8c-Eintrag nötig (Easy).
 
 #### ⚠ Datenherkunft des vorabregistrierten Exit-B.1-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
 
