@@ -424,12 +424,63 @@ def _test_look_ahead_isolation():
     )
 
 
+def _test_sibling_parse_warnings():
+    """open_items timestamp-silent-fail-siblings-unlogged (02.11.2026):
+    _parse_de_date / _si_pub_date / _save_si_position_history-Pruning
+    loggen beim ERSTEN Parse-Fehler je Lauf genau eine Warnung;
+    Rückgabewerte/Verhalten unverändert."""
+    print("── (7b) Geschwister-Parse-Fehler loggen einmalig ─────────────")
+    orig_warning = gr.log.warning
+    try:
+        for counter, fn, bad, good, good_expect in (
+            ("_PARSE_DE_DATE_FAIL_COUNT", gr._parse_de_date, "2026-13-99",
+             "02.11.2026", _dt.date(2026, 11, 2)),
+            ("_SI_PUB_DATE_FAIL_COUNT", gr._si_pub_date, "kaputt",
+             None, None),
+        ):
+            setattr(gr, counter, 0)
+            calls: list = []
+            gr.log.warning = lambda *a, **k: calls.append(a)
+            r1 = fn(bad); r2 = fn(bad)
+            _check(f"7k {fn.__name__}: Fehler → weiterhin None", r1 is None and r2 is None)
+            _check(f"7l {fn.__name__}: genau EIN Warning bei 2 Fehlern",
+                   len(calls) == 1, f"got {len(calls)}")
+            _check(f"7m {fn.__name__}: Funktionsname im Log-Text",
+                   bool(calls) and fn.__name__ in calls[0][0])
+            if good is not None:
+                calls.clear()
+                _check(f"7n {fn.__name__}: gültiger Wert unverändert, kein Warning",
+                       fn(good) == good_expect and not calls)
+        # Pruning: kaputter Punkt wird (wie bisher) verworfen, guter bleibt.
+        tmp = tempfile.mkdtemp()
+        orig = gr.SI_POSITION_HISTORY_FILE
+        gr.SI_POSITION_HISTORY_FILE = os.path.join(tmp, "si_position_history.json")
+        try:
+            gr._SI_POS_PRUNE_PARSE_FAIL_COUNT = 0
+            calls = []
+            gr.log.warning = lambda *a, **k: calls.append(a)
+            good_sd = _dt.date.today().isoformat()
+            gr._save_si_position_history({"AAA": [
+                {"settlement_date": "nicht-iso"}, {"settlement_date": "auch-kaputt"},
+                {"settlement_date": good_sd}]})
+            data = json.load(open(gr.SI_POSITION_HISTORY_FILE))
+            _check("7o Pruning-Verhalten unverändert (nur gültiger Punkt bleibt)",
+                   data == {"AAA": [{"settlement_date": good_sd}]}, f"got {data}")
+            _check("7p Pruning: genau EIN Warning bei 2 kaputten Punkten",
+                   len(calls) == 1, f"got {len(calls)}")
+        finally:
+            gr.SI_POSITION_HISTORY_FILE = orig
+    finally:
+        gr.log.warning = orig_warning
+
+
 def main() -> int:
     _test_merge_and_read_wiring()
     _test_seed_two_points()
     _test_dedup()
     _test_pub_date()
     _test_settlement_parse_warning()
+    _test_sibling_parse_warnings()
     _test_retention()
     _test_look_ahead_isolation()
     print()
