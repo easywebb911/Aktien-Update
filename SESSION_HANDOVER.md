@@ -2880,7 +2880,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — Monatsrundgang Teil 2–4: ApeWisdom-Test, exit_pressure-Bestätigung, open_items-Aufräumen (1 PR, Auto-Merge)
 
-- Easy-Entscheide Monatsrundgang 02.11.2026: `__PR__` (Branch
+- Easy-Entscheide Monatsrundgang 02.11.2026: `#628` (Branch
   `claude/monatsrundgang-teil2-4-v5k1`, kein Merge-Hash — Regel a).
 - **B2 (`config.py`):** `APEWISDOM_API_PAGES` 2 → 5 (Top-500) als Test
   02.–16.11.2026. Vorab-Prüfung: Fetch fail-soft (Fehler → `{}` →
