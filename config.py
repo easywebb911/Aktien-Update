@@ -1689,6 +1689,16 @@ US_MARKET_HOLIDAYS = frozenset(
 STALENESS_FRESH_MAX_HOURS = 15   # < 15 h → frisch (kein Hinweis, dezent versteckt)
 STALENESS_STALE_MIN_HOURS = 24   # 15–24 h → verspätet (gelb) · > 24 h → stale (rot)
 
+# ── KI-Agent-Stand-Alter (Frontend-Kopf „· KI HH:MM", Easy-Entscheid 02.11.2026) ─
+# Alter des KI-Agent-Stands (agent_signals.updated, im Browser berechnet →
+# wirkt auch bei GitHub-Zeitplan-Stillstand). Kalibriert gegen die Actions-
+# Messung 16.09.–02.11.2026: der stündliche Cron startet faktisch nur 3–7×/Tag,
+# normale Lücken zwischen KI-Läufen 3–10,6 h (Maximum 10,6 h am 12.10.). Gelb
+# MUSS darüber liegen, sonst Dauer-Gelb. 24 h = ein voller Tag ohne KI-Lauf.
+# REIN ANZEIGE — kein Score-/Push-/Exit-/Freeze-Effekt.
+KI_AGENT_AGE_WARN_HOURS  = 12   # < 12 h → normal · 12–24 h → gelb „(N h alt)"
+KI_AGENT_AGE_STALE_HOURS = 24   # ≥ 24 h → rot „(N Tag(e) alt)"
+
 # ── Watchlist-Karten: Earnings-Termin für Ticker außerhalb der Top-10 ────────
 # (02.11.2026, Easy-Entscheid). Der Daily-Run holt Earnings-Termine nur für
 # die US-Top-10; Watchlist-Ticker außerhalb tragen deshalb keinen Termin auf

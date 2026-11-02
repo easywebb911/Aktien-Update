@@ -38,6 +38,7 @@ SCRIPTS = ROOT / "scripts"
 #    danach statisch festgeschrieben. Kategorie A: deterministisch, kein
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
+    "ki_age_header",
     "positions_asof",
     "wl_earnings_fallback",
     "halfrow_probe",
