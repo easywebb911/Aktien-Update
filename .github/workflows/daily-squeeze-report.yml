@@ -390,3 +390,17 @@ jobs:
           else
             echo "WARNUNG: KI-Agent-Trigger fehlgeschlagen — Daily-Run nicht betroffen."
           fi
+
+      # Totmann-Signal an healthchecks.io (Easy-Entscheid 02.11.2026): LETZTER
+      # Schritt, nur bei erfolgreichem Lauf. Bleibt der Ping aus, alarmiert
+      # healthchecks.io von außen — auch bei GitHub-Zeitplan-Stillstand.
+      # Fail-soft: Secret leer → übersprungen; Ping-Fehler → Warnung, Lauf
+      # bleibt grün (Skript endet immer mit 0, zusätzlich continue-on-error).
+      # Die URL wird nie ausgegeben. Siehe CLAUDE.md „Totmann-Signal".
+      - name: Totmann-Ping healthchecks.io
+        if: success()
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          HC_PING_URL: ${{ secrets.HC_PING_URL_DAILY }}
+        run: bash scripts/hc_ping.sh

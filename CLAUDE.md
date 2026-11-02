@@ -4279,6 +4279,52 @@ YAML-Validität + Cron-Match + Permissions.
 
 ---
 
+## Totmann-Signal an healthchecks.io (seit 02.11.2026)
+
+**Zweck:** Ein Wächter, der selbst per GitHub-Zeitplan läuft (Health-Digest,
+S8/S11/S12), fällt bei einem Zeitplan-Stillstand mit aus (Beleg 02.11.2026:
+06:03–15:53 UTC keine geplanten Läufe, Digest meldete trotzdem „✅ OK“).
+Deshalb meldet sich jeder **erfolgreiche** Lauf bei healthchecks.io; bleibt das
+Lebenszeichen zu lange aus, alarmiert healthchecks.io **von außen** (E-Mail /
+ntfy) — unabhängig davon, ob GitHub überhaupt noch Läufe startet.
+
+**Mechanik:** letzter Schritt „Totmann-Ping healthchecks.io“ in
+`daily-squeeze-report.yml` und `ki_agent.yml` (`if: success()`,
+`continue-on-error: true`, `timeout-minutes: 1`) ruft `scripts/hc_ping.sh`.
+Kein `/fail`-Ping. Fail-soft: Secret leer → übersprungen (eine Log-Zeile);
+URL nicht `https://hc-ping.com/…` → kein Request; Ping-Fehler → Warnung, der
+Lauf bleibt **grün**. Das Skript endet immer mit 0, gibt die URL nie aus und
+schickt keinen Inhalt (leerer GET; `curl -m 10 --retry 2`). Test:
+`scripts/mock_test_hc_ping.py`.
+
+**Bedeutung des Pings:** „Lauf hat stattgefunden und ist grün durchgelaufen“
+— NICHT „Daten sind gut“. Datenqualität bleibt Sache der Health-Checks
+(S1–S14) und der Alters-Anzeigen in der App. Ein KI-Lauf, der mangels Tickern
+früh endet (`parse_monitored_tickers()` leer → `return`), pingt trotzdem.
+
+**Secrets (Repo → Settings → Secrets and variables → Actions):**
+`HC_PING_URL_DAILY`, `HC_PING_URL_KI` — je die Ping-URL eines eigenen
+healthchecks.io-Checks. Kein GitHub-Token beim Fremd-Anbieter nötig; ein Leck
+der Ping-URL erlaubt nur falsche „lebt noch“-Meldungen. Abschalten = Secret
+löschen.
+
+**Einrichtung bei healthchecks.io (empfohlene Schwellen, gemessen 16.09.–
+02.11.2026):**
+
+| Check | Typ | Einstellung | Begründung |
+|---|---|---|---|
+| KI-Agent | Simple | Period **6 h**, Grace **6 h** (Alarm nach 12 h Stille) | der stündliche Cron startet faktisch nur 3–7×/Tag, normale Lücken bis **10,6 h** |
+| Daily-Run | Cron | `17 6,21 * * 1-5`, Zeitzone **UTC**, Grace **12 h** | Premarket kommt 5,1–**9,6 h**, Postclose 2,4–5,3 h zu spät |
+
+Benachrichtigung in healthchecks.io einstellen (E-Mail oder ein eigenes
+ntfy-Topic — den produktiven `NTFY_TOPIC` nicht beim Fremd-Anbieter
+hinterlegen).
+
+**Rückweg:** Merge-Commit reverten — oder einfach die Secrets löschen
+(Ping aus, Workflows unverändert grün).
+
+---
+
 ## Arbeits-Regeln für Claude Code (Process-Anker)
 
 Vier Prinzipien, die sich über die Sessions als robust erwiesen haben
