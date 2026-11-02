@@ -2942,6 +2942,29 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#629` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — Easy-Entscheide Gruppe A: drei Items geparkt, NaN-Baseline sortiert, zwei Vorschläge (1 PR, Auto-Merge)
+
+- Easy-Entscheide 02.11.2026: `__PR__` (Branch
+  `claude/parken-nan-triage-doku-h8t2`, kein Merge-Hash — Regel a).
+- **Geparkt bis nach Freeze-Auswertung** (NACHTRAG je Item, `faellig_am`
+  2026-12-03, Grund: kein Eingriff in laufenden Freeze, sonst gemischte
+  Stichprobe): `finra-ssr-utc-cache-key` (KI-Score-Freeze),
+  `cur-close-close-5td-before-entry-unguarded-source` und
+  `pr532-or0-sibling-bugs` (Setup-Edge/Conviction-Freeze).
+- **`nan-bypass-baseline-70` read-only sortiert:** 36 Stellen Score-/Freeze-/
+  Push-/Exit-Pfad → geparkt (03.12.); 34 Stellen Anzeige/Infrastruktur
+  (Karten, Watchlist-Payload, Float-/Treiber-Anzeige, Risiko-/Situations-
+  Text) → werden in kleinen Auto-Merge-PRs repariert. Datei:Zeile je Gruppe
+  im Item.
+- **Vorschläge (nicht gebaut):** `app-data-positions-staleness-ki-agent-tick`
+  (A: Stand-Zeitstempel anzeigen, empfohlen; B: ki_agent-Abgleich, Exit-Zone)
+  und neues Item `nan-lint-baseline-zeilennummern-fragil` (inhaltsbasierter
+  Schlüssel statt Zeilennummer, Alternative Marker-Kommentar).
+- Doku-only, kein Code.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#630`,
+  höchste hier erwähnte PR = `#630` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
