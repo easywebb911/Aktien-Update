@@ -3200,7 +3200,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — Alter des KI-Agent-Stands im App-Kopf (1 PR, Frontend)
 
-- Easy-Entscheid 02.11.2026 (Stillstands-Diagnose, Option b): `#__PR__` (Branch
+- Easy-Entscheid 02.11.2026 (Stillstands-Diagnose, Option b): `#642` (Branch
   `claude/ki-stand-alter-k7p2`, kein Merge-Hash — Regel a). Die Kopf-Anzeige
   „· KI HH:MM“ zeigt jetzt das Alter des KI-Agent-Stands, im Browser berechnet
   (wirkt auch bei GitHub-Zeitplan-Stillstand): < 12 h wie bisher, ab 12 h gelb

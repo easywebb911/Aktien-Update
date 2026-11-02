@@ -469,7 +469,7 @@
       "id": "ki-agent-faktisch-5x-taeglich",
       "title": "KI-Agent läuft faktisch ~5×/Tag statt stündlich",
       "opened": "2026-11-02",
-      "description": "Befund Stillstands-Diagnose 02.11.2026 (Actions-API, 300 KI-Läufe 16.09.–02.11.): der Zeitplan '17 * * * *' startet nur 3–7 geplante Läufe pro Tag (~80 % der Stundenzeiten ohne Start), Lücken 3–10,6 h sind Alltag (Maximum 12.10. 10,6 h; 02.11. 06:03→15:53 = 9,8 h). Zusätzlich 66 von 300 Läufen per Kette nach dem Daily-Run (github-actions[bot]). Stellen, die 'stündlich' annehmen, je prüfen ob sie dadurch etwas falsch anzeigen: S14-Doku 'ki_agent-Tick ~1 h Erkennungszeit', Sparkline-Live-Sync nur bei KI-Stand ≤ 4 h (greift dadurch oft nicht), Methodik-Text 'stündlicher agent_signals.json-Fetch', CLAUDE.md-Formulierungen 'stündlich'. Nicht fixen ohne Easy. Die Kopf-Anzeige des KI-Alters (#__PR__) ist bereits gegen diese Lücken kalibriert (gelb ab 12 h).",
+      "description": "Befund Stillstands-Diagnose 02.11.2026 (Actions-API, 300 KI-Läufe 16.09.–02.11.): der Zeitplan '17 * * * *' startet nur 3–7 geplante Läufe pro Tag (~80 % der Stundenzeiten ohne Start), Lücken 3–10,6 h sind Alltag (Maximum 12.10. 10,6 h; 02.11. 06:03→15:53 = 9,8 h). Zusätzlich 66 von 300 Läufen per Kette nach dem Daily-Run (github-actions[bot]). Stellen, die 'stündlich' annehmen, je prüfen ob sie dadurch etwas falsch anzeigen: S14-Doku 'ki_agent-Tick ~1 h Erkennungszeit', Sparkline-Live-Sync nur bei KI-Stand ≤ 4 h (greift dadurch oft nicht), Methodik-Text 'stündlicher agent_signals.json-Fetch', CLAUDE.md-Formulierungen 'stündlich'. Nicht fixen ohne Easy. Die Kopf-Anzeige des KI-Alters (#642) ist bereits gegen diese Lücken kalibriert (gelb ab 12 h).",
       "status": "offen",
       "status_date": "2026-11-02"
     },
@@ -493,7 +493,7 @@
       "id": "stillstands-alarm-extern",
       "title": "Externer Stillstands-Alarm (Totmann-Schalter) — Entscheidung Easy",
       "opened": "2026-11-02",
-      "description": "Aus der Stillstands-Diagnose 02.11.2026: ein Wächter, der selbst per GitHub-Zeitplan läuft, fällt bei einem Zeitplan-Stillstand mit aus. Optionen zur Entscheidung durch Easy: (d) Cloudflare-Worker mit Cron-Trigger liest die öffentlichen app_data.json/agent_signals.json von GitHub Pages und schickt bei Überalterung ntfy — OHNE GitHub-Token (nur ntfy-Topic als Secret); Variante mit Lauf-Auslösung bräuchte PAT mit actions:write bei Fremd-Anbieter → abgeraten. (e) healthchecks.io-Totmann: Daily-Run/KI-Agent pingen am Ende eine URL, Dienst alarmiert bei Ausbleiben (Schonfrist KI ≥ 12 h, Daily ~26 h) — kein GitHub-Token. Beides neue externe Anbindung → Easy-Merge + einmalige Einrichtung. In-App-Teil (Option b) erledigt mit #__PR__.",
+      "description": "Aus der Stillstands-Diagnose 02.11.2026: ein Wächter, der selbst per GitHub-Zeitplan läuft, fällt bei einem Zeitplan-Stillstand mit aus. Optionen zur Entscheidung durch Easy: (d) Cloudflare-Worker mit Cron-Trigger liest die öffentlichen app_data.json/agent_signals.json von GitHub Pages und schickt bei Überalterung ntfy — OHNE GitHub-Token (nur ntfy-Topic als Secret); Variante mit Lauf-Auslösung bräuchte PAT mit actions:write bei Fremd-Anbieter → abgeraten. (e) healthchecks.io-Totmann: Daily-Run/KI-Agent pingen am Ende eine URL, Dienst alarmiert bei Ausbleiben (Schonfrist KI ≥ 12 h, Daily ~26 h) — kein GitHub-Token. Beides neue externe Anbindung → Easy-Merge + einmalige Einrichtung. In-App-Teil (Option b) erledigt mit #642.",
       "status": "offen",
       "status_date": "2026-11-02"
     }
