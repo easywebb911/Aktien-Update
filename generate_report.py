@@ -3501,6 +3501,15 @@ def fmt_cap(v) -> str:
 # SCORE HISTORY — smoothing across trading days
 # ===========================================================================
 
+# Modul-Zähler (open_items timestamp-silent-fail-siblings-unlogged,
+# 02.11.2026) — analog ``_SI_SETTLEMENT_PARSE_FAIL_COUNT``: zählt Parse-
+# Fehler pro Prozess-Lauf, nur der ERSTE Fehler je Funktion wird geloggt
+# (Log-Flut-Schutz). Rückgabewerte/Kontrollfluss bleiben unverändert.
+_PARSE_DE_DATE_FAIL_COUNT = 0
+_SI_PUB_DATE_FAIL_COUNT = 0
+_SI_POS_PRUNE_PARSE_FAIL_COUNT = 0
+
+
 def _parse_de_date(date_str: str) -> "date | None":
     """Parse DD.MM.YYYY → date. None bei leer / falschem Format.
 
@@ -3510,11 +3519,19 @@ def _parse_de_date(date_str: str) -> "date | None":
     string-vergleichend zu False aus und kappte vor diesem Fix alle
     Mai-Einträge bei jedem Load/Save (Bug behoben Mai 2026).
     """
+    global _PARSE_DE_DATE_FAIL_COUNT
     if not date_str:
         return None
     try:
         return datetime.strptime(date_str, "%d.%m.%Y").date()
     except ValueError:
+        _PARSE_DE_DATE_FAIL_COUNT += 1
+        if _PARSE_DE_DATE_FAIL_COUNT == 1:
+            log.warning(
+                "_parse_de_date: Format-Fehler (weitere Vorkommen in diesem "
+                "Lauf werden gezählt, nicht erneut geloggt) rohwert=%r",
+                str(date_str)[:40],
+            )
         return None
 
 
@@ -3640,6 +3657,7 @@ def _save_si_position_history(hist: dict) -> None:
     Punkt-Cap (``SI_POSITION_HISTORY_MAX_POINTS`` = 24/Ticker). Punkte je
     Ticker settlement-aufsteigend sortiert; bei Cap fallen die ältesten raus.
     """
+    global _SI_POS_PRUNE_PARSE_FAIL_COUNT
     cutoff = date.today() - timedelta(days=SI_POSITION_HISTORY_DAYS)
     compact: dict[str, list] = {}
     for ticker, points in hist.items():
@@ -3652,6 +3670,14 @@ def _save_si_position_history(hist: dict) -> None:
                 sd_obj = datetime.strptime(sd, "%Y-%m-%d").date() if sd else None
             except (ValueError, TypeError):
                 sd_obj = None
+                _SI_POS_PRUNE_PARSE_FAIL_COUNT += 1
+                if _SI_POS_PRUNE_PARSE_FAIL_COUNT == 1:
+                    log.warning(
+                        "_save_si_position_history: settlement_date nicht "
+                        "parsebar, Punkt wird beim Pruning verworfen (weitere "
+                        "Vorkommen gezählt, nicht erneut geloggt) ticker=%s "
+                        "rohwert=%r", ticker, str(sd)[:40],
+                    )
             if sd_obj is not None and sd_obj >= cutoff:
                 kept.append(p)
         # settlement-aufsteigend, dann Cap auf die jüngsten N.
@@ -3709,13 +3735,21 @@ def _si_pub_date(settlement_iso: str | None) -> str | None:
     Muster identisch zu generate_report:2277-2287 (FINRA-history-pub_date).
     Fail-soft → None. Look-Ahead-Grenze für die spätere Auswertung.
     """
+    global _SI_PUB_DATE_FAIL_COUNT
     if not settlement_iso:
         return None
     try:
         from scripts.business_days import finra_publication_date  # noqa: E402
         sd_obj = datetime.strptime(settlement_iso, "%Y-%m-%d").date()
         return finra_publication_date(sd_obj).isoformat()
-    except (ValueError, TypeError, ImportError):
+    except (ValueError, TypeError, ImportError) as exc:
+        _SI_PUB_DATE_FAIL_COUNT += 1
+        if _SI_PUB_DATE_FAIL_COUNT == 1:
+            log.warning(
+                "_si_pub_date: Format-/Import-Fehler (weitere Vorkommen in "
+                "diesem Lauf werden gezählt, nicht erneut geloggt) rohwert=%r "
+                "typ=%s", str(settlement_iso)[:40], type(exc).__name__,
+            )
         return None
 
 

@@ -2921,6 +2921,27 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#628` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — Gruppe A: einmalige Log-Warnung für drei stille Parse-Fehler (1 PR, Auto-Merge)
+
+- Monatsrundgang 02.11.2026, Gruppe A: `#630` (Branch
+  `claude/silent-parse-logging-r4n6`, kein Merge-Hash — Regel a).
+- **`generate_report.py`:** `_parse_de_date`, `_si_pub_date` und das
+  Pruning in `_save_si_position_history` loggen beim ersten Parse-Fehler je
+  Lauf genau eine `log.warning` (Modul-Zähler je Funktion, Muster #578).
+  Rückgabewerte/Verhalten unverändert. Tests 7k–7p.
+- `open_items`: `timestamp-silent-fail-siblings-unlogged` → `erledigt`.
+- **`scripts/lint_nan_bypass_fields.py`:** 40 Baseline-Zeilennummern
+  (`generate_report.py`) wegen der eingefügten Zeilen per Diff-Abbildung
+  nachgezogen (dokumentierte Line-Shift-Fragilität; Baseline gesamt
+  weiterhin 70 Einträge, davon 56 in `generate_report.py`: 40 verschoben,
+  16 unverändert; nichts hinzugefügt/entfernt, Zeileninhalt je Eintrag
+  identisch).
+- State-Logging, kein Score-/Filter-/Freeze-Touch; Golden byte-identisch,
+  `lint_protected_zones` OK.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#629`,
+  höchste hier erwähnte PR = `#629` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
