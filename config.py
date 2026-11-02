@@ -580,13 +580,19 @@ COVERAGE_SILENT_EMPTY_SPARSE_QUELLEN = [
 APEWISDOM_SHADOW_ENABLED     = True
 APEWISDOM_ATTENTION_LOG_FILE = "apewisdom_attention_history.jsonl"
 APEWISDOM_API_FILTER         = "all-stocks"
-# 2 Seiten × 100 Einträge = Top-200 meistdiskutierte Ticker auf Reddit an
+# N Seiten × 100 Einträge = Top-(N×100) meistdiskutierte Ticker auf Reddit an
 # diesem Tag — EIN Abruf der Gesamtliste statt pro-Ticker-Abfragen (Easy-
 # Vorgabe 23.10.2026). Lokal gegen den Monitored-Pool (Top-10 ∪ Watchlist)
-# gefiltert; Ticker außerhalb der Top-200 gelten als "nicht erwähnt"
+# gefiltert; Ticker außerhalb der Top-(N×100) gelten als "nicht erwähnt"
 # (legitim leer, kein Fehler). Schwelle unkalibriert — Wiedervorlage nach
 # Live-Baseline (siehe open_items.json).
-APEWISDOM_API_PAGES   = 2
+# 02.11.2026 (Easy-Entscheid Monatsrundgang, B2): 2 → 5 Seiten (Top-500)
+# als befristeter Test 02.–16.11.2026; Abbruchkriterium VORAB: Treffer-
+# Quote < 15 % → Quelle abschalten (open_items "apewisdom-abdeckung").
+# Laufzeit-Obergrenze: 5 × APEWISDOM_API_TIMEOUT = 50 s nur bei Komplett-
+# Timeout, Fetch bleibt fail-soft (Fehler → {} → FetchFailed im Coverage-
+# Wächter, kein Daily-Run-Abbruch).
+APEWISDOM_API_PAGES   = 5
 APEWISDOM_API_TIMEOUT = 10
 
 # ── Unusual Options Activity (UOA) — yfinance Options-Chain ──────────────────
