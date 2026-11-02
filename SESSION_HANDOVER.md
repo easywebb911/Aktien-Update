@@ -3000,6 +3000,23 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#632` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — NaN-Baseline Gruppe 2, Teil 3: DRIVER_CLASSIFICATIONS (1 PR, Auto-Merge)
+
+- `#634` (Branch `claude/nan-display-fix-3-w9e4`, kein Merge-Hash — Regel a).
+- **`generate_report.py`:** Float-Treiber in `DRIVER_CLASSIFICATIONS`
+  (4 Stellen) nutzen `_finite_or_zero`. **Verhaltensneutral:** `field_check`
+  war für NaN schon False (`0 < nan`), `label`/`weight` werden dann nicht
+  ausgewertet; endliche Werte identisch. AST-Sync-Test
+  (`mock_test_score_multiplier_sync.py`) und Score-Konfidenz-Lint grün.
+- **Lint-Baseline:** 4 Einträge entfernt (40 → 36), keine Verschiebung.
+  **Gruppe 2 abgeschlossen (34/34)**; die verbleibenden 36 sind genau die
+  geparkte Gruppe 1 (Wiedervorlage 03.12.). Item → `beobachtet`.
+- Tests 24–25 (`mock_test_short_situation_none_guard.py`).
+- Golden byte-identisch, 168/168, `lint_protected_zones` OK.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#633`,
+  höchste hier erwähnte PR = `#633` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-

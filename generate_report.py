@@ -5899,10 +5899,10 @@ DRIVER_CLASSIFICATIONS: list[dict] = [
      "weight": lambda s: min(_safe_float(s.get('short_ratio', 0)) / 10.0, 1.0) * 23},
     # Float-Größe
     {"category": "strength",
-     "field_check": lambda s: 0 < (s.get("float_shares") or 0) <= FLOAT_SATURATION_HIGH
-                              and _fs_weight(s.get("float_shares") or 0) > 0,
-     "label":  lambda s: f"Float klein ({(s.get('float_shares') or 0)/1e6:.1f} M)",
-     "weight": lambda s: _fs_weight(s.get("float_shares") or 0)},
+     "field_check": lambda s: 0 < _finite_or_zero(s.get("float_shares")) <= FLOAT_SATURATION_HIGH
+                              and _fs_weight(_finite_or_zero(s.get("float_shares"))) > 0,
+     "label":  lambda s: f"Float klein ({_finite_or_zero(s.get('float_shares'))/1e6:.1f} M)",
+     "weight": lambda s: _fs_weight(_finite_or_zero(s.get("float_shares")))},
     # SI-Trend up
     {"category": "strength",
      "field_check": lambda s: (s.get("finra_data") or {}).get("trend") == "up",
