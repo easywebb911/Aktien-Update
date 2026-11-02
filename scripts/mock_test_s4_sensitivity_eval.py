@@ -121,14 +121,22 @@ def test_04_after_frozen():
 
 
 def test_05_decision_rule():
-    _check("05 Beleg + Beleg → belegt", s4.combine_verdict("Beleg", "Beleg") == "belegt")
-    _check("05 Beleg + bedingt → belegt, aber nicht robust",
-           s4.combine_verdict("Beleg", "bedingt") == "belegt, aber nicht robust")
-    _check("05 Beleg + Unklar → belegt, aber nicht robust",
-           s4.combine_verdict("Beleg", "Unklar") == "belegt, aber nicht robust")
-    for m in ("bedingt", "Unklar"):
-        for s in ("Beleg", "bedingt", "Unklar"):
-            _check(f"05 {m} + {s} → nicht belegt", s4.combine_verdict(m, s) == "nicht belegt")
+    """Alle 9 Kombinationen (Haupt × Sensitivität) mit erwartetem Gesamturteil
+    (Nachschärfung 02.11.2026: Sensitivität "bedingt" zählt als robust)."""
+    expected = {
+        ("Beleg", "Beleg"): "belegt",
+        ("Beleg", "bedingt"): "belegt",
+        ("Beleg", "Unklar"): "belegt, aber nicht robust",
+        ("bedingt", "Beleg"): "nicht belegt",
+        ("bedingt", "bedingt"): "nicht belegt",
+        ("bedingt", "Unklar"): "nicht belegt",
+        ("Unklar", "Beleg"): "nicht belegt",
+        ("Unklar", "bedingt"): "nicht belegt",
+        ("Unklar", "Unklar"): "nicht belegt",
+    }
+    for (m, sv), exp in expected.items():
+        got = s4.combine_verdict(m, sv)
+        _check(f"05 Haupt {m} + Sens {sv} → {exp}", got == exp, got)
 
 
 def test_06_no_write_by_default():

@@ -454,8 +454,8 @@
       "id": "github-schedule-ausgesetzt-2026-11-02",
       "title": "Geplante GitHub-Läufe seit 02.11.2026 06:03 UTC ausgesetzt (Beobachtung)",
       "opened": "2026-11-02",
-      "description": "Beobachtung 02.11.2026 (Actions-API, Stand ca. 15:40 UTC): letzter KI-Agent-Lauf 06:03 UTC (Cron stündlich), letzter Daily-Run 31.10. 00:51 UTC; Premarket 02.11. nie gestartet (kein Run-Eintrag), Workflows laut API 'active'. Ursache unbekannt (GitHub-seitig?). Beobachten; bei Fortbestehen prüfen, ob GitHub die Schedules pausiert hat. Wirkung: keine neuen Daten, §4-Export wächst nicht.",
-      "status": "offen",
+      "description": "Beobachtung 02.11.2026 (Actions-API, Stand ca. 15:40 UTC): letzter KI-Agent-Lauf 06:03 UTC (Cron stündlich), letzter Daily-Run 31.10. 00:51 UTC; Premarket 02.11. nie gestartet (kein Run-Eintrag), Workflows laut API 'active'. Ursache unbekannt (GitHub-seitig?). Beobachten; bei Fortbestehen prüfen, ob GitHub die Schedules pausiert hat. Wirkung: keine neuen Daten, §4-Export wächst nicht. NACHTRAG 02.11.2026: Läufe ab ca. 15:54 UTC wieder angelaufen (KI-Agent 15:54/15:56 UTC, Daily squeeze report 15:56 UTC); weiter beobachten.",
+      "status": "beobachtet",
       "status_date": "2026-11-02"
     }
   ]

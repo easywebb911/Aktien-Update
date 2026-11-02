@@ -3100,7 +3100,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   leerem Close am Entry-Tag, ab 01.10.) / K2 (`vol_stability_5d` leer bei
   ≥ 80 % der Records, 15.07.–30.09.), daraus 22 Tage (identisch zur
   Diagnose-Liste), 57 von 242 Records ausgeschlossen; Entscheidungsregel
-  wörtlich; Zuordnung `Beleg` = belegt, `bedingt`/`Unklar` = nicht belegt.
+  wörtlich; Zuordnung Hauptauswertung `Beleg` = belegt, `bedingt`/`Unklar`
+  = nicht belegt; Sensitivität `Beleg`/`bedingt` = robust, `Unklar` = nicht
+  robust (Nachschärfung 02.11.2026, Easy-Entscheid, weiterhin n=242/250).
   Hinweis-Satz in der RE-TEST-KALENDER-Tabelle.
 - **`scripts/s4_sensitivity_eval.py`** (neu, nur lesend/rechnend, ruft die
   eingefrorene `evaluate_exit_b1_family` unverändert auf, schreibt nur mit
@@ -3109,7 +3111,11 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   ALLOWLIST). `freeze_eval.py` unverändert.
 - `open_items`: 4 neue Items (Postclose-Halbzeile Preis-/Score-Pfad,
   Exit-current_price Vortag, provider_health ohne nan_pct, GitHub-Schedules
-  ausgesetzt).
+  ausgesetzt — nach Wiederanlauf ~15:54 UTC auf `beobachtet`).
+- **Nachschärfung 02.11.2026 (Easy-Entscheid, weiterhin n=242/250, kein
+  Ergebnis):** Sensitivität `bedingt` zählt als robust (Gesamturteil
+  „belegt“), nur Sensitivität `Unklar` → „belegt, aber nicht robust“;
+  `combine_verdict` + Test (alle 9 Kombinationen) mitgezogen.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#637`,
   höchste hier erwähnte PR = `#637` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
@@ -5081,11 +5087,21 @@ Ausschlussliste identisch zur Hauptfunktion).
   kein Grund, die Regel später anzupassen.
 
 **Zuordnung zu den Verdikten der eingefrorenen Auswertung** (je Test a/b
-getrennt): „belegt“ = Verdikt `Beleg`; „nicht belegt“ = `bedingt` oder
-`Unklar` (laut Protokolleintrag 31.10.2026 zählt `bedingt` nicht als
-erfüllt). Folge: auch eine Sensitivität, die nur wegen kleinerer Fallzahl
-`bedingt` ergibt (Regime-Split nicht prüfbar), macht ein Haupt-`Beleg` zu
-„belegt, aber nicht robust“.
+getrennt; **nachgeschärft 02.11.2026, Easy-Entscheid, weiterhin VOR jedem
+Ergebnis: Zählerstand n=242/250, kein `eval_results.jsonl`** — ersetzt die
+ursprüngliche Zuordnung desselben Tages, nach der auch ein Sensitivitäts-
+`bedingt` als „nicht belegt“ galt):
+- **Hauptauswertung (unverändert):** `Beleg` = belegt; `bedingt` oder
+  `Unklar` = nicht belegt (bleibt nicht belegt, unabhängig von der
+  Sensitivität).
+- **Sensitivität:** `Beleg` **oder** `bedingt` = robust → Gesamturteil
+  „belegt“ (bei Haupt-`Beleg`); `Unklar` = nicht robust → Gesamturteil
+  „belegt, aber nicht robust“.
+- **Begründung:** Die Sensitivität prüft nur den Einfluss der betroffenen
+  Tage; `bedingt` heißt (a)+(b) erfüllt, nur der Regime-Split ist wegen
+  geringerer Fallzahl nicht prüfbar — das ist kein Datenqualitäts-Befund,
+  der Regime-Split wurde in der Hauptauswertung bereits bestanden.
+  `Unklar` (Kriterien verfehlt oder Regime widerlegt) bleibt nicht robust.
 
 **5) Datum + Grund:** 02.11.2026, Datenqualitäts-Befund der Postclose-
 Halbzeile; festgelegt bei n=242/250 ohne vorliegendes Ergebnis.

@@ -141,12 +141,14 @@ def filter_population(rows: list[dict], excluded: set[str]) -> list[dict]:
 
 
 def combine_verdict(main_verdict: str, sens_verdict: str) -> str:
-    """Entscheidungsregel (Protokolleintrag 02.11.2026), je Test:
-    „belegt“ = freeze_eval-Verdikt "Beleg"; „bedingt“/„Unklar“ = nicht belegt.
+    """Entscheidungsregel (Protokolleintrag 02.11.2026, nachgeschärft am
+    selben Tag VOR jedem Ergebnis), je Test:
+    Hauptauswertung: "Beleg" = belegt; "bedingt"/"Unklar" = nicht belegt.
+    Sensitivität: "Beleg" oder "bedingt" = robust; "Unklar" = nicht robust.
     Die Sensitivität kann nur abschwächen, nie aufwerten."""
     if main_verdict != "Beleg":
         return "nicht belegt"
-    if sens_verdict == "Beleg":
+    if sens_verdict in ("Beleg", "bedingt"):
         return "belegt"
     return "belegt, aber nicht robust"
 
