@@ -3269,7 +3269,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — Wegwerf-Probe Rendite-Check (1 PR, Manual-Merge, neuer Workflow)
 
-- Rendite-Diagnose zum pausierten Freeze-Auto-Lauf (#644): `#__PR__` (Branch
+- Rendite-Diagnose zum pausierten Freeze-Auto-Lauf (#644): `#645` (Branch
   `claude/probe-return-check-k3v8`, kein Merge-Hash — Regel a). Neu
   `.github/workflows/probe_return_check.yml` (nur `workflow_dispatch`,
   `contents: read`, keine Secrets, kein Commit/Push, 15 min) +
