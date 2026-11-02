@@ -229,9 +229,34 @@ def _test_report_dict_of_points_readonly_and_detects_anomaly():
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+def _test_collision_three_rows_a_eq_c():
+    """3+-Zeilen-Fall (open_items fix-trading-dates-oneoff-collision-
+    undercounting): A und C inhaltsgleich, beide != B, alle drei landen
+    auf demselben Ziel-Key -> ALLE drei geblockt (auch C), Zählung 2."""
+    tmp = pathlib.Path(tempfile.mkdtemp())
+    try:
+        p = tmp / "fixture_collision3.jsonl"
+        a = {"date": "2026-10-22", "run_phase": "ki_agent_tick",
+             "ts_utc": "2026-10-22T04:47:00+00:00", "n": 10}
+        b = {"date": "2026-10-23", "run_phase": "ki_agent_tick",
+             "ts_utc": "2026-10-23T00:02:00+00:00", "n": 99}
+        rows = [a, b, dict(a)]
+        _write_jsonl(p, rows)
+        hash_before = _sha256(p)
+        stats = fix_jsonl(p, "ts_utc", ("run_phase",))
+        _check("J1 3-Zeilen-Kollision: 0 Korrekturen (alle geblockt)",
+               stats["corrected"] == 0, detail=f"corrected={stats['corrected']}")
+        _check("J2 Zählung nicht untergezählt (3 Zeilen − 1 Gruppe = 2)",
+               stats["collisions"] == 2, detail=f"collisions={stats['collisions']}")
+        _check("J3 Datei unverändert", _sha256(p) == hash_before)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def main():
     _test_shift_and_already_correct_and_no_ts()
     _test_collision_not_overwritten()
+    _test_collision_three_rows_a_eq_c()
     _test_idempotency()
     _test_dry_run_writes_nothing()
     _test_report_dict_of_points_readonly_and_detects_anomaly()

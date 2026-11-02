@@ -2906,6 +2906,21 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#627` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — Gruppe A: Kollisions-Zählung im Einmal-Skript fix_trading_dates_oneoff (1 PR, Auto-Merge)
+
+- Monatsrundgang 02.11.2026, Gruppe A: `#629` (Branch
+  `claude/oneoff-collision-count-p2w8`, kein Merge-Hash — Regel a).
+- **`scripts/fix_trading_dates_oneoff.py`:** `fix_jsonl` sammelt alle Zeilen
+  je Ziel-Key; Gruppe mit >1 verschiedenen Inhalten → **jede** Zeile
+  geblockt (auch C bei A==C≠B), Zählung = Zeilen in Kollisionsgruppen −
+  Gruppen (2-Zeilen-Fall unverändert). Test J1–J3. Dry-Run gegen `main`:
+  unverändert die 3 bekannten Paare, keine Dateiänderung.
+- `open_items`: `fix-trading-dates-oneoff-collision-undercounting` → `erledigt`.
+- Reines Einmal-Skript, kein Laufzeit-Pfad, kein Score-/Freeze-Touch.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#628`,
+  höchste hier erwähnte PR = `#628` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
