@@ -141,6 +141,34 @@ def main() -> int:
            gr._float_turnover_row_html({"float_shares": nan, "cur_vol": 1e6})
            == gr._float_turnover_row_html({"float_shares": None, "cur_vol": 1e6}))
 
+    # ── Teil 2: Karten (v1/v2) + Watchlist-Payload ───────────────────────
+    _check("18 _finite_or_zero: int bleibt int", gr._finite_or_zero(5) == 5 and isinstance(gr._finite_or_zero(5), int))
+    _check("19 _finite_or_zero: NaN/Inf/None/bool → 0",
+           [gr._finite_or_zero(x) for x in (nan, float("inf"), None, True)] == [0, 0, 0, 0])
+    sc = dict(s, short_float=nan, short_ratio=nan, rel_volume=nan, change=nan,
+              float_shares=nan, **{"52w_high": nan, "52w_low": nan})
+    sn = dict(s, short_float=None, short_ratio=None, rel_volume=None, change=None,
+              float_shares=None, **{"52w_high": None, "52w_low": None})
+    try:
+        v1_nan, v1_none = gr._card(1, sc), gr._card(1, sn)
+        _check("20 _card(v1): NaN rendert wie None", v1_nan == v1_none)
+    except Exception as exc:
+        _check(f"20 _card(v1) NaN — CRASH: {type(exc).__name__}: {exc}", False)
+    try:
+        c_nan, c_none = gr._build_card_ctx(1, sc), gr._build_card_ctx(1, sn)
+        _check("22 _build_card_ctx(v2): NaN wie None", c_nan == c_none)
+    except Exception as exc:
+        _check(f"22 _build_card_ctx(v2) NaN — CRASH: {type(exc).__name__}: {exc}", False)
+
+    try:
+        w_nan, w_none = gr._wl_card_payload(dict(sc, yf_market_cap=nan, market_cap=3e8)), \
+                        gr._wl_card_payload(dict(sn, yf_market_cap=None, market_cap=3e8))
+        _check("23 _wl_card_payload: NaN-Felder wie None, market_cap-Fallback greift",
+               all(w_nan.get(k) == w_none.get(k) for k in ("float_shares", "52w_high", "52w_low", "market_cap"))
+               and w_nan.get("market_cap") == 3e8)
+    except Exception as exc:
+        _check(f"23 _wl_card_payload NaN — CRASH: {type(exc).__name__}: {exc}", False)
+
     print()
     if _fails:
         print(f"{len(_fails)} FAIL: {_fails}")

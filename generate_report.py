@@ -3016,7 +3016,7 @@ def _wl_card_payload(_s: dict) -> dict:
         "short_ratio":   _s.get("short_ratio", 0),
         "rel_volume":    _s.get("rel_volume", 0),
         "rel_volume_yesterday": _s.get("rel_volume_yesterday"),
-        "float_shares":  _s.get("float_shares") or 0,
+        "float_shares":  _finite_or_zero(_s.get("float_shares")),
         "si_trend":          _fd.get("trend", "no_data"),
         "si_trend_source":   _fd.get("si_trend_source", "finra"),
         "si_tpct":       _fd.get("trend_pct", 0.0),
@@ -3030,13 +3030,13 @@ def _wl_card_payload(_s: dict) -> dict:
         "ma200":         _s.get("ma200"),
         "inst_ownership": _s.get("inst_ownership"),
         "sec_13f_note":  _s.get("sec_13f_note"),
-        "52w_high":      _s.get("52w_high") or 0,
-        "52w_low":       _s.get("52w_low") or 0,
+        "52w_high":      _finite_or_zero(_s.get("52w_high")),
+        "52w_low":       _finite_or_zero(_s.get("52w_low")),
         "avg_vol_20d":   _s.get("avg_vol_20d", 0),
         "cur_vol":       _s.get("cur_vol", 0),
         "cur_open":      _s.get("cur_open"),
         "prev_close":    _s.get("prev_close"),
-        "market_cap":    _s.get("yf_market_cap") or _s.get("market_cap") or 0,
+        "market_cap":    _finite_or_zero(_s.get("yf_market_cap")) or _finite_or_zero(_s.get("market_cap")),
         "earnings_days": _s.get("earnings_days"),
         "earnings_date_str": _s.get("earnings_date_str", ""),
         "pc_ratio":      _opts.get("pc_ratio"),
@@ -3132,6 +3132,16 @@ def _finite(v) -> bool:
     if isinstance(v, bool) or not isinstance(v, (int, float)):
         return False
     return math.isfinite(v)
+
+
+def _finite_or_zero(v):
+    """``v`` unverändert (Typ bleibt, int bleibt int), wenn endliche Zahl —
+    sonst ``0``. Ersatz für ``x.get(feld) or 0`` in ANZEIGE-Pfaden (open_items
+    nan-bypass-baseline-70, Gruppe 2, 02.11.2026): für endliche Werte, None,
+    0 und fehlende Keys exakt verhaltensgleich zu ``or 0``, aber NaN/±Inf
+    werden wie None behandelt statt als (truthy) NaN durchzurutschen. Bool
+    zählt nicht als Zahl (→ 0, analog ``_finite``)."""
+    return v if _finite(v) else 0
 
 
 def _finite_cell(series, idx):
@@ -6962,11 +6972,11 @@ def _card(i: int, s: dict) -> str:
 
     sc      = min(s["score"], 100.0)
     sc_col  = _score_color(sc)
-    sf      = s.get("short_float", 0) or 0   # None-Guard, analog _build_card_ctx (v2)
-    sr      = s.get("short_ratio", 0) or 0
-    rv      = s.get("rel_volume", 0) or 0
+    sf      = _finite_or_zero(s.get("short_float"))   # None-Guard, analog _build_card_ctx (v2)
+    sr      = _finite_or_zero(s.get("short_ratio"))
+    rv      = _finite_or_zero(s.get("rel_volume"))
     cap_val = s.get("yf_market_cap") or s.get("market_cap")
-    chg     = s.get("change", 0) or 0   # Pflicht-Anzeige (Tile) → None→0 (flach), wie Cockpit/v2
+    chg     = _finite_or_zero(s.get("change"))   # Pflicht-Anzeige (Tile) → None→0 (flach), wie Cockpit/v2
     chg_str = f"+{chg:.1f}%" if chg >= 0 else f"{chg:.1f}%"
     chg_col = _metric_color("mom", chg)
     chg_5d_html = (f'<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: {s["change_5d"]:+.1f}%</span>'
@@ -7231,7 +7241,7 @@ def _card(i: int, s: dict) -> str:
     _da_iv    = f'{_iv*100:.1f}' if _iv   is not None else ''
     _da_earn  = str(_earn_days)  if _earn_days is not None else ''
     _da_cap   = str(int(cap_val)) if cap_val else ''
-    _da_float = f'{(s.get("float_shares") or 0)/1e6:.1f}M' if s.get("float_shares") else ''
+    _da_float = f'{_finite_or_zero(s.get("float_shares"))/1e6:.1f}M' if _finite_or_zero(s.get("float_shares")) else ''
     _news_titles = [n.get("title","")[:140] for n in (s.get("news") or [])[:3] if n.get("title")]
     _da_news  = json.dumps(_news_titles, ensure_ascii=False).replace('"','&quot;')
     _da_earn_date = _earn_dstr
@@ -7336,7 +7346,7 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
         {_float_row}
         {sector_detail_row}
-        <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>${_finite_or_zero(s.get('52w_high')):.2f} / ${_finite_or_zero(s.get('52w_low')):.2f}</td></tr>
         {_inst_row}
         <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>
         {edgar_row}
@@ -7433,11 +7443,11 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     # ── Core numeric values ──────────────────────────────────────────────
     ticker   = s["ticker"]
     company  = s.get("company_name", "")
-    price    = s.get("price", 0) or 0
-    sf       = s.get("short_float", 0) or 0
-    sr       = s.get("short_ratio",  0) or 0
-    rv       = s.get("rel_volume",   0) or 0
-    chg      = s.get("change", 0) or 0
+    price    = _finite_or_zero(s.get("price"))
+    sf       = _finite_or_zero(s.get("short_float"))
+    sr       = _finite_or_zero(s.get("short_ratio"))
+    rv       = _finite_or_zero(s.get("rel_volume"))
+    chg      = _finite_or_zero(s.get("change"))
     cap_val  = s.get("yf_market_cap") or s.get("market_cap")
 
     # ── Score ────────────────────────────────────────────────────────────
@@ -7771,7 +7781,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     da_cap       = str(int(cap_val)) if cap_val else ''
     # da_float spiegelt die alte v1-Logik (roher float_shares ohne Validierung),
     # damit v1/v2 byte-identisch bleiben — die neue Plausibilität steckt im Tile/Detail.
-    _raw_float   = s.get("float_shares") or 0
+    _raw_float   = _finite_or_zero(s.get("float_shares"))
     da_float     = f'{_raw_float/1e6:.1f}M' if _raw_float else ''
     _news_titles = [n.get("title","")[:140] for n in (s.get("news") or [])[:3] if n.get("title")]
     da_news      = json.dumps(_news_titles, ensure_ascii=False).replace('"', '&quot;')
@@ -7779,8 +7789,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
 
     # ── Detail table formatted fields ────────────────────────────────────
     cap_fmt       = fmt_cap(cap_val)
-    hi_str        = f"{s.get('52w_high') or 0:.2f}"
-    lo_str        = f"{s.get('52w_low')  or 0:.2f}"
+    hi_str        = f"{_finite_or_zero(s.get('52w_high')):.2f}"
+    lo_str        = f"{_finite_or_zero(s.get('52w_low')):.2f}"
     avg_vol_str   = f"{s.get('avg_vol_20d', 0):,.0f}"
     cur_vol_str   = f"{s.get('cur_vol',    0):,.0f}"
 

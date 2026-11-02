@@ -202,19 +202,15 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     # sowie die eine health_check.py-Zeile. Per Diff-Hunk-Arithmetik exakt
     # nachgerechnet und gegen den frischen Lint-Lauf verifiziert (reine
     # Zeilen-Nachführung, KEIN inhaltlicher Fix).
-    ("generate_report.py", 3019, "float_shares"),
-    ("generate_report.py", 3033, "52w_high"),
-    ("generate_report.py", 3034, "52w_low"),
-    ("generate_report.py", 3039, "market_cap"),
-    ("generate_report.py", 3384, "float_shares"),
-    ("generate_report.py", 3409, "float_shares"),
-    ("generate_report.py", 4855, "rsi14"),
-    ("generate_report.py", 4887, "score"),
-    ("generate_report.py", 5573, "float_shares"),
-    ("generate_report.py", 5892, "float_shares"),
-    ("generate_report.py", 5893, "float_shares"),
-    ("generate_report.py", 5894, "float_shares"),
-    ("generate_report.py", 5895, "float_shares"),
+    ("generate_report.py", 3394, "float_shares"),
+    ("generate_report.py", 3419, "float_shares"),
+    ("generate_report.py", 4865, "rsi14"),
+    ("generate_report.py", 4897, "score"),
+    ("generate_report.py", 5583, "float_shares"),
+    ("generate_report.py", 5902, "float_shares"),
+    ("generate_report.py", 5903, "float_shares"),
+    ("generate_report.py", 5904, "float_shares"),
+    ("generate_report.py", 5905, "float_shares"),
     # Trading-Date-Fix (26.10.2026, Wächter-Befund): neue `import
     # trading_date`-Zeilen in generate_report.py/health_check.py/
     # ki_agent.py + ein neuer `_us_trading_date_iso`-Berechnungs-Block in
@@ -222,21 +218,6 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     # weiter. Reine Zeilen-Nachführung derselben, weiterhin offenen
     # Funde — KEIN inhaltlicher Fix. Werte unten per frischem Lint-Lauf
     # nach diesem PR verifiziert.
-    ("generate_report.py", 6965, "short_float"),
-    ("generate_report.py", 6966, "short_ratio"),
-    ("generate_report.py", 6967, "rel_volume"),
-    ("generate_report.py", 6969, "change"),
-    ("generate_report.py", 7234, "float_shares"),
-    ("generate_report.py", 7339, "52w_high"),
-    ("generate_report.py", 7339, "52w_low"),
-    ("generate_report.py", 7436, "price"),
-    ("generate_report.py", 7437, "short_float"),
-    ("generate_report.py", 7438, "short_ratio"),
-    ("generate_report.py", 7439, "rel_volume"),
-    ("generate_report.py", 7440, "change"),
-    ("generate_report.py", 7774, "float_shares"),
-    ("generate_report.py", 7782, "52w_high"),
-    ("generate_report.py", 7783, "52w_low"),
     # Exit-Druck-Unvalidiert-Caption (30.10.2026, Easy-Entscheid Variante B):
     # buildPositionStatus()'s pressureLine-Template wuchs von 1 auf 6 Zeilen
     # (Kommentar + zweizeiliges Template-Literal) -- verschiebt ALLE
@@ -250,14 +231,14 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     # nochmal +13. Erneut reine Zeilen-Nachführung derselben, weiterhin
     # offenen Funde -- KEIN inhaltlicher Fix. Werte unten per frischem
     # Lint-Lauf nach diesem PR verifiziert.
-    ("generate_report.py", 17254, "entry_price"),
-    ("generate_report.py", 17263, "price"),
-    ("generate_report.py", 17287, "setup_today"),
-    ("generate_report.py", 18044, "score"),
-    ("generate_report.py", 18553, "score"),
-    ("generate_report.py", 19113, "score"),
-    ("generate_report.py", 19156, "score"),
-    ("generate_report.py", 19346, "score"),
+    ("generate_report.py", 17264, "entry_price"),
+    ("generate_report.py", 17273, "price"),
+    ("generate_report.py", 17297, "setup_today"),
+    ("generate_report.py", 18054, "score"),
+    ("generate_report.py", 18563, "score"),
+    ("generate_report.py", 19123, "score"),
+    ("generate_report.py", 19166, "score"),
+    ("generate_report.py", 19356, "score"),
     # Position-Watchlist-Wächter (31.10.2026): eine neue ``import re``-
     # Zeile ganz oben in health_check.py (für den Ticker-Validierungs-
     # Regex des neuen Wächters) verschiebt den einzigen health_check.py-
