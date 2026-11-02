@@ -1454,6 +1454,21 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             t, info = fut.result()
             info_map[t] = info
 
+    # [halfrow_probe] REINE LOG-PROBE (02.11.2026) — nur stdout, fail-soft,
+    # kein Einfluss auf Score/Felder/Dateien/Pushes. Entfernen oder in Fix B
+    # überführen (open_items postclose-halbe-tageszeile-preis-score-pfad).
+    try:
+        _probe_lines, _probe_n = _halfrow_probe_lines(hist_batch, tickers, info_map)
+        print(f"[halfrow_probe] run_utc={datetime.now(timezone.utc).isoformat()} "
+              f"yfinance={getattr(yf, '__version__', 'None')} "
+              f"halfrow_tickers={_probe_n} of {len(tickers)} "
+              f"lines={len(_probe_lines)}", flush=True)
+        for _pl in _probe_lines:
+            print(_pl, flush=True)
+    except Exception as _probe_exc:  # noqa: BLE001 — Probe darf den Lauf nie stören
+        print(f"[halfrow_probe] WARN probe failed: {type(_probe_exc).__name__}: {_probe_exc}",
+              flush=True)
+
     def _detect_recent_squeeze(df) -> dict | None:
         """Feature 6 — Scan ~90 Tage rückwärts auf Kursanstieg ≥50 % in
         5 Handelstagen bei Volumen ≥3× des 20-Tage-Durchschnitts davor.
@@ -3203,6 +3218,93 @@ def _finite_or_zero(v):
     werden wie None behandelt statt als (truthy) NaN durchzurutschen. Bool
     zählt nicht als Zahl (→ 0, analog ``_finite``)."""
     return v if _finite(v) else 0
+
+
+_HALFROW_PROBE_FIELDS = (
+    "regularMarketPrice", "regularMarketPreviousClose", "regularMarketOpen",
+    "regularMarketDayHigh", "regularMarketDayLow", "regularMarketVolume",
+)
+_HALFROW_PROBE_MAX_LINES = 100
+
+
+def _halfrow_probe_num(v) -> float | None:
+    """Zahl (inkl. numpy-Typen wie int64/float64) → float, wenn endlich;
+    sonst ``None``. ``bool`` zählt nicht als Zahl."""
+    if v is None or isinstance(v, bool):
+        return None
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return f if math.isfinite(f) else None
+
+
+def _halfrow_probe_fmt(v) -> str:
+    """Probe-Formatierung: endliche Zahl → repr, sonst ``None`` (nie 0)."""
+    f = _halfrow_probe_num(v)
+    return repr(f) if f is not None else "None"
+
+
+def _halfrow_probe_lines(hist_batch, tickers, info_map,
+                         max_lines: int = _HALFROW_PROBE_MAX_LINES) -> tuple[list[str], int]:
+    """REINE LOG-PROBE (02.11.2026, Easy-Entscheid, Vorbereitung Fix B —
+    open_items ``postclose-halbe-tageszeile-preis-score-pfad``).
+
+    Für jeden Ticker, dessen LETZTE Batch-Zeile einen nicht-endlichen
+    ``Close`` hat (Erkennung wie das Gap-Log: nicht-endlich = NaN/Inf/None;
+    numpy-Zahltypen werden dafür in float gewandelt), EINE
+    Zeile mit Datum/Volumen der halben Zeile und den Kursfeldern aus dem
+    BEREITS geladenen ``.info`` (``info_map``). Kein Netz-Abruf, kein
+    Schreibzugriff, nichts fließt in Score/Felder/Dateien/Pushes — der
+    Aufrufer druckt die Zeilen nur nach stdout. Pure Funktion.
+
+    Returns ``(zeilen, anzahl_halbzeilen)``; ``zeilen`` auf ``max_lines``
+    begrenzt, ``anzahl_halbzeilen`` zählt ALLE Treffer."""
+    out: list[str] = []
+    n_half = 0
+    if hist_batch is None or getattr(hist_batch, "empty", True):
+        return out, 0
+    for t in tickers:
+        try:
+            df = hist_batch if len(tickers) == 1 else hist_batch[t]
+            if df is None or df.empty or "Close" not in df.columns:
+                continue
+            if _halfrow_probe_num(df["Close"].iloc[-1]) is not None:
+                continue
+        except Exception:
+            continue
+        n_half += 1
+        if len(out) >= max_lines:
+            continue
+        try:
+            day = str(df.index[-1])[:10]
+        except Exception:
+            day = "None"
+        try:
+            vol = _halfrow_probe_fmt(df["Volume"].iloc[-1]) if "Volume" in df.columns else "None"
+        except Exception:
+            vol = "None"
+        info = (info_map or {}).get(t) or {}
+        parts = [f"ticker={t}", f"row_date={day}", f"row_volume={vol}"]
+        for k in _HALFROW_PROBE_FIELDS:
+            parts.append(f"{k}={_halfrow_probe_fmt(info.get(k))}")
+        rmt = info.get("regularMarketTime")
+        rmt_utc, rmt_et = "None", "None"
+        try:
+            _rmt = _halfrow_probe_num(rmt)
+            if _rmt is not None:
+                _dt = datetime.fromtimestamp(_rmt, tz=timezone.utc)
+                rmt_utc = _dt.isoformat()
+                rmt_et = _dt.astimezone(ZoneInfo("America/New_York")).date().isoformat()
+            elif rmt is not None:
+                rmt_utc = str(rmt)
+        except Exception:
+            pass
+        parts.append(f"regularMarketTime_utc={rmt_utc}")
+        parts.append(f"regularMarketTime_et_date={rmt_et}")
+        parts.append(f"postMarketPrice={_halfrow_probe_fmt(info.get('postMarketPrice'))}")
+        out.append("[halfrow_probe] " + " ".join(parts))
+    return out, n_half
 
 
 def _finite_cell(series, idx):

@@ -3088,6 +3088,30 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#636` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — [halfrow_probe] Log-Probe für Fix-Variante B (1 PR, State-Logging)
+
+- Easy-Entscheid 02.11.2026: `#639` (Branch `claude/halfrow-log-probe-p4k8`,
+  kein Merge-Hash — Regel a). Muss vor dem Postclose-Lauf 02.11. (Cron
+  21:17 UTC, real ~00:30 UTC) auf `main` sein.
+- **`generate_report.py`:** neuer Modul-Helper `_halfrow_probe_lines` (+
+  `_halfrow_probe_num`/`_halfrow_probe_fmt`); Aufruf in `get_yfinance_batch`
+  direkt nach dem `.info`-Abruf (`info_map`), in try/except. Pro Ticker mit
+  nicht-endlichem `Close` in der letzten Batch-Zeile EINE stdout-Zeile
+  `[halfrow_probe]` (Datum/Volumen der Zeile + `.info`-Kursfelder +
+  `regularMarketTime` UTC/ET-Datum + `postMarketPrice`; fehlend → `None`,
+  nie 0), max. 100 Zeilen; einmal pro Lauf yfinance-Version, Laufzeit UTC,
+  Anzahl Halbzeilen. Kein Netz-Abruf, keine Datei, kein Feld, kein Score-/
+  Push-Effekt; Diff nur Einfügung (0 gelöschte Zeilen).
+- **Test** `mock_test_halfrow_probe.py` (Fake-DataFrame, CI-tauglich), in
+  ALLOWLIST; Golden byte-identisch; CI-Runner grün.
+- `open_items`: der Probe-Vermerk („Log-Probe ab 02.11.2026“) gehört an das
+  Item `postclose-halbe-tageszeile-preis-score-pfad`, das erst mit `#638`
+  angelegt wird — Nachtrag nach dessen Merge (hier bewusst nicht, um
+  Konflikt/Doppel-ID zu vermeiden).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#637`,
+  höchste hier erwähnte PR = `#638` (offen) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
