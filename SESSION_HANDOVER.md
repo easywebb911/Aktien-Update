@@ -3019,7 +3019,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — Positions-Stand im Position-Status-Block anzeigen (1 PR, Auto-Merge Frontend)
 
-- Easy-Entscheid 02.11.2026 (Variante A): `__PR__` (Branch
+- Easy-Entscheid 02.11.2026 (Variante A): `#635` (Branch
   `claude/positions-stand-anzeige-z3p6`, kein Merge-Hash — Regel a).
 - **`generate_report.py` (JS):** neuer Helper `_psAsofLabel()`; der Kopf
   „📍 Position-Status" zeigt „Stand TT.MM., HH:MM" (Berlin) aus
