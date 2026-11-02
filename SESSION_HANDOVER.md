@@ -2967,7 +2967,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 02.11.2026 — NaN-Baseline Gruppe 2, Teil 1: 11 Anzeige-Stellen (1 PR, Auto-Merge)
 
-- `__PR__` (Branch `claude/nan-display-fix-1-m2c5`, kein Merge-Hash — Regel a).
+- `#632` (Branch `claude/nan-display-fix-1-m2c5`, kein Merge-Hash — Regel a).
 - **`generate_report.py`:** `.get(feld) or 0` → `_safe_float(...)` in
   `_float_turnover_row_html`, `risk_assessment`, `short_situation`,
   `_float_display` (dort zusätzlich: NaN-`yf_market_cap` fällt auf
