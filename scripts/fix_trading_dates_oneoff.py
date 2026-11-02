@@ -145,26 +145,36 @@ def fix_jsonl(path: pathlib.Path, ts_field: str, extra_key_fields: tuple[str, ..
     def _full_key(e: dict, date_val) -> tuple:
         return (date_val,) + tuple(e.get(f) for f in extra_key_fields)
 
-    final_keys: dict[tuple, int] = {}   # key -> erster Zeilen-Index
-    blocked: set[int] = set()
+    # Alle Zeilen-Indizes je Ziel-Key sammeln (nicht nur die erste
+    # Referenz-Zeile): ein Key mit >1 inhaltlich verschiedenen Zeilen ist eine
+    # Kollision, und dann wird JEDE Zeile dieser Gruppe geblockt -- auch eine,
+    # die zufällig der ersten Referenz gleicht (3+-Zeilen-Fall A==C!=B, open_items
+    # fix-trading-dates-oneoff-collision-undercounting, 02.11.2026).
+    groups: dict[tuple, list[int]] = {}
     for i, e in enumerate(entries):
         if e is None:
             continue
         d = target_dates[i] if target_dates[i] is not None else e.get("date")
-        k = _full_key(e, d)
-        if k in final_keys:
-            j = final_keys[k]
-            if entries[j] != e:
-                blocked.add(i)
-                blocked.add(j)
-                if len(stats["collision_examples"]) < 5:
-                    stats["collision_examples"].append(
-                        {"key": str(k), "line_a": j, "line_b": i})
+        groups.setdefault(_full_key(e, d), []).append(i)
+
+    blocked: set[int] = set()
+    n_collision_groups = 0
+    for k, idxs in groups.items():
+        if len(idxs) < 2:
+            continue
+        distinct: list[dict] = []
+        for i in idxs:
+            if entries[i] not in distinct:
+                distinct.append(entries[i])
+        if len(distinct) < 2:
             # identischer Inhalt (reiner Re-Run-Fall) -> keine Kollision,
-            # beide Zeilen bleiben wie sie sind (keine der beiden wird
-            # verschoben, falls eine von ihnen das Korrektur-Ziel war).
-        else:
-            final_keys[k] = i
+            # alle Zeilen bleiben wie sie sind.
+            continue
+        n_collision_groups += 1
+        blocked.update(idxs)
+        if len(stats["collision_examples"]) < 5:
+            stats["collision_examples"].append(
+                {"key": str(k), "line_a": idxs[0], "line_b": idxs[1]})
 
     out_lines: list[str] = []
     for i, e in enumerate(entries):
@@ -180,7 +190,10 @@ def fix_jsonl(path: pathlib.Path, ts_field: str, extra_key_fields: tuple[str, ..
             stats["corrected_examples"].append(
                 {"line": i, "old_date": old_date, "new_date": target_dates[i],
                  "extra": {f: e.get(f) for f in extra_key_fields}})
-    stats["collisions"] = len(blocked) // 2 if blocked else 0
+    # Zählung: je Kollisions-Gruppe (Anzahl Zeilen − 1) -- im 2-Zeilen-Fall
+    # unverändert 1 je Paar (Kompatibilität zu #608), im 3+-Zeilen-Fall
+    # nicht mehr untergezählt.
+    stats["collisions"] = len(blocked) - n_collision_groups if blocked else 0
 
     if stats["corrected"] and not dry_run:
         bak = path.with_suffix(path.suffix + ".bak")
