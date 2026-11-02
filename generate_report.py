@@ -10820,6 +10820,23 @@ function _pstatusReason(name, det) {{
   }}
   return '';
 }}
+// Stand-Anzeige (open_items app-data-positions-staleness-ki-agent-tick,
+// Easy-Entscheid 02.11.2026, Variante A): app_data.positions wird NUR vom
+// Daily-Run geschrieben (ki_agent reicht den Key unverändert durch) — der
+// Stand ist also last_daily_run_ts (gleicher Schreibvorgang). Rein Anzeige,
+// fail-soft (kein Wert → kein Zusatz), Berlin-Zeit, kurz.
+function _psAsofLabel() {{
+  try {{
+    const ts = (typeof window !== 'undefined' && window._APP_DATA)
+      ? window._APP_DATA.last_daily_run_ts : null;
+    if (!ts) return '';
+    const d = new Date(ts);
+    if (!isFinite(d.getTime())) return '';
+    const txt = d.toLocaleString('de-DE', {{day: '2-digit', month: '2-digit',
+      hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin'}});
+    return `<span class="ps-asof">Stand ${{txt}}</span>`;
+  }} catch (e) {{ return ''; }}
+}}
 function buildPositionStatus(ticker) {{
   try {{
     const all = (typeof window !== 'undefined') ? window._POSITIONS_DATA : null;
@@ -10864,7 +10881,7 @@ function buildPositionStatus(ticker) {{
       ? '<div class="ps-quiet">Alle Fr\xfchwarn-Signale ruhig.</div>'
       : '';
     return `<div class="position-status-block" data-ticker="${{ticker}}">
-      <div class="ps-head">📍 Position-Status</div>
+      <div class="ps-head">📍 Position-Status ${{_psAsofLabel()}}</div>
       ${{pressureLine}}
       ${{rows.join('')}}
       ${{quietHint}}

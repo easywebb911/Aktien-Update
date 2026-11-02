@@ -3017,6 +3017,28 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste hier erwähnte PR = `#633` — kein Rückstand vor diesem Eintrag.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — Positions-Stand im Position-Status-Block anzeigen (1 PR, Auto-Merge Frontend)
+
+- Easy-Entscheid 02.11.2026 (Variante A): `#635` (Branch
+  `claude/positions-stand-anzeige-z3p6`, kein Merge-Hash — Regel a).
+- **`generate_report.py` (JS):** neuer Helper `_psAsofLabel()`; der Kopf
+  „📍 Position-Status" zeigt „Stand TT.MM., HH:MM" (Berlin) aus
+  `app_data.last_daily_run_ts` (gleicher Schreibvorgang wie
+  `app_data.positions`, **nicht** `generated_at`). Fail-soft.
+  **`templates/head.jinja`:** `.ps-asof` (dezent, nicht uppercase).
+- **Golden angepasst** (`tests/golden/report_outer_page.html`): nur der
+  neue Helper-Block + die `ps-head`-Zeile (+18/−1), geprüft.
+- **Lint-Baseline:** 8 Einträge per Diff-Abbildung verschoben (Helper-
+  Einfügung; dieselbe Fragilität, die PR 2 behebt).
+- **Neuer Test** `mock_test_positions_asof.py` (Quelle, Berlin-Zeit,
+  fail-soft, node-Funktionstest UTC 21:41 → „Stand 02.11., 22:41"),
+  in ALLOWLIST. 169/169 grün.
+- `open_items`: `app-data-positions-staleness-ki-agent-tick` → `erledigt`.
+- Keine Exit-Logik, kein Score; `lint_protected_zones` OK.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#634`,
+  höchste hier erwähnte PR = `#634` — kein Rückstand vor diesem Eintrag.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-

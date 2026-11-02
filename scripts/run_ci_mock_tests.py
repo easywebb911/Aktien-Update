@@ -38,6 +38,7 @@ SCRIPTS = ROOT / "scripts"
 #    danach statisch festgeschrieben. Kategorie A: deterministisch, kein
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
+    "positions_asof",
     "agent_ntfy_relay",
     "gist_lost_update_fix",
     "position_watchlist_watchdog",
