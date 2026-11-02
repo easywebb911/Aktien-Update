@@ -3281,7 +3281,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - Teil A lokal (ohne Netz): §4 (n=242 im Export) 702 von 726 Rendite-Feldern
   während der US-Börsenzeit am Zieltag gefüllt, 24 nach Schluss, 0 unklar;
   Setup-Edge und KI-Score (je 50) 150/150 intraday; keine späteren
-  Korrekturen.
+  Korrekturen. Das Skript zählt zusätzlich die noch nicht exportierten
+  Zeilen aus `backtest_history.json` mit: §4 741/765 intraday, 24 nach
+  Schluss; Setup-Edge und KI-Score je 180/180 intraday.
 - Rückweg-PR (beide Dateien löschen) vorbereitet, erst nach dem Lauf mergen.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#644`,
   höchste in Block 1 erwähnte PR = `#644` — kein Rückstand.

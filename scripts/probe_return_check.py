@@ -249,7 +249,8 @@ def _dist(label: str, devs: list[float]) -> None:
         return
     over = {t: sum(1 for d in devs if d > t) for t in (0.5, 1, 2, 5)}
     print(f"{label}: n={len(devs)} · median={_quantile(devs, .5):.3f} pp · "
-          f"p90={_quantile(devs, .9):.3f} pp · max={max(devs):.3f} pp · "
+          f"p90={_quantile(devs, .9):.3f} pp · "
+          + (f"max={max(devs):.3f} pp · " if len(devs) >= 5 else "max=(n<5, ausgeblendet) · ")
           + " · ".join(f">{t} pp: {c}" for t, c in over.items()))
 
 
