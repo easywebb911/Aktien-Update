@@ -3267,6 +3267,26 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#643` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — Wegwerf-Probe Rendite-Check (1 PR, Manual-Merge, neuer Workflow)
+
+- Rendite-Diagnose zum pausierten Freeze-Auto-Lauf (#644): `#__PR__` (Branch
+  `claude/probe-return-check-k3v8`, kein Merge-Hash — Regel a). Neu
+  `.github/workflows/probe_return_check.yml` (nur `workflow_dispatch`,
+  `contents: read`, keine Secrets, kein Commit/Push, 15 min) +
+  `scripts/probe_return_check.py`.
+- **Blindung:** keine Renditewerte, keine Gruppierung nach Score/Bucket/
+  Regime/Haltedauer, keine Freeze-Auswertung — nur Füll-Zeitpunkte (Teil A,
+  Git-Historie) und die Verteilung |gespeichert − korrekt| in pp (Teil B,
+  ein yfinance-Batch, gleiche Definition wie `update_backtest_returns`).
+- Teil A lokal (ohne Netz): §4 (n=242 im Export) 702 von 726 Rendite-Feldern
+  während der US-Börsenzeit am Zieltag gefüllt, 24 nach Schluss, 0 unklar;
+  Setup-Edge und KI-Score (je 50) 150/150 intraday; keine späteren
+  Korrekturen.
+- Rückweg-PR (beide Dateien löschen) vorbereitet, erst nach dem Lauf mergen.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#644`,
+  höchste in Block 1 erwähnte PR = `#644` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
