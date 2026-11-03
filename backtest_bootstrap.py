@@ -27,6 +27,7 @@ from pathlib import Path
 import yfinance as yf
 
 from config import BACKTEST_FILE, BACKTEST_RETURN_WINDOWS
+import trading_date  # finale Schlusskurse (last_final_close_date, Fix 03.11.2026)
 
 log = logging.getLogger("backtest_bootstrap")
 logging.basicConfig(level=logging.INFO,
@@ -115,9 +116,20 @@ def _fill_t1_fields(entry: dict, t1_idx: int, closes, n: int) -> bool:
     return changed
 
 
+def _final_rows(hist, final_cut):
+    """Nur finale Tageszeilen (Datum ``<= final_cut``, Index aufsteigend):
+    schneidet die laufende Tageszeile (heute vor 16:20 ET) ab, damit weder
+    Returns noch die RVOL-Signal-Erkennung einen Intraday-Wert als
+    Tagesschluss lesen (Fix 03.11.2026, gleiche Regel wie #647)."""
+    dates = [ts.date() for ts in hist.index]
+    n_final = next((i for i, d in enumerate(dates) if d > final_cut), len(dates))
+    return hist.iloc[:n_final]
+
+
 def _process_ticker(
     ticker: str,
     existing_by_key: dict[tuple, dict],
+    now_utc: datetime | None = None,
 ) -> tuple[list[dict], int]:
     """Lädt Info + History, erzeugt Bootstrap-Einträge für Signal-Tage.
 
@@ -159,6 +171,9 @@ def _process_ticker(
         return [], 0
     if "Close" not in hist or "Volume" not in hist:
         log.warning("  %s: History ohne Close/Volume", ticker)
+        return [], 0
+    hist = _final_rows(hist, trading_date.last_final_close_date(now_utc))
+    if hist.empty:
         return [], 0
 
     closes  = hist["Close"]

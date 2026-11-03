@@ -43,6 +43,7 @@ from config import (
     WIKI_ATTENTION_MAP_FILE,
 )
 import entry_score as entry_score_module  # Entry-Timing-Score (Shadow, pure)
+import trading_date  # finale Schlusskurse (last_final_close_date, Fix 03.11.2026)
 import material_8k as material_8k_module   # §6c FDA-/materielle-8-K-Sammlung
 import ssr_restriction as ssr_restriction_module                   # Rule-201 SSR-Status (forward-only)
 import wiki_attention as wiki_attention_module  # Wikipedia-Attention-Feed
@@ -1187,6 +1188,18 @@ def _round_finite_or_none(value, ndigits: int, safe_float_fn) -> float | None:
     return round(v, ndigits) if v is not None else None
 
 
+def _final_window(df, edate, final_cut, n: int = 11):
+    """Rolling-Fenster für max_gain_pct/max_drawdown_pct: Zeilen ab dem
+    Entry-Tag, aber NUR finale Tageszeilen (Datum ``<= final_cut`` =
+    ``trading_date.last_final_close_date(jetzt)``), davon die ersten ``n``.
+    Eine laufende Tageszeile (heute vor 16:20 ET) zählt nicht — ihr
+    Hoch/Tief ist noch nicht endgültig (Fix 03.11.2026, gleiche Regel wie
+    #647). Pure; arbeitet mit jedem DataFrame, dessen ``index.date`` die
+    Tagesdaten liefert."""
+    mask = [(d >= edate and d <= final_cut) for d in df.index.date]
+    return df[mask].iloc[:n]
+
+
 def _append_backtest_entries(top10: list[dict], report_date: str,
                              pool_size: int = 0, *,
                              compute_sub_scores_fn, safe_float_fn,
@@ -1499,6 +1512,8 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         active_dd.append((e, edate))
 
     if active_dd:
+        # Nur finale Tageszeilen ins Fenster (Fix 03.11.2026, Regel wie #647).
+        _final_cut = trading_date.last_final_close_date(now_et)
         unique_tickers = sorted({e["ticker"] for e, _ in active_dd})
         try:
             dd_batch = yf.download(
@@ -1520,7 +1535,7 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
                       else dd_batch)
                 if df is None or df.empty:
                     continue
-                df_since = df[df.index.date >= edate].iloc[:11]
+                df_since = _final_window(df, edate, _final_cut)
                 dd = _compute_max_drawdown(df_since)
                 if dd is not None:
                     e["max_drawdown_pct"] = dd

@@ -42,6 +42,7 @@ ALLOWLIST = [
     "backtest_returns_final_close",
     "freeze_autorun_pause",
     "hc_ping",
+    "final_close_rest",
     "ki_age_header",
     "positions_asof",
     "wl_earnings_fallback",
