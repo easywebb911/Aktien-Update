@@ -3318,7 +3318,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 *(Steht bewusst unterhalb von Schritt 2, damit sich der Eintrag nicht mit dem
 gleichzeitig offenen #650 überschneidet.)*
 
-- Easy-Entscheid 03.11.2026: `#__PR__` (Branch `claude/final-close-rest-m8p4`, kein
+- Easy-Entscheid 03.11.2026: `#651` (Branch `claude/final-close-rest-m8p4`, kein
   Merge-Hash — Regel a). Gleiche Regel wie #647 (Tageszeile zählt nur bei
   Datum ≤ `trading_date.last_final_close_date(jetzt)`) an drei Stellen:
   1. `backtest_history._final_window` → rollendes Fenster für
