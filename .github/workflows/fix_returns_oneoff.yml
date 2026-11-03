@@ -146,7 +146,7 @@ jobs:
             if [ -f "$f" ]; then git add "$f"; fi
           done
           if [ "$TARGET" = "maxgain_shadow" ]; then
-            git commit -m "fix(data): max_gain/max_drawdown + Exit-Shadow-Forwards aus finalen Kursen (#__PR__)"
+            git commit -m "fix(data): max_gain/max_drawdown + Exit-Shadow-Forwards aus finalen Kursen (#652)"
           else
             git commit -m "fix(data): Renditen-Bestandskorrektur aus finalen Schlusskursen (#648, §4-Protokolleintrag 03.11.2026)"
           fi

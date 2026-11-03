@@ -3277,7 +3277,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 03.11.2026 — Korrektur max_gain/max_drawdown + Exit-Shadow-Forwards (1 PR, Manual-Merge, Datenkorrektur)
 
-- Easy-Entscheid 03.11.2026: `#__PR__` (Branch `claude/fix-maxgain-shadow-k2t6`, kein
+- Easy-Entscheid 03.11.2026: `#652` (Branch `claude/fix-maxgain-shadow-k2t6`, kein
   Merge-Hash — Regel a). `fix_returns_oneoff.yml` + `fix_returns_final_close_
   oneoff.py` um Input/Option `target` erweitert (`returns` = Default, Pfad aus
   #648 unverändert; `maxgain_shadow` = neu, Logik in `scripts/fix_maxgain_
