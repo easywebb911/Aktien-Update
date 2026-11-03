@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-11-03T07:48:34.820006+01:00",
+  "last_run": "2026-11-03T15:18:08.472184+01:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,18 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-10-28T01:34:58.078915+01:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale PDYN: trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-10-28T01:34:58.078936+01:00",
       "ticker": "WOLF",
@@ -1311,19 +1299,31 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-11-03T15:18:08.472282+01:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale WOLF: profit_lock, trend_break crit · Warnung pressure 63/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "ULCC": 78.0,
-    "XPOF": 69.0,
-    "EVGO": 79.0,
-    "JACK": 74.0,
-    "CAPR": 65.0,
-    "RUN": 86.0,
-    "UPWK": 78.0,
-    "DFH": 64.0,
-    "PRKS": 63.0,
+    "ULCC": 61.0,
+    "XPOF": 80.0,
+    "RUN": 73.0,
+    "UPWK": 50.0,
+    "DFH": 50.0,
+    "EVGO": 61.0,
+    "JACK": 56.0,
+    "CAPR": 49.0,
     "REPL": 56.0,
+    "PRKS": 61.0,
     "WOLF": 40.0,
     "AMC": 19.0,
     "VEEA": 11.0
@@ -1383,7 +1383,7 @@
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-11-03T07:48:34.820109+01:00"
+      "updated": "2026-11-03T15:18:08.472294+01:00"
     },
     "GRPN": {
       "last_active": [],
