@@ -1754,6 +1754,15 @@
     "substrate": "none",
     "reason": "issuer_mismatch"
   },
+  "UPWK": {
+    "qid": "Q3344170",
+    "title": "Upwork",
+    "resolved_at": "2026-11-03T02:57:36Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Upwork Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "UWMC": {
     "qid": "Q106024170",
     "title": null,

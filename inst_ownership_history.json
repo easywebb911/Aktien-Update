@@ -127,6 +127,11 @@
       "date": "2026-10-30",
       "inst_ownership": 1.05914,
       "insider_ownership": 0.016490001
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.0524501,
+      "insider_ownership": 0.016390001
     }
   ],
   "INBX": [
@@ -379,6 +384,11 @@
     {
       "date": "2026-10-26",
       "inst_ownership": 1.24125,
+      "insider_ownership": 0.00916
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.24107,
       "insider_ownership": 0.00916
     }
   ],
@@ -3852,6 +3862,11 @@
     {
       "date": "2026-10-23",
       "inst_ownership": 0.95781,
+      "insider_ownership": 0.20231001
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.95849,
       "insider_ownership": 0.20231001
     }
   ],
@@ -8207,6 +8222,11 @@
       "date": "2026-10-23",
       "inst_ownership": 1.05715,
       "insider_ownership": 0.080290005
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.05707,
+      "insider_ownership": 0.080290005
     }
   ],
   "VYX": [
@@ -9425,6 +9445,11 @@
       "date": "2026-10-29",
       "inst_ownership": 0.8044,
       "insider_ownership": 0.14928001
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.80441004,
+      "insider_ownership": 0.14928001
     }
   ],
   "GOLD": [
@@ -10041,6 +10066,11 @@
     {
       "date": "2026-10-21",
       "inst_ownership": 1.16811,
+      "insider_ownership": 0.02773
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.17285,
       "insider_ownership": 0.02773
     }
   ],
@@ -11101,6 +11131,11 @@
       "date": "2026-10-20",
       "inst_ownership": 0.69641,
       "insider_ownership": 0.17377001
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.72973,
+      "insider_ownership": 0.17377001
     }
   ],
   "CMPR": [
@@ -11126,6 +11161,11 @@
     {
       "date": "2026-10-23",
       "inst_ownership": 0.94855005,
+      "insider_ownership": 0.12599
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.94835,
       "insider_ownership": 0.12599
     }
   ],
@@ -11297,6 +11337,11 @@
       "date": "2026-10-30",
       "inst_ownership": 1.02316,
       "insider_ownership": 0.09644
+    },
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 1.0235,
+      "insider_ownership": 0.09644
     }
   ],
   "ARLO": [
@@ -11367,6 +11412,20 @@
       "date": "2026-10-30",
       "inst_ownership": 0.2325,
       "insider_ownership": 0.12409
+    }
+  ],
+  "EVC": [
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.71022004,
+      "insider_ownership": 0.2206
+    }
+  ],
+  "JZ": [
+    {
+      "date": "2026-11-02",
+      "inst_ownership": 0.00147,
+      "insider_ownership": 0.0
     }
   ]
 }

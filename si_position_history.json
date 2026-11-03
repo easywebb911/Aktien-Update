@@ -3552,6 +3552,12 @@
       "shares_short": 14953442,
       "short_pct_float": 29.73,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 12991571,
+      "short_pct_float": 25.83,
+      "pub_date": "2026-10-26"
     }
   ],
   "CWH": [
@@ -4056,6 +4062,12 @@
       "shares_short": 44803095,
       "short_pct_float": 22.77,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 46363992,
+      "short_pct_float": 23.57,
+      "pub_date": "2026-10-26"
     }
   ],
   "GPRE": [
@@ -5928,6 +5940,12 @@
       "shares_short": 8764259,
       "short_pct_float": 60.78,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 11175097,
+      "short_pct_float": 77.5,
+      "pub_date": "2026-10-26"
     }
   ],
   "ABX": [
@@ -7386,6 +7404,12 @@
       "shares_short": 3280269,
       "short_pct_float": 22.42,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 3303432,
+      "short_pct_float": 22.58,
+      "pub_date": "2026-10-26"
     }
   ],
   "SANA": [
@@ -9690,6 +9714,12 @@
       "shares_short": 70708548,
       "short_pct_float": 35.18,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 71657132,
+      "short_pct_float": 35.65,
+      "pub_date": "2026-10-26"
     }
   ],
   "AMPH": [
@@ -10704,6 +10734,12 @@
       "shares_short": 6294602,
       "short_pct_float": 15.44,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 6370634,
+      "short_pct_float": 15.62,
+      "pub_date": "2026-10-26"
     }
   ],
   "CMPR": [
@@ -11072,6 +11108,36 @@
       "settlement_date": "2026-10-15",
       "shares_short": 818602,
       "short_pct_float": 25.26,
+      "pub_date": "2026-10-26"
+    }
+  ],
+  "EVC": [
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 7400156,
+      "short_pct_float": null,
+      "pub_date": "2026-09-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 7384517,
+      "short_pct_float": 16.65,
+      "pub_date": "2026-10-26"
+    }
+  ],
+  "JZ": [
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 53688,
+      "short_pct_float": null,
+      "pub_date": "2026-09-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 996510,
+      "short_pct_float": 43.46,
       "pub_date": "2026-10-26"
     }
   ]
