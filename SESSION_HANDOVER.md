@@ -3275,6 +3275,44 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 03.11.2026 — Renditen-Bestandskorrektur (Schritt 2/3, 1 PR, Manual-Merge, neuer Workflow)
+
+- Easy-Entscheid 03.11.2026: `#648` (Branch `claude/fix-returns-oneoff-r5n2`,
+  kein Merge-Hash — Regel a). Neu `scripts/fix_returns_final_close_oneoff.py`
+  + `.github/workflows/fix_returns_oneoff.yml` (nur `workflow_dispatch`,
+  Input `mode` dry_run|apply, Default dry_run; dry_run nur Leserecht; apply
+  `contents: write` + `actions: read`; bricht ohne Schreiben ab bei aktivem
+  Daily-/KI-Lauf, bei auf main geänderten Dateien, bei > 10 Tickern ohne
+  Kurse, fehlendem SPY, doppelten (ticker, date) oder wenn ein null-Wert
+  einen Freeze-Zähler ändern würde).
+- apply verlangt Input `max_null` = Zahl „Auf null gesetzt gesamt“ aus dem
+  dry_run; mehr Nullen → Abbruch (Schutz gegen gestörten Kursabruf).
+- Bekannte Grenzen: (a) eine Lücke mitten im Kursverlauf (Handelsaussetzung)
+  verschiebt den Handelstag-Index wie im KI-Agent (`dropna`) — unverändert
+  übernommen, nicht neu; (b) im Export gesetzte `null` bleiben dauerhaft (der
+  Export wird nicht nachgefüllt), in `backtest_history.json` füllt der
+  KI-Agent später nach, sobald Daten da sind.
+- Rechnet die gefüllten `return_3d/5d/10d` (+ `_net`, `_vs_spy`),
+  `entry_price_t1`, `return_Nd_t1` in `backtest_history.json` UND
+  `matured_backtest_export.jsonl` mit derselben Logik wie
+  `update_backtest_returns` nach #647 neu (Gleichheit per Test belegt).
+  Nicht korrigierbar → `null`. Bootstrap-Zeilen und leere Felder unberührt.
+  Archiv `return_corrections_archive_2026-11.jsonl` (append-only, nicht
+  geloggt); Modus `restore` spielt es zurück. Reihenfolge, Zeilenzahl, alle
+  anderen Felder byte-gleich (vor dem Schreiben geprüft).
+- Dry-Run misst zusätzlich (nur messen) `max_gain_pct`/`max_drawdown_pct`
+  im Export gegen finale Kurse.
+- Test `mock_test_fix_returns_oneoff.py` (Gleichheit mit dem KI-Agent,
+  korrekt/intraday/ohne Kurse/Einstieg fehlt/nicht final, Archiv, byte-gleich,
+  Idempotenz, restore, Abbrüche, Blindung, Workflow-Rechte, Determinismus).
+- Ablauf: Merge → dry_run → Easy prüft → apply → read-only Nachprüfung →
+  Rückweg-PR (Workflow + Skript löschen). Freeze-Auto-Lauf bleibt pausiert.
+- Nicht drin (nächster Schritt): `update_exit_shadow_forwards`,
+  `backtest_bootstrap.py`.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#647`,
+  höchste in Block 1 erwähnte PR = `#647` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 03.11.2026 — Renditen nur aus finalem Schlusskurs (Schritt 1/3, 1 PR, Manual-Merge)
 
 - Easy-Entscheid 03.11.2026 nach Probe #645: `#647` (Branch
