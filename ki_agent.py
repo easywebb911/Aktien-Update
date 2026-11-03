@@ -668,7 +668,7 @@ def update_backtest_returns(now_utc: datetime | None = None) -> None:
               flush=True)
 
 
-def update_exit_shadow_forwards() -> None:
+def update_exit_shadow_forwards(now_utc: datetime | None = None) -> None:
     """Füllt ``forward_3d/5d/10d`` in ``exit_shadow_log.jsonl``, sobald der
     jeweilige Horizont (Signal-Datum + N Handelstage) erreicht ist. SEPARATE
     Funktion + SEPARATES File — KEIN gemeinsamer State mit
@@ -692,7 +692,16 @@ def update_exit_shadow_forwards() -> None:
     records = exit_shadow._load_jsonl(str(path))
     if not records:
         return
-    today = datetime.now(timezone.utc).date()
+    now = now_utc or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    today = now.astimezone(timezone.utc).date()
+    # NUR FINALE SCHLUSSKURSE (Fix 03.11.2026, gleiche Regel wie #647 in
+    # update_backtest_returns): eine Tageszeile zählt erst, wenn ihr Datum
+    # <= last_final_close_date(jetzt) ist; sonst bleibt der Horizont leer und
+    # der nächste Lauf versucht es erneut (gefüllte Werte werden nie
+    # überschrieben — deshalb darf kein Intraday-Kurs hineinrutschen).
+    final_cut = trading_date.last_final_close_date(now)
 
     def _needs_es_update(r: dict) -> bool:
         if exit_shadow.is_record_complete(r):
@@ -730,7 +739,12 @@ def update_exit_shadow_forwards() -> None:
             continue
         idx_dates = [ts.date() for ts in closes.index]
         sig_idx = next((i for i, d in enumerate(idx_dates) if d == sig_dt), -1)
-        to_fill = exit_shadow.forward_fields_to_fill(r, sig_idx, len(closes))
+        # Anzahl finaler Zeilen (Index aufsteigend): alles ab der ersten
+        # nicht-finalen Zeile gilt als „noch nicht da".
+        n_final = next((i for i, d in enumerate(idx_dates) if d > final_cut), len(idx_dates))
+        if sig_idx >= n_final:
+            continue
+        to_fill = exit_shadow.forward_fields_to_fill(r, sig_idx, n_final)
         if not to_fill:
             continue
         sig_close = float(closes.iloc[sig_idx])

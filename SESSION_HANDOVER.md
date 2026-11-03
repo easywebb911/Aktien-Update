@@ -3343,6 +3343,38 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#647` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 03.11.2026 — „Nur finale Schlusskurse“ an den Rest-Stellen (1 PR, Manual-Merge)
+
+*(Steht bewusst unterhalb von Schritt 2, damit sich der Eintrag nicht mit dem
+gleichzeitig offenen #650 überschneidet.)*
+
+- Easy-Entscheid 03.11.2026: `#651` (Branch `claude/final-close-rest-m8p4`, kein
+  Merge-Hash — Regel a). Gleiche Regel wie #647 (Tageszeile zählt nur bei
+  Datum ≤ `trading_date.last_final_close_date(jetzt)`) an drei Stellen:
+  1. `backtest_history._final_window` → rollendes Fenster für
+     `max_gain_pct`/`max_drawdown_pct` in `_append_backtest_entries` (geschützte
+     Funktion — protected-ok-Label-Regel b, Easy-Freigabe); `now_et` schon
+     vorhanden.
+  2. `ki_agent.update_exit_shadow_forwards(now_utc=None)`: Horizont nur aus
+     finalen Zeilen; Signal-Tag nicht final → nichts gefüllt.
+  3. `backtest_bootstrap._final_rows` in `_process_ticker(…, now_utc=None)`:
+     laufende Zeile vor Returns UND RVOL-Signal-Erkennung abgeschnitten.
+- Keine Freeze-Auswertung liest diese Felder (`freeze_eval.py`,
+  `s4_sensitivity_eval.py`, `stats_helpers.py`, alle Freeze-Blöcke gegrept;
+  H5 nennt `max_gain_pct` nur als ausgeschlossene Outcome-Metrik). Bootstrap-
+  Zeilen sind in keiner Population (Export überspringt `source=bootstrap`).
+  KI-Score-Regel (e): keine der dort genannten Stellen berührt → kein
+  Block-Eintrag. Freeze-Blöcke byte-identisch.
+- Test `mock_test_final_close_rest.py` (Sitzung/16:19/16:20/16:25 ET,
+  Folgetag, Sommer/Winter, Thanksgiving + Wochenende, Signal-Tag nicht final,
+  Bootstrap-Signal nur aus finalen Zeilen). Gegenprobe alter Code: 6 FAIL.
+- Gemeldet, nicht gebaut: Export-Reife-Gate (`days_old > 14`) passt nicht
+  sicher zum Fenster (letzte Zeile T+10 wird oft nie final erfasst);
+  Backtest-Anlage per Vintage-Gate schon ab 16:00 ET (nicht 16:20).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#648`,
+  höchste in Block 1 erwähnte PR = `#648` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 03.11.2026 — Renditen nur aus finalem Schlusskurs (Schritt 1/3, 1 PR, Manual-Merge)
 
 - Easy-Entscheid 03.11.2026 nach Probe #645: `#647` (Branch
