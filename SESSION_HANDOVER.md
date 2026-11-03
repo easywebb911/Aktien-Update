@@ -3275,6 +3275,33 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 03.11.2026 — Renditen nur aus finalem Schlusskurs (Schritt 1/3, 1 PR, Manual-Merge)
+
+- Easy-Entscheid 03.11.2026 nach Probe #645: `#647` (Branch
+  `claude/returns-final-close-q7m2`, kein Merge-Hash — Regel a).
+- `trading_date.py`: `US_CLOSE_FINAL_ET = 16:20` + `last_final_close_date(now)`
+  (ET, sommer-/winterzeitfest, injizierbar).
+- `ki_agent.update_backtest_returns(now_utc=None)`: liest Tageszeilen nur noch,
+  wenn final (≤ `last_final_close_date`); gilt für `return_Nd` (+`_net`,
+  `_vs_spy`, SPY-Zeile ebenso), `entry_price_t1`, `return_Nd_t1`. Sonst leer,
+  nächster Lauf versucht erneut. `_trading_days_elapsed` unverändert (nur
+  Vorfilter).
+- Test `mock_test_backtest_returns_final_close.py` (Sitzung/16:15/16:25 ET,
+  Folgetag, Sommer/Winter, Thanksgiving + Wochenende, T+1-Felder, SPY,
+  Injektion, Helper-Grenzen); Gegenprobe: auf altem Code 9 FAIL.
+  `mock_test_backtest_return_vs_spy.py` A4: Signatur-Check gelockert.
+- **Freeze-Protokoll** (Regel „Daten-Änderung während des Tests"):
+  „§4-Protokolleintrag 03.11.2026" (außerhalb des Blocks); Setup-Edge-Block
+  Eintrag nach Punkt 8c; KI-Score-Block Eintrag nach Regel 8c-Erweiterung
+  (e) — beide **im** Block angehängt (protected-ok-Label-Regel b, Easy).
+  §4-, H5- und ERRATUM-Blöcke byte-identisch (MD5).
+- Nicht mitgebaut (gemeldet): `max_gain_pct`/`max_drawdown_pct`,
+  `update_exit_shadow_forwards` (gleiche Intraday-Frage).
+- Freeze-Auto-Lauf bleibt pausiert; Bestandskorrektur = Schritt 2.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#646`,
+  höchste in Block 1 erwähnte PR = `#646` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 02.11.2026 — Wegwerf-Probe Rendite-Check (1 PR, Manual-Merge, neuer Workflow)
 
 - Rendite-Diagnose zum pausierten Freeze-Auto-Lauf (#644): `#645` (Branch
@@ -4031,7 +4058,7 @@ Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
 |---|---|---|---|
 | ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
 | **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. **ERSETZT (10.10.2026)** — kein Zielgröße/Kriterium war hier je festgelegt; siehe Erratum-Block „Erweiterung vor Auswertung — Test (c) Conviction-Zusatznutzen" im Setup-Edge-Re-Test-Freeze unten (Test (c), Holm k=3). Diese Zeile bleibt als Historie stehen, nicht gelöscht. |
-| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf seit `#621` (31.10.2026), **PAUSIERT 02.11.2026** (`#644`, Rendite-Diagnose — siehe „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ unten) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
+| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf seit `#621` (31.10.2026), **PAUSIERT 02.11.2026** (`#644`, Rendite-Diagnose — siehe „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ unten); Mechanik-Fix `#647` (03.11.2026), Wiederaufnahme erst nach Bestandskorrektur (Schritt 2) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. **ÜBERHOLT 10.10.2026:** neu registriert und eingefroren — siehe „VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026“ unten (Stand 02.11.: n=50/250). Diese Zeile bleibt als Historie. |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
@@ -4540,6 +4567,19 @@ reine Ergänzung.
 **Änderungs-Protokoll gilt identisch für dieses Erratum** (analog Freeze
 oben): keine weitere Änderung ohne datierten Protokolleintrag.
 
+**Protokolleintrag 03.11.2026 (Punkt 8c — Daten-Änderung während des Tests,
+#647).** Keine Score- und keine Top-10-Änderung: `score()`, Auswahl, Population,
+Kriterien und Seeds bleiben unverändert. Geändert wird die **Zielgröße-
+Herkunft**: `return_3d/5d/10d` wurden bisher meist während der Börsenzeit am
+Zieltag gefüllt (Probe #645: in dieser Population alle 180 Felder;
+Abweichung zum echten Schluss Median 1,25 pp, 9 von 180 > 5 pp). Ab Merge von
+#647 füllt `ki_agent.update_backtest_returns` nur noch aus finalen
+Schlusskursen; die Bestandskorrektur folgt in Schritt 2 (Neuberechnung aus
+echten Schlusskursen, Originale archiviert, nicht korrigierbare Felder leer).
+Im Bericht auszuweisen: Auswertung erst auf den korrigierten Daten; Stand
+beim Eintrag n=60/250, kein Ergebnis erzeugt oder gelesen. Details:
+„§4-Protokolleintrag 03.11.2026 — Renditen aus dem laufenden Handelstag“.
+
 ### VORABREGISTRIERUNG — KI-Score-Edge-Test (ki_signal_score), eingefroren 13.10.2026
 
 **Verhältnis zum Setup-Edge-Re-Test oben.** Dieser Block prüft eine **andere
@@ -4778,6 +4818,18 @@ die Dateiquelle, trifft keine score-bezogene Aussage — keine Kollision.
 
 **Änderungs-Protokoll gilt identisch für dieses Erratum** (analog
 Setup-Edge/§4): keine weitere Änderung ohne datierten Protokolleintrag.
+
+**Protokolleintrag 03.11.2026 (Regel 8c-Erweiterung (e), #647; in Block 1
+geloggt).** `ki_agent.py` wird geändert, aber **keine** der in (e) genannten
+Stellen (`_compute_fresh_ki_signals_for_backtest`, `FRESH_KI_SIGNAL_ENABLED`,
+Haiku-Modell, Prompt, News-Cap): `ki_signal_score` bleibt unverändert.
+Geändert wird nur, **wann** `return_3d/5d/10d` gefüllt werden
+(`update_backtest_returns`: nur noch finale Schlusskurse, siehe
+„§4-Protokolleintrag 03.11.2026“). **Neustart-Bewertung der Population:**
+kein Neustart — Population und Score sind unberührt; die Zielgröße wird in
+Schritt 2 aus echten Schlusskursen neu berechnet (Originale archiviert,
+nicht korrigierbare Felder leer), ausgewertet wird erst danach. Stand beim
+Eintrag n=60/250, kein Ergebnis erzeugt oder gelesen.
 
 ### ERRATUM 22.10.2026 — Bootstrap-Verfahrensdetails für beide Edge-Test-Freezes (Setup-Edge/Conviction UND KI-Score)
 
@@ -5330,6 +5382,49 @@ Erweiterung (e)) verlangen Einträge nur bei Score-/Daten-Änderungen während
 des Tests; eine Pause des Auslösers ist keine solche Änderung. Deshalb hier
 kein Eintrag in diesen Blöcken. Sollte die Rendite-Diagnose eine
 **Daten**-Korrektur nach sich ziehen, ist dafür der 8c-Eintrag nötig (Easy).
+
+#### §4-Protokolleintrag 03.11.2026 — Renditen aus dem laufenden Handelstag: Befund, Mechanik-Fix, angekündigte Bestandskorrektur, VOR jedem Ergebnis
+
+**Bindend gemäß Änderungs-Protokoll-Regel des §4-Blocks (05.08.2026).** Eigener
+Abschnitt **außerhalb** des eingefrorenen §4-Registrierungsblocks (wie die
+Einträge vom 02.11.2026 oben); der §4-Block bleibt **byte-identisch** (MD5
+vorher = nachher, im PR-Bericht #647 belegt).
+
+**Zeitpunkt (VOR jedem Ergebnis):** 03.11.2026, Freeze-Auto-Lauf pausiert
+(`EVAL_AUTORUN_ENABLED = False`, #644), `eval_results.jsonl` existiert
+**nicht**. Zählerstand §4 `health_check.retest_counter_value()` = **n=244/250**;
+Setup-Edge/Conviction und KI-Score je **n=60/250**.
+
+**Befund (Wegwerf-Probe #645, Lauf 02.11.2026, blind — nur Abweichungen
+|gespeichert − korrekt|, keine Renditen):** In der §4-Population wurden 741
+von 765 Rendite-Feldern am Zieltag T+N **während** der US-Börsenzeit gefüllt.
+Gegen echte Schlusskurse nachgerechnet (762 vergleichbare §4-Felder):
+Median **1,5 pp**, **68 von 762** Feldern **> 5 pp** daneben. Nach Schluss
+gefüllte Felder: Median **0** (die Nachrechnung trifft also exakt — der
+Fehler entsteht durch das Füllen während der Sitzung). Richtung (Vorzeichen-
+Anteil) nicht gemessen.
+
+**Mechanik-Fix ab Merge (#647):** `ki_agent.update_backtest_returns` liest eine
+Tageszeile nur noch, wenn sie FINAL ist — Datum ≤
+`trading_date.last_final_close_date(jetzt)` (Folgetag, oder am selben Tag ab
+16:20 ET; Grenze `US_CLOSE_FINAL_ET` in `trading_date.py`, gemeinsame Quelle
+mit `US_SESSION_CLOSE_ET`). Sonst bleibt das Feld leer und der nächste Lauf
+versucht es erneut. Gilt für `return_3d/5d/10d` (+ `_net`, `_vs_spy`),
+`entry_price_t1` und `return_Nd_t1`. Definition der Rendite (Close[T+N] /
+Close[T] aus demselben `auto_adjust`-Abruf, Index über Handelstage mit Kurs)
+bleibt **unverändert**; nur der Zeitpunkt der Füllung ändert sich.
+Populationen, Kriterien, Seeds und `scripts/freeze_eval.py` unverändert.
+
+**Angekündigte Bestandskorrektur (Schritt 2, eigener PR, erst nach Merge
+dieses Fixes):** alle bereits gefüllten Rendite-Felder werden aus echten
+Schlusskursen neu berechnet (dieselbe Definition); die Originalwerte werden
+vorher archiviert; Felder, die sich nicht mehr korrigieren lassen (z. B.
+Ticker ohne Kursdaten), werden **leer** gesetzt statt mit dem Intraday-Wert
+stehen gelassen. Der Umgang mit `matured_backtest_export.jsonl`
+(append-only) wird im Schritt-2-PR festgelegt (Easy).
+
+**Wiederaufnahme** des Freeze-Auto-Laufs erst **nach** Schritt 2 — die
+Wiederaufnahme-Bedingung des Pause-Eintrags vom 02.11.2026 gilt weiter.
 
 #### ⚠ Datenherkunft des vorabregistrierten Exit-B.1-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
 

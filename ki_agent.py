@@ -464,8 +464,20 @@ def _trading_days_elapsed(entry_date_str: str, today: datetime.date = None) -> i
     return n
 
 
-def update_backtest_returns() -> None:
+def update_backtest_returns(now_utc: datetime | None = None) -> None:
     """Füllt T+0 und T+1 Return-Felder sobald genug Handelstage vergangen sind.
+
+    NUR FINALE SCHLUSSKURSE (Fix 03.11.2026, Rendite-Diagnose #645): eine
+    Tageszeile wird nur gelesen, wenn ihr Datum ``<=``
+    ``trading_date.last_final_close_date(now)`` ist — also der Tag vorbei ist
+    (Folgetag) oder es am selben Tag nach 16:20 ET ist. Fehlt die Zeile oder
+    ist sie noch nicht final, bleibt das Feld leer (None) und der nächste
+    Lauf versucht es erneut. Vorher wurde der laufende Intraday-Kurs von T+N
+    als „Schlusskurs" gespeichert und nie überschrieben. Unvollständige
+    Zeilen (Close NaN) fallen wie bisher über ``dropna()`` heraus.
+    ``_trading_days_elapsed`` bleibt unverändert (nur Vorfilter, welche
+    Einträge überhaupt geprüft werden); entschieden wird über die Zeile.
+    ``now_utc`` injizierbar (Tests); ``None`` = jetzt.
 
     Für jeden daily-Eintrag werden bei jedem Aufruf nachgetragen:
       • ``entry_price_t1``             — Close am nächsten Handelstag
@@ -494,7 +506,12 @@ def update_backtest_returns() -> None:
     if not isinstance(entries, list) or not entries:
         return
 
-    today = datetime.now(timezone.utc).date()
+    now = now_utc or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    today = now.astimezone(timezone.utc).date()
+    # Letzter Tag mit FINALEM Schlusskurs (ET, 16:20-Grenze aus trading_date).
+    final_cut = trading_date.last_final_close_date(now)
 
     def _needs_update(e: dict) -> bool:
         elapsed = _trading_days_elapsed(e.get("date", ""), today)
@@ -563,7 +580,7 @@ def update_backtest_returns() -> None:
         if ei_spy < 0:
             return None
         pos = ei_spy + offset
-        if 0 <= pos < len(spy_closes):
+        if 0 <= pos < len(spy_closes) and spy_idx_dates[pos] <= final_cut:
             return float(spy_closes.iloc[pos])
         return None
 
@@ -584,7 +601,9 @@ def update_backtest_returns() -> None:
 
         def _close_at(offset: int) -> float | None:
             pos = ei + offset
-            if 0 <= pos < len(closes):
+            # Nur finale Tageszeilen (siehe Docstring): eine noch laufende
+            # Zeile (heute vor 16:20 ET) zählt als „noch nicht da".
+            if 0 <= pos < len(closes) and idx_dates[pos] <= final_cut:
                 return float(closes.iloc[pos])
             return None
 
