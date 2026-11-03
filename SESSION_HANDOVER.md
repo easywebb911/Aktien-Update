@@ -3267,6 +3267,14 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#643` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 02.11.2026 — Rückweg Wegwerf-Probe Rendite-Check (1 PR, erst nach dem Lauf mergen)
+
+- `#646` (Branch `claude/probe-return-check-rollback-k3v8`, kein Merge-Hash —
+  Regel a): löscht `.github/workflows/probe_return_check.yml` und
+  `scripts/probe_return_check.py` aus `#645`. Sonst keine Änderung.
+- **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 02.11.2026 — Wegwerf-Probe Rendite-Check (1 PR, Manual-Merge, neuer Workflow)
 
 - Rendite-Diagnose zum pausierten Freeze-Auto-Lauf (#644): `#645` (Branch
