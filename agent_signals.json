@@ -1,21 +1,21 @@
 {
-  "updated": "2026-11-03T15:18:04.283200+01:00",
+  "updated": "2026-11-03T16:08:12.327755+01:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 4,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 26.5,
-    "market_phase": "Pre-Market"
+    "elapsed_s": 13.0,
+    "market_phase": "Regulär"
   },
   "signals": {
     "AMC": {
-      "score": 53,
-      "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (04.11.2026) + Spanne 7.1% + News-KI 8/30: Neutral earnings-focused headlines without indicators of high short interest, squeeze catalysts, or significant retail m + Earnings in 1d + UOA Call/Put 3.8×",
-      "price": 3.19,
-      "chg_pct": 0.0,
-      "rvol_4d": 1.37,
-      "rvol_20d": 1.41,
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Earnings in 1 Tagen (04.11.2026) + Earnings in 1d + UOA Call/Put 11.7×",
+      "price": 3.29,
+      "chg_pct": -0.15,
+      "rvol_4d": 0.18,
+      "rvol_20d": 0.2,
       "earnings": "in 1 Tagen (04.11.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 1 Tagen (04.11.2026)",
@@ -23,22 +23,22 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 3.8×"
+        "UOA Call/Put 11.7×"
       ],
-      "uoa_atm_ratio": 0.42337961147279524,
-      "uoa_cp_ratio": 3.8216432865731464
+      "uoa_atm_ratio": 0.025649070515334535,
+      "uoa_cp_ratio": 11.713947990543735
     },
     "CAPR": {
-      "score": 72,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Earnings in 7 Tagen (10.11.2026) + Volumen 1.5× + Spanne 11.5% + News: short interest + Earnings in 7d + UOA Call/Put 21.0×",
-      "price": 7.24,
+      "drivers": "Earnings in 7 Tagen (10.11.2026) + Spanne 6.4% + News: short interest + Earnings in 7d + UOA Call/Put 7.5×",
+      "price": 7.45,
       "chg_pct": -0.0,
-      "rvol_4d": 1.53,
-      "rvol_20d": 1.82,
+      "rvol_4d": 0.13,
+      "rvol_20d": 0.17,
       "earnings": "in 7 Tagen (10.11.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 7 Tagen (10.11.2026)",
@@ -49,19 +49,19 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 21.0×"
+        "UOA Call/Put 7.5×"
       ],
-      "uoa_atm_ratio": 0.6334586466165414,
-      "uoa_cp_ratio": 20.986486486486488
+      "uoa_atm_ratio": 0.637739345274861,
+      "uoa_cp_ratio": 7.5
     },
     "DFH": {
-      "score": 55,
-      "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 11.1% + News: short interest, squeeze",
-      "price": 10.95,
+      "score": 30,
+      "confidence": 17,
+      "drivers": "News: short interest, acquisition",
+      "price": 10.48,
       "chg_pct": -0.0,
-      "rvol_4d": 1.53,
-      "rvol_20d": 0.95,
+      "rvol_4d": 0.05,
+      "rvol_20d": 0.03,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -76,36 +76,34 @@
       "uoa_cp_ratio": 0.4915254237288136
     },
     "EVGO": {
-      "score": 100,
-      "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (09.11.2026) + Volumen 24.6× + 🚀 Massives Volumen 24.6×+ + Spanne 9.9% + SEC 8-K + News-KI 12/30: Takeover proposal creates positive sentiment but lacks the high short interest, technical setup, and bullish catalyst mo + Earnings in 6d + UOA Call/Put 4.7× + 3/4 Trigger",
-      "price": 1.85,
-      "chg_pct": 0.0,
-      "rvol_4d": 24.57,
-      "rvol_20d": 23.55,
+      "score": 66,
+      "confidence": 33,
+      "drivers": "Earnings in 6 Tagen (09.11.2026) + SEC 8-K + News: buyout, takeover + Earnings in 6d",
+      "price": 1.83,
+      "chg_pct": -0.27,
+      "rvol_4d": 0.11,
+      "rvol_20d": 0.33,
       "earnings": "in 6 Tagen (09.11.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 6 Tagen (09.11.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.2,
-      "active_triggers": 3,
-      "ki_sentiment_source": "llm",
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 4.7×"
-      ],
-      "uoa_atm_ratio": 0.8180404354587869,
-      "uoa_cp_ratio": 4.712871287128713
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.01166407465007776,
+      "uoa_cp_ratio": 1.2926829268292683
     },
     "JACK": {
-      "score": 83,
-      "confidence": 70,
-      "drivers": "Spanne 7.3% + News: earnings beat, short squeeze + Earnings in 36d + FINRA Short-Vol 98% + UOA Call/Put 4.6×",
-      "price": 13.8,
+      "score": 73,
+      "confidence": 33,
+      "drivers": "News: earnings beat, short squeeze + Earnings in 36d + FINRA Short-Vol 98% + UOA Call/Put 3.3×",
+      "price": 13.79,
       "chg_pct": 0.0,
-      "rvol_4d": 0.75,
-      "rvol_20d": 0.95,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 36 Tagen (09.12.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -116,42 +114,42 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 4.6×"
+        "UOA Call/Put 3.3×"
       ],
-      "uoa_atm_ratio": 0.0698503207412687,
-      "uoa_cp_ratio": 4.605263157894737
+      "uoa_atm_ratio": 0.0014255167498218105,
+      "uoa_cp_ratio": 3.3421052631578947
     },
     "PRKS": {
-      "score": 66,
-      "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (05.11.2026) + Volumen 2.2× + Spanne 10.7% + Earnings in 2d + UOA Call/Put 990.0×",
-      "price": 33.31,
-      "chg_pct": 0.0,
-      "rvol_4d": 2.25,
-      "rvol_20d": 1.94,
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Earnings in 2 Tagen (05.11.2026) + Earnings in 2d + UOA Call/Put 2.5×",
+      "price": 33.01,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.05,
+      "rvol_20d": 0.06,
       "earnings": "in 2 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 2 Tagen (05.11.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 990.0×"
+        "UOA Call/Put 2.5×"
       ],
       "uoa_atm_ratio": 0.0,
-      "uoa_cp_ratio": 990.0
+      "uoa_cp_ratio": 2.5
     },
     "REPL": {
-      "score": 35,
-      "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 11.3% + UOA Call/Put 6.1×",
-      "price": 19.49,
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 9.0% + UOA Call/Put 5.6×",
+      "price": 20.21,
       "chg_pct": -0.0,
-      "rvol_4d": 1.5,
-      "rvol_20d": 3.11,
+      "rvol_4d": 0.18,
+      "rvol_20d": 0.41,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -162,19 +160,19 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 6.1×"
+        "UOA Call/Put 5.6×"
       ],
-      "uoa_atm_ratio": 0.9811320754716981,
-      "uoa_cp_ratio": 6.146341463414634
+      "uoa_atm_ratio": 0.39655172413793105,
+      "uoa_cp_ratio": 5.585365853658536
     },
     "RUN": {
-      "score": 68,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (04.11.2026) + Volumen 1.8× + Spanne 9.3% + News-KI 8/30: Positive operational and market momentum, but no short squeeze indicators (high short interest, catalyst, or rapid price + Earnings in 1d + UOA Call/Put 13.6×",
-      "price": 8.25,
-      "chg_pct": 0.0,
-      "rvol_4d": 1.75,
-      "rvol_20d": 1.8,
+      "drivers": "Earnings in 1 Tagen (04.11.2026) + Spanne 7.4% + Earnings in 1d + UOA Call/Put 5.1×",
+      "price": 8.65,
+      "chg_pct": 0.06,
+      "rvol_4d": 0.22,
+      "rvol_20d": 0.26,
       "earnings": "in 1 Tagen (04.11.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 1 Tagen (04.11.2026)",
@@ -182,22 +180,22 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 13.6×"
+        "UOA Call/Put 5.1×"
       ],
-      "uoa_atm_ratio": 1.0921363482956463,
-      "uoa_cp_ratio": 13.56519065190652
+      "uoa_atm_ratio": 0.14009378663540445,
+      "uoa_cp_ratio": 5.1208791208791204
     },
     "ULCC": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 16.8% + SEC 8-K + News: earnings beat + SEC Form 4 + UOA Call/Put 12.0×",
-      "price": 7.43,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.34,
-      "rvol_20d": 2.07,
+      "drivers": "Spanne 8.3% + SEC 8-K + News: earnings beat + SEC Form 4 + UOA Call/Put 8.9×",
+      "price": 7.0,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.09,
+      "rvol_20d": 0.14,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -208,40 +206,40 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 12.0×"
+        "UOA Call/Put 8.9×"
       ],
-      "uoa_atm_ratio": 0.5783699059561128,
-      "uoa_cp_ratio": 12.033333333333333
+      "uoa_atm_ratio": 0.03943217665615142,
+      "uoa_cp_ratio": 8.934010152284264
     },
     "UPWK": {
-      "score": 44,
-      "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 9.1% + SEC 8-K",
-      "price": 9.72,
-      "chg_pct": 0.0,
-      "rvol_4d": 2.79,
-      "rvol_20d": 2.8,
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 6.4% + SEC 8-K",
+      "price": 9.81,
+      "chg_pct": 0.04,
+      "rvol_4d": 0.35,
+      "rvol_20d": 0.46,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.8871923836895994,
-      "uoa_cp_ratio": 0.8914653784219002
+      "uoa_atm_ratio": 0.03772229207831866,
+      "uoa_cp_ratio": 0.2696078431372549
     },
     "VEEA": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Spanne 10.1% + News: merger",
-      "price": 4.3,
+      "score": 15,
+      "confidence": 17,
+      "drivers": "News: merger",
+      "price": 4.4,
       "chg_pct": 0.0,
-      "rvol_4d": 0.63,
-      "rvol_20d": 0.02,
+      "rvol_4d": 0.13,
+      "rvol_20d": 0.0,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -258,11 +256,11 @@
     "WOLF": {
       "score": 66,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (04.11.2026) + Spanne 8.6% + News: catalyst + Earnings in 1d + SEC Form 4",
-      "price": 20.85,
+      "drivers": "Earnings in 1 Tagen (04.11.2026) + Spanne 5.5% + News: catalyst + Earnings in 1d + SEC Form 4",
+      "price": 22.17,
       "chg_pct": 0.0,
-      "rvol_4d": 0.6,
-      "rvol_20d": 0.46,
+      "rvol_4d": 0.12,
+      "rvol_20d": 0.09,
       "earnings": "in 1 Tagen (04.11.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 1 Tagen (04.11.2026)",
@@ -273,17 +271,17 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.6146953405017921,
-      "uoa_cp_ratio": 1.8177641653905054
+      "uoa_atm_ratio": 0.09433962264150944,
+      "uoa_cp_ratio": 0.8900900900900901
     },
     "XPOF": {
-      "score": 82,
-      "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (05.11.2026) + Spanne 11.4% + News: takeover, acquisition + Earnings in 2d + UOA Call/Put 24.3×",
-      "price": 4.78,
-      "chg_pct": 0.0,
-      "rvol_4d": 1.17,
-      "rvol_20d": 1.39,
+      "score": 72,
+      "confidence": 33,
+      "drivers": "Earnings in 2 Tagen (05.11.2026) + News: takeover, acquisition + Earnings in 2d + UOA Call/Put 24.3×",
+      "price": 4.74,
+      "chg_pct": 0.21,
+      "rvol_4d": 0.05,
+      "rvol_20d": 0.07,
       "earnings": "in 2 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 2 Tagen (05.11.2026)",
@@ -297,9 +295,7 @@
         "UOA Call/Put 24.3×"
       ],
       "uoa_atm_ratio": 0.3710879284649776,
-      "uoa_cp_ratio": 24.27777777777778,
-      "push_silenced": true,
-      "silenced_reason": "+28% 2T"
+      "uoa_cp_ratio": 24.27777777777778
     }
   }
 }
