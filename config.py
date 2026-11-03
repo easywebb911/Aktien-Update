@@ -166,8 +166,15 @@ KI_SCORE_FREEZE_N_TARGET  = 250            # Auslöser n>=250, eigene Holm-Famil
 # pausiert") dokumentiert ist. Bei False läuft KEINE Auswertung (kein
 # freeze_eval-Import im Digest, kein eval_results.jsonl-Write); die Zähler-
 # Zeilen laufen weiter, der Digest zeigt zusätzlich die Pause-Zeile.
-EVAL_AUTORUN_ENABLED      = False
-EVAL_AUTORUN_PAUSE_REASON = "Rendite-Diagnose"   # nur Anzeige im Digest
+# WIEDER AKTIV 03.11.2026 (Easy-Entscheid, #__PR__, VOR jedem Ergebnis):
+# Mechanik-Fix #647 + Bestandskorrektur #648 (Commit 872ac43f), zweiter
+# dry_run Abweichung 0 — siehe „§4-Protokolleintrag 03.11.2026 — Schritt 2
+# abgeschlossen". Seit diesem PR läuft bei §4 die Sensitivität im selben
+# Lauf direkt nach der Hauptauswertung; gemeldet wird nur das Gesamturteil.
+# Pause-Zeile + Grund bleiben als Mechanik für eine spätere Pause erhalten
+# (erscheinen nur bei False).
+EVAL_AUTORUN_ENABLED      = True
+EVAL_AUTORUN_PAUSE_REASON = "Rendite-Diagnose"   # nur Anzeige im Digest (bei False)
 # Bootstrap-Verfahrensdetails, Erratum 22.10.2026 Punkt 1+2 — bindend für
 # BEIDE Test-Familien. NICHT eigenmächtig ändern ohne neuen, datierten
 # Erratum-Eintrag in SESSION_HANDOVER.md (analog Änderungs-Protokoll-Pflicht

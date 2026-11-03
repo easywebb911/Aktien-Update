@@ -170,6 +170,46 @@ def _latest_run_ts(entries: list[dict]) -> str | None:
 # ── ntfy-Send (Mock-fähig) ────────────────────────────────────────────────
 
 
+def _sens_results_path() -> pathlib.Path:
+    """``eval_results_sensitivity.jsonl`` liegt immer NEBEN
+    ``eval_results.jsonl`` (Produktion: Repo-Root; Tests: deren Temp-Ordner)."""
+    import s4_sensitivity_eval as s4  # noqa: E402
+    return pathlib.Path(ROOT / EVAL_RESULTS_FILE).with_name(s4.SENS_RESULTS_FILE)
+
+
+def _exit_b1_with_sensitivity(trig: dict, now_ts) -> str:
+    """§4 direkt nach der Hauptauswertung: Sensitivität rechnen, Ergebnis-
+    zeilen in ``eval_results_sensitivity.jsonl`` anhängen und EINEN Push mit
+    dem Gesamturteil senden. Scheitert irgendetwas daran, wird KEIN Ergebnis
+    gemeldet, sondern die Zurückhalte-Zeile (Push + Digest). Returnt den Text
+    für die Digest-Zeile."""
+    import freeze_eval  # noqa: E402
+    import s4_sensitivity_eval as s4  # noqa: E402
+    try:
+        res = hc._read_matured_export_rows(str(ROOT / hc.MATURED_EXPORT_FILE))
+        rows = res[1] if res is not None else []
+        gap_rows = s4._read_jsonl(ROOT / "hist_5d_gap_log.jsonl")
+        main_verdicts = {tid: v for tid, (v, _r) in trig["verdicts"].items()}
+        flat = s4.sensitivity_for_trigger(rows, main_verdicts, gap_rows=gap_rows, now=now_ts)
+        freeze_eval._append_results(str(_sens_results_path()), flat)
+        text = s4.combined_summary(flat)
+    except Exception as exc:  # noqa: BLE001 — kein Ergebnis ohne Sensitivität
+        log.warning("§4-Sensitivität fehlgeschlagen: %r", exc)
+        try:
+            _ntfy_send("Freeze-Auswertung: Exit-B.1 (§4)", s4.HOLD_BACK_LINE, "high", "warning")
+        except Exception as _push_exc:  # pragma: no cover
+            log.warning("§4-Zurückhalte-Push fehlgeschlagen: %r", _push_exc)
+        return s4.HOLD_BACK_LINE
+    try:
+        _ntfy_send("Freeze-Auswertung: Exit-B.1 (§4)",
+                   f"Auslöser n>=250 erreicht (Exit-B.1). Gesamturteil je Test: {text}. "
+                   f"Details in {EVAL_RESULTS_FILE} und {s4.SENS_RESULTS_FILE}.",
+                   "high", "science")
+    except Exception as _push_exc:  # pragma: no cover
+        log.warning("Eval-Autorun-Push fehlgeschlagen (exit_b1): %r", _push_exc)
+    return text
+
+
 def _ntfy_send(title: str, body: str, priority: str,
                tags: str | None) -> bool:
     """Sendet Push via ntfy.sh URL-Pattern (POST /{topic}). Fail-soft:
@@ -492,6 +532,13 @@ def main(*, now_ts: datetime | None = None,
                 now=now_ts,
             )
             for trig in eval_out["just_triggered"]:
+                if trig["family"] == "exit_b1":
+                    # §4: Sensitivität im SELBEN Lauf direkt nach der
+                    # Hauptauswertung (Easy-Entscheid 03.11.2026). Gemeldet
+                    # wird NUR das Gesamturteil + beide Einzel-Verdikte; scheitert
+                    # die Sensitivität, wird kein Ergebnis gemeldet.
+                    exit_b1_verdict_text = _exit_b1_with_sensitivity(trig, now_ts)
+                    continue
                 summary = "; ".join(
                     f"{tid}: {verdict}" for tid, (verdict, _reason) in trig["verdicts"].items())
                 push_body = (
@@ -521,8 +568,12 @@ def main(*, now_ts: datetime | None = None,
                 ki_verdict_text = freeze_eval.summarize_existing_verdict(
                     ROOT / EVAL_RESULTS_FILE, {"ki_score_a", "ki_score_b"})
             if eval_out["exit_b1_locked"] and exit_b1_verdict_text is None:
-                exit_b1_verdict_text = freeze_eval.summarize_existing_verdict(
-                    ROOT / EVAL_RESULTS_FILE, {"exit_b1_a", "exit_b1_b"})
+                # Früherer Lauf: NUR das gespeicherte Gesamturteil zeigen, nie
+                # das Hauptergebnis allein. Fehlt es → Zurückhalte-Zeile.
+                import s4_sensitivity_eval as s4  # noqa: E402
+                exit_b1_verdict_text = (
+                    s4.summarize_existing_combined(_sens_results_path())
+                    or s4.HOLD_BACK_LINE)
 
         eval_lines.append(hc.eval_status_line(
             "Setup-Edge/Conviction", setup_pop, SETUP_EDGE_FREEZE_N_TARGET,
@@ -530,9 +581,12 @@ def main(*, now_ts: datetime | None = None,
         eval_lines.append(hc.eval_status_line(
             "KI-Score", ki_pop, KI_SCORE_FREEZE_N_TARGET, ki_rate,
             verdict_text=ki_verdict_text))
-        eval_lines.append(hc.eval_status_line(
-            "Exit-B.1 (§4)", exit_b1_pop, hc._RETEST_N_TARGET, None,
-            verdict_text=exit_b1_verdict_text))
+        if exit_b1_verdict_text and exit_b1_verdict_text.startswith("⚠"):
+            eval_lines.append(exit_b1_verdict_text)
+        else:
+            eval_lines.append(hc.eval_status_line(
+                "Exit-B.1 (§4)", exit_b1_pop, hc._RETEST_N_TARGET, None,
+                verdict_text=exit_b1_verdict_text))
     except Exception as _eval_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Freeze-Eval-Autorun unerwartet: %r", _eval_exc)
         eval_lines = []

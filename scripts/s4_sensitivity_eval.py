@@ -15,9 +15,10 @@ der festgeschriebene RECHENWEG dazu. Es ist ein reines Lese-/Rechenskript:
     sondern — nur mit ``--write`` — in die eigene Datei
     ``eval_results_sensitivity.jsonl``.
 
-Ohne ``--write`` wird nur auf stdout ausgegeben. Das Skript läuft NICHT
-automatisch (kein Workflow, kein Auto-Lauf-Hook); es wird erst NACH dem
-Hauptergebnis bewusst ausgeführt.
+Ohne ``--write`` wird nur auf stdout ausgegeben. Seit 03.11.2026 (Easy-
+Entscheid) ruft der §4-Auto-Lauf im Digest ``sensitivity_for_trigger``
+direkt NACH der Hauptauswertung im selben Lauf auf und meldet nur das
+Gesamturteil; ``main()`` bleibt als manueller Weg erhalten.
 
 Kriterium „betroffener Lauf-Tag“ (Entry-Tag = ``date``-Feld des Records =
 US/Eastern-Handelstag des Postclose-Laufs, ``report_date`` in
@@ -172,6 +173,61 @@ def run_sensitivity(rows: list[dict], *, gap_rows: list[dict] | None,
         "frozen_until": FROZEN_UNTIL.isoformat(),
     }
     return result
+
+
+# ── Kopplung an den Auto-Lauf (03.11.2026, Easy-Entscheid) ──────────────────
+# Der §4-Auto-Lauf (scripts/health_check_digest.py) ruft direkt nach der
+# Hauptauswertung ``sensitivity_for_trigger`` auf — mit DENSELBEN Export-Zeilen
+# und DEMSELBEN Zeitpunkt. Push und Digest-Zeile nennen danach nur das
+# Gesamturteil (``combine_verdict``) plus beide Einzel-Verdikte. Verfahren,
+# Kriterien, Seed und Population bleiben unverändert (eingefrorene
+# ``evaluate_exit_b1_family``, unveränderte Ausschlussregel oben).
+EXIT_B1_TEST_IDS = ("exit_b1_a", "exit_b1_b")
+HOLD_BACK_LINE = "⚠ §4 ausgewertet, Sensitivität fehlgeschlagen — Ergebnis zurückgehalten"
+
+
+class SensitivitaetUnvollstaendig(Exception):
+    """Sensitivität lieferte nicht für jeden §4-Test ein Gesamturteil."""
+
+
+def sensitivity_for_trigger(rows: list[dict], main_verdicts: dict[str, str], *,
+                            gap_rows: list[dict] | None, now: datetime) -> list[dict]:
+    """Rechnet die Sensitivität und baut je Test eine Ergebniszeile mit
+    ``main_verdict``, ``verdict`` (Sensitivität) und ``combined_verdict``.
+    Wirft, wenn etwas fehlt (dann darf kein Ergebnis gemeldet werden)."""
+    import freeze_eval as fe
+    res = run_sensitivity(rows, gap_rows=gap_rows, now=now)
+    flat = fe._flatten_family_result(res)
+    for row in flat:
+        row["sensitivity"] = res["sensitivity"]
+        mv = main_verdicts.get(row.get("test_id"))
+        row["main_verdict"] = mv
+        row["combined_verdict"] = combine_verdict(mv, row.get("verdict")) if mv else None
+    got = {r.get("test_id"): r for r in flat}
+    if (set(got) != set(EXIT_B1_TEST_IDS) or set(main_verdicts) != set(EXIT_B1_TEST_IDS)
+            or any(got[t].get("combined_verdict") is None for t in EXIT_B1_TEST_IDS)):
+        raise SensitivitaetUnvollstaendig(f"Tests {sorted(got)} / Haupt {sorted(main_verdicts)}")
+    return flat
+
+
+def combined_summary(sens_rows: list[dict]) -> str:
+    """„exit_b1_a: <Gesamturteil> (Haupt: …, Sensitivität: …); exit_b1_b: …“"""
+    by = {r.get("test_id"): r for r in sens_rows}
+    return "; ".join(
+        f"{t}: {by[t]['combined_verdict']} (Haupt: {by[t]['main_verdict']}, "
+        f"Sensitivität: {by[t]['verdict']})" for t in EXIT_B1_TEST_IDS)
+
+
+def summarize_existing_combined(sens_path) -> str | None:
+    """Gesamturteil aus einem früheren Lauf (Datei ``SENS_RESULTS_FILE``);
+    ``None``, wenn dort keine vollständige Zeile für beide Tests steht."""
+    rows = _read_jsonl(pathlib.Path(sens_path)) or []
+    rows = [r for r in rows if (r.get("sensitivity") or {}).get("variant") == SENS_VARIANT
+            and r.get("test_id") in EXIT_B1_TEST_IDS and r.get("combined_verdict")]
+    by = {r["test_id"]: r for r in rows}   # letzte Zeile je Test gewinnt
+    if set(by) != set(EXIT_B1_TEST_IDS):
+        return None
+    return combined_summary(list(by.values()))
 
 
 def _read_jsonl(path: pathlib.Path) -> list[dict] | None:

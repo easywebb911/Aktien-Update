@@ -3275,6 +3275,36 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 03.11.2026 — Freeze-Auto-Lauf wieder aktiv + §4-Sensitivität gekoppelt (Schritt 3/3, 1 PR, Manual-Merge)
+
+- Easy-Entscheid 03.11.2026: `#__PR__` (Branch `claude/freeze-autorun-resume-w3k7`,
+  kein Merge-Hash — Regel a). `config.EVAL_AUTORUN_ENABLED = True`
+  (Pause-Zeile bleibt als Mechanik für False erhalten).
+- `scripts/health_check_digest.py`: bei §4-Auslösung `_exit_b1_with_sensitivity`
+  direkt nach `freeze_eval.run_due_evaluations` (gleiche Zeilen, gleicher
+  Zeitpunkt) → `eval_results_sensitivity.jsonl` neben `eval_results.jsonl`;
+  Push + Digest nur Gesamturteil + beide Einzel-Verdikte; bei Fehler/„nicht
+  prüfbar“ Zurückhalte-Zeile, kein Ergebnis-Push; Folgetage zeigen das
+  gespeicherte Gesamturteil oder weiter die Zurückhalte-Zeile.
+- `scripts/s4_sensitivity_eval.py`: Helfer `sensitivity_for_trigger`,
+  `combined_summary`, `summarize_existing_combined`, `HOLD_BACK_LINE`
+  (Rechenweg, Ausschlussliste, `combine_verdict` unverändert).
+  `scripts/freeze_eval.py` unverändert.
+- `health_check_digest.yml`: sichert/committet `eval_results_sensitivity.jsonl`
+  wie `eval_results.jsonl`.
+- Tests: neu `mock_test_s4_sensitivity_coupling.py` (Gegenprobe auf altem
+  Digest: 13 FAIL); `freeze_autorun_pause` / `freeze_eval_autorun` an True
+  angepasst; `mock_test_digest`, `mock_test_ntfy_fail_visibility`,
+  `mock_test_weekly_digest_block` schalten den Auto-Lauf lokal ab (sie laufen
+  gegen echte Repo-Dateien — sonst ab n≥250 echte Auswertung im Test).
+- „§4-Protokolleintrag 03.11.2026 — Schritt 2 abgeschlossen“ (außerhalb der
+  Blöcke); RE-TEST-KALENDER-Zeile ergänzt; Freeze-Blöcke byte-identisch.
+- Rückweg-Entwurf `#649` (Korrektur-Workflow löschen) weiter offen, nicht Teil
+  dieses PRs.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#648`,
+  höchste in Block 1 erwähnte PR = `#648` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 03.11.2026 — Renditen-Bestandskorrektur (Schritt 2/3, 1 PR, Manual-Merge, neuer Workflow)
 
 - Easy-Entscheid 03.11.2026: `#648` (Branch `claude/fix-returns-oneoff-r5n2`,
@@ -4096,7 +4126,7 @@ Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
 |---|---|---|---|
 | ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
 | **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. **ERSETZT (10.10.2026)** — kein Zielgröße/Kriterium war hier je festgelegt; siehe Erratum-Block „Erweiterung vor Auswertung — Test (c) Conviction-Zusatznutzen" im Setup-Edge-Re-Test-Freeze unten (Test (c), Holm k=3). Diese Zeile bleibt als Historie stehen, nicht gelöscht. |
-| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf seit `#621` (31.10.2026), **PAUSIERT 02.11.2026** (`#644`, Rendite-Diagnose — siehe „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ unten); Mechanik-Fix `#647` (03.11.2026), Wiederaufnahme erst nach Bestandskorrektur (Schritt 2) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
+| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf seit `#621` (31.10.2026), **PAUSIERT 02.11.2026** (`#644`, Rendite-Diagnose — siehe „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ unten); Mechanik-Fix `#647` (03.11.2026), Wiederaufnahme erst nach Bestandskorrektur (Schritt 2); **WIEDER AKTIV ab Merge von `#__PR__`** (03.11.2026, Korrektur `#648`/`872ac43f`, §4 nur mit gekoppelter Sensitivität — siehe „§4-Protokolleintrag 03.11.2026 — Schritt 2 abgeschlossen“) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. **ÜBERHOLT 10.10.2026:** neu registriert und eingefroren — siehe „VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026“ unten (Stand 02.11.: n=50/250). Diese Zeile bleibt als Historie. |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
@@ -5463,6 +5493,65 @@ stehen gelassen. Der Umgang mit `matured_backtest_export.jsonl`
 
 **Wiederaufnahme** des Freeze-Auto-Laufs erst **nach** Schritt 2 — die
 Wiederaufnahme-Bedingung des Pause-Eintrags vom 02.11.2026 gilt weiter.
+
+#### §4-Protokolleintrag 03.11.2026 — Schritt 2 abgeschlossen, Wiederaufnahme des Freeze-Auto-Laufs, VOR jedem Ergebnis
+
+**Bindend gemäß Änderungs-Protokoll-Regel des §4-Blocks (05.08.2026).** Eigener
+Abschnitt **außerhalb** des eingefrorenen §4-Registrierungsblocks (wie die
+Einträge vom 02.11. und 03.11.2026 oben); alle Freeze-Blöcke bleiben
+**byte-identisch** (MD5 vorher = nachher, im PR-Bericht #__PR__ belegt).
+
+**Zeitpunkt (VOR jedem Ergebnis):** 03.11.2026, `eval_results.jsonl` existiert
+**nicht**, es wurde kein Freeze-Ergebnis erzeugt oder eingesehen.
+
+**Schritt 2 abgeschlossen (Bestandskorrektur, #648):** Korrektur-Commit
+`872ac43f` (Workflow `fix_returns_oneoff.yml`, Modus apply, 03.11.2026
+21:19 UTC). `matured_backtest_export.jsonl`: 10 203 Felder neu berechnet,
+105 auf null (63 Ticker ohne Kursdaten, 42 Einstiegstag fehlt in den
+Kursdaten). `backtest_history.json`: 5 812 neu berechnet, 130 auf null
+(Zieltag 03.11. noch nicht final — füllt der KI-Agent mit finalem Schluss
+nach). Archiv `return_corrections_archive_2026-11.jsonl` (16 250 Zeilen =
+geänderte Felder). Reihenfolge, Zeilenzahl und alle anderen Felder
+byte-gleich (geprüft). **Wahrheitsbeweis** (zweiter dry_run auf `872ac43f`):
+Abweichung gespeichert vs. finaler Schluss **0** bei allen 4 056
+`return_3d/5d/10d` (Median, p90, max je 0; gesamt, §4, Setup-Edge,
+KI-Score); unverändert 10 565 von 10 566 Export-Feldern bzw. 5 987 von
+5 987; ein Export-Feld außerhalb von `return_Nd` (`entry_price_t1`,
+`return_Nd_t1` oder `_vs_spy`) nicht identifiziert, wahrscheinlich
+Kursbereinigung seit apply. **Keine Freeze-Zeile leer:** in §4 (244),
+Setup-Edge (60) und KI-Score (60) hat keine Zeile `return_3d/5d/10d = null`.
+Zähler vorher = nachher: §4 **244/250**, Setup-Edge/Conviction **60/250**,
+KI-Score **60/250**.
+
+**Wiederaufnahme ab Merge von #__PR__:** `config.EVAL_AUTORUN_ENABLED = True`. Die
+Wiederaufnahme-Bedingung des Pause-Eintrags vom 02.11.2026 ist erfüllt
+(Diagnose #645, Mechanik-Fix #647, Korrektur #648, Easys Entscheid hier
+datiert). An Definitionen, Kriterien, Populationen, Seeds und
+`scripts/freeze_eval.py` ändert sich **nichts**.
+
+**Kopplung der Sensitivitätsprüfung (Eintrag 02.11.2026) an das Hauptergebnis,
+Easy-Entscheid 03.11.2026:** Löst §4 aus, rechnet der Digest im **selben
+Lauf direkt nach** der Hauptauswertung die registrierte Sensitivität
+(`s4_sensitivity_eval.sensitivity_for_trigger` → eingefrorene
+`evaluate_exit_b1_family`, unveränderte Ausschlussregel, gleiche Export-
+Zeilen, gleicher Zeitpunkt) und schreibt sie nach
+`eval_results_sensitivity.jsonl`. Push und Digest-Zeile nennen **nur** das
+Gesamturteil nach der Regel vom 02.11.2026 (belegt / belegt, aber nicht
+robust / nicht belegt) plus beide Einzel-Verdikte (Haupt, Sensitivität).
+Scheitert die Sensitivität (Fehler, „nicht prüfbar“), gibt es **kein**
+Ergebnis-Push, sondern „⚠ §4 ausgewertet, Sensitivität fehlgeschlagen —
+Ergebnis zurückgehalten“ (Push + Digest, auch an Folgetagen); das
+Hauptergebnis steht dann gesperrt in `eval_results.jsonl`, eine spätere
+Sensitivität rechnet der Auto-Lauf **nicht** nach (der Export wächst — sie
+liefe auf einer anderen Population), Easy entscheidet.
+
+**Setup-Edge/Conviction (Punkt 8c) und KI-Score (8c-Erweiterung (e)):** kein
+weiterer Eintrag in diesen Blöcken. Die Daten-Änderung samt angekündigter
+Bestandskorrektur ist dort am 03.11.2026 bereits protokolliert (#647);
+Punkt 8c verlangt Einträge nur bei Änderungen an `score()`/der Top-10-Auswahl,
+(e) nur bei den dort genannten KI-Stellen — beides nicht berührt. Diese
+beiden Familien bleiben vom Ausgabeformat unberührt (Hauptergebnis wie
+bisher, sie haben keine registrierte Sensitivität).
 
 #### ⚠ Datenherkunft des vorabregistrierten Exit-B.1-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
 
