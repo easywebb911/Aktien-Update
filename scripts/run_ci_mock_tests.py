@@ -44,6 +44,7 @@ ALLOWLIST = [
     "freeze_autorun_pause",
     "hc_ping",
     "final_close_rest",
+    "fix_maxgain_shadow",
     "ki_age_header",
     "positions_asof",
     "wl_earnings_fallback",
