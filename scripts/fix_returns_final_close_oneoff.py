@@ -53,6 +53,7 @@ from datetime import date, datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "scripts"))
 
 BT_FILE = "backtest_history.json"
 EXPORT_FILE = "matured_backtest_export.jsonl"
@@ -255,7 +256,7 @@ def _ser_ex(lines: list[str], trailing: bool) -> str:
     return "\n".join(lines) + ("\n" if trailing else "")
 
 
-def verify_untouched(old: list[dict], new: list[dict]) -> None:
+def verify_untouched(old: list[dict], new: list[dict], fields=TARGET_FIELDS) -> None:
     """Belegt: gleiche Länge, Reihenfolge, Schlüssel; Nicht-Ziel-Felder gleich."""
     if len(old) != len(new):
         raise SystemExit("ABBRUCH: Zeilenzahl geändert.")
@@ -263,9 +264,9 @@ def verify_untouched(old: list[dict], new: list[dict]) -> None:
         if list(o.keys()) != list(n.keys()):
             raise SystemExit("ABBRUCH: Feld-Reihenfolge/-Menge geändert.")
         for k in o:
-            if k not in TARGET_FIELDS and o[k] != n[k]:
+            if k not in fields and o[k] != n[k]:
                 raise SystemExit(f"ABBRUCH: Nicht-Ziel-Feld {k} geändert.")
-            if k in TARGET_FIELDS and o[k] is None and n[k] is not None:
+            if k in fields and o[k] is None and n[k] is not None:
                 raise SystemExit("ABBRUCH: leeres Feld wurde gefüllt.")
 
 
@@ -567,6 +568,9 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=("dry_run", "apply", "verify", "restore", "restore_probe"),
                     default="dry_run")
+    ap.add_argument("--target", choices=("returns", "maxgain_shadow"), default="returns",
+                    help="returns (Default, Pfad aus #648 unverändert) oder maxgain_shadow "
+                         "(max_gain_pct/max_drawdown_pct + Exit-Shadow-Forwards)")
     ap.add_argument("--now", default=None)
     ap.add_argument("--max-null", type=int, default=None,
                     help="apply: höchstens so viele Felder dürfen auf null gesetzt werden "
@@ -575,6 +579,11 @@ def main(argv=None) -> int:
     now = (datetime.fromisoformat(a.now) if a.now else datetime.now(timezone.utc))
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
+    if a.target == "maxgain_shadow":
+        import fix_maxgain_shadow as mgs
+        if a.mode in ("restore", "restore_probe"):
+            return mgs.restore(apply=(a.mode == "restore"))
+        return mgs.run(a.mode, now, max_null=a.max_null)
     if a.mode in ("restore", "restore_probe"):
         return restore(apply=(a.mode == "restore"))
     return run(a.mode, now, max_null=a.max_null)

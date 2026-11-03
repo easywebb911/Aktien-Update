@@ -3275,6 +3275,33 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 03.11.2026 — Korrektur max_gain/max_drawdown + Exit-Shadow-Forwards (1 PR, Manual-Merge, Datenkorrektur)
+
+- Easy-Entscheid 03.11.2026: `#652` (Branch `claude/fix-maxgain-shadow-k2t6`, kein
+  Merge-Hash — Regel a). `fix_returns_oneoff.yml` + `fix_returns_final_close_
+  oneoff.py` um Input/Option `target` erweitert (`returns` = Default, Pfad aus
+  #648 unverändert; `maxgain_shadow` = neu, Logik in `scripts/fix_maxgain_
+  shadow.py`).
+- Neu gerechnet (nur heute gefüllte Felder): `max_gain_pct`, `max_drawdown_pct`
+  (+ `max_gain_pct_net`) in `backtest_history.json` und im Export über
+  `backtest_history._final_window` + `_compute_*` (wie der Daily-Run nach
+  #651); `forward_3d/5d/10d` in `exit_shadow_log.jsonl` nach der Regel aus
+  `update_exit_shadow_forwards` (#651). Nicht korrigierbar → `null`;
+  **0.0-Semantik:** < 2 finale Fensterzeilen → `null` (Grund
+  `zu_wenig_daten`), wo der Daily-Run `0.0` schreiben würde.
+- Gleiche Schutzmechanik wie #648 (dry_run/apply, `max_null`, Lauf-Gate,
+  Blob-Vergleich jetzt inkl. `exit_shadow_log.jsonl`, Zähler-Schutz, atomar,
+  ein Commit); eigenes Archiv `maxgain_shadow_corrections_archive_2026-11.jsonl`
+  + `restore`.
+- Test `mock_test_fix_maxgain_shadow.py`: Skript == echte
+  `_append_backtest_entries` (Rolling-Block) und == `update_exit_shadow_forwards`.
+- Keine Freeze-Auswertung liest diese Felder; kein Block-Eintrag nötig.
+- Rückweg-PR #649 muss nach dem Lauf zusätzlich `scripts/fix_maxgain_shadow.py`
+  und den neuen Test löschen (wird nach dem Merge nachgezogen).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#651`,
+  höchste in Block 1 erwähnte PR = `#651` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 03.11.2026 — Freeze-Auto-Lauf wieder aktiv + §4-Sensitivität gekoppelt (Schritt 3/3, 1 PR, Manual-Merge)
 
 - Easy-Entscheid 03.11.2026: `#650` (Branch `claude/freeze-autorun-resume-w3k7`,
