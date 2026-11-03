@@ -65,8 +65,10 @@ def recompute_maxgain(entry: dict, df, final_cut: date) -> dict[str, tuple]:
     win = bh._final_window(df, edate, final_cut)
     if len(win) < 2:
         return {f: (None, "zu_wenig_daten") for f in MG_FIELDS}
-    dd = bh._compute_max_drawdown(win)
-    mg = bh._compute_max_gain_pct(win)
+    # Nicht-endlich (z. B. Fenster nur aus NaN-Zeilen eines Union-Index) gilt
+    # als Rechenfehler → null, nie NaN in die Datei (Guardian-Finding #652).
+    dd = base._num(bh._compute_max_drawdown(win))
+    mg = base._num(bh._compute_max_gain_pct(win))
     out = {"max_drawdown_pct": (dd, "neu") if dd is not None else (None, "rechenfehler"),
            "max_gain_pct": (mg, "neu") if mg is not None else (None, "rechenfehler")}
     out["max_gain_pct_net"] = ((bh.apply_round_trip_haircut(mg), "neu") if mg is not None
@@ -93,7 +95,7 @@ def recompute_shadow(rec: dict, closes, final_cut: date) -> dict[str, tuple]:
     for n in ES_HORIZONS:
         fwd = sig_idx + n
         if 0 <= fwd < n_final:
-            v = exit_shadow.compute_forward_return(sig_close, float(closes[fwd][1]))
+            v = base._num(exit_shadow.compute_forward_return(sig_close, float(closes[fwd][1])))
             out[f"forward_{n}d"] = (v, "neu") if v is not None else (None, "rechenfehler")
         else:
             out[f"forward_{n}d"] = (None, "zieltag_fehlt_oder_nicht_final")
@@ -124,10 +126,12 @@ def fetch(tickers: list[str], start: date, now: datetime):
                        progress=False, threads=True, group_by="ticker")
     dfs, closes = {}, {}
     for t in tickers:
+        # group_by="ticker" liefert je nach yfinance-Version auch bei EINEM
+        # Ticker MultiIndex-Spalten → zuerst hist[t], sonst hist selbst.
         try:
-            df = hist if len(tickers) == 1 else hist[t]
+            df = hist[t]
         except Exception:
-            df = None
+            df = hist if len(tickers) == 1 else None
         dfs[t] = df if df is not None and not df.dropna(how="all").empty else None
         closes[t] = base._series(df) if df is not None else None
     return dfs, closes

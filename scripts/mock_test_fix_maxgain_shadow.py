@@ -263,6 +263,14 @@ def test_04_rules():
         v = mgs.recompute_maxgain({"date": "04.11.2026"}, DF, FINAL)    # nur 1 finale Zeile
         _check("04 < 2 Fensterzeilen → null (zu_wenig_daten), nicht 0.0",
                all(v[f] == (None, "zu_wenig_daten") for f in mgs.MG_FIELDS), str(v))
+    orig = (bh._compute_max_gain_pct, bh._compute_max_drawdown)
+    bh._compute_max_gain_pct = bh._compute_max_drawdown = lambda w: float("nan")
+    try:
+        v = mgs.recompute_maxgain({"date": "22.10.2026"}, DF, FINAL)
+    finally:
+        bh._compute_max_gain_pct, bh._compute_max_drawdown = orig
+    _check("04 NaN-Ergebnis (z. B. reines NaN-Fenster) → null (rechenfehler), nie NaN",
+           all(v[f] == (None, "rechenfehler") for f in mgs.MG_FIELDS), str(v))
     v = mgs.recompute_shadow(_es_rec("19.10.2026"), None, FINAL)
     _check("04 Forward ohne Kurse → null", all(v[f][0] is None for f in mgs.ES_FIELDS))
     v = mgs.recompute_shadow(_es_rec("18.10.2026"), CLOSES, FINAL)
