@@ -3285,6 +3285,13 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Daily-/KI-Lauf, bei auf main geänderten Dateien, bei > 10 Tickern ohne
   Kurse, fehlendem SPY, doppelten (ticker, date) oder wenn ein null-Wert
   einen Freeze-Zähler ändern würde).
+- apply verlangt Input `max_null` = Zahl „Auf null gesetzt gesamt“ aus dem
+  dry_run; mehr Nullen → Abbruch (Schutz gegen gestörten Kursabruf).
+- Bekannte Grenzen: (a) eine Lücke mitten im Kursverlauf (Handelsaussetzung)
+  verschiebt den Handelstag-Index wie im KI-Agent (`dropna`) — unverändert
+  übernommen, nicht neu; (b) im Export gesetzte `null` bleiben dauerhaft (der
+  Export wird nicht nachgefüllt), in `backtest_history.json` füllt der
+  KI-Agent später nach, sobald Daten da sind.
 - Rechnet die gefüllten `return_3d/5d/10d` (+ `_net`, `_vs_spy`),
   `entry_price_t1`, `return_Nd_t1` in `backtest_history.json` UND
   `matured_backtest_export.jsonl` mit derselben Logik wie

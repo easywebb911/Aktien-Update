@@ -167,6 +167,25 @@ def test_01_equivalence():
            and any(e["return_10d"] is None for e in filled))
 
 
+def test_01b_equivalence_gap():
+    """Ticker mit fehlendem Tag (Handelsaussetzung 21.10.) → eigener Index
+    verschiebt sich, SPY nicht; beide Wege müssen trotzdem gleich rechnen."""
+    global CLOSES
+    orig = CLOSES
+    gap = [p for p in orig if p[0] != _dt.date(2026, 10, 21)]
+    CLOSES = gap
+    try:
+        dates = ["19.10.2026", "20.10.2026", "22.10.2026", "26.10.2026", "21.10.2026"]
+        filled = _ki_fill([_blank(d) for d in dates])
+        ok = all(fx.recompute(e, gap, SPY, FINAL)[f][0] == e.get(f)
+                 for e in filled for f in fx.TARGET_FIELDS)
+        _check("01b Gleichheit auch mit Ticker-Lücke + eigenem SPY-Index", ok)
+        _check("01b Lücken-Fall erzeugt _vs_spy-Werte (Vergleich nicht leer)",
+               any(e.get("return_3d_vs_spy") is not None for e in filled))
+    finally:
+        CLOSES = orig
+
+
 def _good(date):
     return fx.recompute({"date": date}, CLOSES, SPY, FINAL)
 
@@ -229,10 +248,10 @@ def _write_files(d: pathlib.Path):
 PRICES = ({"AAA": CLOSES, "ZZZ": None}, SPY)
 
 
-def _run(mode, d, prices=PRICES):
+def _run(mode, d, prices=PRICES, max_null=1000):
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        rc = fx.run(mode, NOW, root=d, prices=prices)
+        rc = fx.run(mode, NOW, root=d, prices=prices, max_null=max_null)
     return rc, buf.getvalue()
 
 
@@ -335,6 +354,19 @@ def test_12_safety():
     shutil.rmtree(d)
 
 
+def test_12d_max_null():
+    d = pathlib.Path(tempfile.mkdtemp())
+    _write_files(d)
+    before = _snap(d)
+    rc, log = _run("apply", d, max_null=None)
+    _check("12 apply ohne --max-null → Abbruch, nichts geschrieben",
+           rc == 2 and _snap(d) == before and "--max-null" in log, log[-300:])
+    rc, log = _run("apply", d, max_null=0)
+    _check("12 mehr Nullen als dry_run-Obergrenze → Abbruch, nichts geschrieben",
+           rc == 2 and _snap(d) == before and "auf null gesetzt" in log, log[-300:])
+    shutil.rmtree(d)
+
+
 def test_12b_duplicates():
     d = pathlib.Path(tempfile.mkdtemp())
     _write_files(d)
@@ -387,12 +419,16 @@ def test_14_workflow():
     _check("14 Abbruch bei geändertem Stand auf main",
            "origin/main:backtest_history.json" in src and "origin/main:matured_backtest_export.jsonl" in src)
     _check("14 dry_run belegt: keine Datei geändert", "git diff --exit-code" in src)
+    _check("14 apply verlangt max_null aus dem dry_run", "--max-null" in src
+           and on["workflow_dispatch"]["inputs"]["max_null"]["default"] == "")
+    _check("14 Lauf-Gate prüft auch waiting/pending/requested",
+           "in_progress queued waiting pending requested" in src)
 
 
 def main() -> int:
-    for t in (test_01_equivalence, test_02_06_correct_record, test_07_15_files,
+    for t in (test_01_equivalence, test_01b_equivalence_gap, test_02_06_correct_record, test_07_15_files,
               test_12_safety, test_12b_duplicates,
-              test_12c_population_guard, test_14_workflow):
+              test_12c_population_guard, test_12d_max_null, test_14_workflow):
         try:
             t()
         except Exception as exc:  # noqa: BLE001

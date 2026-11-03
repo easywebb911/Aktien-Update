@@ -336,7 +336,8 @@ def _print_counters(root: pathlib.Path) -> None:
 
 
 # ── Lauf ─────────────────────────────────────────────────────────────────────
-def run(mode: str, now: datetime, root: pathlib.Path = ROOT, prices=None) -> int:
+def run(mode: str, now: datetime, root: pathlib.Path = ROOT, prices=None,
+        max_null: int | None = None) -> int:
     import trading_date
     final_cut = trading_date.last_final_close_date(now)
     bt, bt_raw, ex, ex_lines, trailing = load_files(root)
@@ -407,6 +408,8 @@ def run(mode: str, now: datetime, root: pathlib.Path = ROOT, prices=None) -> int
         print(f"[{datei}] Felder {stats[f'{datei}:felder']} · unverändert "
               f"{stats[f'{datei}:unveraendert']} · geändert {stats[f'{datei}:geaendert']} · "
               f"auf null {sum(nulls.values())} {dict(sorted(nulls.items()))}")
+    n_null = sum(v for k, v in stats.items() if ":null:" in k)
+    print(f"Auf null gesetzt gesamt (beide Dateien): {n_null}")
     print("Abweichung |alt − neu| (nur return_3d/5d/10d, je Ticker/Datum/Feld einmal):")
     for k in ("alle", "pop:§4", "pop:Setup-Edge", "pop:KI-Score"):
         _dist(f"  {k}", devs.get(k, []))
@@ -432,6 +435,16 @@ def run(mode: str, now: datetime, root: pathlib.Path = ROOT, prices=None) -> int
         return 0
 
     # apply: Sicherheits-Grenzen
+    # Schutz gegen Massen-Nullung durch einen gestörten Kursabruf (abgeschnittene
+    # Historien, NaN-Tage): apply verlangt die Obergrenze aus dem dry_run.
+    if max_null is None:
+        print("ABBRUCH: --max-null fehlt (Zahl „Auf null gesetzt gesamt“ aus dem dry_run "
+              "angeben). Nichts geschrieben.")
+        return 2
+    if n_null > max_null:
+        print(f"ABBRUCH: {n_null} Felder würden auf null gesetzt (> {max_null} aus dem dry_run) — "
+              "Kursabruf vermutlich anders/gestört. Nichts geschrieben.")
+        return 2
     if len(ohne) > MAX_TICKERS_OHNE_DATEN:
         print(f"ABBRUCH: {len(ohne)} Ticker ohne Kursdaten (> {MAX_TICKERS_OHNE_DATEN}) — "
               "Kursabruf vermutlich gestört. Nichts geschrieben.")
@@ -555,13 +568,16 @@ def main(argv=None) -> int:
     ap.add_argument("--mode", choices=("dry_run", "apply", "verify", "restore", "restore_probe"),
                     default="dry_run")
     ap.add_argument("--now", default=None)
+    ap.add_argument("--max-null", type=int, default=None,
+                    help="apply: höchstens so viele Felder dürfen auf null gesetzt werden "
+                         "(Zahl aus dem dry_run)")
     a = ap.parse_args(argv)
     now = (datetime.fromisoformat(a.now) if a.now else datetime.now(timezone.utc))
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     if a.mode in ("restore", "restore_probe"):
         return restore(apply=(a.mode == "restore"))
-    return run(a.mode, now)
+    return run(a.mode, now, max_null=a.max_null)
 
 
 if __name__ == "__main__":

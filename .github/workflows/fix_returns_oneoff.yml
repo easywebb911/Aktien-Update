@@ -26,6 +26,11 @@ on:
         options:
           - dry_run
           - apply
+      max_null:
+        description: "nur apply: Zahl „Auf null gesetzt gesamt“ aus dem dry_run (Obergrenze)"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -79,7 +84,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           for wf in daily-squeeze-report.yml ki_agent.yml; do
-            for st in in_progress queued; do
+            for st in in_progress queued waiting pending requested; do
               n=$(gh run list --workflow "$wf" --status "$st" --json databaseId --jq 'length')
               if [ "$n" != "0" ]; then
                 echo "ABBRUCH: $wf hat $n Lauf/Läufe im Status $st — nichts geschrieben. Später erneut starten."
@@ -95,7 +100,13 @@ jobs:
           echo "ex=$(git rev-parse HEAD:matured_backtest_export.jsonl)" >> "$GITHUB_OUTPUT"
 
       - name: Korrektur rechnen und schreiben (lokal)
-        run: python scripts/fix_returns_final_close_oneoff.py --mode apply
+        env:
+          MAX_NULL: ${{ inputs.max_null }}
+        run: |
+          case "$MAX_NULL" in
+            ''|*[!0-9]*) echo "ABBRUCH: max_null fehlt oder ist keine Zahl — erst dry_run lesen. Nichts geschrieben."; exit 1 ;;
+          esac
+          python scripts/fix_returns_final_close_oneoff.py --mode apply --max-null "$MAX_NULL"
 
       - name: Prüfen, Commit, Push (bricht bei Änderung auf main ab)
         env:
