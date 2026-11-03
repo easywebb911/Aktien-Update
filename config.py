@@ -166,7 +166,7 @@ KI_SCORE_FREEZE_N_TARGET  = 250            # Auslöser n>=250, eigene Holm-Famil
 # pausiert") dokumentiert ist. Bei False läuft KEINE Auswertung (kein
 # freeze_eval-Import im Digest, kein eval_results.jsonl-Write); die Zähler-
 # Zeilen laufen weiter, der Digest zeigt zusätzlich die Pause-Zeile.
-# WIEDER AKTIV 03.11.2026 (Easy-Entscheid, #__PR__, VOR jedem Ergebnis):
+# WIEDER AKTIV 03.11.2026 (Easy-Entscheid, #650, VOR jedem Ergebnis):
 # Mechanik-Fix #647 + Bestandskorrektur #648 (Commit 872ac43f), zweiter
 # dry_run Abweichung 0 — siehe „§4-Protokolleintrag 03.11.2026 — Schritt 2
 # abgeschlossen". Seit diesem PR läuft bei §4 die Sensitivität im selben

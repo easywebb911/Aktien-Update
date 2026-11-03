@@ -3277,7 +3277,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 03.11.2026 — Freeze-Auto-Lauf wieder aktiv + §4-Sensitivität gekoppelt (Schritt 3/3, 1 PR, Manual-Merge)
 
-- Easy-Entscheid 03.11.2026: `#__PR__` (Branch `claude/freeze-autorun-resume-w3k7`,
+- Easy-Entscheid 03.11.2026: `#650` (Branch `claude/freeze-autorun-resume-w3k7`,
   kein Merge-Hash — Regel a). `config.EVAL_AUTORUN_ENABLED = True`
   (Pause-Zeile bleibt als Mechanik für False erhalten).
 - `scripts/health_check_digest.py`: bei §4-Auslösung `_exit_b1_with_sensitivity`
@@ -4126,7 +4126,7 @@ Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
 |---|---|---|---|
 | ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
 | **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. **ERSETZT (10.10.2026)** — kein Zielgröße/Kriterium war hier je festgelegt; siehe Erratum-Block „Erweiterung vor Auswertung — Test (c) Conviction-Zusatznutzen" im Setup-Edge-Re-Test-Freeze unten (Test (c), Holm k=3). Diese Zeile bleibt als Historie stehen, nicht gelöscht. |
-| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf seit `#621` (31.10.2026), **PAUSIERT 02.11.2026** (`#644`, Rendite-Diagnose — siehe „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ unten); Mechanik-Fix `#647` (03.11.2026), Wiederaufnahme erst nach Bestandskorrektur (Schritt 2); **WIEDER AKTIV ab Merge von `#__PR__`** (03.11.2026, Korrektur `#648`/`872ac43f`, §4 nur mit gekoppelter Sensitivität — siehe „§4-Protokolleintrag 03.11.2026 — Schritt 2 abgeschlossen“) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
+| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf seit `#621` (31.10.2026), **PAUSIERT 02.11.2026** (`#644`, Rendite-Diagnose — siehe „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ unten); Mechanik-Fix `#647` (03.11.2026), Wiederaufnahme erst nach Bestandskorrektur (Schritt 2); **WIEDER AKTIV ab Merge von `#650`** (03.11.2026, Korrektur `#648`/`872ac43f`, §4 nur mit gekoppelter Sensitivität — siehe „§4-Protokolleintrag 03.11.2026 — Schritt 2 abgeschlossen“) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. **ÜBERHOLT 10.10.2026:** neu registriert und eingefroren — siehe „VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026“ unten (Stand 02.11.: n=50/250). Diese Zeile bleibt als Historie. |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
@@ -5499,7 +5499,7 @@ Wiederaufnahme-Bedingung des Pause-Eintrags vom 02.11.2026 gilt weiter.
 **Bindend gemäß Änderungs-Protokoll-Regel des §4-Blocks (05.08.2026).** Eigener
 Abschnitt **außerhalb** des eingefrorenen §4-Registrierungsblocks (wie die
 Einträge vom 02.11. und 03.11.2026 oben); alle Freeze-Blöcke bleiben
-**byte-identisch** (MD5 vorher = nachher, im PR-Bericht #__PR__ belegt).
+**byte-identisch** (MD5 vorher = nachher, im PR-Bericht #650 belegt).
 
 **Zeitpunkt (VOR jedem Ergebnis):** 03.11.2026, `eval_results.jsonl` existiert
 **nicht**, es wurde kein Freeze-Ergebnis erzeugt oder eingesehen.
@@ -5523,7 +5523,7 @@ Setup-Edge (60) und KI-Score (60) hat keine Zeile `return_3d/5d/10d = null`.
 Zähler vorher = nachher: §4 **244/250**, Setup-Edge/Conviction **60/250**,
 KI-Score **60/250**.
 
-**Wiederaufnahme ab Merge von #__PR__:** `config.EVAL_AUTORUN_ENABLED = True`. Die
+**Wiederaufnahme ab Merge von #650:** `config.EVAL_AUTORUN_ENABLED = True`. Die
 Wiederaufnahme-Bedingung des Pause-Eintrags vom 02.11.2026 ist erfüllt
 (Diagnose #645, Mechanik-Fix #647, Korrektur #648, Easys Entscheid hier
 datiert). An Definitionen, Kriterien, Populationen, Seeds und
