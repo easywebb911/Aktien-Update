@@ -3283,7 +3283,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Input `mode` dry_run|apply, Default dry_run; dry_run nur Leserecht; apply
   `contents: write` + `actions: read`; bricht ohne Schreiben ab bei aktivem
   Daily-/KI-Lauf, bei auf main geänderten Dateien, bei > 10 Tickern ohne
-  Kurse, fehlendem SPY oder doppelten (ticker, date)).
+  Kurse, fehlendem SPY, doppelten (ticker, date) oder wenn ein null-Wert
+  einen Freeze-Zähler ändern würde).
 - Rechnet die gefüllten `return_3d/5d/10d` (+ `_net`, `_vs_spy`),
   `entry_price_t1`, `return_Nd_t1` in `backtest_history.json` UND
   `matured_backtest_export.jsonl` mit derselben Logik wie

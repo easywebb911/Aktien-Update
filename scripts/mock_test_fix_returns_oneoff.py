@@ -351,6 +351,23 @@ def test_12b_duplicates():
     shutil.rmtree(d)
 
 
+def test_12c_population_guard():
+    d = pathlib.Path(tempfile.mkdtemp())
+    _write_files(d)
+    ex = (d / fx.EXPORT_FILE).read_text(encoding="utf-8")
+    row = {"date": "15.10.2026", "ticker": "ZZZ", "score": 80.0, "provenance": "forward",
+           "return_3d": 1.0, "return_5d": 2.0, "return_10d": 3.0, "exported_at": "z"}
+    (d / fx.EXPORT_FILE).write_text(ex + json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n",
+                                    encoding="utf-8")
+    before = _snap(d)
+    rc, log = _run("apply", d)
+    _check("12 null würde Freeze-Zähler ändern → Abbruch, nichts geschrieben",
+           rc == 2 and _snap(d) == before and "Freeze-Zähler" in log and "GEÄNDERT" in log, log[-400:])
+    rc, log = _run("dry_run", d)
+    _check("12 dry_run zeigt die Zähler-Änderung an", rc == 0 and "GEÄNDERT" in log)
+    shutil.rmtree(d)
+
+
 def test_14_workflow():
     import yaml
     wf = yaml.safe_load((ROOT / ".github/workflows/fix_returns_oneoff.yml").read_text(encoding="utf-8"))
@@ -374,7 +391,8 @@ def test_14_workflow():
 
 def main() -> int:
     for t in (test_01_equivalence, test_02_06_correct_record, test_07_15_files,
-              test_12_safety, test_12b_duplicates, test_14_workflow):
+              test_12_safety, test_12b_duplicates,
+              test_12c_population_guard, test_14_workflow):
         try:
             t()
         except Exception as exc:  # noqa: BLE001

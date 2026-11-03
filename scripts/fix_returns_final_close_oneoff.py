@@ -319,18 +319,20 @@ def _dist(label: str, devs: list[float]) -> None:
           + " · ".join(f">{t} pp: {c}" for t, c in over.items()))
 
 
-def _print_counters(root: pathlib.Path) -> None:
-    """Freeze-Zähler (nur n, kein Ergebnis) — die Korrektur ändert keine
-    Population, die Zähler müssen vor/nach apply gleich sein."""
+def _counters(export_path: str):
+    """Freeze-Zähler (nur n, kein Ergebnis) für eine Export-Datei."""
     try:
         import health_check as hc
-        exp = str(root / EXPORT_FILE)
-        s4 = hc.retest_counter_value(exp)
-        se = hc._count_setup_edge_freeze_population(exp)
-        ki = hc._count_ki_score_freeze_population(exp)
-        print(f"Zähler: §4 {s4} · Setup-Edge {se} · KI-Score {ki}")
+        return (hc.retest_counter_value(export_path),
+                hc._count_setup_edge_freeze_population(export_path),
+                hc._count_ki_score_freeze_population(export_path))
     except Exception as exc:  # noqa: BLE001
-        print(f"Zähler nicht lesbar: {type(exc).__name__}")
+        return ("nicht lesbar", type(exc).__name__)
+
+
+def _print_counters(root: pathlib.Path) -> None:
+    c = _counters(str(root / EXPORT_FILE))
+    print(f"Zähler: §4 / Setup-Edge / KI-Score = {c}")
 
 
 # ── Lauf ─────────────────────────────────────────────────────────────────────
@@ -409,6 +411,20 @@ def run(mode: str, now: datetime, root: pathlib.Path = ROOT, prices=None) -> int
     for k in ("alle", "pop:§4", "pop:Setup-Edge", "pop:KI-Score"):
         _dist(f"  {k}", devs.get(k, []))
 
+    # Freeze-Populationen verlangen gefüllte Renditen — ein auf null gesetztes
+    # Feld könnte eine Zeile aus einer Population fallen lassen. Zähler auf dem
+    # BERECHNETEN Export prüfen; ändern sie sich, schreibt apply nicht (Easy
+    # entscheidet über den Umgang mit diesen Zeilen).
+    import tempfile
+    with tempfile.TemporaryDirectory() as _td:
+        _tp = pathlib.Path(_td) / EXPORT_FILE
+        _tp.write_text("".join(json.dumps(r, sort_keys=True, ensure_ascii=False) + "\n"
+                               for r in new_ex), encoding="utf-8")
+        c_before = _counters(str(root / EXPORT_FILE))
+        c_after = _counters(str(_tp))
+    print(f"Zähler nach Korrektur (berechnet): {c_after} · "
+          f"{'unverändert' if c_after == c_before else 'GEÄNDERT'}")
+
     if mode in ("dry_run", "verify"):
         if prices is None and mode == "dry_run":
             measure_max_gain(ex, now, final_cut)
@@ -422,6 +438,10 @@ def run(mode: str, now: datetime, root: pathlib.Path = ROOT, prices=None) -> int
         return 2
     if not spy and any(r.get(f"return_{w}d_vs_spy") is not None for r in recs for w in WINDOWS):
         print("ABBRUCH: SPY-Kurse fehlen. Nichts geschrieben.")
+        return 2
+    if c_after != c_before:
+        print("ABBRUCH: die Korrektur würde Freeze-Zähler ändern (Zeilen fielen aus einer "
+              "Population). Nichts geschrieben — Easy entscheidet.")
         return 2
     if _sha(root / BT_FILE) != sha_bt or _sha(root / EXPORT_FILE) != sha_ex:
         print("ABBRUCH: Dateien seit dem Lesen geändert. Nichts geschrieben.")
