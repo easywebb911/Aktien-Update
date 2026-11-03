@@ -3277,7 +3277,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 03.11.2026 — Renditen-Bestandskorrektur (Schritt 2/3, 1 PR, Manual-Merge, neuer Workflow)
 
-- Easy-Entscheid 03.11.2026: `#__PR__` (Branch `claude/fix-returns-oneoff-r5n2`,
+- Easy-Entscheid 03.11.2026: `#648` (Branch `claude/fix-returns-oneoff-r5n2`,
   kein Merge-Hash — Regel a). Neu `scripts/fix_returns_final_close_oneoff.py`
   + `.github/workflows/fix_returns_oneoff.yml` (nur `workflow_dispatch`,
   Input `mode` dry_run|apply, Default dry_run; dry_run nur Leserecht; apply
