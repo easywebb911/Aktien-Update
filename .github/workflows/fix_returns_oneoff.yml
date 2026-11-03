@@ -1,0 +1,121 @@
+name: Renditen-Korrektur (einmalig)
+
+# EINMALIGE Bestandskorrektur der Backtest-Renditen aus finalen Schlusskursen
+# (Schritt 2/3, Easy-Entscheid 03.11.2026; Mechanik-Fix #647). Skript:
+# scripts/fix_returns_final_close_oneoff.py.
+#
+# BLINDUNG: das Log enthält nur Zählungen und Abweichungs-Beträge |alt − neu|,
+# keine Renditewerte. Das Archiv (alte Werte) wird nur geschrieben, nie geloggt.
+#
+# dry_run (Default): nur Leserecht, schreibt nichts.
+# apply: schreibt backtest_history.json + matured_backtest_export.jsonl +
+#        return_corrections_archive_2026-11.jsonl in EINEM Commit auf main.
+#        Bricht ohne Schreiben ab, wenn ein Daily-Run oder KI-Agent-Lauf aktiv
+#        ist oder sich die Dateien auf main seit dem Lesen geändert haben.
+# Rückweg: Skript-Modus restore (siehe PR) + Revert. Nach Apply und Prüfung
+# wird dieser Workflow samt Skript wieder gelöscht (Rückweg-PR).
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry_run = nur rechnen und berichten · apply = schreiben"
+        required: true
+        default: dry_run
+        type: choice
+        options:
+          - dry_run
+          - apply
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fix-returns-oneoff
+  cancel-in-progress: false
+
+jobs:
+  dry_run:
+    if: ${{ inputs.mode == 'dry_run' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Dry-Run (nur Zahlen, schreibt nichts)
+        run: python scripts/fix_returns_final_close_oneoff.py --mode dry_run
+      - name: Beleg — keine Datei geändert
+        run: git diff --exit-code
+
+  apply:
+    if: ${{ inputs.mode == 'apply' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Kein Daily-Run / KI-Agent aktiv?
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for wf in daily-squeeze-report.yml ki_agent.yml; do
+            for st in in_progress queued; do
+              n=$(gh run list --workflow "$wf" --status "$st" --json databaseId --jq 'length')
+              if [ "$n" != "0" ]; then
+                echo "ABBRUCH: $wf hat $n Lauf/Läufe im Status $st — nichts geschrieben. Später erneut starten."
+                exit 1
+              fi
+            done
+          done
+
+      - name: Gelesenen Stand merken
+        id: read
+        run: |
+          echo "bt=$(git rev-parse HEAD:backtest_history.json)" >> "$GITHUB_OUTPUT"
+          echo "ex=$(git rev-parse HEAD:matured_backtest_export.jsonl)" >> "$GITHUB_OUTPUT"
+
+      - name: Korrektur rechnen und schreiben (lokal)
+        run: python scripts/fix_returns_final_close_oneoff.py --mode apply
+
+      - name: Prüfen, Commit, Push (bricht bei Änderung auf main ab)
+        env:
+          READ_BT: ${{ steps.read.outputs.bt }}
+          READ_EX: ${{ steps.read.outputs.ex }}
+        run: |
+          if git diff --quiet -- backtest_history.json matured_backtest_export.jsonl; then
+            echo "Keine Änderung — nichts zu committen."
+            exit 0
+          fi
+          git fetch origin main
+          now_bt=$(git rev-parse origin/main:backtest_history.json)
+          now_ex=$(git rev-parse origin/main:matured_backtest_export.jsonl)
+          if [ "$now_bt" != "$READ_BT" ] || [ "$now_ex" != "$READ_EX" ]; then
+            echo "ABBRUCH: Dateien auf main seit dem Lesen geändert — nichts gepusht. Später erneut starten."
+            exit 1
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backtest_history.json matured_backtest_export.jsonl return_corrections_archive_2026-11.jsonl
+          git commit -m "fix(data): Renditen-Bestandskorrektur aus finalen Schlusskursen (#__PR__, §4-Protokolleintrag 03.11.2026)"
+          git rebase origin/main
+          git push origin HEAD:main
