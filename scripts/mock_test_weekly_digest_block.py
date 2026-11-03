@@ -356,6 +356,9 @@ def _import_digest_module():
         "_dgst_weekly", ROOT / "scripts" / "health_check_digest.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    # Freeze-Auto-Lauf (seit 03.11.2026 aktiv) abschalten: eval_results.jsonl
+    # ist hier nicht auf einen Temp-Pfad umgebogen.
+    mod.EVAL_AUTORUN_ENABLED = False
     return mod
 
 

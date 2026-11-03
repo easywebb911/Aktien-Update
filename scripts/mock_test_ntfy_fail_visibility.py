@@ -49,6 +49,10 @@ SCRIPT_SRC = (ROOT / "scripts" / "health_check_digest.py").read_text(encoding="u
 
 import health_check as hc
 import health_check_digest as hcd  # type: ignore  # import via sys.path-Setup
+# Tests laufen gegen die ECHTEN Repo-Dateien: Freeze-Auto-Lauf (seit
+# 03.11.2026 wieder aktiv) abschalten, damit ab n>=250 nie eine echte
+# Freeze-Auswertung gerechnet oder ins Repo geschrieben wird.
+hcd.EVAL_AUTORUN_ENABLED = False
 
 
 # ── Source-Inspektion ────────────────────────────────────────────────────────

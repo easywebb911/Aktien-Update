@@ -5,7 +5,8 @@ Anlass: return_3d/5d/10d können aus dem laufenden Handelstag stammen —
 bis zur Rendite-Diagnose darf KEIN Freeze-Ergebnis erzeugt oder gelesen
 werden. Deterministisch, ohne Netz (CI-Stubs aus dem Golden-Test).
 
-  01 config: EVAL_AUTORUN_ENABLED is False, Pause-Grund gesetzt
+  01 config: seit 03.11.2026 wieder True (Wiederaufnahme); Pause-Grund
+     bleibt als Mechanik erhalten. Die Pause-Tests unten setzen False lokal.
   02 Digest-main() mit Auslöser ERREICHT (n>=250 in allen drei Familien):
      freeze_eval wird nicht aufgerufen, kein eval_results.jsonl entsteht,
      keine Freeze-Push-Nachricht
@@ -115,7 +116,8 @@ def _run_digest(enabled: bool, *, break_counters: bool = False):
 
 
 def test_01_config():
-    _check("01 EVAL_AUTORUN_ENABLED is False", config.EVAL_AUTORUN_ENABLED is False)
+    _check("01 EVAL_AUTORUN_ENABLED is True (wieder aktiv seit 03.11.2026)",
+           config.EVAL_AUTORUN_ENABLED is True)
     _check("01 Pause-Grund gesetzt", config.EVAL_AUTORUN_PAUSE_REASON == "Rendite-Diagnose")
 
 
@@ -152,7 +154,12 @@ def test_05_gegenprobe_true_would_evaluate():
 def test_06_s4_sensitivity_paused():
     import s4_sensitivity_eval as s4
     before = set(os.listdir(ROOT))
-    rc = s4.main([])
+    orig = config.EVAL_AUTORUN_ENABLED
+    config.EVAL_AUTORUN_ENABLED = False   # Pause-Verhalten prüfen (Produktion: True)
+    try:
+        rc = s4.main([])
+    finally:
+        config.EVAL_AUTORUN_ENABLED = orig
     after = set(os.listdir(ROOT))
     _check("06 s4_sensitivity_eval.main() → 3 (pausiert)", rc == 3, str(rc))
     _check("06 keine neue Datei im Repo", after == before, str(after - before))

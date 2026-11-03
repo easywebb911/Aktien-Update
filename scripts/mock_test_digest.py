@@ -407,6 +407,10 @@ def _import_digest_module():
         "_dgst", ROOT / "scripts" / "health_check_digest.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    # Diese Tests laufen gegen die ECHTEN Repo-Dateien. Den Freeze-Auto-Lauf
+    # (seit 03.11.2026 wieder aktiv) hier abschalten — sonst würde ein Test
+    # ab n>=250 eine echte Freeze-Auswertung rechnen und ins Repo schreiben.
+    mod.EVAL_AUTORUN_ENABLED = False
     return mod
 
 

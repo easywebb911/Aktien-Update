@@ -38,6 +38,7 @@ SCRIPTS = ROOT / "scripts"
 #    danach statisch festgeschrieben. Kategorie A: deterministisch, kein
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
+    "s4_sensitivity_coupling",
     "fix_returns_oneoff",
     "backtest_returns_final_close",
     "freeze_autorun_pause",
