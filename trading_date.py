@@ -26,7 +26,7 @@ matured_backtest_export oder freeze_eval ein).
 """
 from __future__ import annotations
 
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 _NY = ZoneInfo("America/New_York")
@@ -87,3 +87,29 @@ def us_session_state(now_utc: datetime | None = None) -> str:
     if t < US_SESSION_CLOSE_ET:
         return "open"
     return "post"
+
+
+# ── Finaler Schlusskurs (Fix 03.11.2026, Rendite-Diagnose #645) ────────────
+# Ein Tages-Schlusskurs gilt erst als FINAL, wenn der US-Handelstag (ET)
+# vorbei ist: an einem Folgetag oder am selben Tag ab 16:20 ET. Die 20 Minuten
+# Puffer nach ``US_SESSION_CLOSE_ET`` (16:00) decken die Schlussauktion und
+# die verzögerte Konsolidierung der Tageszeile bei Yahoo ab. Wochenenden/
+# Feiertage brauchen keine Sonderbehandlung: an solchen Tagen existiert keine
+# Tageszeile.
+US_CLOSE_FINAL_ET = time(16, 20)
+
+
+def last_final_close_date(now_utc: datetime | None = None) -> date:
+    """Letztes US-Kalenderdatum (ET), dessen Tages-Schlusskurs zum Zeitpunkt
+    ``now_utc`` final ist: der heutige ET-Tag ab ``US_CLOSE_FINAL_ET``,
+    sonst der Vortag. Eine Tageszeile mit Datum ``<=`` diesem Wert ist
+    abgeschlossen; jüngere Zeilen sind laufend (Intraday) und dürfen nicht
+    als Schlusskurs gelten. ``now_utc`` injizierbar; naiv = UTC."""
+    if now_utc is None:
+        now_utc = datetime.now(timezone.utc)
+    elif now_utc.tzinfo is None:
+        now_utc = now_utc.replace(tzinfo=timezone.utc)
+    et = now_utc.astimezone(_NY)
+    if et.time() >= US_CLOSE_FINAL_ET:
+        return et.date()
+    return et.date() - timedelta(days=1)

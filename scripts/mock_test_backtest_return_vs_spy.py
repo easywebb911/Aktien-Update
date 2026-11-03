@@ -92,7 +92,7 @@ def _test_s10_schema_and_wiring():
     ka_src = (ROOT / "ki_agent.py").read_text(encoding="utf-8")
 
     _check("A4 update_backtest_returns() vorhanden",
-           "def update_backtest_returns()" in ka_src)
+           "def update_backtest_returns(" in ka_src)
     _check("A5 SPY-Fetch vorhanden (yf.download(\"SPY\", ...))",
            'yf.download("SPY"' in ka_src)
 
