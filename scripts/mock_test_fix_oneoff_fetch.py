@@ -172,6 +172,27 @@ def test_a_classify():
            sorted(t for t, _ in fake.calls) == sorted(beh) and all(a is True for _, a in fake.calls))
 
 
+def test_a2_message_classification():
+    PM = _exc("YFPricesMissingError")
+    c = base.classify_fetch_error
+    _check("A2 keine Kurszeilen im Zeitraum (ohne Yahoo-Fehler) → leer",
+           c(PM("$X: possibly delisted; no price data found  (1d 2026-04-26 -> 2026-11-05)"))
+           == "leer:YFPricesMissingError")
+    _check('A2 Yahoo error = "No data found, symbol may be delisted" → leer',
+           c(PM('$X: possibly delisted; no price data found (Yahoo error = "No data found, '
+                'symbol may be delisted")')) == "leer:YFPricesMissingError")
+    _check('A2 Yahoo error = "Not Found" → leer',
+           c(PM('$X: possibly delisted; no price data found (Yahoo error = "Not Found")'))
+           == "leer:YFPricesMissingError")
+    _check('A2 Yahoo error = "Invalid Crumb" → Fehler (Sperre, nicht leer)',
+           c(PM('$X: possibly delisted; no price data found (Yahoo error = "Invalid Crumb")'))
+           == "fehler:YFPricesMissingError_yahoo_error")
+    _check("A2 Yahoo status_code → Fehler",
+           c(PM("$X: possibly delisted; no price data found (1d a -> b)(Yahoo status_code = 401)"))
+           == "fehler:YFPricesMissingError_status_code")
+    _check("A2 Rate-Limit → fehler:rate_limit", c(_exc("YFRateLimitError")("x")) == "fehler:rate_limit")
+
+
 def _returns_files(d, tickers=("AAA", "GETY")):
     bt = [{"date": "05.10.2026", "ticker": t, "score": 80.0, "return_3d": 77.77} for t in tickers]
     (d / base.BT_FILE).write_text(json.dumps(bt, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -282,7 +303,7 @@ def test_f_many_tickers():
 
 
 def main() -> int:
-    for t in (test_a_classify, test_b_returns_ratelimit, test_c_maxgain_ratelimit,
+    for t in (test_a_classify, test_a2_message_classification, test_b_returns_ratelimit, test_c_maxgain_ratelimit,
               test_d_explicit_empty, test_e_gap_and_ipo, test_f_many_tickers):
         try:
             t()

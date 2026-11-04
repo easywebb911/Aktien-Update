@@ -3282,8 +3282,11 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Merge-Hash — Regel a).
 - Beide targets laden jetzt je Ticker einzeln (`fetch_frames`,
   `Ticker.history`, `auto_adjust=True`, `yf.config.debug.hide_exceptions =
-  False`) und klassifizieren nach yfinance-Fehlertyp: nur `YFTzMissingError` /
-  `YFPricesMissingError` = „ausdrücklich leer“ (→ null erlaubt); Rate-Limit,
+  False`) und klassifizieren nach yfinance-Fehlertyp: nur `YFTzMissingError`
+  und `YFPricesMissingError` ohne Yahoo-Sperrmeldung („Not Found“/„No data
+  found“ oder keine Kurszeilen; NICHT bei `status_code` oder anderer
+  `chart.error`-Beschreibung wie „Invalid Crumb“) = „ausdrücklich leer“
+  (→ null erlaubt); Rate-Limit,
   Netzwerk- und sonstige Fehler oder „leer ohne Meldung“ → „Abruf
   unvollständig — nicht verwertbar“, Exit 2, nichts geschrieben. Grund je
   Ticker im Log.

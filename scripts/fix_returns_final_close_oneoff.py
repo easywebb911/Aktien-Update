@@ -199,12 +199,41 @@ def _series(df) -> list | None:
     return pairs or None
 
 
-# yfinance-Fehlertypen (Klassen-NAMEN, damit Tests ohne yfinance laufen):
-# nur diese beiden bedeuten „Yahoo hat ausdrücklich keine Daten“ (Symbol ohne
-# Zeitzone = unbekannt/delistet; gültige Zeitzone aber keine Kurszeilen).
-# Alles andere — YFRateLimitError („Too Many Requests“), Timeouts, HTTP-/
-# Verbindungsfehler — ist ein unvollständiger Abruf und darf NIE zu null führen.
-EMPTY_ERRORS = frozenset({"YFTzMissingError", "YFPricesMissingError"})
+# yfinance-Fehler werden über Klassen-NAMEN eingestuft (Tests laufen ohne
+# yfinance): „ausdrücklich keine Daten“ → null erlaubt; Rate-Limit, Timeouts,
+# HTTP-/Verbindungsfehler, Yahoo-Sperrmeldungen → unvollständiger Abruf, darf
+# NIE zu null führen (siehe classify_fetch_error).
+
+
+# Yahoo-Fehlerbeschreibungen, die „Symbol/Daten gibt es nicht“ bedeuten.
+_EMPTY_DESCRIPTIONS = ("not found", "no data found")
+
+
+def classify_fetch_error(exc: BaseException) -> str:
+    """``leer:<Typ>`` nur bei ausdrücklichem „keine Daten“, sonst ``fehler:<Typ>``.
+    yfinance 1.4.1 fasst unter ``YFPricesMissingError`` auch Antworten mit
+    HTTP-Statuscode und JEDE ``chart.error``-Beschreibung zusammen (z. B.
+    „Invalid Crumb“/„Unauthorized“ bei Sperren) — deshalb wird die Meldung
+    ausgewertet: ``(Yahoo status_code = …)`` → Fehler; ``(Yahoo error =
+    "…")`` → leer nur bei „Not Found“/„No data found“; ohne Yahoo-Fehler
+    (Antwort ohne Kurszeilen im Zeitraum) → leer. Guardian-Finding #653."""
+    name = type(exc).__name__
+    if name == "YFRateLimitError":
+        return "fehler:rate_limit"
+    if name == "YFTzMissingError":
+        return f"leer:{name}"
+    if name == "YFPricesMissingError":
+        msg = str(exc)
+        if "Yahoo status_code =" in msg:
+            return f"fehler:{name}_status_code"
+        marker = '(Yahoo error = "'
+        if marker in msg:
+            desc = msg.split(marker, 1)[1].split('")', 1)[0].lower()
+            if any(k in desc for k in _EMPTY_DESCRIPTIONS):
+                return f"leer:{name}"
+            return f"fehler:{name}_yahoo_error"
+        return f"leer:{name}"
+    return f"fehler:{name}"
 
 
 class AbrufUnvollstaendig(Exception):
@@ -233,11 +262,7 @@ def fetch_frames(tickers: list[str], start: date, now: datetime, *, workers: int
             df = yf.Ticker(t).history(start=start.isoformat(), end=end, interval="1d",
                                       auto_adjust=True, actions=False)
         except Exception as exc:  # noqa: BLE001
-            name = type(exc).__name__
-            if name in EMPTY_ERRORS:
-                return t, None, f"leer:{name}"
-            return t, None, ("fehler:rate_limit" if name == "YFRateLimitError"
-                             else f"fehler:{name}")
+            return t, None, classify_fetch_error(exc)
         if df is None or getattr(df, "empty", True):
             return t, None, "fehler:leer_ohne_meldung"
         return t, df, "ok"
