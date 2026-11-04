@@ -179,6 +179,10 @@ def run(mode: str, now: datetime, root: pathlib.Path = base.ROOT, prices=None,
     base._check_unique({BT_FILE: bt, EXPORT_FILE: ex, SHADOW_FILE: sh})
     shas = {f: base._sha(root / f) for f in (BT_FILE, EXPORT_FILE, SHADOW_FILE)}
 
+    _err = base.check_skip(skip, bt, ex, sh)
+    if _err:
+        print(f"ABBRUCH: {_err}. Nichts geschrieben.")
+        return 2
     base.print_skip(skip)
     mg_todo = lambda r: _mg_todo(r) and r.get("ticker") not in skip  # noqa: E731
     es_todo = lambda r: _es_todo(r) and r.get("ticker") not in skip  # noqa: E731

@@ -3283,12 +3283,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - `fetch_frames`: je Fehler HTTP-Statuscode + kurzer Text (ohne URL-Parameter)
   im Log; Ticker mit Abruf-Fehler (nicht „leer“, nicht Rate-Limit) nach dem
   Paralleldurchgang EINZELN noch einmal: Pause (5 s) → Einzel-Abruf → sonst
-  Sammel-Abruf-Weg (`yf.download`, yfinance-Standard `hide_exceptions=True`,
-  wie der Daily-Run); übernommen nur bei echten Daten, sonst bleibt Fehler →
+  Sammel-Abruf-Weg (`Ticker.history` mit yfinance-Standard
+  `hide_exceptions=True`, wie `yf.download` intern); übernommen nur bei echten
+  Daten UND ohne verschluckten yfinance-Fehler (`_price_history._last_error`,
+  z. B. gescheitertes `auto_adjust` → sonst Rohkurse), sonst bleibt Fehler →
   Abbruch, nie null.
 - Neuer Workflow-Input/Option `skip_tickers` (Default leer, nur nach
   Easy-Entscheid): genannte Ticker werden nicht abgerufen, ihre Felder bleiben
-  UNVERÄNDERT, kein Archiv-Eintrag, Liste im Log.
+  UNVERÄNDERT, kein Archiv-Eintrag, Liste im Log. Höchstens 3 Ticker; ein
+  Ticker, der in keiner Datei vorkommt (Tippfehler), bricht ab. Wird die Liste
+  bei einem apply genutzt: übersprungene Ticker als open_item festhalten (ihre
+  Altwerte bleiben ggf. falsch).
 - Test `mock_test_fix_oneoff_fetch.py` erweitert (Wiederholung → Erfolg,
   → Sammelweg, → Fehler/Abbruch, Rate-Limit ohne Wiederholung, Fehlertext ohne
   Crumb, Überspringen-Liste beide targets). Gegenprobe alter Stand: 3 FAIL.

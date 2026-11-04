@@ -274,7 +274,8 @@ def fetch_frames(tickers: list[str], start: date, now: datetime, *, workers: int
     dann der Sammel-Abruf-Weg (``yf.download`` mit yfinance-Standard
     ``hide_exceptions=True``, so lief der Daily-Run und so bekam YYGH im
     Sammel-Lauf #4 Daten). Vom Sammel-Weg wird NUR eine nicht-leere Antwort
-    übernommen; leer bleibt Fehler (nie null). ``sleep`` injizierbar (Tests)."""
+    OHNE verschluckten yfinance-Fehler übernommen; sonst bleibt Fehler (nie
+    null). ``sleep`` injizierbar (Tests)."""
     import time as _time
     import yfinance as yf
     from concurrent.futures import ThreadPoolExecutor
@@ -304,26 +305,27 @@ def fetch_frames(tickers: list[str], start: date, now: datetime, *, workers: int
         return t, df, "ok"
 
     def _sammelweg(t):
+        """Wie ``yf.download`` intern (``Ticker.history`` mit yfinance-Standard
+        ``hide_exceptions=True``). Übernommen NUR, wenn yfinance dabei KEINEN
+        verschluckten Fehler vermerkt hat (``_price_history._last_error``) —
+        sonst könnten z. B. unbereinigte Kurse durchrutschen, wenn
+        ``auto_adjust`` intern scheitert (Guardian-Finding). Fehlt das Attribut,
+        wird ebenfalls nichts übernommen (konservativ)."""
         _hide(True)
         try:
-            hist = yf.download([t], start=start.isoformat(), end=end, auto_adjust=True,
-                               progress=False, threads=False, group_by="ticker")
+            tk = yf.Ticker(t)
+            df = tk.history(start=start.isoformat(), end=end, interval="1d",
+                            auto_adjust=True, actions=False)
+            ph = getattr(tk, "_price_history", None)
+            if ph is None or not hasattr(ph, "_last_error") or ph._last_error is not None:
+                return None
         except Exception:  # noqa: BLE001
             return None
         finally:
             _hide(False)
-        if hist is None or getattr(hist, "empty", True):
+        if df is None or getattr(df, "empty", True):
             return None
-        try:
-            df = hist[t]
-        except Exception:  # noqa: BLE001
-            df = hist
-        try:
-            if df.dropna(how="all").empty:
-                return None
-            return df.dropna(how="all")
-        except Exception:  # noqa: BLE001
-            return None
+        return df
 
     frames, status = {}, {}
     with ThreadPoolExecutor(max_workers=workers) as ex:
@@ -505,6 +507,21 @@ def parse_skip(raw: str | None) -> frozenset:
     return frozenset(items)
 
 
+MAX_SKIP = 3
+
+
+def check_skip(skip: frozenset, *record_lists) -> str | None:
+    """Fehlertext, wenn die Überspringen-Liste zu lang ist oder einen Ticker
+    nennt, der in keiner Datei vorkommt (Tippfehler) — sonst ``None``."""
+    if len(skip) > MAX_SKIP:
+        return f"Überspringen-Liste zu lang ({len(skip)} > {MAX_SKIP})"
+    known = {r.get("ticker") for lst in record_lists for r in lst if isinstance(r, dict)}
+    unknown = sorted(skip - known)
+    if unknown:
+        return f"Überspringen-Liste nennt unbekannte Ticker {unknown}"
+    return None
+
+
 def print_skip(skip: frozenset) -> None:
     if skip:
         print(f"Übersprungen (Easy-Entscheid, Felder bleiben UNVERÄNDERT, kein Archiv): "
@@ -525,6 +542,10 @@ def run(mode: str, now: datetime, root: pathlib.Path = ROOT, prices=None,
                 and any(f in r and r[f] is not None for f in TARGET_FIELDS)
                 and _dmy(r.get("date")) is not None)
 
+    _err = check_skip(skip, bt, ex)
+    if _err:
+        print(f"ABBRUCH: {_err}. Nichts geschrieben.")
+        return 2
     print_skip(skip)
     recs = [r for r in bt if _todo(r)] + [r for r in ex if _todo(r)]
     tickers = sorted({r["ticker"] for r in recs if r.get("ticker")})

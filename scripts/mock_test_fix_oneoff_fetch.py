@@ -128,6 +128,7 @@ class _FakeYf(types.ModuleType):
         self.calls = []
         self.dl_calls = []
         self.dl = {}
+        self.dl_err = {}
 
     def download(self, tickers, **kw):
         t = tickers[0]
@@ -142,6 +143,12 @@ class _FakeYf(types.ModuleType):
 
         class _T:
             def history(self, **kw):
+                if yf.config.debug.hide_exceptions:           # Sammelweg
+                    yf.dl_calls.append((t, True))
+                    b = yf.dl.get(t, "empty")
+                    le = yf.dl_err.get(t)
+                    self._price_history = types.SimpleNamespace(_last_error=le)
+                    return b if isinstance(b, _DF) else _DF([], [])
                 yf.calls.append((t, kw.get("auto_adjust")))
                 b = yf.behaviour.get(t, "ok")
                 if isinstance(b, list):           # Folge je Aufruf
@@ -158,9 +165,10 @@ class _FakeYf(types.ModuleType):
 
 
 @contextlib.contextmanager
-def _yf(behaviour, dl=None):
+def _yf(behaviour, dl=None, dl_err=None):
     fake = _FakeYf(behaviour)
     fake.dl = dl or {}
+    fake.dl_err = dl_err or {}
     base.RETRY_PAUSE_S = 0.0
     orig = sys.modules.get("yfinance")
     sys.modules["yfinance"] = fake
@@ -252,6 +260,11 @@ def test_r_retry():
            st["YYGH"] == "ok:sammelweg" and fr["YYGH"] is not None, str(st))
     _check("R Sammelweg mit hide_exceptions=True, danach wieder False",
            fk.dl_calls == [("YYGH", True)] and fk.config.debug.hide_exceptions is False, str(fk.dl_calls))
+    with _yf({"YYGH": "HTTPError"}, dl={"YYGH": ok_df},
+             dl_err={"YYGH": "auto_adjust failed"}) as fk:
+        fr, st = base.fetch_frames(["YYGH"], _dt.date(2026, 10, 1), NOW)
+    _check("R Sammelweg mit verschlucktem yfinance-Fehler (z. B. auto_adjust) → nicht übernommen",
+           st["YYGH"].startswith("fehler:") and fr["YYGH"] is None, st["YYGH"])
     with _yf({"YYGH": "HTTPError"}) as fk:
         fr, st = base.fetch_frames(["YYGH"], _dt.date(2026, 10, 1), NOW)
     _check("R Fehler → Fehler → Sammelweg leer → bleibt Fehler (nie null)",
@@ -297,6 +310,13 @@ def test_s_skip():
         rc = mgs.run("dry_run", NOW, root=d, skip=frozenset({"YYGH"}))
     _check("S maxgain_shadow mit Liste: läuft, nichts geschrieben", rc == 0 and _snap(d) == b2)
     _check("S Ungültige Liste → ValueError", _raises(lambda: base.parse_skip("YY GH; rm")))
+    _check("S unbekannter Ticker in der Liste → Fehlertext",
+           "unbekannte Ticker ['ZZQQ']" in (base.check_skip(frozenset({"ZZQQ"}), [{"ticker": "AAA"}]) or ""))
+    _check("S Liste > 3 → Fehlertext",
+           "zu lang" in (base.check_skip(frozenset({"A", "B", "C", "D"}), [{"ticker": "A"}]) or ""))
+    with _yf({}), contextlib.redirect_stdout(io.StringIO()):
+        rc = mgs.run("dry_run", NOW, root=d, skip=frozenset({"ZZQQ"}))
+    _check("S Tippfehler in der Liste → Abbruch rc 2, nichts geschrieben", rc == 2 and _snap(d) == b2)
     _check("S Liste geparst (Komma/Leerzeichen, Großschrift)",
            base.parse_skip("yygh, ABC  def") == frozenset({"YYGH", "ABC", "DEF"}))
     shutil.rmtree(d)
