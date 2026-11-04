@@ -9,7 +9,8 @@ schlug fehl (mehrfach an PR-#133/#134-Merges sichtbar).
 
 Fix: Phase clientseitig bestimmen (analog scripts/resolve_run_phase.py +
 Client-Logik aus PR #133). Seit 02.11.2026 aus US-Ostküstenzeit:
-  - 09:30 ≤ ET < 16:00 → premarket
+  - 09:30 ≤ ET < 16:20 → premarket (seit 04.11.2026 bis zum finalen Schluss,
+                          trading_date.US_CLOSE_FINAL_ET; vorher 16:00)
   - sonst               → postclose
 (vorher feste UTC-Grenzen 13:30/20:00 — nur in der Sommerzeit richtig).
 
@@ -19,7 +20,7 @@ Tests:
   3. Logik-Replikation: 22:00 UTC → postclose
   4. Edge: 13:29 UTC → postclose (vor Open)
   5. Edge: 13:30 UTC → premarket (genau Open, inklusiv)
-  6. Edge: 20:00 UTC → postclose (genau Close, exklusiv)
+  6. Edge: 20:00 UTC (16:00 EDT) → premarket; 20:20 UTC (16:20 EDT) → postclose
   7. Bash-Vergleich nutzt 4-stelliges HHMM (kein versehentliches
      String-Compare statt Integer-Compare)
 """
@@ -37,6 +38,9 @@ from datetime import datetime, timezone  # noqa: E402
 from zoneinfo import ZoneInfo  # noqa: E402
 
 _ET = ZoneInfo("America/New_York")
+sys.path.insert(0, str(ROOT))
+import trading_date  # noqa: E402
+_FINAL_HHMM = trading_date.US_CLOSE_FINAL_ET.hour * 100 + trading_date.US_CLOSE_FINAL_ET.minute
 
 
 def _phase_for(hour: int, minute: int, *, month: int = 5, day: int = 13) -> str:
@@ -45,7 +49,7 @@ def _phase_for(hour: int, minute: int, *, month: int = 5, day: int = 13) -> str:
 
     Bash:
         NOW_HHMM=$(TZ=America/New_York date +%H%M)
-        if [ "$NOW_HHMM" -ge 930 ] && [ "$NOW_HHMM" -lt 1600 ]; then
+        if [ "$NOW_HHMM" -ge 930 ] && [ "$NOW_HHMM" -lt 1620 ]; then
             RUN_PHASE="premarket"
         else
             RUN_PHASE="postclose"
@@ -54,7 +58,7 @@ def _phase_for(hour: int, minute: int, *, month: int = 5, day: int = 13) -> str:
     """
     et = datetime(2026, month, day, hour, minute, tzinfo=timezone.utc).astimezone(_ET)
     hhmm = et.hour * 100 + et.minute
-    return "premarket" if 930 <= hhmm < 1600 else "postclose"
+    return "premarket" if 930 <= hhmm < _FINAL_HHMM else "postclose"
 
 
 def _bash_if_block() -> str:
@@ -88,9 +92,10 @@ def test_workflow_yaml_passes_run_phase():
     assert "TZ=America/New_York date +%H%M" in yml, (
         "ET-Zeit-Bestimmung via `TZ=America/New_York date +%H%M` fehlt im Workflow")
     # Bash-Integer-Vergleich mit den ET-Grenzen
-    assert "-ge 930" in yml and "-lt 1600" in yml, (
-        "US-Session-Grenzen 930 (Open inkl.) und 1600 (Close exkl.) "
-        "fehlen in der Bash-Logik")
+    assert "-ge 930" in yml and f"-lt {_FINAL_HHMM}" in yml, (
+        f"Grenzen 930 (Open inkl.) und {_FINAL_HHMM} (= trading_date."
+        "US_CLOSE_FINAL_ET, exkl.) fehlen in der Bash-Logik")
+    assert "-lt 1600" not in yml, "alte 16:00-Grenze noch drin"
     assert "-ge 1330" not in yml and "-lt 2000" not in yml, "alte UTC-Grenzen noch drin"
     # Beide Phasen werden gesetzt
     assert 'RUN_PHASE="premarket"' in yml, "premarket-Branch fehlt"
@@ -116,7 +121,9 @@ def test_us_open_13_30_premarket():
 
 
 def test_us_close_20_00_postclose():
-    assert _phase_for(20, 0) == "postclose"
+    assert _phase_for(20, 0) == "premarket"    # 16:00 EDT: Schluss nicht final
+    assert _phase_for(20, 19) == "premarket"   # 16:19 EDT
+    assert _phase_for(20, 20) == "postclose"   # 16:20 EDT
 
 
 # === 7 — Bash-Vergleich-Sanity =============================================
@@ -145,19 +152,25 @@ def test_winter_and_summer_edges_python():
     assert _phase_for(14, 29, **w) == "postclose"
     assert _phase_for(14, 30, **w) == "premarket"
     assert _phase_for(20, 30, **w) == "premarket"
-    assert _phase_for(21, 0, **w) == "postclose"
+    assert _phase_for(21, 0, **w) == "premarket"    # 16:00 EST
+    assert _phase_for(21, 19, **w) == "premarket"   # 16:19 EST
+    assert _phase_for(21, 20, **w) == "postclose"   # 16:20 EST
     assert _phase_for(20, 30) == "postclose"
 
 
 def test_real_bash_logic_both_regimes():
     cases = [
         (datetime(2026, 5, 13, 13, 30, tzinfo=timezone.utc), "premarket"),   # 09:30 EDT
-        (datetime(2026, 5, 13, 20, 0, tzinfo=timezone.utc), "postclose"),    # 16:00 EDT
+        (datetime(2026, 5, 13, 20, 0, tzinfo=timezone.utc), "premarket"),    # 16:00 EDT
+        (datetime(2026, 5, 13, 20, 19, tzinfo=timezone.utc), "premarket"),   # 16:19 EDT
+        (datetime(2026, 5, 13, 20, 20, tzinfo=timezone.utc), "postclose"),   # 16:20 EDT
         (datetime(2026, 5, 13, 20, 30, tzinfo=timezone.utc), "postclose"),   # 16:30 EDT
         (datetime(2026, 11, 2, 14, 29, tzinfo=timezone.utc), "postclose"),   # 09:29 EST
         (datetime(2026, 11, 2, 14, 30, tzinfo=timezone.utc), "premarket"),   # 09:30 EST
         (datetime(2026, 11, 2, 20, 30, tzinfo=timezone.utc), "premarket"),   # 15:30 EST
-        (datetime(2026, 11, 2, 21, 0, tzinfo=timezone.utc), "postclose"),    # 16:00 EST
+        (datetime(2026, 11, 2, 21, 0, tzinfo=timezone.utc), "premarket"),    # 16:00 EST
+        (datetime(2026, 11, 2, 21, 19, tzinfo=timezone.utc), "premarket"),   # 16:19 EST
+        (datetime(2026, 11, 2, 21, 20, tzinfo=timezone.utc), "postclose"),   # 16:20 EST
     ]
     for dt, exp in cases:
         got = _bash_phase(dt)
@@ -178,7 +191,7 @@ def main() -> None:
          test_pre_open_13_29_postclose),
         ("13:30 UTC → premarket (genau Open, inklusiv)",
          test_us_open_13_30_premarket),
-        ("20:00 UTC → postclose (genau Close, exklusiv)",
+        ("16:00/16:19 EDT → premarket, 16:20 EDT → postclose (finaler Schluss)",
          test_us_close_20_00_postclose),
         ("Bash-Format %H%M (kein Doppelpunkt → kein String-Compare-Bug)",
          test_bash_uses_hhmm_integer_format),

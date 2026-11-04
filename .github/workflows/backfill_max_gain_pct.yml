@@ -17,7 +17,7 @@ name: Backfill max_gain_pct (einmalig, manual)
 #
 # DOPPELTER RACE-SCHUTZ:
 #   1. Skript-intern: fcntl.flock (exclusive, non-blocking) + Cron-Fenster-
-#      Guard (±30 min um 06:17/21:17 UTC).
+#      Guard (±30 min um 06:17/21:37 UTC).
 #   2. Workflow-Ebene: concurrency-group (kein 2. Lauf parallel).
 #
 # IDEMPOTENZ:
@@ -86,7 +86,7 @@ jobs:
         run: |
           set -euo pipefail
           LOG=/tmp/backfill.log
-          # Skript-interner Cron-Guard fängt ±30 min um 06:17/21:17 UTC ab
+          # Skript-interner Cron-Guard fängt ±30 min um 06:17/21:37 UTC ab
           # (auch wenn Workflow zu ungünstiger Zeit gestartet wurde).
           python scripts/backfill_max_gain_pct.py --live 2>&1 | tee "$LOG"
 

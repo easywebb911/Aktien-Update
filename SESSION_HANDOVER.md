@@ -3275,6 +3275,52 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 04.11.2026 — Postclose-Grenze 16:20 ET + Postclose-Cron 21:37 UTC (1 PR, Manual-Merge)
+
+- Easy-Entscheid 03./04.11.2026 (Funde 1+2 aus #651): `#656` (Branch
+  `claude/postclose-1620-et-q8w3`, kein Merge-Hash — Regel a). Kein Lauf vor
+  16:20 ET (`trading_date.US_CLOSE_FINAL_ET`, finaler Schluss) gilt als
+  postclose oder legt Backtest-Einträge an.
+- EINE Quelle `US_CLOSE_FINAL_ET` (jetzt neben den Börsenzeiten in
+  `trading_date.py`): `us_session_state` mit viertem Zustand `"closing"`
+  (16:00–16:19 ET); `resolve_run_phase` (16:00–16:19 + postclose → premarket,
+  Grund `close_not_final_override`; premarket → postclose erst ab 16:20);
+  Vintage-Guard `backtest_history._VINTAGE_MKT_CLOSE` (vorher eigene
+  16:00-Kopie); S4-Zeit-Gate `health_check._S4_MKT_CLOSE` (vorher 16:00 —
+  Guardian-Finding; deckt auch einen eingereihten Alt-Cron-Lauf 16:17 ET ab);
+  `exit_shadow._MKT_CLOSE` (vorher 16:00); Frontend
+  `_usSessionStateET`/`_computeClientRunPhase`/Pill (`_US_CLOSE_FINAL_ET_MIN`);
+  Redeploy-Workflow 1620 (kein Checkout → Zahl, Gleichheit per Test,
+  Easy-Variante ii). Golden mitcommittet (nur diese JS-Stellen).
+- Postclose-Cron `17 21` → `37 21 * * 1-5` (Easy-Variante A): 21:17 UTC wäre
+  im Winter 16:17 ET → ein pünktlicher Lauf hätte keine Einträge anlegen
+  dürfen. Mitgezogen: `resolve_run_phase.POSTCLOSE_CRONS` (alter String für
+  den Übergang weiter postclose; Vintage-Guard schützt), Tests, CLAUDE.md
+  Zwei-Run-Architektur, Health-Check-Texte (S4/S12), Backfill-Sperrfenster
+  (`backfill_max_gain_pct.py`, `backfill_entry_past_return_5d.py`: 21:37).
+  S11/S12 greifen unverändert (`run_phase == trading_session_phase`; ein
+  Postclose-Lauf ab 16:20 hat immer `trading_session_phase=postclose`).
+  KI-Score-Coverage-Fix (`_compute_fresh_ki_signals_for_backtest`) rechnet
+  synchron im Postclose-Lauf → von der Cron-Minute unabhängig, greift weiter.
+- Bewusst unverändert (andere Bedeutung): `score_inflation_log._session_phase`
+  (Log-Zeitslot), `ki_agent.get_market_phase` (Anzeige/Alert-Schwelle),
+  `s4_sensitivity_eval` (eingefrorene Sensitivitätsregel).
+- Wirkung bisher: 0 von 22 geloggten Postclose-Läufen lagen zwischen 16:00 und
+  16:20 ET → keine bestehende Zeile betroffen, Änderung wirkt nur künftig.
+- **Freeze-Prüfung:** Setup-Edge (Punkt 8c: `score()`/Top-10-Auswahl) — nicht
+  berührt, kein Eintrag. KI-Score (Regel (e): genannte Stellen) — nicht
+  berührt, kein Eintrag. H5 (`entry_past_return_5d`) — Formel unverändert,
+  kein Blockwechsel, kein Eintrag. §4 — Block/Kriterien/Population
+  unverändert, keine bestehende Zeile betroffen, kein Eintrag. Freeze-Blöcke
+  byte-identisch (MD5).
+- `open_items.json`: `yygh-maxgain-korrektur-ausgelassen` → erledigt (Easy:
+  dauerhaft unverändert).
+- Test `mock_test_postclose_final_boundary.py` (16:19/16:20 ET Handstart +
+  Append, Sommer/Winter, Cron 21:37, eine Quelle). Gegenprobe alter Code:
+  20 FAIL.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#655`, höchste in Block 1 erwähnte PR = `#656` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 04.11.2026 — Rückweg: Korrektur-Workflow + Skripte entfernt (1 PR, Manual-Merge)
 
 - `#649` (Branch `claude/fix-returns-oneoff-rollback-r5n2`, auf `main` nach

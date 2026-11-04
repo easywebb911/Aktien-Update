@@ -935,6 +935,9 @@ def get_finviz_screener_v111(max_tickers: int | None = None) -> list[dict]:
 # EINE Quelle: trading_date.US_SESSION_OPEN_ET/CLOSE_ET (Fix 02.11.2026).
 _US_SESSION_OPEN_ET_MIN  = trading_date.US_SESSION_OPEN_ET.hour * 60 + trading_date.US_SESSION_OPEN_ET.minute
 _US_SESSION_CLOSE_ET_MIN = trading_date.US_SESSION_CLOSE_ET.hour * 60 + trading_date.US_SESSION_CLOSE_ET.minute
+# Postclose-Grenze (finaler Schluss, 16:20 ET) — seit 04.11.2026 dieselbe
+# Quelle wie trading_date.us_session_state / scripts/resolve_run_phase.py.
+_US_CLOSE_FINAL_ET_MIN = trading_date.US_CLOSE_FINAL_ET.hour * 60 + trading_date.US_CLOSE_FINAL_ET.minute
 # ACHTUNG (02.11.2026): die beiden Konstanten unten sind nur die SOMMERZEIT-
 # Projektion (EDT). Sie werden ausschließlich von _normalize_rvol gelesen
 # (Flag RVOL_NORMALIZATION_ENABLED=False → heute ohne Wirkung). Umstellung auf
@@ -5360,7 +5363,9 @@ def _compute_fresh_ki_signals_for_backtest(top10: list[dict]) -> dict[str, dict]
 
     Hintergrund (Diagnose 10.10.2026): Der bisherige ``ki_signal_score`` im
     Backtest stammte vom letzten COMMITTETEN ``ki_agent``-Tick. Cron-
-    Kollision (``daily-squeeze-report.yml`` postclose ``17 21 * * 1-5`` vs.
+    Kollision (``daily-squeeze-report.yml`` postclose damals ``17 21 * * 1-5``,
+    seit 04.11.2026 ``37 21`` — der Fix bleibt nötig, weil agent_signals.json
+    trotzdem stale sein kann — vs.
     ``ki_agent.yml`` ``17 * * * *``, dieselbe Minute) + komplette Über-
     schreibung von ``agent_signals.json`` pro Tick (nur der zur Tick-Zeit
     aktuelle Top-10/Watchlist/Positions-Pool, ``ki_agent.parse_monitored_
@@ -11198,8 +11203,10 @@ const _PSTATUS_GLOW_CLASSES = ['exit-glow-warn', 'exit-glow-mid', 'exit-glow-cri
 function _usSessionStateET(d) {{
   // US-Börsen-Session in US-Ostküstenzeit (DST-korrekt via Intl), Fix
   // 02.11.2026: vorher feste UTC-Grenzen 13:30/20:00 (nur Sommerzeit).
-  // Liefert 'pre' (vor 09:30 ET) / 'open' (09:30–16:00 ET) / 'post' (ab
-  // 16:00 ET) oder null bei Fehler. Grenzen aus trading_date (Python).
+  // Liefert 'pre' (vor 09:30 ET) / 'open' (09:30–16:00 ET) / 'closing'
+  // (16:00–16:20 ET, Schluss noch nicht final) / 'post' (ab 16:20 ET) oder
+  // null bei Fehler. Grenzen aus trading_date (Python), seit 04.11.2026 mit
+  // US_CLOSE_FINAL_ET als Postclose-Grenze.
   try {{
     const parts = new Intl.DateTimeFormat('en-US', {{
       timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit',
@@ -11213,6 +11220,7 @@ function _usSessionStateET(d) {{
     const mins = (h % 24) * 60 + m;
     if (mins < {_US_SESSION_OPEN_ET_MIN}) return 'pre';
     if (mins < {_US_SESSION_CLOSE_ET_MIN}) return 'open';
+    if (mins < {_US_CLOSE_FINAL_ET_MIN}) return 'closing';
     return 'post';
   }} catch (e) {{
     return null;
@@ -11230,7 +11238,7 @@ function _renderRunPhasePill(phase, generatedAt) {{
   //
   // ``generatedAt`` (ISO-String aus ``app_data.json.generated_at``) erlaubt
   // Drei-Klassen-Disambiguation:
-  //   premarket + US-Session (09:30–16:00 ET, _usSessionStateET) → "Intraday-Snapshot"
+  //   premarket + US-Session bis 16:20 ET (open|closing, _usSessionStateET) → "Intraday-Snapshot"
   //     (US-Session läuft, run_phase=premarket gepinnt fürs Backtest-Schutz)
   //   premarket + UTC außerhalb        → "Pre-Open-Vorschau"
   //     (echter Pre-Open-Run vor US-Open)
@@ -11251,7 +11259,7 @@ function _renderRunPhasePill(phase, generatedAt) {{
           sessionState = _usSessionStateET(t);
         }}
       }} catch(_) {{ /* fall through */ }}
-      const inUsSession = (sessionState === 'open');
+      const inUsSession = (sessionState === 'open' || sessionState === 'closing');
       el.textContent = inUsSession
         ? ' · Intraday-Snapshot'
         : ' · Pre-Open-Vorschau';
@@ -13413,14 +13421,15 @@ function triggerWorkflow(){{
 // _computeClientRunPhase — bestimmt run_phase aus aktueller UTC-Zeit für
 // den Recalculate-Dispatch. Workflow erwartet seit PR #132 das Feld als
 // required (Default raus); ohne Wert antwortet die GitHub-API HTTP 422.
-// US-Session (09:30–16:00 ET, DST-korrekt via _usSessionStateET) →
-// 'premarket', sonst 'postclose'. Unbestimmbar (Intl-Fehler) → 'premarket'
+// US-Session bis zum finalen Schluss (09:30–16:20 ET, DST-korrekt via
+// _usSessionStateET: 'open'/'closing') → 'premarket', sonst 'postclose'.
+// Unbestimmbar (Intl-Fehler) → 'premarket'
 // (sicher: kein Backtest-Befüllen). Der Plausibilitäts-Override in
 // scripts/resolve_run_phase.py bleibt als Safety-Net aktiv.
 function _computeClientRunPhase(){{
   const st = _usSessionStateET(new Date());
   if (st == null) return 'premarket';
-  return (st === 'open') ? 'premarket' : 'postclose';
+  return (st === 'open' || st === 'closing') ? 'premarket' : 'postclose';
 }}
 // showTokenInput / saveTokenAndDispatch sind nach Phase 3 entfallen —
 // _ensureToken übernimmt den Token-Pfad via Setup/Unlock/Migrate-Modal.
@@ -18498,7 +18507,7 @@ def _build_phase2_positions_payload(
             exit_shadow.build_exit_shadow_record(
                 ticker, report_date, run_phase, state, cur_price))
 
-    # Settled-postclose-Gate (now_et >= 16:00 ET): nur dann ist der
+    # Settled-postclose-Gate (now_et >= 16:20 ET): nur dann ist der
     # Trigger-Preis final. now_et aus now_utc abgeleitet (DST-korrekt).
     try:
         _now_et = now_utc.astimezone(ZoneInfo("America/New_York"))

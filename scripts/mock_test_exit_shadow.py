@@ -90,8 +90,12 @@ _check("13 premarket 17:17 ET → skip",
        es.should_log_exit_shadow("premarket", _et(2026, 6, 10, 17, 17)), False)
 _check("14 postclose 15:42 ET (pre-close) → skip",
        es.should_log_exit_shadow("postclose", _et(2026, 6, 10, 15, 42)), False)
-_check("15 postclose 16:00 ET exakt → log",
-       es.should_log_exit_shadow("postclose", _et(2026, 6, 10, 16, 0)), True)
+_check("15 postclose 16:00 ET → skip (Schluss noch nicht final, seit 04.11.2026)",
+       es.should_log_exit_shadow("postclose", _et(2026, 6, 10, 16, 0)), False)
+_check("15b postclose 16:19 ET → skip",
+       es.should_log_exit_shadow("postclose", _et(2026, 6, 10, 16, 19)), False)
+_check("15c postclose 16:20 ET exakt → log",
+       es.should_log_exit_shadow("postclose", _et(2026, 6, 10, 16, 20)), True)
 _check("16 leere run_phase (off-schedule/Default) → skip",
        es.should_log_exit_shadow("", _et(2026, 6, 10, 17, 17)), False)
 

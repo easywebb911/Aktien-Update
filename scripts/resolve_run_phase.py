@@ -2,17 +2,25 @@
 
 Resolution-Logik:
 
-1. ``schedule``-Trigger: fester Mapping pro Cron — `17 21 * * 1-5` → postclose,
+1. ``schedule``-Trigger: fester Mapping pro Cron — `37 21 * * 1-5` → postclose,
    alles andere (insb. `17 6 * * 1-5`) → premarket. **Plausibilitäts-Override
-   greift hier nicht**, weil Cron-Trigger zeitlich gepinnt sind. Minute-17-
-   Offset gegen GitHub-Actions-Load-Peak-Drops (siehe Workflow-Kommentar).
+   greift hier nicht**, weil Cron-Trigger zeitlich gepinnt sind. Seit
+   04.11.2026 Minute 37 (vorher `17 21`): 21:37 UTC = 16:37 ET im Winter, also
+   immer nach der Postclose-Grenze 16:20 ET (``trading_date.US_CLOSE_FINAL_ET``).
+   Der alte String `17 21 * * 1-5` wird für den Übergang (ein noch
+   eingereihter Lauf) weiter als postclose erkannt; der Vintage-Guard
+   verhindert dann trotzdem Einträge vor 16:20 ET.
 
 2. ``workflow_dispatch``-Trigger: User-Input wird gegen die aktuelle UTC-Zeit
    plausibilitäts-geprüft:
 
    - US-Session (09:30 ≤ ET < 16:00) + `postclose` → **Override auf premarket**.
      Backtest-History würde sonst mit Intraday-Mid-Day-Werten gefüllt.
-   - Post-Close (ET ≥ 16:00) + `premarket` → **Override auf postclose**.
+   - Schluss noch nicht final (16:00 ≤ ET < 16:20, seit 04.11.2026) +
+     `postclose` → **Override auf premarket** (``close_not_final_override``);
+     + `premarket` → bleibt premarket.
+   - Post-Close (ET ≥ 16:20, ``trading_date.US_CLOSE_FINAL_ET``) +
+     `premarket` → **Override auf postclose**.
      Backtest-History würde sonst ausbleiben, obwohl konsolidierte Daten da.
    - Pre-US-Session (ET < 09:30) → kein Override (User-Wahl bleibt).
 
@@ -39,6 +47,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from trading_date import us_session_state  # noqa: E402  (EINE Quelle, ET-basiert)
 
 _VALID_PHASES = ("premarket", "postclose")
+# Feste Cron→postclose-Zuordnung. "37 21" ist der aktuelle Postclose-Cron
+# (daily-squeeze-report.yml, seit 04.11.2026); "17 21" nur noch für den
+# Übergang (bereits eingereihter Lauf des alten Crons).
+POSTCLOSE_CRONS = ("37 21 * * 1-5", "17 21 * * 1-5")
 
 
 def resolve_run_phase(
@@ -54,7 +66,7 @@ def resolve_run_phase(
     ``"no_input_fallback"``), den der Caller ins Run-Log schreibt.
     """
     if event_name == "schedule":
-        if schedule == "17 21 * * 1-5":
+        if schedule in POSTCLOSE_CRONS:
             return "postclose", None
         return "premarket", None
 
@@ -69,6 +81,9 @@ def resolve_run_phase(
     if state == "open":
         if chosen == "postclose":
             return "premarket", "us_session_override"
+    elif state == "closing":
+        if chosen == "postclose":
+            return "premarket", "close_not_final_override"
     elif state == "post":
         if chosen == "premarket":
             return "postclose", "post_close_override"
@@ -84,8 +99,13 @@ _REASON_TEXTS = {
     ),
     "post_close_override": (
         "⚠ Override: workflow_dispatch wurde mit run_phase=premarket getriggert, "
-        "aber die aktuelle Zeit liegt nach US-Close (≥16:00 ET). "
+        "aber die aktuelle Zeit liegt nach dem finalen Schluss (≥16:20 ET). "
         "Forciere postclose — Backtest würde sonst trotz EOD-Daten leer bleiben."
+    ),
+    "close_not_final_override": (
+        "⚠ Override: workflow_dispatch wurde mit run_phase=postclose getriggert, "
+        "aber der Schlusskurs ist noch nicht final (16:00–16:20 ET). "
+        "Forciere premarket — Backtest-Einträge erst ab 16:20 ET."
     ),
     "no_input_fallback": (
         "⚠ Fallback: workflow_dispatch ohne run_phase-Input — forciere premarket "

@@ -30,15 +30,18 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import time
 from zoneinfo import ZoneInfo
+
+import trading_date
 
 log = logging.getLogger(__name__)
 
 EXIT_SHADOW_LOG = "exit_shadow_log.jsonl"
 SCHEMA_V_EXIT_SHADOW = 1
 _EASTERN = ZoneInfo("America/New_York")
-_MKT_CLOSE = time(16, 0)
+# Seit 04.11.2026 die EINE Postclose-Grenze (finaler Schluss, 16:20 ET) statt
+# einer eigenen 16:00-Kopie — wie Vintage-Guard und resolve_run_phase.
+_MKT_CLOSE = trading_date.US_CLOSE_FINAL_ET
 
 # Die 6 Phase-2-Exit-Trigger (Reihenfolge stabil; Quelle: _compute_exit_state).
 _TRIGGER_NAMES = (
@@ -51,7 +54,7 @@ _FORWARD_HORIZONS = (3, 5, 10)
 
 def should_log_exit_shadow(run_phase: str, now_et) -> bool:
     """Gate (pure): NUR settled-postclose loggen — ``run_phase=="postclose"``
-    UND ``now_et >= 16:00 ET``. Sonst Skip (premarket/pre-close/off-schedule
+    UND ``now_et >= 16:20 ET`` (``trading_date.US_CLOSE_FINAL_ET``). Sonst Skip (premarket/pre-close/off-schedule
     → nicht-finale Trigger-Preise verschmutzen das Sample).
 
     ``now_et`` ist ein tz-aware ET-Zeitpunkt. ``.time()`` auf tz-aware

@@ -51,7 +51,7 @@ MECHANIK (aus Diagnose 16.07.2026, Präzedenz backfill_max_gain_pct.py #401):
 
 RACE-SCHUTZ (Live, doppelt, 1:1 von #401):
     1. ``fcntl.flock`` (exclusive, non-blocking) für Read→Compute→Write.
-    2. Cron-Fenster-Guard: ±30 min um 06:17/21:17 UTC (Backtest-schreibende
+    2. Cron-Fenster-Guard: ±30 min um 06:17/21:37 UTC (Backtest-schreibende
        Daily-Runs). ki_agent-hourly (xx:17) → nur flock.
 
 RÜCKWEG (dokumentiert, kein „wir schauen dann"): der Live-Lauf setzt GENAU EIN
@@ -107,8 +107,8 @@ MANIFEST_FILE = ROOT / "backfill_entry_past_return_5d_manifest.json"
 FIELD = "entry_past_return_5d"
 N_BARS_NEEDED = 6                    # iloc[-1] (Entry) + iloc[-6] (5 TD davor).
 BULK_FETCH_LOOKBACK_DAYS = 14        # 5 Trading-Days = 14 Kalender-Days Puffer.
-CRON_BLOCK_WINDOW_MINUTES = 30       # ±30 Min um 06:17 und 21:17 UTC.
-CRON_HEAVY_SLOTS = ((6, 17), (21, 17))
+CRON_BLOCK_WINDOW_MINUTES = 30       # ±30 Min um 06:17 und 21:37 UTC.
+CRON_HEAVY_SLOTS = ((6, 17), (21, 37))
 GATE_TOLERANCE = 0.01                # |recompute − stored| > 0.01 = „Ausreißer".
 GATE_MIN_VERIFY = 20                 # min. verifizierte non-null Records für Pass.
 # Verteilungs-Kalibrierung (Messung 16.07.: 31 exakt / 1 Ausreißer AMCX 0.05,
@@ -220,7 +220,7 @@ def in_cron_block_window(
     slots: tuple[tuple[int, int], ...] = CRON_HEAVY_SLOTS,
 ) -> tuple[bool, str]:
     """``(blocked, reason)`` — True innerhalb ±window_min um einen Cron-Heavy-
-    Slot (06:17/21:17 UTC). Zyklische Distanz über Mitternacht. Injizierbar."""
+    Slot (06:17/21:37 UTC). Zyklische Distanz über Mitternacht. Injizierbar."""
     if now_utc is None:
         now_utc = datetime.now(timezone.utc)
     now_min = now_utc.hour * 60 + now_utc.minute
@@ -643,7 +643,7 @@ def main(argv: list[str] | None = None) -> int:
         blocked, reason = in_cron_block_window()
         if blocked:
             log.error("%s-Lauf verweigert: %s", mode, reason)
-            log.error("Warten bis außerhalb ±30min um 06:17 / 21:17 UTC.")
+            log.error("Warten bis außerhalb ±30min um 06:17 / 21:37 UTC.")
             return 1
 
     try:
@@ -728,7 +728,7 @@ def main(argv: list[str] | None = None) -> int:
                  fetch_start, fetch_end)
         if not args.fetch_in_dry_run:
             log.info("Für Gate-Ergebnis: --fetch-in-dry-run. Für Live: --live "
-                     "(nur außerhalb ±30min um 06:17/21:17 UTC).")
+                     "(nur außerhalb ±30min um 06:17/21:37 UTC).")
         return 0
 
     # ── LIVE / UNDO (flock) ─────────────────────────────────────────────────

@@ -7,7 +7,7 @@ Beobachtbarkeit des Bar-Lag-False-Skips über ``_log_vintage_skip`` +
 die existing_keys-bei-Skip-Garantie (Skip schreibt NICHT).
 
 Bezug: Diagnose 09.06.2026 (11/11 Cluster = Pre-Open). Gate-Logik:
-append nur wenn now_et >= report_date@16:00 ET UND bar_date == report_date;
+append nur wenn now_et >= report_date@16:20 ET UND bar_date == report_date;
 fehlendes bar_date → append (Missing-Regel, konservativ).
 """
 from __future__ import annotations
@@ -96,13 +96,22 @@ _check("07 garbage report_date → append",
        bh._vintage_gate_decision("not-a-date", BAR_PRIOR, _et(2026, 6, 8, 17, 17))[0],
        "append")
 
-print("\n=== 2 — Exakte 16:00-ET-Grenze (>= Close = append) ===")
+print("\n=== 2 — Exakte 16:20-ET-Grenze (>= finaler Schluss = append, seit 04.11.2026) ===")
 _check("08 15:59 ET → skip",
        bh._vintage_gate_decision(RD, BAR_RD, _et(2026, 6, 8, 15, 59)),
        ("skip", "before_close"))
-_check("09 16:00 ET exakt → append",
+_check("08b 16:00 ET → skip (Schluss noch nicht final)",
        bh._vintage_gate_decision(RD, BAR_RD, _et(2026, 6, 8, 16, 0)),
+       ("skip", "before_close"))
+_check("08c 16:19 ET → skip",
+       bh._vintage_gate_decision(RD, BAR_RD, _et(2026, 6, 8, 16, 19)),
+       ("skip", "before_close"))
+_check("09 16:20 ET exakt → append",
+       bh._vintage_gate_decision(RD, BAR_RD, _et(2026, 6, 8, 16, 20)),
        ("append", "ok"))
+import trading_date as _td
+_check("09b Grenze = trading_date.US_CLOSE_FINAL_ET (eine Quelle)",
+       bh._VINTAGE_MKT_CLOSE is _td.US_CLOSE_FINAL_ET, True)
 
 print("\n=== 3 — DST: gleiche UTC, je nach Saison andere ET-Entscheidung ===")
 # 20:30 UTC: Juni (EDT, UTC-4) = 16:30 ET → append · Januar (EST, UTC-5)

@@ -3,8 +3,8 @@
 Diagnose (Wächter 26.10.2026): mehrere Sammel-/Persistenz-Pfade datierten
 ihre Einträge mit ``date.today()`` bzw. ``datetime.now(timezone.utc).date()``
 — also dem UTC-KALENDERDATUM des Laufs, statt dem US/Eastern-Handelstag, den
-der Report tatsächlich abbildet. Der postclose-Lauf (Cron 21:17 UTC) landet
-bei GitHub-Actions-Drift regelmäßig NACH Mitternacht UTC, während es in
+der Report tatsächlich abbildet. Der postclose-Lauf (Cron 21:37 UTC, bis
+04.11.2026 21:17) landet bei GitHub-Actions-Drift regelmäßig NACH Mitternacht UTC, während es in
 US/Eastern (UTC-4/-5) noch derselbe Handelstag ist — die UTC-Kalenderdatum-
 Variante tickt dann einen Tag zu früh um und verschiebt den Eintrag auf den
 FOLGETAG. Belege (SESSION_HANDOVER.md, dieser PR): ``news_coverage_
@@ -70,13 +70,25 @@ def us_trading_date_iso(now_utc: datetime | None = None) -> str:
 # berücksichtigt (unverändert zum bisherigen Verhalten der Aufrufer).
 US_SESSION_OPEN_ET  = time(9, 30)
 US_SESSION_CLOSE_ET = time(16, 0)
+# Ein Tages-Schlusskurs gilt erst als FINAL, wenn der US-Handelstag (ET)
+# vorbei ist: an einem Folgetag oder am selben Tag ab 16:20 ET. Die 20 Minuten
+# Puffer nach ``US_SESSION_CLOSE_ET`` (16:00) decken die Schlussauktion und
+# die verzögerte Konsolidierung der Tageszeile bei Yahoo ab. Wochenenden/
+# Feiertage brauchen keine Sonderbehandlung: an solchen Tagen existiert keine
+# Tageszeile. Seit 04.11.2026 zugleich die EINE Postclose-Grenze: erst ab hier
+# gilt ein Lauf als postclose (``us_session_state`` → "post") und darf
+# Backtest-Einträge anlegen (Vintage-Guard in ``backtest_history``).
+US_CLOSE_FINAL_ET = time(16, 20)
 
 
 def us_session_state(now_utc: datetime | None = None) -> str:
-    """``"pre"`` (vor 09:30 ET), ``"open"`` (09:30 ≤ ET < 16:00) oder
-    ``"post"`` (ab 16:00 ET) zum Zeitpunkt ``now_utc`` — gerechnet in
-    US/Eastern, also im Sommer 13:30/20:00 UTC, im Winter 14:30/21:00 UTC.
-    ``now_utc`` injizierbar; naiv = UTC (wie ``us_trading_date``)."""
+    """``"pre"`` (vor 09:30 ET), ``"open"`` (09:30 ≤ ET < 16:00),
+    ``"closing"`` (16:00 ≤ ET < ``US_CLOSE_FINAL_ET`` = 16:20: Börse zu,
+    Schlusskurs aber noch nicht final) oder ``"post"`` (ab 16:20 ET) zum
+    Zeitpunkt ``now_utc`` — gerechnet in US/Eastern (DST-korrekt).
+    Fix 04.11.2026: ``"post"`` (= postclose zulässig) beginnt erst bei
+    ``US_CLOSE_FINAL_ET``, vorher schon bei 16:00. ``now_utc`` injizierbar;
+    naiv = UTC (wie ``us_trading_date``)."""
     if now_utc is None:
         now_utc = datetime.now(timezone.utc)
     elif now_utc.tzinfo is None:
@@ -86,17 +98,14 @@ def us_session_state(now_utc: datetime | None = None) -> str:
         return "pre"
     if t < US_SESSION_CLOSE_ET:
         return "open"
+    if t < US_CLOSE_FINAL_ET:
+        return "closing"
     return "post"
 
 
 # ── Finaler Schlusskurs (Fix 03.11.2026, Rendite-Diagnose #645) ────────────
-# Ein Tages-Schlusskurs gilt erst als FINAL, wenn der US-Handelstag (ET)
-# vorbei ist: an einem Folgetag oder am selben Tag ab 16:20 ET. Die 20 Minuten
-# Puffer nach ``US_SESSION_CLOSE_ET`` (16:00) decken die Schlussauktion und
-# die verzögerte Konsolidierung der Tageszeile bei Yahoo ab. Wochenenden/
-# Feiertage brauchen keine Sonderbehandlung: an solchen Tagen existiert keine
-# Tageszeile.
-US_CLOSE_FINAL_ET = time(16, 20)
+# ``US_CLOSE_FINAL_ET`` steht oben bei den Börsenzeiten (seit 04.11.2026 auch
+# die Postclose-Grenze in ``us_session_state``).
 
 
 def last_final_close_date(now_utc: datetime | None = None) -> date:

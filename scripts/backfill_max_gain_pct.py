@@ -27,7 +27,7 @@ RACE-SCHUTZ (Stufe-2-Live-Lauf, doppelt):
     1. ``fcntl.flock`` (exclusive, non-blocking) auf ``backtest_history.json``
        für die gesamte Read→Compute→Write-Sequenz. Release nach Write.
     2. Zeitfenster-Guard: Live-Lauf verweigert innerhalb ±30 Min um die
-       schweren Cron-Writes (06:17 UTC Premarket / 21:17 UTC Postclose Daily-
+       schweren Cron-Writes (06:17 UTC Premarket / 21:37 UTC Postclose Daily-
        Run — beide schreiben Backtest-Records). Der ki_agent-Hourly-Tick
        (xx:17 UTC, ``update_backtest_returns``) ist strukturell nicht per
        Zeitfenster ausschließbar (24×/Tag) — dagegen schützt ausschließlich
@@ -76,10 +76,10 @@ BACKTEST_FILE = ROOT / "backtest_history.json"
 
 MIN_REIFE_TRADING_DAYS = 10          # ≤10-Handelstage-Fenster muss voll sein.
 BULK_FETCH_LOOKBACK_DAYS = 14        # ~10 Trading-Days = 14 Kalender-Days Puffer.
-CRON_BLOCK_WINDOW_MINUTES = 30       # ±30 Min um 06:17 UTC und 21:17 UTC.
+CRON_BLOCK_WINDOW_MINUTES = 30       # ±30 Min um 06:17 UTC und 21:37 UTC.
 CRON_HEAVY_SLOTS = (                 # nur die Backtest-schreibenden Slots.
     (6, 17),                         # Premarket Daily-Run.
-    (21, 17),                        # Postclose Daily-Run.
+    (21, 37),                        # Postclose Daily-Run.
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -220,7 +220,7 @@ def in_cron_block_window(
     slots: tuple[tuple[int, int], ...] = CRON_HEAVY_SLOTS,
 ) -> tuple[bool, str]:
     """Prüft, ob ``now_utc`` innerhalb ±window_min um einen Cron-Heavy-Slot
-    liegt (06:17 UTC Premarket / 21:17 UTC Postclose).
+    liegt (06:17 UTC Premarket / 21:37 UTC Postclose).
 
     Returnt ``(blocked, reason)``. ``blocked=True`` bedeutet: Live-Lauf
     verweigern (Race-Risiko mit paralleler Cron-Write auf
@@ -472,7 +472,7 @@ def main(argv: list[str] | None = None) -> int:
         blocked, reason = in_cron_block_window()
         if blocked:
             log.error("Live-Lauf verweigert: %s", reason)
-            log.error("Warten bis außerhalb ±30min um 06:17 / 21:17 UTC.")
+            log.error("Warten bis außerhalb ±30min um 06:17 / 21:37 UTC.")
             return 1
 
     # ── Load ────────────────────────────────────────────────────────────────
@@ -540,7 +540,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         log.info(
             "Für Live-Lauf: python scripts/backfill_max_gain_pct.py --live "
-            "(nur außerhalb ±30min um 06:17/21:17 UTC).",
+            "(nur außerhalb ±30min um 06:17/21:37 UTC).",
         )
         return 0
 

@@ -16,7 +16,7 @@ Verifiziert:
       alle anderen Keys unverändert byte-identisch), None→False Guard
 - (D) atomic_write_json: tmp-Datei-Zwischenstufe, ersetzt Ziel-Datei atomar,
       keine Half-Writes bei fehlgeschlagenem Format
-- (E) in_cron_block_window: 06:17 UTC / 21:17 UTC ±30 Min = geblockt,
+- (E) in_cron_block_window: 06:17 UTC / 21:37 UTC ±30 Min = geblockt,
       12:00 UTC = frei, Distanz-Berechnung zyklisch über Mitternacht
 - (F) CLI-Default = Dry-Run (kein --live-Flag → kein Schreibversuch)
 - (G) Idempotenz: 2. select_targets nach Filling → leere Liste
@@ -227,9 +227,9 @@ def main():
     blocked, _ = bmg.in_cron_block_window(_utc(5, 46))
     _check("E5 05:46 UTC FREE (knapp außerhalb, diff=31>30)", not blocked)
 
-    # Postclose-Slot 21:17 UTC ±30 min
-    blocked, _ = bmg.in_cron_block_window(_utc(21, 17))
-    _check("E6 21:17 UTC BLOCKED (Slot-Mitte)", blocked)
+    # Postclose-Slot 21:37 UTC ±30 min (seit 04.11.2026, vorher 21:17)
+    blocked, _ = bmg.in_cron_block_window(_utc(21, 37))
+    _check("E6 21:37 UTC BLOCKED (Slot-Mitte)", blocked)
     blocked, _ = bmg.in_cron_block_window(_utc(12, 0))
     _check("E7 12:00 UTC FREE (Tag-Mitte)", not blocked)
     blocked, _ = bmg.in_cron_block_window(_utc(0, 30))
@@ -351,8 +351,8 @@ def main():
         and 'entry["return_' not in src,
     )
     _check(
-        "G4 Cron-Slots-Konstante enthält (6,17) und (21,17)",
-        "(6, 17)" in src and "(21, 17)" in src,
+        "G4 Cron-Slots-Konstante enthält (6,17) und (21,37)",
+        "(6, 17)" in src and "(21, 37)" in src,
     )
 
     # ── Ergebnis ─────────────────────────────────────────────────────────────

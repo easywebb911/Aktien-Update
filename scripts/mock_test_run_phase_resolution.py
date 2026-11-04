@@ -16,7 +16,8 @@ Test-Matrix (alle Cases im Auftrag):
 
 Zusatz-Cases:
   6. Edge: 13:29 UTC + postclose → bleibt postclose  (vor US-Open)
-  7. Edge: 20:00 UTC + premarket → wird zu postclose (Close-Grenze inkl.)
+  7. Edge (seit 04.11.2026): 20:00/20:19 UTC (16:00/16:19 EDT) + premarket →
+     bleibt premarket; 20:20 UTC (16:20 EDT, finaler Schluss) → postclose.
   8. Empty/garbage Input → premarket-Fallback
   9. CLI-Skript schreibt RUN_PHASE in $GITHUB_ENV
  10.–15. Winterzeit (14:30/21:00 UTC), Kanten, Umstellungstage (Fix 02.11.2026)
@@ -103,17 +104,18 @@ def test_cron_ignores_override_logic_premarket():
 
 
 def test_cron_ignores_override_logic_postclose():
-    # 21:17-UTC-Cron ist `postclose`. Diese Zeit liegt nach US-Close — der
-    # Override würde hier keinen Schaden anrichten, aber wir wollen
-    # konsistente Cron-Semantik (kein Override-Pfad für Schedule-Trigger).
-    phase, reason = resolve_run_phase(
-        event_name="schedule",
-        schedule="17 21 * * 1-5",
-        user_input=None,
-        now_utc=_at(21, 17),
-    )
-    assert phase == "postclose", phase
-    assert reason is None, reason
+    # 21:37-UTC-Cron (seit 04.11.2026) ist `postclose` — kein Override-Pfad
+    # für Schedule-Trigger. Der alte String "17 21" bleibt für den Übergang
+    # postclose (bereits eingereihter Lauf).
+    for sched in ("37 21 * * 1-5", "17 21 * * 1-5"):
+        phase, reason = resolve_run_phase(
+            event_name="schedule",
+            schedule=sched,
+            user_input=None,
+            now_utc=_at(21, 37),
+        )
+        assert phase == "postclose", (sched, phase)
+        assert reason is None, reason
 
 
 # === Edge-Cases =============================================================
@@ -144,16 +146,19 @@ def test_us_open_boundary_inclusive():
 
 
 def test_us_close_boundary_premarket_overridden():
-    # 20:00 UTC = US-Close. premarket wird zu postclose (Daten konsolidieren
-    # ab jetzt — Backtest ist sinnvoll).
-    phase, reason = resolve_run_phase(
-        event_name="workflow_dispatch",
-        schedule=None,
-        user_input="premarket",
-        now_utc=_at(20, 0),
-    )
-    assert phase == "postclose", phase
-    assert reason == "post_close_override", reason
+    # Seit 04.11.2026: Postclose-Grenze = finaler Schluss 16:20 ET
+    # (trading_date.US_CLOSE_FINAL_ET). Sommer (EDT): 20:00/20:19 UTC =
+    # 16:00/16:19 ET → premarket bleibt; postclose wird zu premarket.
+    # 20:20 UTC = 16:20 ET → premarket wird zu postclose.
+    def d(inp, h, m):
+        return resolve_run_phase(event_name="workflow_dispatch", schedule=None,
+                                 user_input=inp, now_utc=_at(h, m))
+    assert d("premarket", 20, 0) == ("premarket", None)
+    assert d("premarket", 20, 19) == ("premarket", None)
+    assert d("postclose", 20, 0) == ("premarket", "close_not_final_override")
+    assert d("postclose", 20, 19) == ("premarket", "close_not_final_override")
+    assert d("premarket", 20, 20) == ("postclose", "post_close_override")
+    assert d("postclose", 20, 20) == ("postclose", None)
 
 
 def test_empty_input_falls_back_to_premarket():
@@ -206,7 +211,10 @@ def test_winter_open_and_close_edges():
     assert _disp("postclose", _d(2026, 11, 2, 14, 29)) == ("postclose", None)          # 09:29 ET
     assert _disp("postclose", _d(2026, 11, 2, 14, 30)) == ("premarket", "us_session_override")  # 09:30 ET
     assert _disp("postclose", _d(2026, 11, 2, 20, 59)) == ("premarket", "us_session_override")  # 15:59 ET
-    assert _disp("premarket", _d(2026, 11, 2, 21, 0)) == ("postclose", "post_close_override")   # 16:00 ET
+    assert _disp("premarket", _d(2026, 11, 2, 21, 0)) == ("premarket", None)                    # 16:00 ET
+    assert _disp("postclose", _d(2026, 11, 2, 21, 19)) == ("premarket", "close_not_final_override")  # 16:19 ET
+    assert _disp("premarket", _d(2026, 11, 2, 21, 20)) == ("postclose", "post_close_override")  # 16:20 ET
+    assert _disp("postclose", _d(2026, 11, 2, 21, 20)) == ("postclose", None)                   # 16:20 ET
     assert _disp("premarket", _d(2026, 11, 2, 20, 59)) == ("premarket", None)
 
 
@@ -227,7 +235,7 @@ def test_dst_switch_days():
 
 
 def test_cron_still_ignores_override_in_winter():
-    p, r = resolve_run_phase(event_name="schedule", schedule="17 21 * * 1-5",
+    p, r = resolve_run_phase(event_name="schedule", schedule="37 21 * * 1-5",
                              user_input=None, now_utc=_d(2026, 11, 2, 20, 30))
     assert (p, r) == ("postclose", None)
 
@@ -243,7 +251,7 @@ def test_cli_writes_run_phase_to_github_env():
         env = os.environ.copy()
         env.update({
             "EVENT_NAME":     "schedule",
-            "EVENT_SCHEDULE": "17 21 * * 1-5",
+            "EVENT_SCHEDULE": "37 21 * * 1-5",
             "USER_INPUT":     "",
             "GITHUB_ENV":     env_file,
         })
@@ -275,13 +283,13 @@ def main() -> None:
          test_post_close_postclose_stays_postclose),
         ("Cron 10:00 → premarket (Override ignoriert)",
          test_cron_ignores_override_logic_premarket),
-        ("Cron 21:00 → postclose (Override ignoriert)",
+        ("Cron 21:37 (+ alter 21:17 Übergang) → postclose (Override ignoriert)",
          test_cron_ignores_override_logic_postclose),
         ("Edge 13:29 UTC + postclose → kein Override (vor Open)",
          test_pre_us_open_no_override),
         ("Edge 13:30 UTC + postclose → Override (Open inklusiv)",
          test_us_open_boundary_inclusive),
-        ("Edge 20:00 UTC + premarket → Override (Close inklusiv)",
+        ("Edge 16:00/16:19/16:20 EDT (finaler Schluss 16:20 inklusiv)",
          test_us_close_boundary_premarket_overridden),
         ("Empty Input → premarket-Fallback",
          test_empty_input_falls_back_to_premarket),
@@ -293,7 +301,7 @@ def main() -> None:
          test_winter_2030_postclose_is_overridden),
         ("Sommer 20:30 UTC + postclose → kein Override (16:30 ET)",
          test_summer_2030_postclose_not_overridden),
-        ("Winter Kanten 14:29/14:30/20:59/21:00 UTC",
+        ("Winter Kanten 14:29/14:30/20:59/21:00/21:19/21:20 UTC",
          test_winter_open_and_close_edges),
         ("Winter 14:00 UTC + postclose → kein Override (09:00 ET)",
          test_winter_1400_postclose_not_overridden),

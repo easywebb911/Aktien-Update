@@ -706,7 +706,7 @@ Datenqualität:
 | Cron | Phase | Daten | Push-Pipeline | Backtest-History |
 |---|---|---|---|---|
 | `17 6 * * 1-5` (06:17 UTC) | `premarket` | Vorschau, RVOL strukturell unter-skaliert (vor US-Open 09:30 ET = 13:30 UTC Sommer / 14:30 UTC Winter; real ~12 UTC nach Actions-Drift) | Anomaly-Pushes **aktiv** (Aktions-Fenster für die KI-Agent-Ticks) | **kein** Backtest-Eintrag |
-| `17 21 * * 1-5` (21:17 UTC) | `postclose` | EOD-konsolidiert = „Wahrheit" | Anomaly-Pushes **aus** (kein abendliches Rauschen) | Backtest-Eintrag wird angelegt |
+| `37 21 * * 1-5` (21:37 UTC = 16:37 ET Winter / 17:37 ET Sommer; bis 04.11.2026 `17 21`) | `postclose` | EOD-konsolidiert = „Wahrheit" (immer nach 16:20 ET, finaler Schluss) | Anomaly-Pushes **aus** (kein abendliches Rauschen) | Backtest-Eintrag wird angelegt (nur ab 16:20 ET, Vintage-Guard) |
 | `workflow_dispatch` (manuell) | per User-Input, **required, kein Default** — Plausibilitäts-Override aktiv (siehe unten) | wie oben | wie oben | wie oben |
 
 ### Plausibilitäts-Override für workflow_dispatch (seit 13.05.2026)
@@ -725,11 +725,12 @@ Die RUN_PHASE-Resolution lebt jetzt in
 | Trigger | Input | Aktuelle Zeit (US-Ostküste, ET) | Resultat | Override-Reason |
 |---|---|---|---|---|
 | `schedule` `17 6 * * 1-5` | — | — | `premarket` | — (fester Cron-Mapping) |
-| `schedule` `17 21 * * 1-5` | — | — | `postclose` | — (fester Cron-Mapping) |
+| `schedule` `37 21 * * 1-5` (Übergang: auch `17 21`) | — | — | `postclose` | — (fester Cron-Mapping, `POSTCLOSE_CRONS`) |
 | `workflow_dispatch` | `postclose` | 09:30 ≤ ET < 16:00 (US-Session) | **`premarket`** | `us_session_override` |
-| `workflow_dispatch` | `premarket` | ET ≥ 16:00 (Post-Close) | **`postclose`** | `post_close_override` |
-| `workflow_dispatch` | `premarket` | 09:30 ≤ ET < 16:00 | `premarket` | — (plausibel) |
-| `workflow_dispatch` | `postclose` | ET ≥ 16:00 | `postclose` | — (plausibel) |
+| `workflow_dispatch` | `postclose` | 16:00 ≤ ET < 16:20 (Schluss nicht final) | **`premarket`** | `close_not_final_override` |
+| `workflow_dispatch` | `premarket` | ET ≥ 16:20 (Post-Close) | **`postclose`** | `post_close_override` |
+| `workflow_dispatch` | `premarket` | 09:30 ≤ ET < 16:20 | `premarket` | — (plausibel) |
+| `workflow_dispatch` | `postclose` | ET ≥ 16:20 | `postclose` | — (plausibel) |
 | `workflow_dispatch` | `postclose` / `premarket` | ET < 09:30 (pre-Open) | unverändert | — (User-Wahl gilt) |
 | `workflow_dispatch` | empty / garbage | — | `premarket` | `no_input_fallback` |
 
@@ -744,7 +745,23 @@ NICHT auf premarket korrigiert worden (Wiederholungsgefahr des 13.05.-
 Fehlers). Dieselbe Quelle nutzen das Frontend (`_usSessionStateET` →
 `_computeClientRunPhase`, `_renderRunPhasePill`; Grenzen aus Python
 eingebrannt) und der Redeploy-Workflow (`TZ=America/New_York date +%H%M`,
-930/1600). Ausnahme: `_normalize_rvol` (`_US_OPEN_MIN_UTC/_US_CLOSE_MIN_UTC`,
+930/1620).
+
+**Postclose-Grenze 16:20 ET (seit 04.11.2026, Easy-Entscheid):** „postclose
+zulässig“ beginnt erst bei `trading_date.US_CLOSE_FINAL_ET` (16:20 ET, finaler
+Schlusskurs), nicht bei 16:00. `us_session_state` liefert dafür einen vierten
+Zustand `"closing"` (16:00 ≤ ET < 16:20). Dieselbe Konstante nutzen
+`resolve_run_phase`, der Vintage-Guard im Backtest-Append
+(`backtest_history._VINTAGE_MKT_CLOSE`), das Zeit-Gate von Health-Check S4
+(`health_check._S4_MKT_CLOSE`), das Exit-Shadow-Log
+(`exit_shadow._MKT_CLOSE`), das Frontend (`_US_CLOSE_FINAL_ET_MIN`) und der
+Redeploy-Workflow (1620, Gleichheit per Test). Der Postclose-Cron liegt
+deshalb auf `37 21 * * 1-5` (21:17 UTC wäre im Winter 16:17 ET). Bewusst
+**nicht** umgestellt (andere Bedeutung): `score_inflation_log.
+_session_phase` (Log-Zeitslot, `trading_session_phase`), `ki_agent.
+get_market_phase` (Marktphasen-Anzeige/Alert-Schwelle) und die eingefrorene
+§4-Sensitivitätsregel (`s4_sensitivity_eval`). Test:
+`scripts/mock_test_postclose_final_boundary.py`. Ausnahme: `_normalize_rvol` (`_US_OPEN_MIN_UTC/_US_CLOSE_MIN_UTC`,
 nur Sommerzeit) — geschützte Funktion, Flag aus, Umstellung offen
 (`open_items` `us-boersenzeiten-fest-utc`). Die 30-Minuten-Schonfrist vor
 Open ist intentional kein Override-Pfad — wer kurz vor Open manuell
@@ -766,8 +783,9 @@ hat keinen Default mehr — User muss bewusst wählen (zwingt zur
 Entscheidung statt unbemerktem Falsch-Default).
 
 Tests: `scripts/mock_test_run_phase_resolution.py` (18 Cases,
-inkl. Edge-Boundary 13:29/13:30/20:00 UTC im Sommer, 14:29/14:30/20:59/
-21:00 UTC im Winter und die Umstellungstage März/November).
+inkl. Edge-Boundary 13:29/13:30/20:00/20:19/20:20 UTC im Sommer,
+14:29/14:30/20:59/21:00/21:19/21:20 UTC im Winter und die Umstellungstage
+März/November) und `scripts/mock_test_postclose_final_boundary.py`.
 
 ### Felder & Persistenz
 
@@ -819,11 +837,11 @@ Filter bereinigen.
 
 ### Failure-Modes
 
-- 21:17-Run fällt aus → app_data behält letzten Stand (run_phase
+- 21:37-Run fällt aus → app_data behält letzten Stand (run_phase
   bleibt was sie war). Nächster 06:17-Run flippt auf premarket, App
   zeigt „Pre-Open-Vorschau"-Banner — Easy sieht sofort, dass Daten
   älter sind.
-- 06:17-Run fällt aus → 21:17-Run liefert volle Wahrheit, kein
+- 06:17-Run fällt aus → 21:37-Run liefert volle Wahrheit, kein
   Schaden.
 - Beide Runs nutzen denselben Code-Pfad — Unterschied nur durch
   `RUN_PHASE`-ENV-Flag, kein Code-Duplikat.
@@ -1409,7 +1427,7 @@ Pro offener Position schreibt der Daily-Run via
 |---|---|---|
 | `entry_date`, `entry_price`, `shares`, `entry_fx`, `fx_estimated` | aus Gist | Stammdaten beim Position-Open |
 | `entry_dtc`, `entry_short_float`, `entry_cost_to_borrow`, `entry_snapshot_ts` | aus Gist (optional) | Trigger-4-Setup-Erosion-Snapshot beim Open |
-| **`current_price`** (neu seit 16.05.2026) | float \| None | Aktueller Spot-Preis. Reihenfolge: Top-10-Lookup (`stocks[t].price`) → `_fetch_position_market_data`-yfinance-Singleton-Fallback → `None`. Update-Frequenz: **2× pro Werktag** (premarket 06:17 UTC + postclose 21:17 UTC Daily-Run). KI-Agent-Tick (xx:17) berührt das Feld nicht; `**existing`-Spread in `save_signals` preserviert den letzten Daily-Run-Wert. Stündliche Updates wären separater Folge-PR (KI-Agent-Tick-Erweiterung). |
+| **`current_price`** (neu seit 16.05.2026) | float \| None | Aktueller Spot-Preis. Reihenfolge: Top-10-Lookup (`stocks[t].price`) → `_fetch_position_market_data`-yfinance-Singleton-Fallback → `None`. Update-Frequenz: **2× pro Werktag** (premarket 06:17 UTC + postclose 21:37 UTC Daily-Run). KI-Agent-Tick (xx:17) berührt das Feld nicht; `**existing`-Spread in `save_signals` preserviert den letzten Daily-Run-Wert. Stündliche Updates wären separater Folge-PR (KI-Agent-Tick-Erweiterung). |
 | `exit_state` | dict | siehe Sub-Schema unten |
 
 `current_price` schließt Health-Check S3 für alle Positionen mit
@@ -2265,7 +2283,7 @@ Alle drei nutzen `_normalize_rvol(cur_vol, avg_vol_20)` ohne explizite
 
 - **`PREMARKET_RVOL_SCALER`-Re-Kalibrierung** in PR-γ: aus
   `rvol_20d`-Verteilung in `agent_signals.json` über 14 d ableiten;
-  Median-Faktor zwischen frühen (06:17 UTC) und späten (21:17 UTC)
+  Median-Faktor zwischen frühen (06:17 UTC) und späten (21:37 UTC)
   Ticks pro Ticker als ground truth.
 - **Markt-Phase-Grenzen** (`_US_OPEN_MIN_UTC = 810`,
   `_US_CLOSE_MIN_UTC = 1200`) sind hartkodiert im Helper — das ist nur die

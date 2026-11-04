@@ -884,7 +884,7 @@ OPTIONS_CHAIN_RAW_ENABLED = True
 OPTIONS_CHAIN_RAW_FILE = "options_chain_raw.jsonl"
 OPTIONS_CHAIN_RAW_MONEYNESS_RANGE = 0.30
 # Digest-Qualitätszähler (health_check.py): engeres ATM-Fenster als der
-# Speicher-Filter oben — zeigt, ob Bid/Ask nach Börsenschluss (21:17 UTC)
+# Speicher-Filter oben — zeigt, ob Bid/Ask nach Börsenschluss (21:37 UTC)
 # überhaupt brauchbar sind (Yahoo liefert dort oft 0/0). Rein anzeigend.
 OPTIONS_CHAIN_RAW_DIGEST_ATM_RANGE = 0.10
 
