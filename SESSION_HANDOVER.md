@@ -3275,6 +3275,31 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 04.11.2026 — Korrektur-Skript: Rate-Limit-Schutz + eigene Handelstage je Ticker (1 PR, Manual-Merge)
+
+- Easy-Entscheid 04.11.2026 nach dem dry_run `maxgain_shadow` (GETY gedrosselt,
+  5 Rechenfehler): `#__PR__` (Branch `claude/fix-oneoff-ratelimit-v4h1`, kein
+  Merge-Hash — Regel a).
+- Beide targets laden jetzt je Ticker einzeln (`fetch_frames`,
+  `Ticker.history`, `auto_adjust=True`, `yf.config.debug.hide_exceptions =
+  False`) und klassifizieren nach yfinance-Fehlertyp: nur `YFTzMissingError` /
+  `YFPricesMissingError` = „ausdrücklich leer“ (→ null erlaubt); Rate-Limit,
+  Netzwerk- und sonstige Fehler oder „leer ohne Meldung“ → „Abruf
+  unvollständig — nicht verwertbar“, Exit 2, nichts geschrieben. Grund je
+  Ticker im Log.
+- `maxgain_shadow`: `own_days` entfernt vor der Fensterbildung Zeilen ohne
+  High UND Low (eigene Handelstage wie der Daily-Run bei wenigen Tickern).
+  `returns`-Pfad war nicht betroffen (`Close.dropna()` je Ticker, wie
+  `update_backtest_returns`) — Korrektur `872ac43f` unberührt.
+- Rückblick: BNRG/PRA/SNBR/SNSE waren in allen vier Läufen „possibly
+  delisted; no price data found“ (ausdrücklich leer), kein Rate-Limit.
+- Test `mock_test_fix_oneoff_fetch.py` (Klassifizierung, Rate-Limit-Abbruch in
+  beiden targets, ausdrücklich leer, Aussetzung/späterer Börsengang wie
+  Produktion, 50 Ticker). Gegenprobe alter Stand: 6 FAIL.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#652`,
+  höchste in Block 1 erwähnte PR = `#652` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 03.11.2026 — Korrektur max_gain/max_drawdown + Exit-Shadow-Forwards (1 PR, Manual-Merge, Datenkorrektur)
 
 - Easy-Entscheid 03.11.2026: `#652` (Branch `claude/fix-maxgain-shadow-k2t6`, kein

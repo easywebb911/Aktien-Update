@@ -118,22 +118,26 @@ def _apply(entry: dict, vals: dict, fields) -> tuple[dict, list]:
 
 
 # ── Kursdaten ────────────────────────────────────────────────────────────────
+def own_days(df):
+    """Nur die eigenen Handelstage des Tickers: Zeilen, in denen High UND Low
+    fehlen, fliegen vor der Fensterbildung raus (wie der Daily-Run bei wenigen
+    Tickern — keine Leerzeilen, die einen Fensterplatz belegen)."""
+    if df is None:
+        return None
+    out = df.dropna(subset=["High", "Low"], how="all")
+    return None if getattr(out, "empty", True) else out
+
+
 def fetch(tickers: list[str], start: date, now: datetime):
-    """Ein OHLC-Batch (auto_adjust=True). Returnt ``({t: df}, {t: closes})``."""
-    import yfinance as yf
-    end = (now.date() + timedelta(days=2)).isoformat()
-    hist = yf.download(tickers, start=start.isoformat(), end=end, auto_adjust=True,
-                       progress=False, threads=True, group_by="ticker")
-    dfs, closes = {}, {}
-    for t in tickers:
-        # group_by="ticker" liefert je nach yfinance-Version auch bei EINEM
-        # Ticker MultiIndex-Spalten → zuerst hist[t], sonst hist selbst.
-        try:
-            df = hist[t]
-        except Exception:
-            df = hist if len(tickers) == 1 else None
-        dfs[t] = df if df is not None and not df.dropna(how="all").empty else None
-        closes[t] = base._series(df) if df is not None else None
+    """Einzel-Abruf je Ticker über ``base.fetch_frames`` (Rate-Limit-Schutz).
+    Returnt ``({t: df_eigene_tage}, {t: closes})``; wirft
+    ``base.AbrufUnvollstaendig`` bei unsauberem Abruf."""
+    frames, status = base.fetch_frames(tickers, start, now)
+    if base.report_fetch(status):
+        raise base.AbrufUnvollstaendig()
+    dfs = {t: own_days(frames.get(t)) for t in tickers}
+    closes = {t: (base._series(frames[t]) if frames.get(t) is not None else None)
+              for t in tickers}
     return dfs, closes
 
 
@@ -183,9 +187,13 @@ def run(mode: str, now: datetime, root: pathlib.Path = base.ROOT, prices=None,
         return 0
     start = min(base._dmy(r["date"]) for r in recs_mg + recs_es) - timedelta(days=10)
     if prices is None:
-        dfs, closes = fetch(tickers, start, now)
+        try:
+            dfs, closes = fetch(tickers, start, now)
+        except base.AbrufUnvollstaendig:
+            return 2
     else:
         dfs, closes = prices
+        dfs = {t: own_days(df) for t, df in dfs.items()}
     ohne = sorted(t for t in tickers if dfs.get(t) is None and not closes.get(t))
     base._print_counters(root)
     print(f"Stand: final_cut={final_cut.isoformat()} · Ticker {len(tickers)} · "
