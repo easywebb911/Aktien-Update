@@ -3275,6 +3275,22 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 04.11.2026 — Rückweg: Korrektur-Workflow + Skripte entfernt (1 PR, Manual-Merge)
+
+- `#649` (Branch `claude/fix-returns-oneoff-rollback-r5n2`, auf `main` nach
+  #655 neu aufgebaut, kein Merge-Hash — Regel a). Beide Korrekturen sind
+  angewandt und nachgeprüft (Renditen #648, max_gain/Shadow `14d48873`).
+- Gelöscht: `.github/workflows/fix_returns_oneoff.yml`,
+  `scripts/fix_returns_final_close_oneoff.py`, `scripts/fix_maxgain_shadow.py`,
+  `scripts/mock_test_fix_returns_oneoff.py`,
+  `scripts/mock_test_fix_maxgain_shadow.py`,
+  `scripts/mock_test_fix_oneoff_fetch.py` + 3 Einträge in
+  `run_ci_mock_tests.py` (Drift-Guard sauber).
+- Bleiben: `return_corrections_archive_2026-11.jsonl`,
+  `maxgain_shadow_corrections_archive_2026-11.jsonl` (Rückweg nur noch über
+  Revert dieses PR + Skript-Modus `restore`).
+- Unberührt: `scripts/fix_trading_dates_oneoff.py` (ältere, eigene Korrektur).
+
 ### 04.11.2026 — Bestandskorrektur max_gain/Shadow angewandt + 2 offene Punkte (1 PR, Doku)
 
 - `#655` (Branch `claude/open-items-yygh-zero-k7m2`, kein Merge-Hash — Regel a).
