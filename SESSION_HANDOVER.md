@@ -3275,6 +3275,20 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 04.11.2026 — Bestandskorrektur max_gain/Shadow angewandt + 2 offene Punkte (1 PR, Doku)
+
+- `#__PR__` (Branch `claude/open-items-yygh-zero-k7m2`, kein Merge-Hash — Regel a).
+- Datenkorrektur `fix_returns_oneoff.yml` target=`maxgain_shadow` (Easy):
+  apply `14d48873` mit `skip_tickers=YYGH`, `max_null=46`; vorher apply-Versuch
+  abgebrochen (YYGH HTTP 404, nichts geschrieben). Prüfung: genau ein Commit,
+  nur 3 Dateien + Archiv (2375 Zeilen = geänderte Felder), Zeilenzahl/
+  Reihenfolge gleich, alle anderen Felder gleich, YYGH unverändert, Zahlen =
+  dry_run #9; zweiter dry_run: Abweichung 0 überall, Zähler 244/60/60.
+- `open_items.json`: neu `yygh-maxgain-korrektur-ausgelassen`,
+  `daily-maxgain-null-statt-0` (beide offen); Nachtrag an
+  `exit-shadow-log-quelle` / `s6q-mfe-mae-bucket-observation`.
+- Nächster Schritt: #649 löscht Skripte + Workflow (Archive bleiben).
+
 ### 04.11.2026 — Korrektur-Skript: Fehlertext, ein Wiederholungsversuch, Überspringen-Liste (1 PR, Manual-Merge)
 
 - Easy-Entscheid 04.11.2026 nach dry_run #5/#6 (beide nur YYGH
