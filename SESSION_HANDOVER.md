@@ -3278,7 +3278,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 ### 04.11.2026 — Korrektur-Skript: Rate-Limit-Schutz + eigene Handelstage je Ticker (1 PR, Manual-Merge)
 
 - Easy-Entscheid 04.11.2026 nach dem dry_run `maxgain_shadow` (GETY gedrosselt,
-  5 Rechenfehler): `#__PR__` (Branch `claude/fix-oneoff-ratelimit-v4h1`, kein
+  5 Rechenfehler): `#653` (Branch `claude/fix-oneoff-ratelimit-v4h1`, kein
   Merge-Hash — Regel a).
 - Beide targets laden jetzt je Ticker einzeln (`fetch_frames`,
   `Ticker.history`, `auto_adjust=True`, `yf.config.debug.hide_exceptions =
