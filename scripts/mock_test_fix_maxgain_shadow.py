@@ -97,6 +97,11 @@ class _DF:
     @property
     def empty(self): return len(self.index) == 0
     def __len__(self): return len(self.index)
+    def dropna(self, subset=None, how="any"):
+        def _nan(v): return v is None or v != v
+        keep = [i for i in range(len(self.index))
+                if not (_nan(self.H[i]) and _nan(self.L[i]))]
+        return self[[i in keep for i in range(len(self.index))]]
     def __getitem__(self, k):
         if isinstance(k, list):
             keep = [i for i, b in enumerate(k) if b]

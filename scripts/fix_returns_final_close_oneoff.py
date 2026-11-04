@@ -199,29 +199,105 @@ def _series(df) -> list | None:
     return pairs or None
 
 
-def fetch_prices(tickers: list[str], start: date, now: datetime):
-    """Ein Batch für alle Ticker + SPY (auto_adjust=True, wie der KI-Agent)."""
+# yfinance-Fehler werden über Klassen-NAMEN eingestuft (Tests laufen ohne
+# yfinance): „ausdrücklich keine Daten“ → null erlaubt; Rate-Limit, Timeouts,
+# HTTP-/Verbindungsfehler, Yahoo-Sperrmeldungen → unvollständiger Abruf, darf
+# NIE zu null führen (siehe classify_fetch_error).
+
+
+# Yahoo-Fehlerbeschreibungen, die „Symbol/Daten gibt es nicht“ bedeuten.
+_EMPTY_DESCRIPTIONS = ("not found", "no data found")
+
+
+def classify_fetch_error(exc: BaseException) -> str:
+    """``leer:<Typ>`` nur bei ausdrücklichem „keine Daten“, sonst ``fehler:<Typ>``.
+    yfinance 1.4.1 fasst unter ``YFPricesMissingError`` auch Antworten mit
+    HTTP-Statuscode und JEDE ``chart.error``-Beschreibung zusammen (z. B.
+    „Invalid Crumb“/„Unauthorized“ bei Sperren) — deshalb wird die Meldung
+    ausgewertet: ``(Yahoo status_code = …)`` → Fehler; ``(Yahoo error =
+    "…")`` → leer nur bei „Not Found“/„No data found“; ohne Yahoo-Fehler
+    (Antwort ohne Kurszeilen im Zeitraum) → leer. Guardian-Finding #653."""
+    name = type(exc).__name__
+    if name == "YFRateLimitError":
+        return "fehler:rate_limit"
+    if name == "YFTzMissingError":
+        return f"leer:{name}"
+    if name == "YFPricesMissingError":
+        msg = str(exc)
+        if "Yahoo status_code =" in msg:
+            return f"fehler:{name}_status_code"
+        marker = '(Yahoo error = "'
+        if marker in msg:
+            desc = msg.split(marker, 1)[1].split('")', 1)[0].lower()
+            if any(k in desc for k in _EMPTY_DESCRIPTIONS):
+                return f"leer:{name}"
+            return f"fehler:{name}_yahoo_error"
+        return f"leer:{name}"
+    return f"fehler:{name}"
+
+
+class AbrufUnvollstaendig(Exception):
+    """Mindestens ein Ticker wurde nicht sauber abgerufen (Rate-Limit o. ä.)."""
+
+
+def fetch_frames(tickers: list[str], start: date, now: datetime, *, workers: int = 4):
+    """Einzel-Abruf je Ticker (``Ticker.history``, ``auto_adjust=True``) mit
+    ``yf.config.debug.hide_exceptions = False``, damit yfinance Fehler als
+    Exception-Typ meldet statt sie zu verschlucken. Liefert
+    ``({ticker: df|None}, {ticker: status})`` mit Status ``ok``,
+    ``leer:<Typ>`` (ausdrücklich keine Daten → darf null werden) oder
+    ``fehler:<Typ>`` (Rate-Limit/Netzwerk/unklar → Lauf nicht verwertbar).
+    Jeder Ticker hat seine eigenen Handelstage als Index (kein Sammel-Index
+    mit Leerzeilen anderer Ticker)."""
     import yfinance as yf
-    end = (now.date() + timedelta(days=2)).isoformat()
-    hist = yf.download(tickers, start=start.isoformat(), end=end, auto_adjust=True,
-                       progress=False, threads=True, group_by="ticker")
-    out = {}
-    for t in tickers:
-        try:
-            df = hist if len(tickers) == 1 else hist[t]
-        except Exception:
-            out[t] = None
-            continue
-        out[t] = _series(df)
-    spy_df = yf.download("SPY", start=start.isoformat(), end=end, auto_adjust=True,
-                         progress=False, threads=False)
+    from concurrent.futures import ThreadPoolExecutor
     try:
-        spy = [(ts.date(), float(v)) for ts, v in
-               zip(spy_df["Close"].squeeze().dropna().index,
-                   spy_df["Close"].squeeze().dropna().values)] or None
-    except Exception:
-        spy = None
-    return out, spy, hist
+        yf.config.debug.hide_exceptions = False
+    except Exception:  # noqa: BLE001 — ältere/gestubbte yfinance
+        pass
+    end = (now.date() + timedelta(days=2)).isoformat()
+
+    def _one(t):
+        try:
+            df = yf.Ticker(t).history(start=start.isoformat(), end=end, interval="1d",
+                                      auto_adjust=True, actions=False)
+        except Exception as exc:  # noqa: BLE001
+            return t, None, classify_fetch_error(exc)
+        if df is None or getattr(df, "empty", True):
+            return t, None, "fehler:leer_ohne_meldung"
+        return t, df, "ok"
+
+    frames, status = {}, {}
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        for t, df, st in ex.map(_one, sorted(set(tickers))):
+            frames[t], status[t] = df, st
+    return frames, status
+
+
+def report_fetch(status: dict) -> list[str]:
+    """Druckt den Abruf-Status (nur Ticker + Grund, keine Werte). Returnt die
+    Ticker mit ``fehler:*``; bei Fehlern klare Meldung."""
+    bad = sorted(t for t, st in status.items() if st.startswith("fehler:"))
+    empty = sorted(t for t, st in status.items() if st.startswith("leer:"))
+    print(f"Abruf: {len(status)} Ticker · ok {len(status) - len(bad) - len(empty)} · "
+          f"ausdrücklich leer {len(empty)} · fehlerhaft {len(bad)}")
+    for t in empty + bad:
+        print(f"  {t}: {status[t]}")
+    if bad:
+        print("Abruf unvollständig — nicht verwertbar (Rate-Limit/Abruffehler). "
+              "Nichts geschrieben; später erneut starten.")
+    return bad
+
+
+def fetch_prices(tickers: list[str], start: date, now: datetime):
+    """Renditen-Pfad: Schlusskurse je Ticker + SPY über ``fetch_frames``.
+    Wirft ``AbrufUnvollstaendig``, wenn ein Abruf nicht sauber war."""
+    frames, status = fetch_frames(list(tickers) + ["SPY"], start, now)
+    if report_fetch(status):
+        raise AbrufUnvollstaendig()
+    out = {t: (_series(frames[t]) if frames.get(t) is not None else None) for t in tickers}
+    spy = _series(frames["SPY"]) if frames.get("SPY") is not None else None
+    return out, spy, frames
 
 
 # ── Dateien lesen / schreiben ────────────────────────────────────────────────
@@ -356,8 +432,12 @@ def run(mode: str, now: datetime, root: pathlib.Path = ROOT, prices=None,
         print("Nichts zu tun.")
         return 0
     start = min(_dmy(r["date"]) for r in recs) - timedelta(days=10)
+    frames = None
     if prices is None:
-        closes_by, spy, _ = fetch_prices(tickers, start, now)
+        try:
+            closes_by, spy, frames = fetch_prices(tickers, start, now)
+        except AbrufUnvollstaendig:
+            return 2
     else:
         closes_by, spy = prices
     ohne = sorted(t for t in tickers if not closes_by.get(t))
@@ -430,8 +510,8 @@ def run(mode: str, now: datetime, root: pathlib.Path = ROOT, prices=None,
           f"{'unverändert' if c_after == c_before else 'GEÄNDERT'}")
 
     if mode in ("dry_run", "verify"):
-        if prices is None and mode == "dry_run":
-            measure_max_gain(ex, now, final_cut)
+        if frames is not None and mode == "dry_run":
+            measure_max_gain(ex, now, final_cut, frames)
         print(f"Modus {mode}: nichts geschrieben.")
         return 0
 
@@ -516,12 +596,11 @@ def restore(root: pathlib.Path = ROOT, apply: bool = False) -> int:
 
 
 # ── Nur messen: max_gain_pct / max_drawdown_pct im Export ───────────────────
-def measure_max_gain(ex: list[dict], now: datetime, final_cut: date) -> None:
+def measure_max_gain(ex: list[dict], now: datetime, final_cut: date, frames: dict) -> None:
     """Gleiche Kennzahlen für max_gain_pct / max_drawdown_pct gegen finale
     Kurse (Fenster wie backtest_history: ab Entry, erste 11 Zeilen, nur wenn
     alle 11 Zeilen final sind). Ändert NICHTS."""
     try:
-        import yfinance as yf
         from backtest_history import _compute_max_drawdown, _compute_max_gain_pct
     except Exception as exc:  # noqa: BLE001
         print(f"max_gain/max_drawdown-Messung übersprungen: {type(exc).__name__}")
@@ -531,16 +610,11 @@ def measure_max_gain(ex: list[dict], now: datetime, final_cut: date) -> None:
     if not recs:
         print("max_gain/max_drawdown: keine Werte im Export.")
         return
-    tickers = sorted({r["ticker"] for r in recs})
-    start = min(_dmy(r["date"]) for r in recs) - timedelta(days=5)
-    end = (now.date() + timedelta(days=2)).isoformat()
-    hist = yf.download(tickers, start=start.isoformat(), end=end, auto_adjust=True,
-                       progress=False, threads=True, group_by="ticker")
     devs: dict[str, list[float]] = {}
     skip = Counter()
     for r in recs:
         try:
-            df = hist if len(tickers) == 1 else hist[r["ticker"]]
+            df = frames[r["ticker"]]
             df = df.dropna(subset=["High", "Low"])
         except Exception:
             skip["ticker_fehlt"] += 1
