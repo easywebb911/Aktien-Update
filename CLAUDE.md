@@ -752,7 +752,8 @@ zulässig“ beginnt erst bei `trading_date.US_CLOSE_FINAL_ET` (16:20 ET, finale
 Schlusskurs), nicht bei 16:00. `us_session_state` liefert dafür einen vierten
 Zustand `"closing"` (16:00 ≤ ET < 16:20). Dieselbe Konstante nutzen
 `resolve_run_phase`, der Vintage-Guard im Backtest-Append
-(`backtest_history._VINTAGE_MKT_CLOSE`), das Exit-Shadow-Log
+(`backtest_history._VINTAGE_MKT_CLOSE`), das Zeit-Gate von Health-Check S4
+(`health_check._S4_MKT_CLOSE`), das Exit-Shadow-Log
 (`exit_shadow._MKT_CLOSE`), das Frontend (`_US_CLOSE_FINAL_ET_MIN`) und der
 Redeploy-Workflow (1620, Gleichheit per Test). Der Postclose-Cron liegt
 deshalb auf `37 21 * * 1-5` (21:17 UTC wäre im Winter 16:17 ET). Bewusst

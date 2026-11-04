@@ -17,7 +17,7 @@ name: Redeploy index.html on source change
 # Fix: der ``on: push``-Auto-Trigger ist entfernt → ein Code-Merge löst
 # KEINEN automatischen Daily-Run mehr aus. Template-/Render-Änderungen
 # werden beim nächsten regulären Cron sichtbar (daily-squeeze-report.yml:
-# ``17 6`` + ``17 21`` Mo-Fr) oder via bewusstem manuellem Dispatch /
+# ``17 6`` + ``37 21`` Mo-Fr) oder via bewusstem manuellem Dispatch /
 # Recalculate-Button (bewusste, seltene Einzelaktion — kein Auto-Pfad).
 #
 # REVERSIBEL: Workflow-Datei + Run-Logik bleiben erhalten; bei Bedarf

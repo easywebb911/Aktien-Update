@@ -3,8 +3,8 @@
 Diagnose (Wächter 26.10.2026): mehrere Sammel-/Persistenz-Pfade datierten
 ihre Einträge mit ``date.today()`` bzw. ``datetime.now(timezone.utc).date()``
 — also dem UTC-KALENDERDATUM des Laufs, statt dem US/Eastern-Handelstag, den
-der Report tatsächlich abbildet. Der postclose-Lauf (Cron 21:17 UTC) landet
-bei GitHub-Actions-Drift regelmäßig NACH Mitternacht UTC, während es in
+der Report tatsächlich abbildet. Der postclose-Lauf (Cron 21:37 UTC, bis
+04.11.2026 21:17) landet bei GitHub-Actions-Drift regelmäßig NACH Mitternacht UTC, während es in
 US/Eastern (UTC-4/-5) noch derselbe Handelstag ist — die UTC-Kalenderdatum-
 Variante tickt dann einen Tag zu früh um und verschiebt den Eintrag auf den
 FOLGETAG. Belege (SESSION_HANDOVER.md, dieser PR): ``news_coverage_

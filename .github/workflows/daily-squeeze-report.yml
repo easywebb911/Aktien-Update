@@ -33,10 +33,10 @@ on:
     inputs:
       run_phase:
         description: >-
-          WICHTIG: 'premarket' während US-Session (09:30–16:00 ET = Sommer
-          13:30–20:00 UTC / Winter 14:30–21:00 UTC, Vorschau ohne
-          Backtest-Append). 'postclose' NUR nach US-Close (≥16:00 ET,
-          EOD-konsolidiert, schreibt Backtest-Eintrag).
+          WICHTIG: 'premarket' während US-Session bis zum finalen Schluss
+          (09:30–16:20 ET = Sommer 13:30–20:20 UTC / Winter 14:30–21:20 UTC,
+          Vorschau ohne Backtest-Append). 'postclose' NUR ab 16:20 ET
+          (finaler Schluss, EOD-konsolidiert, schreibt Backtest-Eintrag).
           Plausibilitäts-Override aktiv — falscher Input wird mit
           Warnung im Run-Log korrigiert (siehe scripts/resolve_run_phase.py).
         required: true

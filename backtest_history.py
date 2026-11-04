@@ -1262,8 +1262,9 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         return 0
 
     # Vintage-Guard run-level Zeit-Gate (M1): kein Append vor dem finalen
-    # Schluss (16:20 ET, ``trading_date.US_CLOSE_FINAL_ET``) des report_date. Früher Return VOR _load/_save → existing_keys
-    # bleibt unbelegt → ein späterer korrekter Post-Close-Run appended frisch.
+    # Schluss (16:20 ET, ``trading_date.US_CLOSE_FINAL_ET``) des report_date.
+    # Früher Return VOR _load/_save → existing_keys bleibt unbelegt → ein
+    # späterer korrekter Post-Close-Run appended frisch.
     # Spart außerdem den SPY/VIX-Fetch bei einem geskippten Pre-Open-Run.
     if now_et is None:
         now_et = datetime.now(_VINTAGE_EASTERN)

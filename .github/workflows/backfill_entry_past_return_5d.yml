@@ -21,7 +21,7 @@ name: Backfill entry_past_return_5d (einmalig, manual)
 #   - undo          : chirurgischer Rückweg (gefüllte Werte → None).
 #
 # DOPPELTER RACE-SCHUTZ (analog #401):
-#   1. Skript-intern: fcntl.flock + Cron-Fenster-Guard (±30 min um 06:17/21:17).
+#   1. Skript-intern: fcntl.flock + Cron-Fenster-Guard (±30 min um 06:17/21:37).
 #   2. Workflow: concurrency-group (kein 2. Lauf parallel).
 #
 # COMMIT-SICHERHEIT: `git add backtest_history.json <manifest>` — GENAU ZWEI

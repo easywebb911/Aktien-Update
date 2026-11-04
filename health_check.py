@@ -31,15 +31,17 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-# S4-Zeit-Gate (#346-Symmetrie): der Vintage-Guard appended einen postclose-
-# Backtest-Eintrag erst ab report_date@16:00 ET (backtest_history.py:
-# _VINTAGE_EASTERN / _VINTAGE_MKT_CLOSE). S4 spiegelt dieselbe Schwelle, damit
-# er den Eintrag nicht VOR Börsenschluss erwartet (Vormittags-Fehlalarm).
-_S4_EASTERN        = ZoneInfo("America/New_York")
-_S4_MKT_CLOSE_HOUR = 16
-
 import config  # für getattr-IST-Read im Konsistenz-Wächter (Projekt C)
 import trading_date
+
+# S4-Zeit-Gate (#346-Symmetrie): der Vintage-Guard appended einen postclose-
+# Backtest-Eintrag erst ab report_date@16:20 ET (backtest_history.py:
+# _VINTAGE_EASTERN / _VINTAGE_MKT_CLOSE). S4 spiegelt dieselbe Schwelle, damit
+# er den Eintrag nicht VOR dem finalen Schluss erwartet (Vormittags-Fehlalarm).
+# Seit 04.11.2026 dieselbe Quelle trading_date.US_CLOSE_FINAL_ET (vorher
+# eigene 16:00-Kopie).
+_S4_EASTERN   = ZoneInfo("America/New_York")
+_S4_MKT_CLOSE = trading_date.US_CLOSE_FINAL_ET
 from config import (
     CONSISTENCY_EXPECTED_STATE,
     DIGEST_CONSECUTIVE_THRESHOLD_OVERRIDES,
@@ -790,7 +792,8 @@ def evaluate_state_invariants(
         elif (run_phase == "postclose"
                 and backtest_has_today is False):
             # Wochenend-Gate (30.05.2026): postclose-Cron läuft Mo-Fr
-            # (``37 21 * * 1-5``, bis 04.11.2026 ``17 21``). An Sa/So existiert per Design KEIN
+            # (``37 21 * * 1-5``, bis 04.11.2026 ``17 21``). An Sa/So
+            # existiert per Design KEIN
             # postclose-Append → S4 würde sonst strukturell für jeden
             # Wochenend-postclose-Run feuern (manueller dispatch, late-
             # cron-Drift mit Berlin-Mitternacht-Übertritt etc.). Gate
@@ -809,12 +812,13 @@ def evaluate_state_invariants(
             # einem echten Handelstag stumm — beim Pflegen der Liste prüfen.
             _skip_weekend = False
             _skip_holiday = today_iso in config.US_MARKET_HOLIDAYS if today_iso else False
-            # Zeit-Gate (#346-Symmetrie): vor report_date@16:00 ET ist ein
+            # Zeit-Gate (#346-Symmetrie): vor report_date@16:20 ET ist ein
             # fehlender postclose-Eintrag NORMAL — der Vintage-Guard appended
-            # erst ab 16:00 ET (backtest_history.py:_VINTAGE_MKT_CLOSE). Ohne
+            # erst ab 16:20 ET (backtest_history.py:_VINTAGE_MKT_CLOSE =
+            # trading_date.US_CLOSE_FINAL_ET). Ohne
             # dieses Gate feuerte S4 für jeden Vormittags-postclose-Run (z. B.
             # off-schedule Pre-Open-Run 04:09 UTC = 00:09 ET) fälschlich warn.
-            # WICHTIG — NUR ZEIT, NICHT Bar: nach 16:00 ET mit fehlendem
+            # WICHTIG — NUR ZEIT, NICHT Bar: nach 16:20 ET mit fehlendem
             # Eintrag MUSS S4 weiter feuern, egal ob der Append crashte ODER
             # der Guard wegen Bar-Lag skippte (letzteres GEWOLLT sichtbar,
             # §3-Vintage-Verify). S4 bleibt bewusst guard-UNKENNTNIS (liest
@@ -830,12 +834,12 @@ def evaluate_state_invariants(
                     # des ganzen Mo-Fr-Catch-Werts).
                     _skip_weekend = False
                 try:
-                    # today_iso ist US-Eastern (report_date, #304). 16:00 ET
+                    # today_iso ist US-Eastern (report_date, #304). 16:20 ET
                     # via .replace(tzinfo=...) → zoneinfo löst den Offset
-                    # DST-korrekt aus dem Datum (EDT 20:00Z / EST 21:00Z).
+                    # DST-korrekt aus dem Datum (EDT 20:20Z / EST 21:20Z).
                     _now_eval = now_utc or datetime.now(timezone.utc)
                     _rd_close = datetime.strptime(today_iso, "%Y-%m-%d").replace(
-                        hour=_S4_MKT_CLOSE_HOUR, minute=0, second=0,
+                        hour=_S4_MKT_CLOSE.hour, minute=_S4_MKT_CLOSE.minute, second=0,
                         microsecond=0, tzinfo=_S4_EASTERN)
                     _before_close = _now_eval.astimezone(_S4_EASTERN) < _rd_close
                 except (ValueError, TypeError):

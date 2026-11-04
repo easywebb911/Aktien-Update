@@ -5363,7 +5363,9 @@ def _compute_fresh_ki_signals_for_backtest(top10: list[dict]) -> dict[str, dict]
 
     Hintergrund (Diagnose 10.10.2026): Der bisherige ``ki_signal_score`` im
     Backtest stammte vom letzten COMMITTETEN ``ki_agent``-Tick. Cron-
-    Kollision (``daily-squeeze-report.yml`` postclose ``17 21 * * 1-5`` vs.
+    Kollision (``daily-squeeze-report.yml`` postclose damals ``17 21 * * 1-5``,
+    seit 04.11.2026 ``37 21`` — der Fix bleibt nötig, weil agent_signals.json
+    trotzdem stale sein kann — vs.
     ``ki_agent.yml`` ``17 * * * *``, dieselbe Minute) + komplette Über-
     schreibung von ``agent_signals.json`` pro Tick (nur der zur Tick-Zeit
     aktuelle Top-10/Watchlist/Positions-Pool, ``ki_agent.parse_monitored_

@@ -3286,7 +3286,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   (16:00–16:19 ET); `resolve_run_phase` (16:00–16:19 + postclose → premarket,
   Grund `close_not_final_override`; premarket → postclose erst ab 16:20);
   Vintage-Guard `backtest_history._VINTAGE_MKT_CLOSE` (vorher eigene
-  16:00-Kopie); `exit_shadow._MKT_CLOSE` (vorher 16:00); Frontend
+  16:00-Kopie); S4-Zeit-Gate `health_check._S4_MKT_CLOSE` (vorher 16:00 —
+  Guardian-Finding; deckt auch einen eingereihten Alt-Cron-Lauf 16:17 ET ab);
+  `exit_shadow._MKT_CLOSE` (vorher 16:00); Frontend
   `_usSessionStateET`/`_computeClientRunPhase`/Pill (`_US_CLOSE_FINAL_ET_MIN`);
   Redeploy-Workflow 1620 (kein Checkout → Zahl, Gleichheit per Test,
   Easy-Variante ii). Golden mitcommittet (nur diese JS-Stellen).

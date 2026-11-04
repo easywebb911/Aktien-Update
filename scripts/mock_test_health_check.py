@@ -513,30 +513,32 @@ def test_s4_pass_weekend_overrides_time_gate():
 
 
 def test_s4_time_gate_dst_edt_june():
-    """DST EDT (Juni): 16:00 ET = 20:00Z. 19:59Z → vor Schluss (kein S4),
-    20:01Z → nach Schluss (S4). Belegt: Schwelle wandert mit der Zeitzone."""
+    """DST EDT (Juni): Grenze 16:20 ET (seit 04.11.2026, trading_date.
+    US_CLOSE_FINAL_ET) = 20:20Z. 20:19Z → vor finalem Schluss (kein S4),
+    20:21Z → danach (S4). Belegt: Schwelle wandert mit der Zeitzone."""
     before = hc.evaluate_state_invariants(
         today_iso="2026-06-11", backtest_has_today=False,
-        now_utc=datetime(2026, 6, 11, 19, 59, tzinfo=timezone.utc), **_S4_BASE)
+        now_utc=datetime(2026, 6, 11, 20, 19, tzinfo=timezone.utc), **_S4_BASE)
     after = hc.evaluate_state_invariants(
         today_iso="2026-06-11", backtest_has_today=False,
-        now_utc=datetime(2026, 6, 11, 20, 1, tzinfo=timezone.utc), **_S4_BASE)
-    assert "S4" not in _ids(before), "EDT: 19:59Z ist vor 16:00 ET → kein S4"
-    assert "S4" in _ids(after), "EDT: 20:01Z ist nach 16:00 ET → S4"
+        now_utc=datetime(2026, 6, 11, 20, 21, tzinfo=timezone.utc), **_S4_BASE)
+    assert "S4" not in _ids(before), "EDT: 20:19Z ist vor 16:20 ET → kein S4"
+    assert "S4" in _ids(after), "EDT: 20:21Z ist nach 16:20 ET → S4"
 
 
 def test_s4_time_gate_dst_est_january():
-    """DST EST (Januar): 16:00 ET = 21:00Z. 20:59Z → vor Schluss (kein S4),
-    21:01Z → nach Schluss (S4). Beweist DST-Korrektheit (kein hartes Offset)."""
+    """DST EST (Januar): Grenze 16:20 ET = 21:20Z. 21:19Z → vor finalem
+    Schluss (kein S4, deckt auch einen pünktlichen Alt-Cron 21:17Z ab),
+    21:21Z → danach (S4). Beweist DST-Korrektheit (kein hartes Offset)."""
     # 2026-01-15 = Donnerstag.
     before = hc.evaluate_state_invariants(
         today_iso="2026-01-15", backtest_has_today=False,
-        now_utc=datetime(2026, 1, 15, 20, 59, tzinfo=timezone.utc), **_S4_BASE)
+        now_utc=datetime(2026, 1, 15, 21, 19, tzinfo=timezone.utc), **_S4_BASE)
     after = hc.evaluate_state_invariants(
         today_iso="2026-01-15", backtest_has_today=False,
-        now_utc=datetime(2026, 1, 15, 21, 1, tzinfo=timezone.utc), **_S4_BASE)
-    assert "S4" not in _ids(before), "EST: 20:59Z ist vor 16:00 ET → kein S4"
-    assert "S4" in _ids(after), "EST: 21:01Z ist nach 16:00 ET → S4"
+        now_utc=datetime(2026, 1, 15, 21, 21, tzinfo=timezone.utc), **_S4_BASE)
+    assert "S4" not in _ids(before), "EST: 21:19Z ist vor 16:20 ET → kein S4"
+    assert "S4" in _ids(after), "EST: 21:21Z ist nach 16:20 ET → S4"
 
 
 def test_s4_time_gate_no_collateral_s3_s7():
@@ -962,8 +964,8 @@ def main() -> None:
         ("S4 fail: Werktag-Kontrolle (kein Über-Muting)",   test_s4_fail_postclose_non_holiday_weekday_control),
         ("S4 pass: nach 16:00 ET mit Eintrag (Normalfall)", test_s4_pass_postclose_after_close_et_with_entry),
         ("S4 pass: Wochenende überschreibt Zeit-Gate",      test_s4_pass_weekend_overrides_time_gate),
-        ("S4 DST EDT Juni (16:00 ET=20:00Z)",               test_s4_time_gate_dst_edt_june),
-        ("S4 DST EST Januar (16:00 ET=21:00Z)",             test_s4_time_gate_dst_est_january),
+        ("S4 DST EDT Juni (16:20 ET=20:20Z)",               test_s4_time_gate_dst_edt_june),
+        ("S4 DST EST Januar (16:20 ET=21:20Z)",             test_s4_time_gate_dst_est_january),
         ("S4 Zeit-Gate kein Kollateral (S3/S7)",            test_s4_time_gate_no_collateral_s3_s7),
         # S5
         ("S5 fail: zu wenig Inflation-Zeilen",             test_s5_fail_too_few_lines),
