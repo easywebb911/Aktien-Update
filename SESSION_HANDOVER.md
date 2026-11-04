@@ -3278,7 +3278,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 ### 04.11.2026 — Korrektur-Skript: Fehlertext, ein Wiederholungsversuch, Überspringen-Liste (1 PR, Manual-Merge)
 
 - Easy-Entscheid 04.11.2026 nach dry_run #5/#6 (beide nur YYGH
-  `fehler:HTTPError`, 316 ok, 4 ausdrücklich leer): `#__PR__` (Branch
+  `fehler:HTTPError`, 316 ok, 4 ausdrücklich leer): `#654` (Branch
   `claude/fix-oneoff-retry-skip-p6c3`, kein Merge-Hash — Regel a).
 - `fetch_frames`: je Fehler HTTP-Statuscode + kurzer Text (ohne URL-Parameter)
   im Log; Ticker mit Abruf-Fehler (nicht „leer“, nicht Rate-Limit) nach dem
