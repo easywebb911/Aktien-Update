@@ -14,7 +14,7 @@ Verifiziert:
       ausgeschlossen, Datum-Parse-Toleranz, Nicht-dict-Toleranz
 - (C) apply_backfill_result: Ein-Feld-Invariante, None→False
 - (D) atomic_write_json: tmp+replace
-- (E) in_cron_block_window: 06:17/21:17 UTC ±30
+- (E) in_cron_block_window: 06:17/21:37 UTC ±30
 - (F) CLI-Default = Dry-Run (kein Write)
 - (G) Import-Isolation: _compute_entry_past_return_5d IMPORTIERT nicht dupliziert;
       NUR entry_past_return_5d gesetzt; NIE entry_price als Zähler
@@ -135,7 +135,7 @@ def main():
     _check("E1 06:17 BLOCKED", bpr.in_cron_block_window(_utc(6, 17))[0])
     _check("E2 05:47 FREE (Grenze exkl.)", not bpr.in_cron_block_window(_utc(5, 47))[0])
     _check("E3 05:48 BLOCKED", bpr.in_cron_block_window(_utc(5, 48))[0])
-    _check("E4 21:17 BLOCKED", bpr.in_cron_block_window(_utc(21, 17))[0])
+    _check("E4 21:37 BLOCKED", bpr.in_cron_block_window(_utc(21, 37))[0])
     _check("E5 12:00 FREE", not bpr.in_cron_block_window(_utc(12, 0))[0])
     _check("E6 23:30 FREE (zyklisch, kein Slot)", not bpr.in_cron_block_window(_utc(23, 30))[0])
 
@@ -172,7 +172,7 @@ def main():
            and '["entry_price"]' not in _extract_body
            and '"entry_price")' not in _extract_body,
            "extract_entry_closes darf entry_price nicht LESEN (Docstring-Warnung ok)")
-    _check("G5 Cron-Slots (6,17)+(21,17)", "(6, 17)" in src and "(21, 17)" in src)
+    _check("G5 Cron-Slots (6,17)+(21,37)", "(6, 17)" in src and "(21, 37)" in src)
 
     print("── (H) classify_outcome (strikte None-Semantik) ──────────────")
     _check("H1 val≠None → filled",

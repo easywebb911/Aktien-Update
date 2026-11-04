@@ -134,7 +134,8 @@ def test_workflow_yaml_has_two_crons():
     content = path.read_text(encoding="utf-8")
     # Beide Crons drin
     assert "cron: '17 6 * * 1-5'" in content, "6:17-UTC-Cron (Min-17-Offset) fehlt"
-    assert "cron: '17 21 * * 1-5'" in content, "21:17-UTC-Cron (Min-17-Offset) fehlt"
+    assert "cron: '37 21 * * 1-5'" in content, "21:37-UTC-Cron (nach 16:20 ET, seit 04.11.2026) fehlt"
+    assert "cron: '17 21 * * 1-5'" not in content, "alter 21:17-UTC-Cron noch drin"
 
 
 def test_workflow_yaml_sets_run_phase_env():
@@ -170,8 +171,8 @@ def test_workflow_yaml_parseable():
     schedules = on.get("schedule") or []
     assert len(schedules) == 2, schedules
     crons = sorted(s.get("cron") for s in schedules)
-    # sorted() lexikografisch: "17 21" < "17 6" (weil '2' < '6')
-    assert crons == ["17 21 * * 1-5", "17 6 * * 1-5"], crons
+    # sorted() lexikografisch: "17 6" < "37 21" (weil '1' < '3')
+    assert crons == ["17 6 * * 1-5", "37 21 * * 1-5"], crons
 
 
 # === Runner ================================================================

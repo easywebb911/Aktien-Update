@@ -2426,8 +2426,10 @@ const _PSTATUS_GLOW_CLASSES = ['exit-glow-warn', 'exit-glow-mid', 'exit-glow-cri
 function _usSessionStateET(d) {
   // US-Börsen-Session in US-Ostküstenzeit (DST-korrekt via Intl), Fix
   // 02.11.2026: vorher feste UTC-Grenzen 13:30/20:00 (nur Sommerzeit).
-  // Liefert 'pre' (vor 09:30 ET) / 'open' (09:30–16:00 ET) / 'post' (ab
-  // 16:00 ET) oder null bei Fehler. Grenzen aus trading_date (Python).
+  // Liefert 'pre' (vor 09:30 ET) / 'open' (09:30–16:00 ET) / 'closing'
+  // (16:00–16:20 ET, Schluss noch nicht final) / 'post' (ab 16:20 ET) oder
+  // null bei Fehler. Grenzen aus trading_date (Python), seit 04.11.2026 mit
+  // US_CLOSE_FINAL_ET als Postclose-Grenze.
   try {
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit',
@@ -2441,6 +2443,7 @@ function _usSessionStateET(d) {
     const mins = (h % 24) * 60 + m;
     if (mins < 570) return 'pre';
     if (mins < 960) return 'open';
+    if (mins < 980) return 'closing';
     return 'post';
   } catch (e) {
     return null;
@@ -2458,7 +2461,7 @@ function _renderRunPhasePill(phase, generatedAt) {
   //
   // ``generatedAt`` (ISO-String aus ``app_data.json.generated_at``) erlaubt
   // Drei-Klassen-Disambiguation:
-  //   premarket + US-Session (09:30–16:00 ET, _usSessionStateET) → "Intraday-Snapshot"
+  //   premarket + US-Session bis 16:20 ET (open|closing, _usSessionStateET) → "Intraday-Snapshot"
   //     (US-Session läuft, run_phase=premarket gepinnt fürs Backtest-Schutz)
   //   premarket + UTC außerhalb        → "Pre-Open-Vorschau"
   //     (echter Pre-Open-Run vor US-Open)
@@ -2479,7 +2482,7 @@ function _renderRunPhasePill(phase, generatedAt) {
           sessionState = _usSessionStateET(t);
         }
       } catch(_) { /* fall through */ }
-      const inUsSession = (sessionState === 'open');
+      const inUsSession = (sessionState === 'open' || sessionState === 'closing');
       el.textContent = inUsSession
         ? ' · Intraday-Snapshot'
         : ' · Pre-Open-Vorschau';
@@ -4641,14 +4644,15 @@ function triggerWorkflow(){
 // _computeClientRunPhase — bestimmt run_phase aus aktueller UTC-Zeit für
 // den Recalculate-Dispatch. Workflow erwartet seit PR #132 das Feld als
 // required (Default raus); ohne Wert antwortet die GitHub-API HTTP 422.
-// US-Session (09:30–16:00 ET, DST-korrekt via _usSessionStateET) →
-// 'premarket', sonst 'postclose'. Unbestimmbar (Intl-Fehler) → 'premarket'
+// US-Session bis zum finalen Schluss (09:30–16:20 ET, DST-korrekt via
+// _usSessionStateET: 'open'/'closing') → 'premarket', sonst 'postclose'.
+// Unbestimmbar (Intl-Fehler) → 'premarket'
 // (sicher: kein Backtest-Befüllen). Der Plausibilitäts-Override in
 // scripts/resolve_run_phase.py bleibt als Safety-Net aktiv.
 function _computeClientRunPhase(){
   const st = _usSessionStateET(new Date());
   if (st == null) return 'premarket';
-  return (st === 'open') ? 'premarket' : 'postclose';
+  return (st === 'open' || st === 'closing') ? 'premarket' : 'postclose';
 }
 // showTokenInput / saveTokenAndDispatch sind nach Phase 3 entfallen —
 // _ensureToken übernimmt den Token-Pfad via Setup/Unlock/Migrate-Modal.

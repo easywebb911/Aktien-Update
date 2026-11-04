@@ -790,7 +790,7 @@ def evaluate_state_invariants(
         elif (run_phase == "postclose"
                 and backtest_has_today is False):
             # Wochenend-Gate (30.05.2026): postclose-Cron läuft Mo-Fr
-            # (``17 21 * * 1-5``). An Sa/So existiert per Design KEIN
+            # (``37 21 * * 1-5``, bis 04.11.2026 ``17 21``). An Sa/So existiert per Design KEIN
             # postclose-Append → S4 würde sonst strukturell für jeden
             # Wochenend-postclose-Run feuern (manueller dispatch, late-
             # cron-Drift mit Berlin-Mitternacht-Übertritt etc.). Gate
@@ -1569,7 +1569,7 @@ _DIAGNOSE_SIGNAL_BLOCKS = {
     ),
     "S12": (
         "[S12] postclose-Run-Frequenz: {d}\n"
-        "→ Prüfe: Lief der 21:17-UTC-postclose-Cron (GitHub-Actions-Drop/-Drift)? "
+        "→ Prüfe: Lief der 21:37-UTC-postclose-Cron (GitHub-Actions-Drop/-Drift)? "
         "RUN_PHASE-Resolution korrekt (resolve_run_phase)? Wie viele Werktage "
         "ohne echten postclose — welcher Backtest-EOD-Snapshot ist "
         "unwiederbringlich verloren?"
@@ -2863,7 +2863,7 @@ def options_oi_liveness_line(hist_path=None, *, now_ts=None) -> str:
 # ── options_chain_raw-Liveness (Digest, 17.10.2026) ───────────────────────────
 # Analog options_oi_liveness_line, aber JSONL statt Dict-JSON (eine Zeile je
 # (ticker, date)). Zusätzlicher QUALITÄTS-Zähler (Kernzweck dieser Zeile):
-# Yahoo liefert Optionspreise nach Börsenschluss (postclose-Lauf 21:17 UTC)
+# Yahoo liefert Optionspreise nach Börsenschluss (postclose-Lauf 21:37 UTC)
 # oft mit Bid/Ask = 0 — ob die Rohdaten für eine spätere Leihgebühr-/
 # Net-Delta-Auswertung überhaupt brauchbar sind, zeigt sich NUR an diesem
 # Anteil, nicht an der reinen Zeilenzahl. REIN ANZEIGEND, kein Alarm, kein

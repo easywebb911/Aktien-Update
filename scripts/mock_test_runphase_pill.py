@@ -128,7 +128,7 @@ def _label_for(phase: str, generated_at: datetime | None) -> str | None:
             t = generated_at or datetime.now(timezone.utc)
         else:
             t = generated_at
-        in_us = trading_date.us_session_state(t) == "open"   # US/Eastern
+        in_us = trading_date.us_session_state(t) in ("open", "closing")   # US/Eastern, bis 16:20 ET
         return " · Intraday-Snapshot" if in_us else " · Pre-Open-Vorschau"
     if phase == "postclose":
         return " · Post-Close"
@@ -160,14 +160,19 @@ def test_us_session_boundary_just_before_1330():
 
 
 def test_us_session_boundary_exactly_2000():
-    """Genau 20:00 UTC ist nicht mehr Intraday (< 20:00-Schwelle)."""
+    """Seit 04.11.2026: 20:00/20:19 UTC (16:00/16:19 EDT, Schluss noch nicht
+    final) → noch 'Intraday-Snapshot'; ab 20:20 UTC (16:20 EDT) nicht mehr."""
     t = datetime(2026, 5, 15, 20, 0, tzinfo=timezone.utc)
+    assert _label_for("premarket", t) == " · Intraday-Snapshot"
+    t = datetime(2026, 5, 15, 20, 19, tzinfo=timezone.utc)
+    assert _label_for("premarket", t) == " · Intraday-Snapshot"
+    t = datetime(2026, 5, 15, 20, 20, tzinfo=timezone.utc)
     assert _label_for("premarket", t) == " · Pre-Open-Vorschau"
 
 
 def test_postclose_run_at_2117_utc():
-    """21:17 UTC (regulärer postclose-Cron) → 'Post-Close'."""
-    t = datetime(2026, 5, 15, 21, 17, tzinfo=timezone.utc)
+    """21:37 UTC (regulärer postclose-Cron seit 04.11.2026) → 'Post-Close'."""
+    t = datetime(2026, 5, 15, 21, 37, tzinfo=timezone.utc)
     assert _label_for("postclose", t) == " · Post-Close"
 
 
@@ -238,6 +243,8 @@ def test_js_helper_matches_python_source():
         "2026-05-13T20:00:00Z", "2026-05-13T20:30:00Z",
         "2026-11-02T14:29:00Z", "2026-11-02T14:30:00Z", "2026-11-02T20:30:00Z",
         "2026-11-02T20:59:00Z", "2026-11-02T21:00:00Z",
+        "2026-11-02T21:19:00Z", "2026-11-02T21:20:00Z", "2026-05-13T20:19:00Z",
+        "2026-05-13T20:20:00Z",
         "2026-10-30T20:30:00Z", "2026-03-06T14:00:00Z", "2026-03-09T14:00:00Z",
     ]
     code = js_fn + "\n" + "const ts=" + repr(stamps).replace("'", '"') + ";\n" + \
@@ -268,7 +275,7 @@ def test_resolve_run_phase_untouched():
 def test_redeploy_workflow_run_phase_logic_untouched():
     path = ROOT / ".github" / "workflows" / "redeploy-on-source-change.yml"
     src = path.read_text(encoding="utf-8")
-    assert 'if [ "$NOW_HHMM" -ge 930 ] && [ "$NOW_HHMM" -lt 1600 ]; then' in src
+    assert 'if [ "$NOW_HHMM" -ge 930 ] && [ "$NOW_HHMM" -lt 1620 ]; then' in src   # 16:20 ET seit 04.11.2026
     assert 'RUN_PHASE="premarket"' in src
 
 
@@ -308,8 +315,8 @@ def main() -> None:
         ("17:29 UTC premarket → Intraday-Snapshot",       test_intraday_redeploy_at_1729_utc),
         ("Boundary 13:30 UTC → Intraday (inkl)",          test_us_session_boundary_exactly_1330),
         ("Boundary 13:29 UTC → noch Pre-Open",             test_us_session_boundary_just_before_1330),
-        ("Boundary 20:00 UTC → wieder Pre-Open (exkl)",    test_us_session_boundary_exactly_2000),
-        ("21:17 UTC postclose → Post-Close",               test_postclose_run_at_2117_utc),
+        ("Boundary 16:00/16:19 EDT Intraday, 16:20 Pre-Open", test_us_session_boundary_exactly_2000),
+        ("21:37 UTC postclose → Post-Close",               test_postclose_run_at_2117_utc),
         ("postclose in US-Session bleibt Post-Close",      test_postclose_during_us_session_still_post_close),
         ("Unbekannte phase → Pill hidden",                  test_unknown_phase_hidden),
         ("19:59 UTC → noch Intraday-Snapshot",              test_late_intraday_just_before_close),

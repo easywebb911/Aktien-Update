@@ -71,15 +71,18 @@ jobs:
           # UTC-Grenzen 13:30/20:00, nur in der Sommerzeit richtig) —
           # analog zu scripts/resolve_run_phase.py (trading_date.
           # us_session_state) und _computeClientRunPhase im Frontend:
-          #   US-Session [09:30, 16:00) ET → premarket
-          #   sonst                         → postclose
-          # Vergleich als Ganzzahl HHMM (930/1600, ohne führende Null).
+          #   US-Session bis zum finalen Schluss [09:30, 16:20) ET → premarket
+          #   sonst                                              → postclose
+          # Vergleich als Ganzzahl HHMM (930/1620, ohne führende Null).
+          # 1620 = trading_date.US_CLOSE_FINAL_ET (seit 04.11.2026; dieser
+          # Workflow checkt das Repo nicht aus) — Gleichheit erzwingt
+          # scripts/mock_test_redeploy_workflow_run_phase.py.
           # Der Plausibilitäts-Override (resolve_run_phase.py) im
           # Daily-Run-Workflow korrigiert ohnehin Inkonsistenzen, der
           # Wert hier ist also nur ein „bester Vorschlag" und keine
           # harte Anforderung.
           NOW_HHMM=$(TZ=America/New_York date +%H%M)
-          if [ "$NOW_HHMM" -ge 930 ] && [ "$NOW_HHMM" -lt 1600 ]; then
+          if [ "$NOW_HHMM" -ge 930 ] && [ "$NOW_HHMM" -lt 1620 ]; then
             RUN_PHASE="premarket"
           else
             RUN_PHASE="postclose"

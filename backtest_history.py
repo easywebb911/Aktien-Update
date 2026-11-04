@@ -1093,12 +1093,15 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
 # Empirie 09.06.2026: 11/11 Cluster-Tage entstanden durch PRE-OPEN-Runs, die
 # vor Session-Schluss des report_date die Vortags-Bar capturen und via
 # existing_keys einfrieren. Gate: appende nur wenn (1) now_et >= report_date@
-# 16:00 ET UND (2) die captured Tagesbar (s["bar_date"]) auf report_date
+# 16:20 ET UND (2) die captured Tagesbar (s["bar_date"]) auf report_date
 # datiert ist. REIN Backtest-Append — score_history/app_data/Pushes unberührt.
+# Fix 04.11.2026: Grenze (1) ist ``trading_date.US_CLOSE_FINAL_ET`` (16:20 ET,
+# finaler Schlusskurs) statt einer eigenen 16:00-Kopie — dieselbe Quelle wie
+# ``trading_date.us_session_state`` / ``scripts/resolve_run_phase.py``.
 _VINTAGE_GUARD_LOG = "vintage_guard_log.jsonl"
 _VINTAGE_EASTERN   = ZoneInfo("America/New_York")
 _VINTAGE_MKT_OPEN  = time(9, 30)
-_VINTAGE_MKT_CLOSE = time(16, 0)
+_VINTAGE_MKT_CLOSE = trading_date.US_CLOSE_FINAL_ET
 
 
 def _vintage_gate_decision(report_date: str, bar_date, now_et: datetime
@@ -1112,7 +1115,8 @@ def _vintage_gate_decision(report_date: str, bar_date, now_et: datetime
     - ``now_et``: tz-aware ET-Zeitpunkt des Runs.
 
     Logik (Zeit zuerst, dann Bar-Datum):
-    - ``now_et < report_date@16:00 ET`` → skip (``pre_open`` falls vor
+    - ``now_et < report_date@16:20 ET`` (``_VINTAGE_MKT_CLOSE`` =
+      ``trading_date.US_CLOSE_FINAL_ET``) → skip (``pre_open`` falls vor
       Markt-Open bzw. report_date noch nicht erreicht, sonst ``before_close``).
     - Zeit OK, ``bar_date`` fehlt/unparsbar → **append** (Missing-Regel,
       konservativ: lieber unsicherer Eintrag als stiller Datenverlust).
@@ -1257,8 +1261,8 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
                     report_date, _rd.strftime("%A"))
         return 0
 
-    # Vintage-Guard run-level Zeit-Gate (M1): kein Append vor Session-Schluss
-    # (16:00 ET) des report_date. Früher Return VOR _load/_save → existing_keys
+    # Vintage-Guard run-level Zeit-Gate (M1): kein Append vor dem finalen
+    # Schluss (16:20 ET, ``trading_date.US_CLOSE_FINAL_ET``) des report_date. Früher Return VOR _load/_save → existing_keys
     # bleibt unbelegt → ein späterer korrekter Post-Close-Run appended frisch.
     # Spart außerdem den SPY/VIX-Fetch bei einem geskippten Pre-Open-Run.
     if now_et is None:
@@ -1319,7 +1323,7 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
     # lösen KEINEN EDGAR-Call aus. Ein Ticker, der am per-entry Vintage-Gate
     # hängt (noch NICHT persistiert), wird pro Run erneut gesammelt — bounded
     # und fail-soft, und im postclose-Pfad (einziger Aufrufer) praktisch selten
-    # (Run-Level-Gate now_et>=16:00 ET ist erfüllt, bar_date=report_date). now_utc
+    # (Run-Level-Gate now_et>=16:20 ET ist erfüllt, bar_date=report_date). now_utc
     # = _now_dt = Report-Zeitpunkt → Point-in-time-Obergrenze (acceptance <=
     # _now_dt). Fail-soft: bei Ausfall bleibt der Wrapper leer (collected=False).
     material_8k_by_ticker: dict[str, dict] = {}
