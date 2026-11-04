@@ -126,14 +126,33 @@ class _FakeYf(types.ModuleType):
         self.behaviour = behaviour
         self.config = types.SimpleNamespace(debug=types.SimpleNamespace(hide_exceptions=True))
         self.calls = []
+        self.dl_calls = []
+        self.dl = {}
+        self.dl_err = {}
+
+    def download(self, tickers, **kw):
+        t = tickers[0]
+        self.dl_calls.append((t, self.config.debug.hide_exceptions))
+        b = self.dl.get(t, "empty")
+        if isinstance(b, _DF):
+            return b
+        return _DF([], [])
 
     def Ticker(self, t):  # noqa: N802
         yf = self
 
         class _T:
             def history(self, **kw):
+                if yf.config.debug.hide_exceptions:           # Sammelweg
+                    yf.dl_calls.append((t, True))
+                    b = yf.dl.get(t, "empty")
+                    le = yf.dl_err.get(t)
+                    self._price_history = types.SimpleNamespace(_last_error=le)
+                    return b if isinstance(b, _DF) else _DF([], [])
                 yf.calls.append((t, kw.get("auto_adjust")))
                 b = yf.behaviour.get(t, "ok")
+                if isinstance(b, list):           # Folge je Aufruf
+                    b = b.pop(0) if len(b) > 1 else b[0]
                 if isinstance(b, _DF):
                     return b
                 if b == "empty":
@@ -146,8 +165,11 @@ class _FakeYf(types.ModuleType):
 
 
 @contextlib.contextmanager
-def _yf(behaviour):
+def _yf(behaviour, dl=None, dl_err=None):
     fake = _FakeYf(behaviour)
+    fake.dl = dl or {}
+    fake.dl_err = dl_err or {}
+    base.RETRY_PAUSE_S = 0.0
     orig = sys.modules.get("yfinance")
     sys.modules["yfinance"] = fake
     try:
@@ -164,12 +186,14 @@ def test_a_classify():
     _check("A ok", st["OK"] == "ok" and frames["OK"] is not None)
     _check("A Zeitzone fehlt → leer", st["TZ"] == "leer:YFTzMissingError" and frames["TZ"] is None)
     _check("A keine Kurse → leer", st["PM"] == "leer:YFPricesMissingError")
-    _check("A Rate-Limit → fehler:rate_limit", st["RL"] == "fehler:rate_limit")
-    _check("A Netzwerkfehler → fehler", st["NET"] == "fehler:ConnectionError")
-    _check("A leer ohne Meldung → fehler", st["EMP"] == "fehler:leer_ohne_meldung")
-    _check("A hide_exceptions ausgeschaltet", fake.config.debug.hide_exceptions is False)
+    _check("A Rate-Limit → fehler:rate_limit (ohne Wiederholung)",
+           st["RL"].startswith("fehler:rate_limit") and [t for t, _ in fake.calls].count("RL") == 1)
+    _check("A Netzwerkfehler → fehler (nach Wiederholung + Sammelweg)",
+           st["NET"].startswith("fehler:ConnectionError") and "Wiederholung" in st["NET"], st["NET"])
+    _check("A leer ohne Meldung → fehler", st["EMP"].startswith("fehler:leer_ohne_meldung"))
+    _check("A hide_exceptions nach dem Lauf wieder aus", fake.config.debug.hide_exceptions is False)
     _check("A Einzel-Abruf je Ticker mit auto_adjust=True",
-           sorted(t for t, _ in fake.calls) == sorted(beh) and all(a is True for _, a in fake.calls))
+           set(t for t, _ in fake.calls) == set(beh) and all(a is True for _, a in fake.calls))
 
 
 def test_a2_message_classification():
@@ -191,6 +215,119 @@ def test_a2_message_classification():
            c(PM("$X: possibly delisted; no price data found (1d a -> b)(Yahoo status_code = 401)"))
            == "fehler:YFPricesMissingError_status_code")
     _check("A2 Rate-Limit → fehler:rate_limit", c(_exc("YFRateLimitError")("x")) == "fehler:rate_limit")
+
+
+class _HTTPError(Exception):
+    def __init__(self, code, msg):
+        super().__init__(msg)
+        self.response = types.SimpleNamespace(status_code=code)
+
+
+def test_r_retry():
+    ok_df = _DF(_days(_dt.date(2026, 10, 1), 10), [1.0] * 10)
+    pauses = []
+    beh = {"YYGH": ["HTTPErr", ok_df]}
+    fake = _FakeYf(beh)
+    fake.dl = {}
+    orig = sys.modules.get("yfinance")
+    sys.modules["yfinance"] = fake
+    fake.Ticker_orig = fake.Ticker
+
+    def _ticker(t):
+        tk = fake.Ticker_orig(t)
+        h = tk.history
+
+        def history(**kw):
+            b = beh[t][0] if isinstance(beh.get(t), list) else None
+            if b == "HTTPErr":
+                beh[t].pop(0)
+                fake.calls.append((t, kw.get("auto_adjust")))
+                raise _HTTPError(404, "HTTP Error 404: Not Found for url https://x/y?crumb=SECRET")
+            return h(**kw)
+        tk.history = history
+        return tk
+    fake.Ticker = _ticker
+    try:
+        fr, st = base.fetch_frames(["YYGH"], _dt.date(2026, 10, 1), NOW, sleep=pauses.append,
+                                   retry_pause=5.0)
+    finally:
+        sys.modules["yfinance"] = orig
+    _check("R Fehler → Pause → Wiederholung → Erfolg", st["YYGH"] == "ok:wiederholt"
+           and pauses == [5.0] and fr["YYGH"] is ok_df, f"{st} {pauses}")
+    with _yf({"YYGH": "HTTPError"}, dl={"YYGH": ok_df}) as fk:
+        fr, st = base.fetch_frames(["YYGH"], _dt.date(2026, 10, 1), NOW)
+    _check("R Fehler → Wiederholung Fehler → Sammelweg mit Daten → ok:sammelweg",
+           st["YYGH"] == "ok:sammelweg" and fr["YYGH"] is not None, str(st))
+    _check("R Sammelweg mit hide_exceptions=True, danach wieder False",
+           fk.dl_calls == [("YYGH", True)] and fk.config.debug.hide_exceptions is False, str(fk.dl_calls))
+    with _yf({"YYGH": "HTTPError"}, dl={"YYGH": ok_df},
+             dl_err={"YYGH": "auto_adjust failed"}) as fk:
+        fr, st = base.fetch_frames(["YYGH"], _dt.date(2026, 10, 1), NOW)
+    _check("R Sammelweg mit verschlucktem yfinance-Fehler (z. B. auto_adjust) → nicht übernommen",
+           st["YYGH"].startswith("fehler:") and fr["YYGH"] is None, st["YYGH"])
+    with _yf({"YYGH": "HTTPError"}) as fk:
+        fr, st = base.fetch_frames(["YYGH"], _dt.date(2026, 10, 1), NOW)
+    _check("R Fehler → Fehler → Sammelweg leer → bleibt Fehler (nie null)",
+           st["YYGH"].startswith("fehler:HTTPError") and "Sammelweg: keine Daten" in st["YYGH"]
+           and fr["YYGH"] is None, st["YYGH"])
+    with _yf({"RL": "YFRateLimitError"}) as fk:
+        fr, st = base.fetch_frames(["RL"], _dt.date(2026, 10, 1), NOW)
+    _check("R Rate-Limit: keine Wiederholung, kein Sammelweg", st["RL"].startswith("fehler:rate_limit")
+           and len(fk.calls) == 1 and fk.dl_calls == [])
+    e = _HTTPError(404, "HTTP Error 404: Not Found for url https://q/v8/chart/YYGH?crumb=SECRET&x=1")
+    det = base.error_detail(e)
+    _check("R Fehlertext mit Statuscode, ohne URL-Parameter",
+           det.startswith("HTTP 404: ") and "SECRET" not in det and "crumb" not in det, det)
+
+
+def test_s_skip():
+    d = pathlib.Path(tempfile.mkdtemp())
+    _returns_files(d, ("AAA", "YYGH"))
+    before = _snap(d)
+    buf = io.StringIO()
+    with _yf({"YYGH": "HTTPError"}), contextlib.redirect_stdout(buf):
+        rc_noskip = base.run("dry_run", NOW, root=d)
+        rc = base.run("apply", NOW, root=d, max_null=1000, skip=frozenset({"YYGH"}))
+    log = buf.getvalue()
+    _check("S ohne Überspringen-Liste: Abbruch", rc_noskip == 2)
+    bt = json.loads((d / base.BT_FILE).read_text(encoding="utf-8"))
+    yy = [r for r in bt if r["ticker"] == "YYGH"][0]
+    old = [r for r in json.loads(before[base.BT_FILE]) if r["ticker"] == "YYGH"][0]
+    _check("S mit Liste: apply läuft, YYGH-Felder UNVERÄNDERT", rc == 0 and yy == old, log[-300:])
+    arch = (d / base.ARCHIVE_FILE).read_text(encoding="utf-8") if (d / base.ARCHIVE_FILE).exists() else ""
+    _check("S Archiv ohne YYGH", '"YYGH"' not in arch)
+    _check("S Liste im Log genannt", "Übersprungen (Easy-Entscheid" in log and "YYGH" in log)
+    shutil.rmtree(d)
+    d = pathlib.Path(tempfile.mkdtemp())
+    bt = [{"date": "05.10.2026", "ticker": t, "score": 80.0, "max_gain_pct": 77.77,
+           "max_drawdown_pct": -1.0} for t in ("AAA", "YYGH")]
+    (d / base.BT_FILE).write_text(json.dumps(bt, indent=2, ensure_ascii=False), encoding="utf-8")
+    (d / base.EXPORT_FILE).write_text("", encoding="utf-8")
+    (d / mgs.SHADOW_FILE).write_text(json.dumps({"date": "05.10.2026", "ticker": "YYGH",
+                                                  "forward_3d": 1.0}) + "\n", encoding="utf-8")
+    b2 = _snap(d)
+    with _yf({"YYGH": "HTTPError"}), contextlib.redirect_stdout(io.StringIO()):
+        rc = mgs.run("dry_run", NOW, root=d, skip=frozenset({"YYGH"}))
+    _check("S maxgain_shadow mit Liste: läuft, nichts geschrieben", rc == 0 and _snap(d) == b2)
+    _check("S Ungültige Liste → ValueError", _raises(lambda: base.parse_skip("YY GH; rm")))
+    _check("S unbekannter Ticker in der Liste → Fehlertext",
+           "unbekannte Ticker ['ZZQQ']" in (base.check_skip(frozenset({"ZZQQ"}), [{"ticker": "AAA"}]) or ""))
+    _check("S Liste > 3 → Fehlertext",
+           "zu lang" in (base.check_skip(frozenset({"A", "B", "C", "D"}), [{"ticker": "A"}]) or ""))
+    with _yf({}), contextlib.redirect_stdout(io.StringIO()):
+        rc = mgs.run("dry_run", NOW, root=d, skip=frozenset({"ZZQQ"}))
+    _check("S Tippfehler in der Liste → Abbruch rc 2, nichts geschrieben", rc == 2 and _snap(d) == b2)
+    _check("S Liste geparst (Komma/Leerzeichen, Großschrift)",
+           base.parse_skip("yygh, ABC  def") == frozenset({"YYGH", "ABC", "DEF"}))
+    shutil.rmtree(d)
+
+
+def _raises(fn):
+    try:
+        fn()
+    except ValueError:
+        return True
+    return False
 
 
 def _returns_files(d, tickers=("AAA", "GETY")):
@@ -303,7 +440,8 @@ def test_f_many_tickers():
 
 
 def main() -> int:
-    for t in (test_a_classify, test_a2_message_classification, test_b_returns_ratelimit, test_c_maxgain_ratelimit,
+    for t in (test_a_classify, test_a2_message_classification, test_r_retry, test_s_skip,
+              test_b_returns_ratelimit, test_c_maxgain_ratelimit,
               test_d_explicit_empty, test_e_gap_and_ipo, test_f_many_tickers):
         try:
             t()

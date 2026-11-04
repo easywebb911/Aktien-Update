@@ -240,21 +240,55 @@ class AbrufUnvollstaendig(Exception):
     """Mindestens ein Ticker wurde nicht sauber abgerufen (Rate-Limit o. ä.)."""
 
 
-def fetch_frames(tickers: list[str], start: date, now: datetime, *, workers: int = 4):
+RETRY_PAUSE_S = 5.0
+
+
+def error_detail(exc: BaseException) -> str:
+    """Kurzer Fehlertext für das Log: HTTP-Statuscode (falls vorhanden) und die
+    erste Meldungszeile ohne URL-Parameter (keine Kurswerte, kein Crumb)."""
+    code = None
+    resp = getattr(exc, "response", None)
+    for obj in (resp, exc):
+        c = getattr(obj, "status_code", None) if obj is not None else None
+        if isinstance(c, int):
+            code = c
+            break
+    text = str(exc).splitlines()[0] if str(exc) else ""
+    text = text.split("?", 1)[0].strip()[:100]
+    return (f"HTTP {code}: " if code is not None else "") + (text or type(exc).__name__)
+
+
+def fetch_frames(tickers: list[str], start: date, now: datetime, *, workers: int = 4,
+                 retry_pause: float | None = None, sleep=None):
     """Einzel-Abruf je Ticker (``Ticker.history``, ``auto_adjust=True``) mit
     ``yf.config.debug.hide_exceptions = False``, damit yfinance Fehler als
     Exception-Typ meldet statt sie zu verschlucken. Liefert
-    ``({ticker: df|None}, {ticker: status})`` mit Status ``ok``,
-    ``leer:<Typ>`` (ausdrücklich keine Daten → darf null werden) oder
-    ``fehler:<Typ>`` (Rate-Limit/Netzwerk/unklar → Lauf nicht verwertbar).
-    Jeder Ticker hat seine eigenen Handelstage als Index (kein Sammel-Index
-    mit Leerzeilen anderer Ticker)."""
+    ``({ticker: df|None}, {ticker: status})`` mit Status ``ok``
+    (auch ``ok:wiederholt`` / ``ok:sammelweg``), ``leer:<Typ>`` (ausdrücklich
+    keine Daten → darf null werden) oder ``fehler:<Typ> (<Detail>)``
+    (Rate-Limit/Netzwerk/unklar → Lauf nicht verwertbar).
+
+    Wiederholung (04.11.2026): Ticker mit Abruf-Fehler (NICHT „leer“, NICHT
+    Rate-Limit) werden nach dem parallelen Durchgang EINZELN noch einmal
+    versucht — nach ``retry_pause`` Sekunden zuerst derselbe Einzel-Abruf,
+    dann der Sammel-Abruf-Weg (``yf.download`` mit yfinance-Standard
+    ``hide_exceptions=True``, so lief der Daily-Run und so bekam YYGH im
+    Sammel-Lauf #4 Daten). Vom Sammel-Weg wird NUR eine nicht-leere Antwort
+    OHNE verschluckten yfinance-Fehler übernommen; sonst bleibt Fehler (nie
+    null). ``sleep`` injizierbar (Tests)."""
+    import time as _time
     import yfinance as yf
     from concurrent.futures import ThreadPoolExecutor
-    try:
-        yf.config.debug.hide_exceptions = False
-    except Exception:  # noqa: BLE001 — ältere/gestubbte yfinance
-        pass
+    sleep = sleep or _time.sleep
+    retry_pause = RETRY_PAUSE_S if retry_pause is None else retry_pause
+
+    def _hide(flag: bool) -> None:
+        try:
+            yf.config.debug.hide_exceptions = flag
+        except Exception:  # noqa: BLE001 — ältere/gestubbte yfinance
+            pass
+
+    _hide(False)
     end = (now.date() + timedelta(days=2)).isoformat()
 
     def _one(t):
@@ -262,15 +296,60 @@ def fetch_frames(tickers: list[str], start: date, now: datetime, *, workers: int
             df = yf.Ticker(t).history(start=start.isoformat(), end=end, interval="1d",
                                       auto_adjust=True, actions=False)
         except Exception as exc:  # noqa: BLE001
-            return t, None, classify_fetch_error(exc)
+            st = classify_fetch_error(exc)
+            if st.startswith("fehler:"):
+                st = f"{st} ({error_detail(exc)})"
+            return t, None, st
         if df is None or getattr(df, "empty", True):
             return t, None, "fehler:leer_ohne_meldung"
         return t, df, "ok"
+
+    def _sammelweg(t):
+        """Wie ``yf.download`` intern (``Ticker.history`` mit yfinance-Standard
+        ``hide_exceptions=True``). Übernommen NUR, wenn yfinance dabei KEINEN
+        verschluckten Fehler vermerkt hat (``_price_history._last_error``) —
+        sonst könnten z. B. unbereinigte Kurse durchrutschen, wenn
+        ``auto_adjust`` intern scheitert (Guardian-Finding). Fehlt das Attribut,
+        wird ebenfalls nichts übernommen (konservativ)."""
+        _hide(True)
+        try:
+            tk = yf.Ticker(t)
+            df = tk.history(start=start.isoformat(), end=end, interval="1d",
+                            auto_adjust=True, actions=False)
+            ph = getattr(tk, "_price_history", None)
+            if ph is None or not hasattr(ph, "_last_error") or ph._last_error is not None:
+                return None
+        except Exception:  # noqa: BLE001
+            return None
+        finally:
+            _hide(False)
+        if df is None or getattr(df, "empty", True):
+            return None
+        return df
 
     frames, status = {}, {}
     with ThreadPoolExecutor(max_workers=workers) as ex:
         for t, df, st in ex.map(_one, sorted(set(tickers))):
             frames[t], status[t] = df, st
+
+    retry = [t for t, st in sorted(status.items())
+             if st.startswith("fehler:") and not st.startswith("fehler:rate_limit")]
+    for t in retry:
+        first = status[t]
+        sleep(retry_pause)
+        _t, df, st = _one(t)
+        if st == "ok":
+            frames[t], status[t] = df, "ok:wiederholt"
+            continue
+        if st.startswith("leer:") or st.startswith("fehler:rate_limit"):
+            frames[t], status[t] = None, st
+            continue
+        df2 = _sammelweg(t)
+        if df2 is not None:
+            frames[t], status[t] = df2, "ok:sammelweg"
+        else:
+            status[t] = f"{first} · Wiederholung: {st} · Sammelweg: keine Daten"
+    _hide(False)
     return frames, status
 
 
@@ -279,9 +358,11 @@ def report_fetch(status: dict) -> list[str]:
     Ticker mit ``fehler:*``; bei Fehlern klare Meldung."""
     bad = sorted(t for t, st in status.items() if st.startswith("fehler:"))
     empty = sorted(t for t, st in status.items() if st.startswith("leer:"))
-    print(f"Abruf: {len(status)} Ticker · ok {len(status) - len(bad) - len(empty)} · "
-          f"ausdrücklich leer {len(empty)} · fehlerhaft {len(bad)}")
-    for t in empty + bad:
+    redo = sorted(t for t, st in status.items() if st.startswith("ok:"))
+    print(f"Abruf: {len(status)} Ticker · ok {len(status) - len(bad) - len(empty)} "
+          f"(davon nach Wiederholung {len(redo)}) · ausdrücklich leer {len(empty)} · "
+          f"fehlerhaft {len(bad)}")
+    for t in redo + empty + bad:
         print(f"  {t}: {status[t]}")
     if bad:
         print("Abruf unvollständig — nicht verwertbar (Rate-Limit/Abruffehler). "
@@ -413,8 +494,42 @@ def _print_counters(root: pathlib.Path) -> None:
 
 
 # ── Lauf ─────────────────────────────────────────────────────────────────────
+_SKIP_RE = __import__("re").compile(r"^[A-Z0-9][A-Z0-9.\-]{0,11}$")
+
+
+def parse_skip(raw: str | None) -> frozenset:
+    """Easy-Entscheid-Liste übersprungener Ticker (Komma/Leerzeichen getrennt).
+    Ungültiger Eintrag → ``ValueError`` (Lauf bricht ab, nichts geschrieben)."""
+    items = [x.strip().upper() for x in (raw or "").replace(",", " ").split() if x.strip()]
+    bad = [x for x in items if not _SKIP_RE.match(x)]
+    if bad:
+        raise ValueError(f"ungültige Ticker in der Überspringen-Liste: {bad}")
+    return frozenset(items)
+
+
+MAX_SKIP = 3
+
+
+def check_skip(skip: frozenset, *record_lists) -> str | None:
+    """Fehlertext, wenn die Überspringen-Liste zu lang ist oder einen Ticker
+    nennt, der in keiner Datei vorkommt (Tippfehler) — sonst ``None``."""
+    if len(skip) > MAX_SKIP:
+        return f"Überspringen-Liste zu lang ({len(skip)} > {MAX_SKIP})"
+    known = {r.get("ticker") for lst in record_lists for r in lst if isinstance(r, dict)}
+    unknown = sorted(skip - known)
+    if unknown:
+        return f"Überspringen-Liste nennt unbekannte Ticker {unknown}"
+    return None
+
+
+def print_skip(skip: frozenset) -> None:
+    if skip:
+        print(f"Übersprungen (Easy-Entscheid, Felder bleiben UNVERÄNDERT, kein Archiv): "
+              f"{sorted(skip)}")
+
+
 def run(mode: str, now: datetime, root: pathlib.Path = ROOT, prices=None,
-        max_null: int | None = None) -> int:
+        max_null: int | None = None, skip: frozenset = frozenset()) -> int:
     import trading_date
     final_cut = trading_date.last_final_close_date(now)
     bt, bt_raw, ex, ex_lines, trailing = load_files(root)
@@ -423,9 +538,15 @@ def run(mode: str, now: datetime, root: pathlib.Path = ROOT, prices=None,
 
     def _todo(r):
         return (isinstance(r, dict) and r.get("source") != "bootstrap"
+                and r.get("ticker") not in skip
                 and any(f in r and r[f] is not None for f in TARGET_FIELDS)
                 and _dmy(r.get("date")) is not None)
 
+    _err = check_skip(skip, bt, ex)
+    if _err:
+        print(f"ABBRUCH: {_err}. Nichts geschrieben.")
+        return 2
+    print_skip(skip)
     recs = [r for r in bt if _todo(r)] + [r for r in ex if _todo(r)]
     tickers = sorted({r["ticker"] for r in recs if r.get("ticker")})
     if not tickers:
@@ -646,6 +767,8 @@ def main(argv=None) -> int:
                     help="returns (Default, Pfad aus #648 unverändert) oder maxgain_shadow "
                          "(max_gain_pct/max_drawdown_pct + Exit-Shadow-Forwards)")
     ap.add_argument("--now", default=None)
+    ap.add_argument("--skip-tickers", default="",
+                    help="Easy-Entscheid: diese Ticker überspringen (Felder unverändert)")
     ap.add_argument("--max-null", type=int, default=None,
                     help="apply: höchstens so viele Felder dürfen auf null gesetzt werden "
                          "(Zahl aus dem dry_run)")
@@ -653,14 +776,19 @@ def main(argv=None) -> int:
     now = (datetime.fromisoformat(a.now) if a.now else datetime.now(timezone.utc))
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
+    try:
+        skip = parse_skip(a.skip_tickers)
+    except ValueError as exc:
+        print(f"ABBRUCH: {exc}. Nichts geschrieben.")
+        return 2
     if a.target == "maxgain_shadow":
         import fix_maxgain_shadow as mgs
         if a.mode in ("restore", "restore_probe"):
             return mgs.restore(apply=(a.mode == "restore"))
-        return mgs.run(a.mode, now, max_null=a.max_null)
+        return mgs.run(a.mode, now, max_null=a.max_null, skip=skip)
     if a.mode in ("restore", "restore_probe"):
         return restore(apply=(a.mode == "restore"))
-    return run(a.mode, now, max_null=a.max_null)
+    return run(a.mode, now, max_null=a.max_null, skip=skip)
 
 
 if __name__ == "__main__":

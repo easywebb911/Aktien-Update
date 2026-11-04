@@ -171,7 +171,7 @@ def _es_todo(r) -> bool:
 
 # ── Lauf ─────────────────────────────────────────────────────────────────────
 def run(mode: str, now: datetime, root: pathlib.Path = base.ROOT, prices=None,
-        max_null: int | None = None) -> int:
+        max_null: int | None = None, skip: frozenset = frozenset()) -> int:
     import trading_date
     final_cut = trading_date.last_final_close_date(now)
     bt, _bt_raw, ex, ex_lines, ex_trailing = base.load_files(root)
@@ -179,8 +179,15 @@ def run(mode: str, now: datetime, root: pathlib.Path = base.ROOT, prices=None,
     base._check_unique({BT_FILE: bt, EXPORT_FILE: ex, SHADOW_FILE: sh})
     shas = {f: base._sha(root / f) for f in (BT_FILE, EXPORT_FILE, SHADOW_FILE)}
 
-    recs_mg = [r for r in bt if _mg_todo(r)] + [r for r in ex if _mg_todo(r)]
-    recs_es = [r for r in sh if _es_todo(r)]
+    _err = base.check_skip(skip, bt, ex, sh)
+    if _err:
+        print(f"ABBRUCH: {_err}. Nichts geschrieben.")
+        return 2
+    base.print_skip(skip)
+    mg_todo = lambda r: _mg_todo(r) and r.get("ticker") not in skip  # noqa: E731
+    es_todo = lambda r: _es_todo(r) and r.get("ticker") not in skip  # noqa: E731
+    recs_mg = [r for r in bt if mg_todo(r)] + [r for r in ex if mg_todo(r)]
+    recs_es = [r for r in sh if es_todo(r)]
     tickers = sorted({r["ticker"] for r in recs_mg + recs_es if r.get("ticker")})
     if not tickers:
         print("Nichts zu tun.")
@@ -235,9 +242,9 @@ def run(mode: str, now: datetime, root: pathlib.Path = base.ROOT, prices=None,
 
     mg_calc = lambda r: recompute_maxgain(r, dfs.get(r["ticker"]), final_cut)  # noqa: E731
     es_calc = lambda r: recompute_shadow(r, closes.get(r["ticker"]), final_cut)  # noqa: E731
-    new_ex = _process(ex, EXPORT_FILE, _mg_todo, MG_FIELDS, mg_calc, True)
-    new_bt = _process(bt, BT_FILE, _mg_todo, MG_FIELDS, mg_calc, True)
-    new_sh = _process(sh, SHADOW_FILE, _es_todo, ES_FIELDS, es_calc, False)
+    new_ex = _process(ex, EXPORT_FILE, mg_todo, MG_FIELDS, mg_calc, True)
+    new_bt = _process(bt, BT_FILE, mg_todo, MG_FIELDS, mg_calc, True)
+    new_sh = _process(sh, SHADOW_FILE, es_todo, ES_FIELDS, es_calc, False)
     base.verify_untouched(ex, new_ex, MG_FIELDS)
     base.verify_untouched(bt, new_bt, MG_FIELDS)
     base.verify_untouched(sh, new_sh, ES_FIELDS)
