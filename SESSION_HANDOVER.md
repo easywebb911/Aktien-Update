@@ -3277,7 +3277,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 04.11.2026 — Postclose-Grenze 16:20 ET + Postclose-Cron 21:37 UTC (1 PR, Manual-Merge)
 
-- Easy-Entscheid 03./04.11.2026 (Funde 1+2 aus #651): `#__PR__` (Branch
+- Easy-Entscheid 03./04.11.2026 (Funde 1+2 aus #651): `#656` (Branch
   `claude/postclose-1620-et-q8w3`, kein Merge-Hash — Regel a). Kein Lauf vor
   16:20 ET (`trading_date.US_CLOSE_FINAL_ET`, finaler Schluss) gilt als
   postclose oder legt Backtest-Einträge an.
@@ -3316,7 +3316,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - Test `mock_test_postclose_final_boundary.py` (16:19/16:20 ET Handstart +
   Append, Sommer/Winter, Cron 21:37, eine Quelle). Gegenprobe alter Code:
   20 FAIL.
-- **Staleness-Grep vor Ready:** siehe PR-Bericht.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#649`, höchste in Block 1 erwähnte PR = `#656` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
 ### 04.11.2026 — Rückweg: Korrektur-Workflow + Skripte entfernt (1 PR, Manual-Merge)
