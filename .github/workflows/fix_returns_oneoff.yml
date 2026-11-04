@@ -34,6 +34,11 @@ on:
         options:
           - returns
           - maxgain_shadow
+      skip_tickers:
+        description: "nur nach Easy-Entscheid: Ticker überspringen (Komma-Liste, Felder bleiben unverändert) — Default leer"
+        required: false
+        default: ""
+        type: string
       max_null:
         description: "nur apply: Zahl „Auf null gesetzt gesamt“ aus dem dry_run (Obergrenze)"
         required: false
@@ -67,7 +72,8 @@ jobs:
       - name: Dry-Run (nur Zahlen, schreibt nichts)
         env:
           TARGET: ${{ inputs.target }}
-        run: python scripts/fix_returns_final_close_oneoff.py --mode dry_run --target "$TARGET"
+          SKIP: ${{ inputs.skip_tickers }}
+        run: python scripts/fix_returns_final_close_oneoff.py --mode dry_run --target "$TARGET" --skip-tickers "$SKIP"
       - name: Beleg — keine Datei geändert
         run: git diff --exit-code
 
@@ -114,11 +120,12 @@ jobs:
         env:
           MAX_NULL: ${{ inputs.max_null }}
           TARGET: ${{ inputs.target }}
+          SKIP: ${{ inputs.skip_tickers }}
         run: |
           case "$MAX_NULL" in
             ''|*[!0-9]*) echo "ABBRUCH: max_null fehlt oder ist keine Zahl — erst dry_run lesen. Nichts geschrieben."; exit 1 ;;
           esac
-          python scripts/fix_returns_final_close_oneoff.py --mode apply --max-null "$MAX_NULL" --target "$TARGET"
+          python scripts/fix_returns_final_close_oneoff.py --mode apply --max-null "$MAX_NULL" --target "$TARGET" --skip-tickers "$SKIP"
 
       - name: Prüfen, Commit, Push (bricht bei Änderung auf main ab)
         env:

@@ -3275,6 +3275,28 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 04.11.2026 — Korrektur-Skript: Fehlertext, ein Wiederholungsversuch, Überspringen-Liste (1 PR, Manual-Merge)
+
+- Easy-Entscheid 04.11.2026 nach dry_run #5/#6 (beide nur YYGH
+  `fehler:HTTPError`, 316 ok, 4 ausdrücklich leer): `#__PR__` (Branch
+  `claude/fix-oneoff-retry-skip-p6c3`, kein Merge-Hash — Regel a).
+- `fetch_frames`: je Fehler HTTP-Statuscode + kurzer Text (ohne URL-Parameter)
+  im Log; Ticker mit Abruf-Fehler (nicht „leer“, nicht Rate-Limit) nach dem
+  Paralleldurchgang EINZELN noch einmal: Pause (5 s) → Einzel-Abruf → sonst
+  Sammel-Abruf-Weg (`yf.download`, yfinance-Standard `hide_exceptions=True`,
+  wie der Daily-Run); übernommen nur bei echten Daten, sonst bleibt Fehler →
+  Abbruch, nie null.
+- Neuer Workflow-Input/Option `skip_tickers` (Default leer, nur nach
+  Easy-Entscheid): genannte Ticker werden nicht abgerufen, ihre Felder bleiben
+  UNVERÄNDERT, kein Archiv-Eintrag, Liste im Log.
+- Test `mock_test_fix_oneoff_fetch.py` erweitert (Wiederholung → Erfolg,
+  → Sammelweg, → Fehler/Abbruch, Rate-Limit ohne Wiederholung, Fehlertext ohne
+  Crumb, Überspringen-Liste beide targets). Gegenprobe alter Stand: 3 FAIL.
+- Rückweg-PR #649 muss nach Abschluss weiter alle Korrektur-Dateien löschen.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#653`,
+  höchste in Block 1 erwähnte PR = `#653` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 04.11.2026 — Korrektur-Skript: Rate-Limit-Schutz + eigene Handelstage je Ticker (1 PR, Manual-Merge)
 
 - Easy-Entscheid 04.11.2026 nach dem dry_run `maxgain_shadow` (GETY gedrosselt,
