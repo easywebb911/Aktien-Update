@@ -3316,7 +3316,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - Test `mock_test_postclose_final_boundary.py` (16:19/16:20 ET Handstart +
   Append, Sommer/Winter, Cron 21:37, eine Quelle). Gegenprobe alter Code:
   20 FAIL.
-- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#649`, höchste in Block 1 erwähnte PR = `#656` (eigene) — kein Rückstand.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#655`, höchste in Block 1 erwähnte PR = `#656` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
 ### 04.11.2026 — Rückweg: Korrektur-Workflow + Skripte entfernt (1 PR, Manual-Merge)
