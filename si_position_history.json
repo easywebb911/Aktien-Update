@@ -1155,6 +1155,12 @@
       "shares_short": 27543303,
       "short_pct_float": 22.83,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 26053168,
+      "short_pct_float": 21.6,
+      "pub_date": "2026-10-26"
     }
   ],
   "IONQ": [
@@ -1869,6 +1875,12 @@
       "shares_short": 3824868,
       "short_pct_float": 26.84,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 4248686,
+      "short_pct_float": 29.81,
+      "pub_date": "2026-10-26"
     }
   ],
   "MNRO": [
@@ -3114,6 +3126,12 @@
       "shares_short": 16315970,
       "short_pct_float": 15.91,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 15422384,
+      "short_pct_float": 15.04,
+      "pub_date": "2026-10-26"
     }
   ],
   "DBI": [
@@ -4761,6 +4779,12 @@
       "shares_short": 6004852,
       "short_pct_float": 25.5,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 8182538,
+      "short_pct_float": 34.74,
+      "pub_date": "2026-10-26"
     }
   ],
   "CCOI": [
@@ -7383,6 +7407,12 @@
       "shares_short": 3181973,
       "short_pct_float": 30.17,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 2765604,
+      "short_pct_float": 26.22,
+      "pub_date": "2026-10-26"
     }
   ],
   "LGIH": [
@@ -7548,6 +7578,12 @@
       "shares_short": 20660449,
       "short_pct_float": 23.54,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 18001644,
+      "short_pct_float": 20.51,
+      "pub_date": "2026-10-26"
     }
   ],
   "JJSF": [
@@ -10659,6 +10695,12 @@
       "shares_short": 2551273,
       "short_pct_float": 15.51,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 2922843,
+      "short_pct_float": 17.77,
+      "pub_date": "2026-10-26"
     }
   ],
   "BHVN": [

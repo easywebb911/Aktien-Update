@@ -1430,6 +1430,15 @@
     "substrate": "en",
     "reason": null
   },
+  "REF": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-04T01:28:05Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Reformation Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "REPL": {
     "qid": null,
     "title": null,
