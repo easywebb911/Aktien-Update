@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-11-04T10:13:21.236601+01:00",
+  "last_run": "2026-11-04T15:35:21.179126+01:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,18 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-10-28T02:22:55.265839+01:00",
-      "ticker": "GRPN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale GRPN: trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-10-28T09:33:36.353505+01:00",
       "ticker": "IONQ",
@@ -1311,21 +1299,33 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-11-04T15:35:21.179190+01:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "catalyst,profit_lock,trend_break",
+      "body": "🔻 Exit-Signale WOLF: catalyst, profit_lock, trend_break crit · Warnung pressure 66/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "IBTA": 78.0,
-    "CMCO": 80.0,
-    "ARRY": 78.0,
-    "INBX": 78.0,
-    "CAPR": 49.0,
-    "FTK": 83.0,
-    "REPL": 54.0,
-    "REF": 66.0,
-    "SNDX": 64.0,
-    "ORIC": 63.0,
-    "WOLF": 44.0,
-    "AMC": 16.0,
+    "SHOE": 71.0,
+    "ULCC": 70.0,
+    "DKI": 63.0,
+    "DFH": 63.0,
+    "JACK": 68.0,
+    "OXM": 60.0,
+    "CSIQ": 67.0,
+    "LGIH": 67.0,
+    "GRPN": 66.0,
+    "ARRY": 57.0,
+    "WOLF": 38.0,
+    "AMC": 12.0,
     "VEEA": 11.0
   },
   "exit_cooldowns": {
@@ -1383,7 +1383,7 @@
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-11-04T10:13:21.236722+01:00"
+      "updated": "2026-11-04T15:35:21.179198+01:00"
     },
     "GRPN": {
       "last_active": [],
