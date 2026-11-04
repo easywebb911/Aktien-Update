@@ -3277,7 +3277,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 04.11.2026 — Bestandskorrektur max_gain/Shadow angewandt + 2 offene Punkte (1 PR, Doku)
 
-- `#__PR__` (Branch `claude/open-items-yygh-zero-k7m2`, kein Merge-Hash — Regel a).
+- `#655` (Branch `claude/open-items-yygh-zero-k7m2`, kein Merge-Hash — Regel a).
 - Datenkorrektur `fix_returns_oneoff.yml` target=`maxgain_shadow` (Easy):
   apply `14d48873` mit `skip_tickers=YYGH`, `max_null=46`; vorher apply-Versuch
   abgebrochen (YYGH HTTP 404, nichts geschrieben). Prüfung: genau ein Commit,
