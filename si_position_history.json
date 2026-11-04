@@ -369,6 +369,12 @@
       "shares_short": 6709863,
       "short_pct_float": 22.55,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 6830827,
+      "short_pct_float": 22.95,
+      "pub_date": "2026-10-26"
     }
   ],
   "JACK": [
@@ -3864,6 +3870,12 @@
       "shares_short": 3715214,
       "short_pct_float": 38.2,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 3989044,
+      "short_pct_float": 41.01,
+      "pub_date": "2026-10-26"
     }
   ],
   "PRGO": [
@@ -4836,6 +4848,12 @@
       "shares_short": 6005450,
       "short_pct_float": 16.25,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 7108242,
+      "short_pct_float": 19.24,
+      "pub_date": "2026-10-26"
     }
   ],
   "EZPW": [
@@ -5181,6 +5199,12 @@
       "shares_short": 11944842,
       "short_pct_float": 22.63,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 9691640,
+      "short_pct_float": 18.36,
+      "pub_date": "2026-10-26"
     }
   ],
   "PHAT": [
@@ -8790,6 +8814,12 @@
       "shares_short": 44027107,
       "short_pct_float": 27.64,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 47966889,
+      "short_pct_float": 30.11,
+      "pub_date": "2026-10-26"
     }
   ],
   "OPTU": [
@@ -9987,6 +10017,12 @@
       "shares_short": 17228924,
       "short_pct_float": 15.69,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 17616146,
+      "short_pct_float": 16.0,
+      "pub_date": "2026-10-26"
     }
   ],
   "SFIX": [
