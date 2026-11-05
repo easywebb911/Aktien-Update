@@ -193,8 +193,11 @@ def classify_outcome(df_len: int, mg: float | None) -> str:
     Ticker-Wechsel, yfinance-Ausfall im Fenster).
 
     **Kein Verhaltens-Effekt.** Die Klassifikation wird NUR zum Zählen
-    genutzt — der Füll-Vorgang bleibt identisch (auch thin-slice-Records
-    werden mit ``0.0`` persistiert, analog zum Rolling-Update-Live-Pfad).
+    genutzt. Seit 05.11.2026 liefert ``_compute_max_gain_pct`` bei < 2
+    Zeilen ``None`` (open_item daily-maxgain-null-statt-0) — der Live-Pfad
+    landet dann in ``OUTCOME_NONE`` (kein Write). ``thin_slice`` bleibt als
+    reine Klassifikation für ein von außen gereichtes ``mg == 0.0`` mit
+    ``df_len < 2`` erhalten (Rückwärtskompatibilität der Funktion).
     Der Zähler `n_thin_slice` ermöglicht dem Auswerter, diese Records im
     Post-Backfill-Filter zu erkennen und ggf. auszuklammern.
 
@@ -336,9 +339,9 @@ def compute_and_apply_backfill(
     Duplizierung (Drift-Schutz per Test A5 in mock_test_max_gain_pct.py).
 
     Returnt ``(n_filled, n_skipped, n_thin_slice)``:
-      - `n_filled` = Records mit `max_gain_pct` gesetzt (inkl. thin-slice-Fälle
-        — diese werden analog zum Live-Rolling-Update-Verhalten mit 0.0
-        persistiert, KEIN separater Skip).
+      - `n_filled` = Records mit `max_gain_pct` gesetzt. Seit 05.11.2026
+        liefert der Helper bei < 2 Zeilen `None` → solche Fälle landen in
+        `n_skipped` (kein 0.0-Write mehr); `n_thin_slice` bleibt damit 0.
       - `n_skipped` = Fälle mit fehlendem Bulk-Slot / leerem df / `mg is None`.
       - `n_thin_slice` = Untermenge von `n_filled`: mögliche Datenlücken
         (`mg == 0.0` bei `len(df_since) < 2`; Guardian-Finding-1-Zähler

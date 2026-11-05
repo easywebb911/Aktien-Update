@@ -2666,8 +2666,8 @@ Daten-Persistierung — keine Frontend-Anzeige, keine Score-Konsequenzen.
 
 | Feld | Typ | Bedeutung | Initialwert |
 |---|---|---|---|
-| `max_drawdown_pct` | Float (negativ) | Max. Drawdown vom rolling Cummax-High zur Tagestief über die ersten ≤ 10 Handelstage seit Entry | `0.0` (kein Drawdown) |
-| `max_gain_pct` | Float (positiv) | Spiegel zu `max_drawdown_pct` (Hypothese-C-Vorbau, PR #397, 02.07.2026): Max. Gain vom rolling Cummin-Low zum Tageshoch über dieselbe ≤ 10-Handelstage-Slice. Kein zusätzlicher yf-Call, additiv (kein v4-Bump). | `0.0` (kein Gewinn) |
+| `max_drawdown_pct` | Float (negativ) | Max. Drawdown vom rolling Cummax-High zur Tagestief über die ersten ≤ 10 Handelstage seit Entry | `None` (noch nicht berechnet; seit 05.11.2026, vorher `0.0`) |
+| `max_gain_pct` | Float (positiv) | Spiegel zu `max_drawdown_pct` (Hypothese-C-Vorbau, PR #397, 02.07.2026): Max. Gain vom rolling Cummin-Low zum Tageshoch über dieselbe ≤ 10-Handelstage-Slice. Kein zusätzlicher yf-Call, additiv (kein v4-Bump). | `None` (noch nicht berechnet; seit 05.11.2026, vorher `0.0`) |
 | `market_regime` | Str | SPY 50-Trading-Day-Trend zum Entry-Tag: `bull` (>+5 %), `bear` (<−5 %), `neutral` | aus `_market_regime_from_spy()` |
 | `vix_level` | Float \| None | VIX-Schluss zum Entry-Tag (yfinance `^VIX`) | `_vix_close()`, None bei Fehler |
 
@@ -2675,7 +2675,8 @@ Daten-Persistierung — keine Frontend-Anzeige, keine Score-Konsequenzen.
 
 - **Neue Einträge** (heute): `market_regime` + `vix_level` als Snapshot
   zum Entry-Zeitpunkt fest persistiert (immutable). `max_drawdown_pct`
-  + `max_gain_pct` starten bei `0.0`.
+  + `max_gain_pct` + `max_gain_pct_net` starten bei `None` (Key vorhanden,
+  damit die Rolling-Guards `"<feld>" in e` greifen).
 - **Rolling Update** (< 14 Kalendertage alt, ≈ 10 Handelstage): pro
   Daily-Run werden `max_drawdown_pct` UND `max_gain_pct` über
   `_compute_max_drawdown()` / `_compute_max_gain_pct()` neu berechnet
@@ -2691,10 +2692,17 @@ Daten-Persistierung — keine Frontend-Anzeige, keine Score-Konsequenzen.
   **harmlos und selbstheilend** — Alt-Records fallen nach 14 Tagen
   aus dem Rolling-Fenster.
 
-**Wichtiger Semantik-Hinweis** (analog Drawdown): `max_gain_pct = 0.0`
-bedeutet **entweder** „wirklich kein Gewinn im Fenster" **oder**
-„noch nicht genug Daten (< 2 Bars)". Auswertung MUSS Reifegrad-Filter
-(Entry ≥ 10 Trading-Days alt) parallel anwenden.
+**Semantik (seit 05.11.2026, open_item `daily-maxgain-null-statt-0`):**
+`None` = „noch nicht / nicht berechenbar" (< 2 finale Tageszeilen im
+Fenster, keine Kursdaten). `0.0` bedeutet nur noch „wirklich kein
+Gewinn/Drawdown im Fenster". Vorher lieferten die Helper bei < 2 Zeilen
+`0.0`; weil der Postclose-Lauf meist nach Mitternacht UTC läuft (Alter
+per `date.today()`), bekamen frische Einträge im selben Lauf 0.0/0.0
+und ein erfundenes `max_gain_pct_net = −3,92`. Bei `None` bleibt ein
+früherer echter Wert stehen (Guards `if dd/mg is not None`).
+`max_gain_pct_net` wird nur aus einem berechneten `max_gain_pct`
+abgeleitet. Ein Fenster ist erst nach ≥ 10 Handelstagen vollständig —
+Auswertung braucht weiter den Reifegrad-Filter.
 
 ### Helper
 
@@ -2702,7 +2710,8 @@ bedeutet **entweder** „wirklich kein Gewinn im Fenster" **oder**
 - `_vix_close()` — None bei Fetch-Fehler
 - `_compute_max_drawdown(df_window)` — pure, akzeptiert max-10-Tage-Slice
 - `_compute_max_gain_pct(df_window)` — pure, Spiegel zu Drawdown-Helper,
-  identische Guards (`len < 2` → `0.0`, Exception → `None`).
+  identische Guards (`len < 2`/leer/None → `None` seit 05.11.2026,
+  Exception → `None`).
 
 ---
 
@@ -2733,12 +2742,13 @@ Past-Return bessere Forward-Returns?".
   bei Bedarf (analog `backfill_max_gain_pct.py`-Muster, aber
   `fetch_start = earliest_edate − 14 Kalendertage`).
 
-### None-Semantik STRIKT (Unterschied zu max_gain/max_drawdown)
+### None-Semantik STRIKT (seit 05.11.2026 wie bei max_gain/max_drawdown)
 
 `entry_past_return_5d = None` bedeutet **immer** „nicht ableitbar"
 (IPO < 6 Bars vor Entry, Delisting am Entry-Tag, Bar-Fetch fehlgeschlagen).
-**Keine 0.0-Overload** wie bei `max_gain_pct` / `max_drawdown_pct`: eine
-echte Null-Bewegung liefert `0.0` numerisch. Auswertung filtert `None`-
+**Keine 0.0-Overload** (die frühere bei `max_gain_pct` / `max_drawdown_pct`
+ist seit 05.11.2026 beseitigt): eine echte Null-Bewegung liefert `0.0`
+numerisch. Auswertung filtert `None`-
 Records; `0.0`-Records sind belastbar.
 
 ### Look-Ahead-Konvention (KRITISCH, einfroren)

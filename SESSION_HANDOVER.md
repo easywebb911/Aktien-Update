@@ -3275,6 +3275,38 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 05.11.2026 — max_gain/max_drawdown: „unbekannt" ist None statt 0.0 (1 PR, Manual-Merge)
+
+- Easy-Entscheid 05.11.2026 (Diagnose 05.11., Variante A): `#657` (Branch
+  `claude/maxgain-none-statt-0-r4t8`, kein Merge-Hash — Regel a).
+- `backtest_history._compute_max_drawdown` / `_compute_max_gain_pct`: < 2
+  finale Zeilen bzw. leeres/None-Fenster → `None` statt `0.0` (Exception
+  weiter `None`). Anfangswert beim Append `max_drawdown_pct`/`max_gain_pct`
+  = `None` (Key bleibt → Guards `"…" in e` / `not in e` unverändert).
+  `max_gain_pct_net` nur aus berechnetem Brutto (`apply_round_trip_haircut
+  (None)` = None); falscher Kommentar korrigiert.
+- Befund vorher: Postclose-Lauf nach Mitternacht UTC → frischer Eintrag im
+  selben Lauf gerollt (Alter per `date.today()`), 1 finale Zeile → 0.0/0.0/
+  −3,92 (Beleg: alle 10 Einträge vom 03.11. vor der Korrektur). Zusätzlich
+  überschrieb ein schrumpfendes Yahoo-Fenster echte Werte mit 0.0 — jetzt
+  bleibt der echte Wert stehen. `date.today()` bewusst unverändert.
+- Leser null-tolerant: Panel `_btCollectStatus` (zählt null nicht), S10
+  (nur Beobachtung), Export (kopiert verbatim), Backfill-Skript (None →
+  kein Write). Freeze-Skripte (`freeze_eval`, `s4_sensitivity_eval`) lesen
+  die Felder nicht; §4-Block/Sensitivität/`matured_export.py` unverändert.
+  Kein Bestandsdaten-Eingriff (Export: 0 Platzhalter).
+- Doku: Docstrings, `config.py`, CLAUDE.md „Backtest-Schema (Stufe 1)“,
+  Backfill-Skript-Docstrings; Tests `mock_test_max_gain_pct`,
+  `mock_test_haircut_net_returns` angepasst.
+- Neu `mock_test_maxgain_none_not_zero.py` (echter Append + Rolling, 00:30
+  UTC, 1 Zeile → None; Folgetag → echte Werte; Fenster schrumpft → Wert
+  bleibt; Alt-Record ohne Felder unberührt). Gegenprobe alter Code: 13 FAIL.
+- `open_items.json`: `daily-maxgain-null-statt-0` → erledigt; neu offen
+  `score-raw-or-0-backtest` und `haircut-net-returns-pandas-rot`
+  (`mock_test_haircut_net_returns` mit pandas 2 Fälle rot, auch auf `main`,
+  nicht durch #657; Ursache und CI-Sichtbarkeit ungeprüft).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#656`, höchste in Block 1 erwähnte PR = `#657` (eigene) — kein Rückstand.
+
 ### 04.11.2026 — Postclose-Grenze 16:20 ET + Postclose-Cron 21:37 UTC (1 PR, Manual-Merge)
 
 - Easy-Entscheid 03./04.11.2026 (Funde 1+2 aus #651): `#656` (Branch

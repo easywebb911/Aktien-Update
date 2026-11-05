@@ -117,7 +117,7 @@ def _test_s10_schema_and_wiring():
 
     # Regression: bestehende Brutto-Init-Placeholder unverändert vorhanden.
     for gross_line in ('"return_3d":     None,', '"return_5d":     None,',
-                        '"return_10d":    None,', '"max_gain_pct": 0.0,'):
+                        '"return_10d":    None,', '"max_gain_pct": None,'):
         _check(f"A7 Regression — Brutto-Init unverändert: {gross_line.strip()}",
                gross_line in bh_src)
 
@@ -134,7 +134,7 @@ def _test_s10_schema_and_wiring():
     # max_gain_pct selbst gesetzt (kein Backfill auf Alt-Records ohne Feld).
     guard_idx = bh_src.find('if "max_gain_pct" in e:')
     _check("A10 max_gain_pct-Rolling-Update-Guard gefunden", guard_idx != -1)
-    guard_block = bh_src[guard_idx:guard_idx + 600] if guard_idx != -1 else ""
+    guard_block = bh_src[guard_idx:guard_idx + 1200] if guard_idx != -1 else ""
     _check("A11 max_gain_pct_net wird im selben Guard-Block gesetzt",
            'e["max_gain_pct_net"] = apply_round_trip_haircut(mg)' in guard_block,
            "muss INNERHALB des 'in e'-Guards stehen, sonst Backfill-Risiko auf Alt-Records")
