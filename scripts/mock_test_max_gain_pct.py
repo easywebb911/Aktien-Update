@@ -14,7 +14,7 @@ Zweistufiger Test:
 
 Verifiziert:
 - (A) ``max_gain_pct`` in ``S10_OBSERVED_FIELDS`` (Lehre #388 — sonst WARN)
-       NICHT in MUSS/LAG (0.0-Semantik-Overload); Schema bleibt v4.
+       NICHT in MUSS/LAG (Reifegrad); Schema bleibt v4.
 - (B) Formel gegen 5 bekannte Peaks:
       * Rolling low 10 → high 15 = +50 %
       * Flach (100/100) → 0.0
@@ -22,9 +22,9 @@ Verifiziert:
       * Später Spike mit Frühest-Low
       * Low sinkt nach Anfangs-Spike (cummin nimmt neuen Low)
 - (B) Guards identisch zu ``_compute_max_drawdown``:
-      * None → 0.0
-      * empty DF → 0.0
-      * len<2 → 0.0
+      * None → None (seit 05.11.2026, vorher 0.0)
+      * empty DF → None
+      * len<2 → None
       * fehlende Spalten → None
 - (B) Spiegel-Symmetrie: gleicher DF liefert Drawdown UND Gain parallel.
 - (B) Pure-Function: kein Input-Mutieren, Determinismus.
@@ -83,8 +83,8 @@ def _test_s10_and_schema():
            "additive Erweiterung darf keinen Bump erzeugen")
 
     # A6 — der neue Feld-Name muss im Init-Block der neuen Records auftauchen.
-    _check("A6 max_gain_pct wird im _append_backtest_entries-Init geschrieben",
-           '"max_gain_pct": 0.0' in bh_src,
+    _check("A6 max_gain_pct wird im _append_backtest_entries-Init geschrieben (Init None, Key vorhanden)",
+           '"max_gain_pct": None' in bh_src,
            "additive Persistierung im Record-Init fehlt")
 
     # A7 — Rolling-Update-Guard: alte Records ohne das Feld bleiben unangetastet
@@ -139,14 +139,14 @@ def _test_formula_and_guards():
 
     print("── (B) Guards identisch zu _compute_max_drawdown ─────────────")
 
-    _check("B-G1 None → 0.0", bh._compute_max_gain_pct(None) == 0.0,
+    _check("B-G1 None → None", bh._compute_max_gain_pct(None) is None,
            f"got {bh._compute_max_gain_pct(None)}")
 
     r_empty = bh._compute_max_gain_pct(pd.DataFrame({"High": [], "Low": []}))
-    _check("B-G2 empty DF → 0.0", r_empty == 0.0, f"got {r_empty}")
+    _check("B-G2 empty DF → None", r_empty is None, f"got {r_empty}")
 
     df_1row = _df(highs=[100.0], lows=[95.0])
-    _check("B-G3 len<2 → 0.0", bh._compute_max_gain_pct(df_1row) == 0.0,
+    _check("B-G3 len<2 → None", bh._compute_max_gain_pct(df_1row) is None,
            f"got {bh._compute_max_gain_pct(df_1row)}")
 
     df_broken = pd.DataFrame({"Close": [1.0, 2.0]})

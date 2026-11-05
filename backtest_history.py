@@ -250,11 +250,14 @@ def _compute_max_drawdown(df_window) -> float | None:
     Args:
         df_window: DataFrame mit Spalten ``High``/``Low`` für die ersten ≤10
                    Handelstage seit Entry (inklusive Entry-Tag als Index 0).
-    Returns negativster %-Drop oder ``0.0`` bei zu wenig Daten.
+    Returns negativster %-Drop, oder ``None`` bei zu wenig Daten (< 2 finale
+    Zeilen, leeres/None-Fenster) oder Exception. ``None`` heißt „noch nicht /
+    nicht berechenbar" — seit 05.11.2026 (open_item daily-maxgain-null-statt-0)
+    nie mehr ``0.0`` als Platzhalter für „unbekannt".
     """
     try:
         if df_window is None or df_window.empty or len(df_window) < 2:
-            return 0.0
+            return None
         roll_peak = df_window["High"].cummax()
         dd = (df_window["Low"] - roll_peak) / roll_peak * 100.0
         return round(float(dd.min()), 2)
@@ -342,17 +345,19 @@ def _compute_max_gain_pct(df_window) -> float | None:
     Args:
         df_window: DataFrame mit Spalten ``High``/``Low`` für die ersten ≤10
                    Handelstage seit Entry (inklusive Entry-Tag als Index 0).
-    Returns höchsten %-Anstieg vom rolling-Tief zum Tageshoch oder ``0.0``
-    bei zu wenig Daten. ``None`` bei Exception.
+    Returns höchsten %-Anstieg vom rolling-Tief zum Tageshoch, oder ``None``
+    bei zu wenig Daten (< 2 finale Zeilen, leeres/None-Fenster) oder
+    Exception.
 
-    HINWEIS zur ``0.0``-Semantik (analog Drawdown): ``0.0`` bedeutet
-    entweder „wirklich kein Gewinn im Fenster" ODER „noch nicht genug
-    Daten (<2 Bars)". Auswertung MUSS Reifegrad-Filter (Entry ≥10
-    Trading-Days alt) parallel anwenden.
+    HINWEIS zur Semantik (seit 05.11.2026, open_item daily-maxgain-null-
+    statt-0): ``None`` = „noch nicht / nicht berechenbar"; ``0.0`` bedeutet
+    nur noch „wirklich kein Gewinn im Fenster" (≥ 2 finale Zeilen). Vorher
+    war ``0.0`` doppeldeutig. Ein Fenster ist erst nach ≥ 10 Handelstagen
+    vollständig — Auswertung braucht weiter den Reifegrad-Filter.
     """
     try:
         if df_window is None or df_window.empty or len(df_window) < 2:
-            return 0.0
+            return None
         roll_low = df_window["Low"].cummin()
         up = (df_window["High"] - roll_low) / roll_low * 100.0
         return round(float(up.max()), 2)
@@ -1440,21 +1445,18 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             "return_10d_net": None,
             # Bahn A2 Stufe 1 — Schema-Erweiterung für spätere Auswertung.
             # max_drawdown_pct wird über 10 Handelstage rolling aktualisiert.
-            "max_drawdown_pct": 0.0,
+            # Init None = „noch nicht berechnet" (seit 05.11.2026, vorher 0.0-
+            # Platzhalter). Der KEY bleibt vorhanden — die Rolling-Guards
+            # ``"max_drawdown_pct" not in e`` / ``"max_gain_pct" in e`` prüfen
+            # nur die Key-Existenz (Alt-Records ohne Feld bleiben unberührt).
+            "max_drawdown_pct": None,
             # Hypothese-C-Vorbau (02.07.2026): additiv, KEIN v4-Bump.
             # Spiegel zu max_drawdown_pct — identische Slice + Rolling-
             # Update-Mechanik, reine Outcome-Persistenz (kein Score-Konsument).
-            "max_gain_pct": 0.0,
+            "max_gain_pct": None,
             # Ausführungskosten-Haircut (12.09.2026): Netto-Geschwisterfeld zu
-            # max_gain_pct. WICHTIG — bewusst None als Init-Wert, NICHT 0.0:
-            # max_gain_pct selbst startet bei 0.0 als Platzhalter ("noch nicht
-            # gerollt" ODER "wirklich kein Gewinn" — dokumentierte Ambiguität).
-            # Würde max_gain_pct_net hier ebenfalls 0.0-basiert vorbelegt, wäre
-            # das ein synthetischer Haircut-Wert auf einem Platzhalter, der wie
-            # echte Daten aussähe. None hält "noch nicht real berechnet"
-            # eindeutig auseinander; wird erst im Rolling-Update (unten)
-            # gesetzt, wenn max_gain_pct selbst FRISCH aus echten Kursdaten
-            # berechnet wurde.
+            # max_gain_pct. None bis max_gain_pct im Rolling-Update (unten)
+            # aus ≥ 2 finalen Tageszeilen berechnet wurde.
             "max_gain_pct_net": None,
             "market_regime":    market_regime,
             "vix_level":        vix_level,
@@ -1554,8 +1556,12 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
                         e["max_gain_pct"] = mg
                         # Netto-Geschwisterfeld (12.09.2026, Ausführungskosten-
                         # Haircut) — nur gesetzt, wenn max_gain_pct selbst JETZT
-                        # frisch aus echten Kursdaten berechnet wurde (mg is not
-                        # None), nie aus dem 0.0-Platzhalter abgeleitet.
+                        # aus ≥ 2 finalen Tageszeilen berechnet wurde. Seit
+                        # 05.11.2026 liefert _compute_max_gain_pct bei < 2
+                        # Zeilen None (vorher 0.0 → Netto −3,92 erfunden, Fix
+                        # open_item daily-maxgain-null-statt-0); bei None
+                        # bleiben max_gain_pct UND max_gain_pct_net, wie sie
+                        # sind (ein früherer echter Wert wird nicht gelöscht).
                         e["max_gain_pct_net"] = apply_round_trip_haircut(mg)
                         n_mg += 1
             except Exception:
