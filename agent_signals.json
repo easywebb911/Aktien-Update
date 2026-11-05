@@ -1,11 +1,11 @@
 {
-  "updated": "2026-11-04T23:40:15.811838+01:00",
+  "updated": "2026-11-05T04:30:10.670830+01:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 4,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 20.1,
-    "market_phase": "After-Hours"
+    "elapsed_s": 11.9,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
@@ -14,8 +14,8 @@
       "drivers": "Earnings in 0 Tagen (04.11.2026) + Volumen 1.7× + Spanne 6.9% + SEC 8-K + Earnings in 0d + UOA Call/Put 3.5×",
       "price": 3.52,
       "chg_pct": -0.0,
-      "rvol_4d": 1.67,
-      "rvol_20d": 2.0,
+      "rvol_4d": 1.69,
+      "rvol_20d": 2.03,
       "earnings": "in 0 Tagen (04.11.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 0 Tagen (04.11.2026)",
@@ -34,11 +34,11 @@
     "ARRY": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (04.11.2026) + Volumen 5.6× + 🚀 Massives Volumen 5.6×+ + Spanne 17.1% + SEC 8-K + News-KI 8/30: Negative earnings performance and stock underperformance indicate weak fundamental momentum, which typically does not su + Earnings in 0d + SEC Form 4 + UOA Call/Put 8.6× + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (04.11.2026) + Volumen 5.8× + 🚀 Massives Volumen 5.8×+ + Spanne 17.1% + SEC 8-K + News-KI 12/30: Mixed signals with Q3 sales beat offset by significant full-year guidance miss and earnings disappointment, reducing sho + Earnings in 0d + SEC Form 4 + UOA Call/Put 8.6× + 3/4 Trigger",
       "price": 5.33,
       "chg_pct": -0.0,
-      "rvol_4d": 5.6,
-      "rvol_20d": 7.43,
+      "rvol_4d": 5.78,
+      "rvol_20d": 7.67,
       "earnings": "in 0 Tagen (04.11.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 0 Tagen (04.11.2026)",
@@ -52,7 +52,9 @@
         "UOA Call/Put 8.6×"
       ],
       "uoa_atm_ratio": 0.3036988968202466,
-      "uoa_cp_ratio": 8.62874251497006
+      "uoa_cp_ratio": 8.62874251497006,
+      "push_silenced": true,
+      "silenced_reason": "RSI 77 · +47% 2T"
     },
     "CSIQ": {
       "score": 63,
@@ -80,9 +82,9 @@
       "silenced_reason": "+23% 2T"
     },
     "DFH": {
-      "score": 72,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 18.4% + News: acquisition, short interest + UOA Call/Put 40.3×",
+      "drivers": "Volumen 2.0× + Spanne 20.6% + News-KI 12/30: Acquisition-focused headlines lack short-squeeze indicators; S&P downgrade suggests financial stress rather than positiv + UOA Call/Put 40.3×",
       "price": 12.81,
       "chg_pct": 0.0,
       "rvol_4d": 2.03,
@@ -94,7 +96,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 40.3×"
@@ -108,8 +110,8 @@
       "drivers": "Volumen 11.5× + 🚀 Massives Volumen 11.5×+ + Spanne 43.3% + FINRA Short-Vol 57%",
       "price": 2.08,
       "chg_pct": -0.0,
-      "rvol_4d": 11.48,
-      "rvol_20d": 25.96,
+      "rvol_4d": 11.51,
+      "rvol_20d": 26.0,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -149,7 +151,7 @@
     "JACK": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 9.7% + News: earnings beat, short interest + Earnings in 35d + UOA Call/Put 4.7×",
+      "drivers": "Spanne 9.7% + News: short interest, earnings beat + Earnings in 35d + UOA Call/Put 4.7×",
       "price": 14.37,
       "chg_pct": -0.0,
       "rvol_4d": 1.32,
@@ -170,9 +172,9 @@
       "uoa_cp_ratio": 4.723076923076923
     },
     "LGIH": {
-      "score": 30,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 8.7% + News-KI 5/30: Routine earnings and operational updates with no indication of short squeeze catalysts such as high short interest, unus",
+      "drivers": "Volumen 2.1× + Spanne 8.7% + News-KI 8/30: Routine earnings and operational updates lack catalysts for short-squeeze momentum; fundamental business news without si",
       "price": 48.9,
       "chg_pct": 0.0,
       "rvol_4d": 2.08,
@@ -193,7 +195,7 @@
     "OXM": {
       "score": 43,
       "confidence": 33,
-      "drivers": "Spanne 6.0% + Earnings in 35d + FINRA Short-Vol 10801%",
+      "drivers": "Spanne 6.1% + Earnings in 35d + FINRA Short-Vol 10801%",
       "price": 30.48,
       "chg_pct": -0.0,
       "rvol_4d": 0.98,
@@ -214,7 +216,7 @@
     "SHOE": {
       "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 9.0% + News: short interest + Earnings in 22d + UOA Call/Put 4.5×",
+      "drivers": "Spanne 9.1% + News: short interest + Earnings in 22d + UOA Call/Put 4.5×",
       "price": 15.9,
       "chg_pct": -0.0,
       "rvol_4d": 0.79,
@@ -258,9 +260,9 @@
       "uoa_cp_ratio": 18.027397260273972
     },
     "VEEA": {
-      "score": 66,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 20.4% + News: merger",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 20.4% + News-KI 12/30: Positive business developments and partnerships, but lacking short-squeeze catalysts like high short interest, low float",
       "price": 4.52,
       "chg_pct": -0.0,
       "rvol_4d": 3.42,
@@ -272,7 +274,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -284,7 +286,7 @@
       "drivers": "Earnings in 0 Tagen (04.11.2026) + Spanne 11.2% + SEC 8-K + News: catalyst + Earnings in 0d + SEC Form 4",
       "price": 22.79,
       "chg_pct": 0.0,
-      "rvol_4d": 1.17,
+      "rvol_4d": 1.18,
       "rvol_20d": 0.89,
       "earnings": "in 0 Tagen (04.11.2026)",
       "fda_date": null,
