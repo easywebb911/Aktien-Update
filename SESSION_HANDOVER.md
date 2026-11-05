@@ -3277,7 +3277,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 ### 05.11.2026 — max_gain/max_drawdown: „unbekannt" ist None statt 0.0 (1 PR, Manual-Merge)
 
-- Easy-Entscheid 05.11.2026 (Diagnose 05.11., Variante A): `#__PR__` (Branch
+- Easy-Entscheid 05.11.2026 (Diagnose 05.11., Variante A): `#657` (Branch
   `claude/maxgain-none-statt-0-r4t8`, kein Merge-Hash — Regel a).
 - `backtest_history._compute_max_drawdown` / `_compute_max_gain_pct`: < 2
   finale Zeilen bzw. leeres/None-Fenster → `None` statt `0.0` (Exception
@@ -3303,7 +3303,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   bleibt; Alt-Record ohne Felder unberührt). Gegenprobe alter Code: 13 FAIL.
 - `open_items.json`: `daily-maxgain-null-statt-0` → erledigt; neu offen
   `score-raw-or-0-backtest`.
-- **Staleness-Grep vor Ready:** siehe PR-Bericht.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#656`, höchste in Block 1 erwähnte PR = `#657` (eigene) — kein Rückstand.
 
 ### 04.11.2026 — Postclose-Grenze 16:20 ET + Postclose-Cron 21:37 UTC (1 PR, Manual-Merge)
 
