@@ -528,6 +528,14 @@
       "description": "_build_backtest_extension speichert score_raw mit 'or 0'; fehlender Rohscore landet als 0. Ungeprüft: Häufigkeit im Bestand, und ob Freeze-Auswertungen (Setup-Edge/Conviction, KI-Score) score_raw lesen.",
       "status": "offen",
       "status_date": "2026-11-05"
+    },
+    {
+      "id": "haircut-net-returns-pandas-rot",
+      "title": "mock_test_haircut_net_returns mit pandas rot",
+      "opened": "2026-11-05",
+      "description": "scripts/mock_test_haircut_net_returns.py: mit installiertem pandas 2 Fälle rot (B-I1, B-I3), auch auf main (nicht durch #657). Ungeprüft: Ursache, und ob CI ohne pandas läuft und den Bruch deshalb nicht sieht.",
+      "status": "offen",
+      "status_date": "2026-11-05"
     }
   ]
 }

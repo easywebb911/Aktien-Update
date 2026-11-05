@@ -3302,7 +3302,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   UTC, 1 Zeile → None; Folgetag → echte Werte; Fenster schrumpft → Wert
   bleibt; Alt-Record ohne Felder unberührt). Gegenprobe alter Code: 13 FAIL.
 - `open_items.json`: `daily-maxgain-null-statt-0` → erledigt; neu offen
-  `score-raw-or-0-backtest`.
+  `score-raw-or-0-backtest` und `haircut-net-returns-pandas-rot`
+  (`mock_test_haircut_net_returns` mit pandas 2 Fälle rot, auch auf `main`,
+  nicht durch #657; Ursache und CI-Sichtbarkeit ungeprüft).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#656`, höchste in Block 1 erwähnte PR = `#657` (eigene) — kein Rückstand.
 
 ### 04.11.2026 — Postclose-Grenze 16:20 ET + Postclose-Cron 21:37 UTC (1 PR, Manual-Merge)
