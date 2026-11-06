@@ -3275,6 +3275,25 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 06.11.2026 — Health-Check S15: Postclose-Lücke des letzten Handelstags (1 PR, Auto-Merge)
+
+- Easy-Auftrag 06.11.2026: `#658` (Branch `claude/postclose-luecke-warn-k4p7`,
+  kein Merge-Hash — Regel a).
+- Diagnose: seit 01.08.2026 fehlten zwei Postclose-Tage — 27.08. (Lauf
+  #944 startete 01:27 ET am 28.08. → Berichtsdatum 28.08., Vintage-Guard
+  `pre_open`; Sammeldateien trotzdem mit 28.08. geschrieben) und 04.11.
+  (kein Lauf, Cron-Wechsel #656). 148 Daily-Läufe, 1 Fehlschlag (Handstart
+  24.10., Samstag).
+- `health_check.S15` (warn, nur Daily-Run mit `backtest_path`): keine
+  Nicht-Bootstrap-Einträge für den letzten US-Handelstag vor dem heutigen
+  ET-Tag → warn. Feiertage `config.US_MARKET_HOLIDAYS`; älter als ältester
+  Eintrag/Datei fehlt → SKIP. Digest: Hinweis-Zeile im OK-Digest (einzelne
+  warns waren dort bisher unsichtbar). S12 unverändert.
+- `open_items.json` neu `postclose-2026-11-04-verloren` (beobachtet); §8
+  Lesson 8z8 (Cron-Zeilen nicht zwischen Termin und verspätetem Start ändern).
+- Test `mock_test_postclose_gap_s15.py`; Gegenprobe alter Stand: 9 FAIL.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#657`, höchste in Block 1 erwähnte PR = `#658` (eigene) — kein Rückstand.
+
 ### 05.11.2026 — max_gain/max_drawdown: „unbekannt" ist None statt 0.0 (1 PR, Manual-Merge)
 
 - Easy-Entscheid 05.11.2026 (Diagnose 05.11., Variante A): `#657` (Branch
