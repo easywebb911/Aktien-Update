@@ -377,6 +377,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "CARS": {
+    "qid": "Q5046846",
+    "title": "Cars.com",
+    "resolved_at": "2026-11-06T01:47:57Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Cars.com Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "CBRL": {
     "qid": "Q4492609",
     "title": "Cracker_Barrel",
@@ -617,6 +626,15 @@
     "resolved_at": "2026-08-14T21:43:40Z",
     "issuer_verified": true,
     "company_name_at_resolve": "Digimarc Corporation",
+    "substrate": "en",
+    "reason": null
+  },
+  "DNUT": {
+    "qid": "Q1192805",
+    "title": "Krispy_Kreme",
+    "resolved_at": "2026-11-06T01:47:57Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Krispy Kreme, Inc.",
     "substrate": "en",
     "reason": null
   },
@@ -1510,6 +1528,15 @@
     "company_name_at_resolve": "Schrödinger, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "SDHC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-06T01:47:57Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Smith Douglas Homes Corp.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "SEAT": {
     "qid": null,

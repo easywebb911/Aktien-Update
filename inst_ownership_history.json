@@ -2391,6 +2391,11 @@
       "date": "2026-10-30",
       "inst_ownership": 0.85870004,
       "insider_ownership": 0.09151
+    },
+    {
+      "date": "2026-11-05",
+      "inst_ownership": 0.85852,
+      "insider_ownership": 0.09151
     }
   ],
   "CMPX": [
@@ -4082,6 +4087,11 @@
       "date": "2026-10-29",
       "inst_ownership": 1.00059,
       "insider_ownership": 0.01397
+    },
+    {
+      "date": "2026-11-05",
+      "inst_ownership": 0.99614996,
+      "insider_ownership": 0.01397
     }
   ],
   "DDD": [
@@ -4401,6 +4411,11 @@
       "date": "2026-10-06",
       "inst_ownership": 0.87443,
       "insider_ownership": 0.34332
+    },
+    {
+      "date": "2026-11-05",
+      "inst_ownership": 0.89422995,
+      "insider_ownership": 0.3424
     }
   ],
   "HIVE": [
@@ -7023,6 +7038,11 @@
       "date": "2026-10-26",
       "inst_ownership": 1.0131199,
       "insider_ownership": 0.00501
+    },
+    {
+      "date": "2026-11-05",
+      "inst_ownership": 1.01219,
+      "insider_ownership": 0.00501
     }
   ],
   "INSP": [
@@ -7986,6 +8006,11 @@
       "date": "2026-11-04",
       "inst_ownership": 0.44931,
       "insider_ownership": 0.00029999999
+    },
+    {
+      "date": "2026-11-05",
+      "inst_ownership": 0.44902,
+      "insider_ownership": 0.00043000001
     }
   ],
   "EBS": [
@@ -9714,6 +9739,11 @@
       "date": "2026-11-04",
       "inst_ownership": 0.84963,
       "insider_ownership": 0.14432
+    },
+    {
+      "date": "2026-11-05",
+      "inst_ownership": 0.85463995,
+      "insider_ownership": 0.14432
     }
   ],
   "DBI": [
@@ -11036,6 +11066,11 @@
       "date": "2026-10-16",
       "inst_ownership": 0.94785005,
       "insider_ownership": 0.019019999
+    },
+    {
+      "date": "2026-11-05",
+      "inst_ownership": 0.94797,
+      "insider_ownership": 0.019019999
     }
   ],
   "REAL": [
@@ -11397,6 +11432,11 @@
     {
       "date": "2026-11-04",
       "inst_ownership": 0.58575,
+      "insider_ownership": 0.04902
+    },
+    {
+      "date": "2026-11-05",
+      "inst_ownership": 0.5859,
       "insider_ownership": 0.04902
     }
   ],
@@ -11937,6 +11977,11 @@
       "date": "2026-10-30",
       "inst_ownership": 0.2325,
       "insider_ownership": 0.12409
+    },
+    {
+      "date": "2026-11-05",
+      "inst_ownership": 0.23252001,
+      "insider_ownership": 0.12409
     }
   ],
   "EVC": [
@@ -11963,6 +12008,20 @@
       "date": "2026-11-05",
       "inst_ownership": 0.68284,
       "insider_ownership": 0.1452
+    }
+  ],
+  "SDHC": [
+    {
+      "date": "2026-11-05",
+      "inst_ownership": 0.79613996,
+      "insider_ownership": 0.047270004
+    }
+  ],
+  "SMR": [
+    {
+      "date": "2026-11-05",
+      "inst_ownership": 0.6078,
+      "insider_ownership": 0.017
     }
   ]
 }
