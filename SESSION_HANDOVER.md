@@ -3275,6 +3275,25 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 06.11.2026 — Health-Check S15: Postclose-Lücke des letzten Handelstags (1 PR, Auto-Merge)
+
+- Easy-Auftrag 06.11.2026: `#658` (Branch `claude/postclose-luecke-warn-k4p7`,
+  kein Merge-Hash — Regel a).
+- Diagnose: seit 01.08.2026 fehlten zwei Postclose-Tage — 27.08. (Lauf
+  #944 startete 01:27 ET am 28.08. → Berichtsdatum 28.08., Vintage-Guard
+  `pre_open`; Sammeldateien trotzdem mit 28.08. geschrieben) und 04.11.
+  (kein Lauf, Cron-Wechsel #656). 148 Daily-Läufe, 1 Fehlschlag (Handstart
+  24.10., Samstag).
+- `health_check.S15` (warn, nur Daily-Run mit `backtest_path`): keine
+  Nicht-Bootstrap-Einträge für den letzten US-Handelstag vor dem heutigen
+  ET-Tag → warn. Feiertage `config.US_MARKET_HOLIDAYS`; älter als ältester
+  Eintrag/Datei fehlt → SKIP. Digest: Hinweis-Zeile im OK-Digest (einzelne
+  warns waren dort bisher unsichtbar). S12 unverändert.
+- `open_items.json` neu `postclose-2026-11-04-verloren` (beobachtet); §8
+  Lesson 8z8 (Cron-Zeilen nicht zwischen Termin und verspätetem Start ändern).
+- Test `mock_test_postclose_gap_s15.py`; Gegenprobe alter Stand: 9 FAIL.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#657`, höchste in Block 1 erwähnte PR = `#658` (eigene) — kein Rückstand.
+
 ### 05.11.2026 — max_gain/max_drawdown: „unbekannt" ist None statt 0.0 (1 PR, Manual-Merge)
 
 - Easy-Entscheid 05.11.2026 (Diagnose 05.11., Variante A): `#657` (Branch
@@ -6763,7 +6782,22 @@ Projekt-Ehrlichkeitsregel.
 
 *(Neueste zuerst: 8z7 vom 17.07.; 8z4–8z6 vom 16.–17.07.; 8z1–8z3 vom 15.07.-Abend; 8v–8y vom
 15.07.; 8s–8u vom 14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag; 8n–8p vom 13.07.;
-8j–8m vom 11.–12.07.; etablierte 8a–8i darunter.)*
+8j–8m vom 11.–12.07.; etablierte 8a–8i darunter; 8z8 vom 06.11. ganz oben.)*
+
+### 8z8. Cron-Zeilen nie zwischen Termin und verspätetem Start ändern (06.11.)
+
+Der Postclose vom 04.11.2026 ist verloren: `#656` änderte die Cron-Zeile
+`17 21` → `37 21` und wurde um 23:01 UTC gemergt — der 21:17-Lauf war zu
+diesem Zeitpunkt noch nicht gestartet (Postclose kommt bis ~5,5 h verspätet,
+zuletzt 00:51–02:56 UTC) und lief nie. Vermutlich verwirft GitHub einen
+wartenden Lauf, dessen Zeile beim verspäteten Start nicht mehr in der
+Workflow-Datei steht (nicht dokumentiert, Ablauf passt). Nachholen ging nur bis
+23:59 ET desselben Tages (Berichtsdatum = heutiger ET-Tag). **Regel:** eine
+Änderung an einer `schedule`-Zeile erst mergen, wenn **kein geplanter Lauf
+dieser Zeile mehr aussteht** — der Lauf des alten Termins muss in der Actions-
+Liste schon **gestartet** sein. Für den Postclose heißt das: nicht zwischen
+~21:00 UTC und dem tatsächlichen Start mergen. Gleiches gilt für Digest
+(08:47), Wochen-Workflows und Premarket.
 
 ### 8z7. Zwei Ziele können sich widersprechen — und genau das ist informativ (17.07.)
 

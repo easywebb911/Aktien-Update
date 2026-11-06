@@ -357,6 +357,57 @@ def _last_phase_run_age_workdays(
     return n
 
 
+# ── S15 — Postclose des letzten Handelstags fehlt (06.11.2026) ────────────
+# Anlass: Postclose 04.11.2026 ausgefallen (GitHub verwarf vermutlich den
+# wartenden Lauf beim Cron-Wechsel #656) und 27.08.2026 (Mitternachts-Falle:
+# Lauf startete nach 00:00 ET, Berichtsdatum = Folgetag, Vintage-Guard skippte
+# pre_open). S12 meldet erst nach > 2 Werktagen. S15 macht EINEN fehlenden Tag
+# im nächsten Digest sichtbar — nur warn: Nachholen ist praktisch unmöglich
+# (Berichtsdatum = heutiger ET-Tag, sauber nur bis 23:59 ET desselben Tages).
+
+
+def _last_us_trading_day_before(et_day: date) -> date:
+    """Letzter US-Handelstag strikt VOR ``et_day`` (Mo–Fr, ohne
+    ``config.US_MARKET_HOLIDAYS`` — dieselbe Kalender-Quelle wie S4)."""
+    d = et_day - timedelta(days=1)
+    for _ in range(14):
+        if d.weekday() < 5 and d.isoformat() not in config.US_MARKET_HOLIDAYS:
+            return d
+        d -= timedelta(days=1)
+    return d
+
+
+def _postclose_missing_last_trading_day(now_utc: datetime,
+                                        backtest_path: str) -> str | None:
+    """Datum (``DD.MM.YYYY``) des letzten Handelstags VOR dem heutigen ET-Tag,
+    wenn ``backtest_path`` für ihn KEINEN Eintrag hat — sonst ``None``.
+
+    Nur lesend. ``None`` (= kein Fail) auch, wenn die Datei fehlt/unlesbar
+    ist oder der Tag älter ist als der älteste Nicht-Bootstrap-Eintrag
+    (90-Tage-Prune bzw. Tests mit altem Datum → kein Fehlalarm)."""
+    try:
+        with open(backtest_path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, list):
+        return None
+    if now_utc.tzinfo is None:
+        now_utc = now_utc.replace(tzinfo=timezone.utc)
+    ltd = _last_us_trading_day_before(now_utc.astimezone(_S4_EASTERN).date())
+    dates: set[date] = set()
+    for e in data:
+        if not isinstance(e, dict) or e.get("source") == "bootstrap":
+            continue
+        try:
+            dates.add(datetime.strptime(str(e.get("date")), "%d.%m.%Y").date())
+        except (TypeError, ValueError):
+            continue
+    if not dates or ltd < min(dates) or ltd in dates:
+        return None
+    return ltd.strftime("%d.%m.%Y")
+
+
 # ── S10 — Daten-Integritäts-Check (Phase 1, minimal) ──────────────────────
 
 
@@ -708,6 +759,7 @@ def evaluate_state_invariants(
     ki_agent_only: bool = False,
     now_utc: datetime | None = None,
     html_path: str | None = None,
+    backtest_path: str | None = None,
 ) -> list[dict]:
     """Bewertet alle 8 State-Invariants. Returnt Liste von Fail-Dicts.
 
@@ -1097,6 +1149,22 @@ def evaluate_state_invariants(
                            f"{HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE}) — "
                            f"Backtest-EOD-Append fehlt; jeder gedroppte "
                            f"postclose ist permanenter Datenverlust"),
+            })
+
+    # === S15 (warn) — Postclose des letzten Handelstags fehlt ==============
+    # Nur Daily-Run-Pfad und nur, wenn der Aufrufer ``backtest_path`` übergibt
+    # (Hook in generate_report.py) — ohne Pfad SKIP, damit bestehende Aufrufer/
+    # Tests unverändert bleiben. Bewusst warn, nicht crit: der Tag ist zum
+    # Zeitpunkt der Meldung nicht mehr sauber nachholbar (S12 bleibt der
+    # crit-Alarm für mehrtägige Ausfälle). Detail ohne Werte, nur Datum.
+    if not ki_agent_only and backtest_path:
+        s15_day = _postclose_missing_last_trading_day(now_for_s8, backtest_path)
+        if s15_day:
+            fails.append({
+                "id": "S15", "severity": "warn",
+                "detail": (f"Postclose für {s15_day} fehlt (keine Backtest-"
+                           f"Einträge mit diesem Datum) — Datenlücke, "
+                           f"Nachholen nicht mehr möglich"),
             })
 
     return fails
@@ -4116,6 +4184,13 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(
                 f"↩︎ {f['id']} erholt seit {f.get('recovered_since') or '—'} "
                 f"(kein Alarm, {f.get('count', 1)}× im 24h-Fenster)")
+        # S15 (06.11.2026): einzelne warns tauchen in der OK-Klasse sonst gar
+        # nicht auf (Schwelle ≥ 3 warn). Die Postclose-Lücke soll aber im
+        # nächsten Digest sichtbar sein — nur als Hinweis-Zeile, OK-Titel und
+        # Priorität bleiben (Nachholen ist ohnehin nicht mehr möglich).
+        for f in active_state:
+            if f.get("id") == "S15":
+                body_lines.append(f"🟡 S15: {f.get('detail', '')}")
         if retest_line:
             body_lines.append(retest_line)
         if freeze_line:
