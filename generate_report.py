@@ -20239,6 +20239,7 @@ def main():
             agent_signals_updated=_ag_updated_for_check,
             prev_daily_run_ts=_prev_daily_run_ts_for_check,
             html_path="app.html",   # Phase 0: S9 prüft den kanonischen Content-Pfad
+            backtest_path=BACKTEST_FILE,   # S15: Postclose des letzten Handelstags
         )
     except Exception as exc:
         log.warning("health_check (Daily-Run) fehlgeschlagen: %s", exc)

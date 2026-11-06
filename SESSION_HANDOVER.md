@@ -6763,7 +6763,22 @@ Projekt-Ehrlichkeitsregel.
 
 *(Neueste zuerst: 8z7 vom 17.07.; 8z4–8z6 vom 16.–17.07.; 8z1–8z3 vom 15.07.-Abend; 8v–8y vom
 15.07.; 8s–8u vom 14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag; 8n–8p vom 13.07.;
-8j–8m vom 11.–12.07.; etablierte 8a–8i darunter.)*
+8j–8m vom 11.–12.07.; etablierte 8a–8i darunter; 8z8 vom 06.11. ganz oben.)*
+
+### 8z8. Cron-Zeilen nie zwischen Termin und verspätetem Start ändern (06.11.)
+
+Der Postclose vom 04.11.2026 ist verloren: `#656` änderte die Cron-Zeile
+`17 21` → `37 21` und wurde um 23:01 UTC gemergt — der 21:17-Lauf war zu
+diesem Zeitpunkt noch nicht gestartet (Postclose kommt bis ~5,5 h verspätet,
+zuletzt 00:51–02:56 UTC) und lief nie. Vermutlich verwirft GitHub einen
+wartenden Lauf, dessen Zeile beim verspäteten Start nicht mehr in der
+Workflow-Datei steht (nicht dokumentiert, Ablauf passt). Nachholen ging nur bis
+23:59 ET desselben Tages (Berichtsdatum = heutiger ET-Tag). **Regel:** eine
+Änderung an einer `schedule`-Zeile erst mergen, wenn **kein geplanter Lauf
+dieser Zeile mehr aussteht** — der Lauf des alten Termins muss in der Actions-
+Liste schon **gestartet** sein. Für den Postclose heißt das: nicht zwischen
+~21:00 UTC und dem tatsächlichen Start mergen. Gleiches gilt für Digest
+(08:47), Wochen-Workflows und Premarket.
 
 ### 8z7. Zwei Ziele können sich widersprechen — und genau das ist informativ (17.07.)
 

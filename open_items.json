@@ -536,6 +536,14 @@
       "description": "scripts/mock_test_haircut_net_returns.py: mit installiertem pandas 2 Fälle rot (B-I1, B-I3), auch auf main (nicht durch #657). Ungeprüft: Ursache, und ob CI ohne pandas läuft und den Bruch deshalb nicht sieht.",
       "status": "offen",
       "status_date": "2026-11-05"
+    },
+    {
+      "id": "postclose-2026-11-04-verloren",
+      "title": "Postclose 04.11.2026 ausgefallen — Datenlücke",
+      "opened": "2026-11-06",
+      "description": "Postclose-Lauf vom 04.11.2026 fehlt (Actions-API: kein Lauf zwischen 04.11. 14:32 UTC und 06.11. 01:46 UTC). GitHub verwarf vermutlich den wartenden 21:17-Lauf beim Cron-Wechsel #656 (Merge 04.11. 23:01 UTC, Lauf kam sonst 00:51–02:56 UTC) — nicht belegbar, verworfene Läufe hinterlassen keinen API-Eintrag. Sauberes Nachholen war nur bis ~04:55 UTC 05.11. möglich (Berichtsdatum = heutiger ET-Tag, generate_report.py report_date; danach Vintage-Guard pre_open bzw. Folgetag-Datum). Bewusst keine Rekonstruktion: Eingangsdaten (Scores, Short-Float, KI) zum 04.11.-Schluss nicht echt nachstellbar. Fehlend: 10 Backtest-Einträge 04.11. (Lücke im Matured-Export/Freeze-Zähler ab ~19.11.), Exit-Shadow-Zeilen, Postclose-Schnappschüsse 04.11. der Sammeldateien (options_chain_raw, options_oi_history, reg_sho, ftd, inst_ownership, si_position, apewisdom, coverage, news_coverage, hist_5d_gap_log, score_inflation_log). Früherer gleichartiger Ausfall: 27.08.2026 (Mitternachts-Falle, Lauf 01:28 ET am 28.08.). Erkennung künftig: Health-Check S15 (warn im nächsten Digest).",
+      "status": "beobachtet",
+      "status_date": "2026-11-06"
     }
   ]
 }
