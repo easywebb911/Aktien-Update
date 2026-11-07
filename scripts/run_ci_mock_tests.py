@@ -38,6 +38,7 @@ SCRIPTS = ROOT / "scripts"
 #    danach statisch festgeschrieben. Kategorie A: deterministisch, kein
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
+    "paper_c_eval",
     "maxgain_none_not_zero",
     "postclose_gap_s15",
     "digest_warn_visible",

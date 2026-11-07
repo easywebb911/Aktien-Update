@@ -3275,6 +3275,29 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 07.11.2026 — Paper-C-Auswertungsskript + Mock-Tests + Workflow-Input (1 PR, Manual-Merge)
+
+- Easy-Auftrag 07.11.2026: `#661` (Branch `claude/bold-mayer-5dlyrd`,
+  Branch-Commit `ddcfaa3`, kein Merge-Hash — Regel a).
+- `scripts/paper_c_eval.py`: liest Stichprobe, Ziele und Parameter aus dem
+  Freeze-Block „Paper C“ (MD5-Pin `51e187ad…`), Abbruch bei Abweichung, bei
+  vorhandener `paper_c`-Zeile, außerhalb von GitHub Actions/main und wenn das
+  Fenster nicht 672 Zeilen / 4 ohne `entry_past_return_5d` hat. Export wird erst
+  nach diesen Prüfungen geöffnet. Zwei Zeilen in `eval_results.jsonl` (eine je
+  Ziel), ntfy nur mit Verdikten (Beleg/bedingt/Unklar/nicht auswertbar).
+- `scripts/mock_test_paper_c_eval.py` (nur synthetische Daten, in
+  `run_ci_mock_tests.py`). `health_check_digest.yml`: Input `paper_c`
+  (Default aus) + ein Schritt; keine neue Workflow-Datei.
+- **Kein Lauf auf echten Daten.** Nächster Schritt: open_item
+  `paper-c-einmal-lauf` (nach dem Merge EIN Lauf); `paper-c-skript-bauen` →
+  erledigt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#660`,
+  höchste in Block 1 erwähnte PR = `#661` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** keine Blocker. Behoben: Cluster-Doppellauf
+  bestimmt Folgeeinträge jetzt über alle verwendeten Zeilen (vorher nur über die
+  Zielgruppen). Vermerkt (open_item `paper-c-einmal-lauf`): Restrisiko bei
+  gescheitertem Commit-Push nach dem Lauf; MD5-Pin koppelt Block und Mock-Test.
+
 ### 07.11.2026 — Freezes Paper C + Exit-B.1-Nachfolger + Holm-Runde November, §4-Ergebnis dokumentiert (1 PR, Manual-Merge)
 
 - Easy-Entscheide 07.11.2026 nach read-only Reife-Inventur: `#660` (Branch
