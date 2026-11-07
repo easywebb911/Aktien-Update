@@ -40,6 +40,7 @@ SCRIPTS = ROOT / "scripts"
 ALLOWLIST = [
     "maxgain_none_not_zero",
     "postclose_gap_s15",
+    "digest_warn_visible",
     "postclose_final_boundary",
     "s4_sensitivity_coupling",
     "backtest_returns_final_close",

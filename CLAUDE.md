@@ -3968,7 +3968,7 @@ S2/S3/S6/S8/S14 laufen in BEIDEN Pfaden (Daily-Run + ki_agent-Tick), alle
 | S12 | crit | Daily | kein echter postclose-Run (``run_phase==tsp=='postclose'``) seit > ``HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE`` (2) Werktagen. **crit = NUR-REPORTING** (blockiert NICHT — S9-Exit-Pfad filtert strikt id=="S9") |
 | S13 | warn | Daily | **Doppel-Baustein.** (a) **Daten-Reife-Gate** (#297): laufender Status der 3 30.06.-Auswertungen (Setup-Edge ≥70/schema_v4, Entry-AUC, CTB-Edge) je vorhanden/reif_5d/reif_10d — Status-Zeilen via log.info, kein Fail. (b) **Konsistenz-Wächter** (Projekt C, #298): Soll-Ist-Drift je config-Konstante aus ``CONSISTENCY_EXPECTED_STATE`` — ein warn pro Drift |
 | S14 | warn | beide | ``last_successful_gist_pull`` in ``gist_pull_state.json`` ≤ ``HEALTH_CHECK_S14_MAX_AGE_HOURS`` (26) Stunden alt. **COMPOSITE-Liveness** — Detail-Text sagt „Gist-Pull seit N h nicht erfolgreich", NICHT „Token tot": altert sowohl bei totem ``GIST_TOKEN`` (Gist-Read scheitert über Zeit, Stille-Tod 02.06.) ALS AUCH bei mehrtägigem ki_agent-/daily-Cron-Drop. Marker NUR im HTTP-Gist-Erfolgszweig von ``pull_gist_data.py`` geschrieben (#310). Fehlende Datei / null → SKIP (analog S8). Beide Pfade: im ki_agent-Tick liest der Hook den nicht-aktualisierten alten Working-Tree-Marker → ~1 h Detektionslatenz statt ~1 Tag. **Body-Korruption** (HTTP-200 + kaputtes/leeres/truncated ``squeeze_data.json``) seit dem ``pull_gist_data._extract_data``-Body-Sanity-Gating (``body_ok``, positions-Key-Präsenz vor der ``or "{}"``-Maskierung) MIT erkannt → Marker NICHT gesetzt → S14 fängt es. Restkante (Folge-PR): Recovery-Umleitung bei Korruption (Schadens-Vermeidung statt nur Detektion). |
-| S15 | warn | Daily | Postclose des **letzten US-Handelstags vor dem heutigen ET-Tag** fehlt: keine Nicht-Bootstrap-Einträge mit dessen Datum in ``backtest_history.json`` (Feiertage über ``config.US_MARKET_HOLIDAYS``, wie S4). Nur wenn der Hook ``backtest_path`` übergibt (Daily-Run); Tag älter als der älteste Eintrag (90-Tage-Prune, alte Test-Daten) / Datei fehlt / kaputt → SKIP. Bewusst **warn**, nicht crit: zum Meldezeitpunkt ist der Tag nicht mehr sauber nachholbar (Berichtsdatum = heutiger ET-Tag) — es geht um ehrliche Sichtbarkeit; S12 bleibt der crit-Alarm für mehrtägige Ausfälle. Im OK-Digest als eigene Hinweis-Zeile „🟡 S15: …“ (Titel bleibt OK). Anlass: Postclose 04.11.2026 (Cron-Wechsel #656) und 27.08.2026 (Lauf nach 00:00 ET). |
+| S15 | warn | Daily | Postclose des **letzten US-Handelstags vor dem heutigen ET-Tag** fehlt: keine Nicht-Bootstrap-Einträge mit dessen Datum in ``backtest_history.json`` (Feiertage über ``config.US_MARKET_HOLIDAYS``, wie S4). Nur wenn der Hook ``backtest_path`` übergibt (Daily-Run); Tag älter als der älteste Eintrag (90-Tage-Prune, alte Test-Daten) / Datei fehlt / kaputt → SKIP. Bewusst **warn**, nicht crit: zum Meldezeitpunkt ist der Tag nicht mehr sauber nachholbar (Berichtsdatum = heutiger ET-Tag) — es geht um ehrliche Sichtbarkeit; S12 bleibt der crit-Alarm für mehrtägige Ausfälle. Im OK-Digest als Hinweis-Zeile „🟡 S15: …“ (allgemeine Regel für aktive warns seit 07.11.2026, Titel bleibt OK). Anlass: Postclose 04.11.2026 (Cron-Wechsel #656) und 27.08.2026 (Lauf nach 00:00 ET). |
 
 
 **S8** (16.05.2026) erkennt silent Digest-Push-Fails (gestern 15.05.:
@@ -4248,6 +4248,15 @@ OK-Push ist **bewusst täglich**, dient als Liveness-Check für die
 Push-Pipeline selbst — wenn er ausbleibt weiß Easy, dass Workflow
 oder ntfy hakt.
 
+**Aktive warns im OK-Digest (seit 07.11.2026):** Die OK-Klasse gilt auch
+bei 1–2 aktiven warns (Schwelle oben). Diese erschienen bis dahin **gar nicht**
+(Beleg: S8 an 12.10./19.10./01.11.2026 unsichtbar). Jetzt steht je aktive warn
+(State + Provider) eine Zeile „🟡 <id>: <detail>“ im OK-Body; Titel und
+Priorität bleiben. Detail je Zeile auf 240 Zeichen gekappt; überschreitet der
+Body `DIGEST_BODY_SAFE_BYTES` (3800), werden warn-Zeilen bis auf die erste durch
+„🟡 +N weitere warn“ ersetzt. crit-/warn-Klasse und #516-Diagnose-Prompt
+unverändert. Test `scripts/mock_test_digest_warn_visible.py`.
+
 **State-Datei-Schema ``health_check_digest_state.json``:**
 
 ```json
@@ -4343,7 +4352,7 @@ löschen.
 | Check | Typ | Einstellung | Begründung |
 |---|---|---|---|
 | KI-Agent | Simple | Period **6 h**, Grace **6 h** (Alarm nach 12 h Stille) | der stündliche Cron startet faktisch nur 3–7×/Tag, normale Lücken bis **10,6 h** |
-| Daily-Run | Cron | `17 6,21 * * 1-5`, Zeitzone **UTC**, Grace **12 h** | Premarket kommt 5,1–**9,6 h**, Postclose 2,4–5,3 h zu spät |
+| Daily-Run | Cron | `17,37 6,21 * * 1-5`, Zeitzone **UTC**, Grace **12 h** (seit #656 Postclose 21:37 statt 21:17; ein Cron-Ausdruck kann 06:17 und 21:37 nicht getrennt abbilden — die Zusatzzeiten 06:37/21:17 liegen nur 20 min daneben und fallen in dieselbe Grace; Alternative: zwei Checks `17 6 * * 1-5` + `37 21 * * 1-5`). **Muss in healthchecks.io von Hand nachgezogen werden.** | Premarket kommt 5,1–**9,6 h**, Postclose 2,4–5,3 h zu spät |
 
 Benachrichtigung in healthchecks.io einstellen (E-Mail oder ein eigenes
 ntfy-Topic — den produktiven `NTFY_TOPIC` nicht beim Fremd-Anbieter

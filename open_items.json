@@ -544,6 +544,22 @@
       "description": "Postclose-Lauf vom 04.11.2026 fehlt (Actions-API: kein Lauf zwischen 04.11. 14:32 UTC und 06.11. 01:46 UTC). GitHub verwarf vermutlich den wartenden 21:17-Lauf beim Cron-Wechsel #656 (Merge 04.11. 23:01 UTC, Lauf kam sonst 00:51–02:56 UTC) — nicht belegbar, verworfene Läufe hinterlassen keinen API-Eintrag. Sauberes Nachholen war nur bis ~04:55 UTC 05.11. möglich (Berichtsdatum = heutiger ET-Tag, generate_report.py report_date; danach Vintage-Guard pre_open bzw. Folgetag-Datum). Bewusst keine Rekonstruktion: Eingangsdaten (Scores, Short-Float, KI) zum 04.11.-Schluss nicht echt nachstellbar. Fehlend: 10 Backtest-Einträge 04.11. (Lücke im Matured-Export/Freeze-Zähler ab ~19.11.), Exit-Shadow-Zeilen, Postclose-Schnappschüsse 04.11. der Sammeldateien (options_chain_raw, options_oi_history, reg_sho, ftd, inst_ownership, si_position, apewisdom, coverage, news_coverage, hist_5d_gap_log, score_inflation_log). Früherer gleichartiger Ausfall: 27.08.2026 (Mitternachts-Falle, Lauf 01:28 ET am 28.08.). Erkennung künftig: Health-Check S15 (warn im nächsten Digest).",
       "status": "beobachtet",
       "status_date": "2026-11-06"
+    },
+    {
+      "id": "tests-umgebungsabhaengig-ci-skip",
+      "title": "Umgebungsabhängige Mock-Tests laufen in CI nur im SKIP-Zweig",
+      "opened": "2026-11-07",
+      "description": "pr-checks.yml installiert nur jinja2 + pyyaml (pr-checks.yml:68). Dadurch laufen Tests mit optionalem bs4/pandas in CI nur im SKIP-Zweig und sind dort grün, lokal (mit bs4/pandas) auf main aber rot: mock_test_source_pool (NameError trading_date beim Herauslösen von get_finviz_screener_v111 in einen eigenen Namespace) und mock_test_haircut_net_returns (pandas-Fälle B-I1/B-I3, siehe haircut-net-returns-pandas-rot — bleibt offen). Offen: Ursachen beheben und/oder CI-Abdeckung für diese Zweige klären (Easy-Entscheid).",
+      "status": "offen",
+      "status_date": "2026-11-07"
+    },
+    {
+      "id": "august-sammeldateien-utc-verschiebung",
+      "title": "Sammeldateien im August um einen Tag verschoben (UTC-Datierung bis #608)",
+      "opened": "2026-11-07",
+      "description": "options_oi_history, reg_sho_history und inst_ownership_history wurden bis zum Fix #608 (30.10.2026) nach UTC-Datum datiert. Postclose-Läufe nach UTC-Mitternacht stehen deshalb einen Tag zu spät (Beleg August: unter 27.08. die Daten vom 26.08., unter 28.08. die vom 27.08. aus Lauf #944/98bba305, der echte 28.08.-Lauf unter 29.08.). Gleichmäßig verschoben, keine Dubletten, kein Tag verloren. Nicht korrigierbar (kein Zeitstempel je Punkt), siehe trading-date-dict-history-unrecoverable. Bei Auswertungen dieser Dateien vor dem 30.10.2026 beachten.",
+      "status": "beobachtet",
+      "status_date": "2026-11-07"
     }
   ]
 }
