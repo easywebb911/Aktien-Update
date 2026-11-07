@@ -3295,7 +3295,11 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - MD5 aller 14 bestehenden Freeze-/Protokoll-Blöcke vorher = nachher.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#661`,
   höchste in Block 1 erwähnte PR = `#662` (eigene) — kein Rückstand.
-- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Guardian-Lauf vor Ready:** keine Blocker. Übernommen: Hinweis „Stand 13.07.,
+  siehe Nachtrag“ in der EDGE-BEFUND-Kernbotschaft; im Replikations-Block Dedup
+  vor der Zählung, Sperrschlüssel `paper_c_replikation`, Auslöser-Mechanik beim
+  Skript-Bau, „p < 0,05“ = §5-Holm bei k = 1. Kalender-Schätzung ~21.–22.12.2026
+  vom Guardian bestätigt.
 
 ### 07.11.2026 — Paper-C-Auswertungsskript + Mock-Tests + Workflow-Input (1 PR, Manual-Merge)
 
@@ -6449,7 +6453,8 @@ Einstieg ≥ 24.10.2026; jüngster Forward-Einstieg 23.10.2026).
    Einstiegsdatum ist das Feld **`date`** (Format `DD.MM.YYYY`, ET-Handelstag);
    24.10.2026 ist ein Samstag, der erste mögliche Einstieg also Montag 26.10.2026.
    Keine Überlappung mit der ersten Stichprobe (21.07.–23.10.2026). Alle Scores.
-   Dedup nach `(ticker, date)`, erste Zeile gewinnt.
+   Dedup nach `(ticker, date)`, erste Zeile gewinnt — **vor** jeder Zählung
+   (Auslöser in Punkt 4 zählt die deduplizierten, verwertbaren Zeilen).
 3. **Ausschluss:** nur Zeilen mit fehlendem oder nicht endlichem
    `entry_past_return_5d` (gezählt, berichtet). Ist `max_gain_pct` einer Zeile
    nicht endlich, fällt sie heraus und wird gezählt.
@@ -6457,7 +6462,11 @@ Einstieg ≥ 24.10.2026; jüngster Forward-Einstieg 23.10.2026).
    im Export stehen; **einmaliger** Lauf. Ausgewertet werden **alle** Zeilen des
    Fensters, die zum Zeitpunkt des Laufs im Export stehen (also ≥ 300); Zählung
    und Datenhash werden mitgeschrieben. Kein Zwischenblick, kein zweiter Lauf mit
-   mehr Daten.
+   mehr Daten. **Sperre:** Ergebniszeilen tragen `family = "paper_c_replikation"`;
+   steht eine solche Zeile in `eval_results.jsonl`, ist kein weiterer Lauf erlaubt
+   (nur mit datiertem Protokolleintrag). Wer den Auslöser prüft (Workflow-Input
+   oder automatischer Digest-Lauf), wird beim Skript-Bau entschieden (open_item
+   `paper-c-replikations-skript`) — das ändert kein Kriterium dieses Blocks.
 5. **Ein Ziel:** Treffer = `max_gain_pct ≥ 30,0`; Nicht-Treffer =
    `max_gain_pct < 30,0` (Schwelle aus dem Paper bzw. §5). **Ziel 2
    (`return_10d`) des ersten Laufs fällt weg** — Easy-Entscheid 07.11.2026 für eine
@@ -6475,6 +6484,8 @@ Einstieg ≥ 24.10.2026; jüngster Forward-Einstieg 23.10.2026).
 7. **Floor:** mindestens **40** Treffer; sonst „nicht auswertbar“, p = 1.
 8. **Eigene Familie „Runde Replikation“** mit **einer** Hypothese, **α = 0,05**
    (kein Holm-Schritt nötig). Nicht Teil der Familie „Runde November 2026“.
+   „p < 0,05“ ist hier dasselbe wie das §5-Kriterium „Holm-signifikant“ bei
+   einer Familie mit nur einer Hypothese.
 9. **Erfolgskriterium — alle drei:** (a) **p < 0,05**; (b) **2,5.-Perzentil der
    Bootstrap-AUC > 0,5**; (c) Regime-Split „plausibel“. Verdikt-Stufen wie im
    Paper-C-Block: „Beleg“ = (a)+(b)+(c); „bedingt“ = (a)+(b), aber kein Regime
@@ -6547,7 +6558,9 @@ Utilization, Katalysator-Gating, Exit-Mechanik-Spec, Reddit-Velocity,
 Exit-Timing · 04.07. Peak-Ziel · **17.07. Paper-C-Momentum**) hat **kein Prädiktor**
 eine belegte Edge nach Erfolgs-Definition gezeigt. Das Tool ist **Attention-
 Router / Screener**, **kein Alpha-Generator**. Nichts an dieser Linie hat sich
-seit 30.06. verschoben.
+seit 30.06. verschoben. *(Stand 13.07.2026 — überholt in einem Punkt: siehe
+„Nachtrag 07.11.2026“ unten, Paper C Ziel 1 „Beleg“; die Auffanglinie selbst
+bleibt bis zur Replikation.)*
 
 **Erfolgs-Definition (einmal fixiert, nicht aufweichen):** „belegte Edge" nur
 wenn (a) Holm-signifikant über der pre-registrierten Klammer, **UND** (b)
