@@ -3275,6 +3275,28 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 07.11.2026 — Paper-C-Ergebnis protokolliert + Freeze Paper C Replikation (1 PR, Manual-Merge)
+
+- Easy-Entscheide 07.11.2026 nach dem Paper-C-Lauf: `#662` (Branch
+  `claude/bold-mayer-5dlyrd`, Branch-Commit `0902e36`, kein Merge-Hash — Regel a).
+  Nur Doku.
+- **Paper-C-Lauf** (07.11. 19:42 UTC, `a6b17182`, nach Merge `#661`): Ziel 1
+  Gipfel ≥ 30 % **Beleg** (erster belegter Prädiktor, 1 Fenster), Ziel 2
+  `return_10d` **Unklar** (p knapp über der Hürde). „PROTOKOLLEINTRAG Paper C
+  07.11.2026“ in §4; Freeze-Block byte-unverändert. Auffanglinie bleibt bis
+  Exit-Nachfolger und Replikation. Look-Ahead-Regel bekräftigt.
+- **Neuer Freeze „Paper C Replikation (Gipfel)“:** Einstieg ≥ 24.10.2026, n ≥ 300,
+  ein Ziel, eigene Familie α = 0,05; 0 Zeilen im Fenster beim Freeze.
+- §5: EDGE-BEFUND-Nachtrag (Leitlinie „Gipfel als Ziel“ bestätigt, 1 Fenster),
+  Reife-Inventur + Edge-Status (4 Bestätigungstests, 1 Beleg); Kalender.
+- `open_items.json`: `paper-c-einmal-lauf` → erledigt; neu
+  `paper-c-replikation-sammelphase`, `paper-c-replikations-skript`,
+  `momentum-marker-karte`.
+- MD5 aller 14 bestehenden Freeze-/Protokoll-Blöcke vorher = nachher.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#661`,
+  höchste in Block 1 erwähnte PR = `#662` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 07.11.2026 — Paper-C-Auswertungsskript + Mock-Tests + Workflow-Input (1 PR, Manual-Merge)
 
 - Easy-Auftrag 07.11.2026: `#661` (Branch `claude/bold-mayer-5dlyrd`,
