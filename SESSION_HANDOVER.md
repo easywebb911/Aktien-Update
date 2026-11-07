@@ -3291,7 +3291,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - Diagnose dazu (kein Code): `apply_score_smoothing` sortiert die Vorläufe
   als Text (`TT.MM.JJJJ`) — am Monatsanfang zählen alte Monatsend-Tage als
   „letzte 3 Läufe“ (Beleg METC 04.09.: §4-Mitglied nur dadurch). Geschützte
-  Score-Logik → Easy-Entscheid offen.
+  Score-Logik → Easy-Entscheid offen (open_item
+  `score-smoothing-textsortierung-monatswechsel`).
 - Test `mock_test_digest_warn_visible.py`; Gegenprobe alter Stand rot.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#658`, höchste in Block 1 erwähnte PR = `#659` (eigene) — kein Rückstand.
 

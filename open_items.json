@@ -560,6 +560,14 @@
       "description": "options_oi_history, reg_sho_history und inst_ownership_history wurden bis zum Fix #608 (30.10.2026) nach UTC-Datum datiert. Postclose-Läufe nach UTC-Mitternacht stehen deshalb einen Tag zu spät (Beleg August: unter 27.08. die Daten vom 26.08., unter 28.08. die vom 27.08. aus Lauf #944/98bba305, der echte 28.08.-Lauf unter 29.08.). Gleichmäßig verschoben, keine Dubletten, kein Tag verloren. Nicht korrigierbar (kein Zeitstempel je Punkt), siehe trading-date-dict-history-unrecoverable. Bei Auswertungen dieser Dateien vor dem 30.10.2026 beachten.",
       "status": "beobachtet",
       "status_date": "2026-11-07"
+    },
+    {
+      "id": "score-smoothing-textsortierung-monatswechsel",
+      "title": "apply_score_smoothing sortiert Vorläufe als Text (TT.MM.JJJJ)",
+      "opened": "2026-11-07",
+      "description": "generate_report.apply_score_smoothing wählt die 'letzten 3 Läufe' per sorted(key=date-String, reverse=True) — das Datum ist TT.MM.JJJJ, also Textsortierung. Am Monatsanfang zählen dadurch alte Monatsend-Tage (z. B. 31.08./28.08./27.08.) statt der neuesten Tage (03.09./01.09./31.08.); betrifft Glättung (70/30) und Trend-Bonus/-Malus. Beleg METC 04.09.2026: gespeicherter Score über 70 (§4-Mitglied) nur durch die Textsortierung, chronologisch korrekt nachgerechnet unter 70; CABA 02.09.2026 lag chronologisch korrekt knapp unter 70 (kein Wechsel). Potenziell betroffen: §4-Zeilen mit Datum in den ersten ~14 Tagen eines Monats (Stand 07.11.: 119 von 255). Geschützte Score-Logik (_compute_sub_scores-Umfeld/apply_score_smoothing) — Fix und ggf. Umgang mit §4 nur nach Easy-Entscheid (Änderungs-Protokoll-Regel).",
+      "status": "offen",
+      "status_date": "2026-11-07"
     }
   ]
 }
