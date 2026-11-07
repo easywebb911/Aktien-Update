@@ -4390,6 +4390,9 @@ Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
 | **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. **ERSETZT (10.10.2026)** — kein Zielgröße/Kriterium war hier je festgelegt; siehe Erratum-Block „Erweiterung vor Auswertung — Test (c) Conviction-Zusatznutzen" im Setup-Edge-Re-Test-Freeze unten (Test (c), Holm k=3). Diese Zeile bleibt als Historie stehen, nicht gelöscht. |
 | **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf seit `#621` (31.10.2026), **PAUSIERT 02.11.2026** (`#644`, Rendite-Diagnose — siehe „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ unten); Mechanik-Fix `#647` (03.11.2026), Wiederaufnahme erst nach Bestandskorrektur (Schritt 2); **WIEDER AKTIV ab Merge von `#650`** (03.11.2026, Korrektur `#648`/`872ac43f`, §4 nur mit gekoppelter Sensitivität — siehe „§4-Protokolleintrag 03.11.2026 — Schritt 2 abgeschlossen“) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. **ÜBERHOLT 10.10.2026:** neu registriert und eingefroren — siehe „VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026“ unten (Stand 02.11.: n=50/250). Diese Zeile bleibt als Historie. |
+| **AUSGEWERTET 07.11.2026** | Exit-B.1-Re-Test (§4, Zeile oben) | n=255 | Beide Arme **„Unklar“**, Auffanglinie bleibt — siehe „§4-Protokolleintrag 07.11.2026“ weiter unten. Die Zeile oben bleibt als Historie stehen. |
+| **einmaliger Lauf nach Skript-Bau + Mock-Test** | **Paper C (Momentum → Gipfel)** — vorabregistriert, eingefroren 07.11.2026 | feste Stichprobe 21.07.–23.10.2026 | Block „VORABREGISTRIERUNG — Paper C“ (vor „PAPER-PLAN-STATUS“). Vor dem Skript-Bau: Easy-Entscheid zum Holm-Timing (Familien-Block). |
+| **datumsfrei · Auslöser n≥500** | **Exit-B.1-Nachfolger (gepaart, Wilcoxon)** — vorabregistriert, eingefroren 07.11.2026 | n ≥ 500 · `score≥70` ∧ `provenance=forward` ∧ Einstieg ≥ 09.11.2026 | Block „VORABREGISTRIERUNG — Exit-B.1-Nachfolger“. Schätzung (nicht bindend): Einstiege bis ~Mitte/Ende Mai 2027, plus ~2 Wochen Reife. |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
 
@@ -5815,6 +5818,50 @@ Punkt 8c verlangt Einträge nur bei Änderungen an `score()`/der Top-10-Auswahl,
 beiden Familien bleiben vom Ausgabeformat unberührt (Hauptergebnis wie
 bisher, sie haben keine registrierte Sensitivität).
 
+#### §4-Protokolleintrag 07.11.2026 — Exit-B.1 ausgewertet: beide Arme „Unklar“, Auffanglinie bleibt
+
+**Bindend gemäß Änderungs-Protokoll-Regel des §4-Blocks (05.08.2026).** Eigener
+Abschnitt **außerhalb** des eingefrorenen §4-Registrierungsblocks; der §4-Block
+und alle anderen Freeze-Blöcke bleiben **byte-identisch** (MD5 vorher = nachher,
+im PR-Bericht belegt). Dieser Eintrag dokumentiert nur das Ergebnis — er ändert
+keine Definition, kein Kriterium, keine Population.
+
+**Lauf:** automatischer Freeze-Auswertungslauf am **07.11.2026, 15:07:32 UTC**
+(Health-Check-Digest), Skript-Commit **`fe3986dd`**, Ergebnis in
+`eval_results.jsonl` (2 Zeilen), gekoppelte Sensitivität in
+`eval_results_sensitivity.jsonl` (Regel vom 02./03.11.2026). Population
+`score ≥ 70 ∧ provenance = forward`, **n = 255**, 0 ausgeschlossen. Bootstrap
+N = 2000, Seed 42, 95 % zweiseitig (Perzentil 2,5/97,5). Holm k = 2, α = 0,05.
+
+| Arm | Δ (Mittel, pp) | 95-%-CI | roher p (Holm-Input) | Holm | Regime | Verdikt |
+|---|---|---|---|---|---|---|
+| (a) Δ(5d−10d) | +0,54 | −1,29 … +2,22 | 0,18 | nein | widerlegt (bull n=33 Gegen-Vorzeichen) | **Unklar** |
+| (b) Δ(3d−10d) | +1,76 | −0,42 … +3,77 | 0,034 > Holm-Schwelle 0,025 | nein | plausibel | **Unklar** |
+
+In beiden Armen: `bear` n = 0 → „nicht prüfbar“; neutral n = 222, bull n = 33.
+Kriterien (a) Holm und (b) CI > 0 in **beiden** Armen verfehlt.
+
+**Sensitivität (Postclose-Halbzeile, registriert 02.11.2026):** n = 188 (17
+Tage ausgeschlossen), beide Arme ebenfalls „Unklar“; Gesamturteil nach der Regel
+vom 02.11.2026: **„nicht belegt“**.
+
+**Wilcoxon — nur EXPLORATIV, kein Urteil daraus** (wie im Protokolleintrag
+31.10.2026 Punkt 1 festgelegt): Arm (a) p = 0,025 (n = 250), Arm (b) p = 0,00057
+(n = 253); Sensitivität (a) 0,11, (b) 0,036. Diese Zahlen sind **kein**
+Erfolgskriterium und ändern das Verdikt nicht. Sie haben die neue, eigenständige
+Registrierung „Exit-B.1-Nachfolger“ angeregt (Block unten, eingefroren
+07.11.2026, nur Einstiege ab 09.11.2026 — keine Überschneidung mit diesen 255
+Zeilen).
+
+**Lesart (registriert, nicht umgedeutet):** Kein belegter Früh-raus-Vorteil.
+„Unklar“ ist **keine** Widerlegung (Freeze-Grenze). Die **Auffanglinie bleibt**:
+das Tool ist Attention-Router/Screener, kein belegter Alpha-Generator.
+
+**Hinweis (bekannte Einschränkung, keine Neubewertung):** open_item
+`score-smoothing-textsortierung-monatswechsel` (07.11.2026) betrifft, welche
+Zeilen `score ≥ 70` erreichen. Das Ergebnis oben gilt wie registriert; ob und wie
+das nachträglich einzuordnen ist, entscheidet Easy getrennt.
+
 #### ⚠ Datenherkunft des vorabregistrierten Exit-B.1-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
 
 **Gilt für den vorabregistrierten Exit-B.1-Re-Test oben (Score≥70-Bucket): bei der
@@ -5893,6 +5940,259 @@ postclose, nur Top-10) = das Maximum ohne Populations-Wechsel. **Hard-Stop:
 Kalenderwochen, bevor er zählt). Warten ist hier **kein** Engpass, sondern der
 eingebaute Out-of-Sample-Schutz (§8).
 | **Herbst 2026 / Q4 (OoS)** | **Hypothese H5 (Kombi Score × Katalysator × Momentum × SI)** | n ≥ 40 pro Feld-Kombi | **Vorab-registriert** (§5). Out-of-Sample über die **fünf** Look-Ahead-freien Sammel-Bausteine (§5). Feste Klammer, keine nachträgliche Schmälerung. |
+
+### VORABREGISTRIERUNG — Paper C (Momentum → Gipfel), eingefroren 07.11.2026
+
+**Easy-Entscheid 07.11.2026** (nach der read-only Reife-Inventur vom selben Tag).
+Eigener Block nach dem Muster von §4 (05.08.2026) und Setup-Edge (10.10.2026).
+**Zum Freeze-Zeitpunkt wurde der Zusammenhang zwischen `entry_past_return_5d` und
+einem Ergebnisfeld in der unten festgelegten Stichprobe NICHT ausgewertet.** Die
+Inventur hat nur Zeilen gezählt, Feldbelegungen geprüft und die Trefferquote der
+Zielgröße für die Teststärke benutzt; diese Zahlen stehen bewusst **nicht** in
+diesem Block.
+
+**Verhältnis zum Text vom 17.07.2026** (§4 „PAPER-PLAN-STATUS“ + Abgrenzungsblock,
+§5 „PAPER-C-READ“): Jener Text bleibt **unverändert** stehen (Historie). Er nannte
+die Richtung (Momentum positiv), die zwei Ziele und den Floor, aber keine feste
+Stichprobe, keine Holm-Familie für den Bestätigungstest und einen anderen Seed.
+Dieser Block legt den Bestätigungstest **abschließend** fest. Wo er vom 17.07.-Text
+abweicht, steht das unten unter „Abweichungen“ — nicht still geglättet.
+
+**EINGEFRORENE VORGABEN**
+
+1. **Frage:** Haben Aktien mit stärkerem Kursanstieg in den 5 Handelstagen vor dem
+   Einstieg (`entry_past_return_5d`) einen höheren Gipfel bzw. ein besseres
+   10-Tage-Ergebnis? Richtung vorab fixiert: **höheres Momentum → besseres Ziel**
+   (Paper: Momentum > Reversal). Kein nachträgliches Umdrehen.
+2. **Stichprobe (fest, kein Nachladen):** ausschließlich
+   `matured_backtest_export.jsonl`; Zeilen mit `provenance == "forward"` **UND**
+   Einstiegsdatum (`date`, Format `DD.MM.YYYY`, ET-Handelstag) **von 21.07.2026 bis
+   einschließlich 23.10.2026**. Alle Scores (kein Score-Filter). Dedup nach
+   `(ticker, date)`, erste Zeile gewinnt (wie `freeze_eval._dedup_rows`). Zeilen,
+   die nach dem Freeze mit einem Datum in diesem Fenster neu in den Export kommen
+   würden, gehören nicht dazu: maßgeblich ist der Datei-Stand zum Auswertungslauf,
+   der Datenhash der verwendeten Zeilen wird mitgeschrieben. Zählung beim Freeze
+   (nur Zeilen, keine Ergebnisse): **672** Zeilen, davon **4** ohne
+   `entry_past_return_5d`.
+3. **Ausschluss:** Zeilen mit fehlendem oder nicht endlichem
+   `entry_past_return_5d` werden ausgeschlossen, gezählt und berichtet — sonst kein
+   Ausschluss. Rein mechanische Sicherung: ist ein **Zielfeld** einer Zeile nicht
+   endlich (beim Freeze in dieser Stichprobe: `max_gain_pct` und `return_10d` je 0
+   leer), fällt die Zeile nur für dieses Ziel heraus und wird gezählt.
+4. **Zwei bindende Ziele** (Brutto-Felder):
+   - **Ziel 1 — Gipfel:** Treffer = `max_gain_pct ≥ 30,0`; Nicht-Treffer =
+     `max_gain_pct < 30,0`. Schwelle aus dem Paper (Svoboda et al. 2026: Peak
+     > +30 %) bzw. §5, nicht aus unseren Daten.
+   - **Ziel 2 — 10-Tage-Ergebnis:** Gewinner = `return_10d ≥ +10,0`; Verlierer =
+     `return_10d ≤ −5,0`; Zeilen dazwischen gehören nicht zu Ziel 2. Schwellen wie
+     im 17.07.-Text (Projektkonvention seit der Earliness-Diagnose 13.05.2026, siehe
+     CLAUDE.md „Validierungs-Pfad“), nicht aus unseren Paper-C-Daten.
+5. **Verfahren je Ziel (wie §4 / Erratum 22.10.2026):**
+   - AUC = `mann_whitney_u_auc(A, B)` mit A = `entry_past_return_5d` der Treffer/
+     Gewinner, B = der Nicht-Treffer/Verlierer (`scripts/stats_helpers.py`).
+     AUC > 0,5 heißt: Treffer hatten höheres Momentum.
+   - **Holm-Input:** `p_two_sided` aus `mann_whitney_u_auc` auf den Originalgruppen.
+   - **Bootstrap-CI:** Resampling mit Zurücklegen **je Gruppe getrennt** (wie
+     `freeze_eval.bootstrap_auc_ci`), **N = 2000**, **Seed = 42**, **95 % zweiseitig,
+     Perzentil 2,5 / 97,5**.
+   - **Cluster-Doppellauf:** Lauf mit allen Zeilen und ohne Cluster-Folgeeinträge
+     (`freeze_eval.cluster_double_run` / `classify_cluster_records`). Bindend sind
+     die Zahlen des Laufs **mit allen Zeilen**; der zweite Lauf wird mit „gleiche
+     Richtung ja/nein“ berichtet (siehe Abweichung (d) unten).
+   - **Regime-Split** nach `market_regime` (bull/bear/neutral), Mechanik wie §4-
+     Protokolleintrag 31.10.2026 (a)/(b), übertragen auf die AUC: ein Regime ist
+     prüfbar bei **n ≥ 10** Zeilen dieses Ziels **und** mindestens einer Zeile in
+     jeder der beiden Gruppen; sonst „nicht prüfbar“. „Plausibel“ = kein prüfbares
+     Regime liegt mit seiner AUC auf der anderen Seite von 0,5 als die Gesamt-AUC
+     (AUC genau 0,5 gilt nicht als Gegenrichtung). Ein nicht prüfbares Regime —
+     z. B. **bear mit n = 0** — zählt **nicht** als Widerlegung und wird als „nicht
+     prüfbar“ berichtet (vorab festgelegt).
+6. **Floor (aus dem 17.07.-Text übernommen):** mindestens **40** Treffer bzw.
+   Gewinner je Ziel. Unterschreitet ein Ziel den Floor, ist es „nicht auswertbar“
+   und geht mit **p = 1** in die Holm-Korrektur ein (die Zahl der Hypothesen bleibt
+   gleich, nichts wird nachträglich herausgenommen).
+7. **Holm-Familie:** die zwei Ziele bilden zusammen mit dem Exit-B.1-Nachfolger die
+   gemeinsame **Holm-Familie „Runde November 2026“, k = 3** (Block
+   „VORABREGISTRIERUNG — Holm-Familie Runde November 2026“ unten). Innerhalb von
+   Paper C sind es 2 der 3 Hypothesen. **Wie der Holm-Schritt gerechnet wird,
+   solange der Exit-Nachfolger noch keinen p-Wert hat, ist dort als OFFENER PUNKT
+   vermerkt — Easy entscheidet vor dem Skript-Bau.**
+8. **Erfolgskriterium je Ziel — alle drei:** (a) Holm-signifikant in der Familie
+   (α = 0,05); (b) **2,5.-Perzentil der Bootstrap-AUC > 0,5**; (c) Regime-Split
+   „plausibel“. Verdikt-Stufen wie §4 (Protokolleintrag 31.10.2026 (b)): „Beleg“ =
+   (a)+(b)+(c); „bedingt“ = (a)+(b), aber kein Regime prüfbar; „Unklar“ = (a) oder
+   (b) verfehlt, oder ein prüfbares Regime widerspricht. Weder „bedingt“ noch
+   „Unklar“ ist eine Widerlegung. Eine Punktschätzung allein ist **nie** Beleg.
+9. **Netto (nachrangig, nicht bindend):** dieselbe Rechnung mit Treffer =
+   `max_gain_pct_net ≥ 30,0` wird nur zur Einordnung mitberichtet — **nicht** in
+   Holm, **kein** Erfolgskriterium. Hinweis: das Feld ist erst ab Einstieg
+   31.08.2026 gefüllt (Zählung beim Freeze: 390 von 672 Zeilen), es ist also ein
+   **anderes, kürzeres Zeitfenster** als die bindende Rechnung.
+10. **Altzahlen sind Referenz, nie Schwelle:** der explorative Read vom 17.07.2026
+    (In-Sample-AUC ~0,61 für Ziel 1) dient nur der Einordnung der Richtung. Er
+    stammt aus der Backfill-Population (Einstieg vor 13.07.) und ist mit dieser
+    Stichprobe **nie** zu poolen.
+11. **Auslöser:** **einmaliger** Lauf, sobald das Auswertungsskript gebaut und mit
+    einem Mock-Test (künstliche Daten) geprüft ist **und** der offene Holm-Punkt aus
+    Punkt 7 entschieden ist. Kein Zwischenblick, kein zweiter Lauf mit mehr Daten.
+    Ergebnis per ntfy **nur als Verdikt je Ziel** (Beleg/bedingt/Unklar/nicht
+    auswertbar); die Zahlen stehen in `eval_results.jsonl`.
+12. **Pflichtangaben im Ergebnisbericht:** n je Ziel und Gruppe, Ausschlüsse,
+    AUC, CI, roher p, Holm-Ergebnis, Regime-Tabelle, Cluster-Doppellauf, Netto-
+    Zusatz, Datenhash, Skript-Commit, Seed, N — und die **Gesamtzahl bisher
+    gelaufener Bestätigungstests** (Regel im Familien-Block unten).
+
+**Abweichungen vom 17.07.-Text (gemeldet, nicht geglättet):**
+- (a) **Stichprobe:** 17.07. nannte „vorwärts“ **datumsbasiert ab 13.07.2026**. Hier
+  gilt `provenance == "forward"` und Einstieg ab **21.07.2026**. Die Zeilen
+  13.–20.07. sind im Export `provenance = backfill`; die vom 13.–16.07. wurden beim
+  17.07.-Read gesehen. Sie fallen bewusst heraus.
+- (b) **Seed:** 17.07. nutzte Seed **17072026**; hier gilt der projektweite Seed
+  **42** (Easy-Entscheid 07.11.2026, wie §4 und Erratum 22.10.2026).
+- (c) **Holm:** 17.07. rechnete In-Sample Holm **k = 4** (zwei Ziele × mit/ohne
+  Cluster). Hier: zwei Ziele, Cluster-Doppellauf nicht als eigene Hypothese, Familie
+  k = 3 zusammen mit dem Exit-Nachfolger.
+- (d) **Cluster-Doppellauf:** Easys Erfolgskriterium (07.11.) nennt ihn nicht; im
+  Setup-Edge-Freeze (10.10.) war „gleiche Richtung“ ein Kriterium. Hier wird er
+  **nur berichtet**; eine abweichende Richtung wird als Einschränkung genannt und
+  ändert das Verdikt nicht.
+- (e) **Gipfel-Fenster:** Das Paper misst den Peak in **1 Handelswoche**,
+  `max_gain_pct` misst bis zu **10 Handelstage**. Das galt schon im 17.07.-Text; es
+  wird hier nur offen benannt.
+
+**Grenzen:** Die Stichprobe ist fast ganz `neutral`/`bull`, `bear` fehlt — ein
+Ergebnis gilt nur für dieses Marktumfeld. Ticker wiederholen sich; die effektive
+Stichprobe ist kleiner als die Zeilenzahl. Ein späterer Eingriff in
+Export-Werte dieses Fensters (z. B. Datenkorrektur) vor dem Lauf braucht einen
+datierten Protokolleintrag hier.
+
+**Änderungs-Protokoll (bindend ab 07.11.2026, analog §4):** Keine Änderung an
+diesem Block ohne datierten Protokolleintrag, der die Änderung und ihren Grund
+festhält.
+
+### VORABREGISTRIERUNG — Exit-B.1-Nachfolger (gepaart, Wilcoxon), eingefroren 07.11.2026
+
+**Easy-Entscheid 07.11.2026.** Neuer, eigenständiger Test. Der §4-Exit-B.1-Re-Test
+(eingefroren 05.08.2026, ausgewertet 07.11.2026) bleibt **unverändert und
+abgeschlossen**; dieser Block ist **keine** Umwidmung jenes Blocks, sondern die dort
+für „Netto oder andere Bindung“ vorgesehene **eigene, neue Vorabregistrierung mit
+eigenem Freeze-Datum** — hier für einen gepaarten Test auf neuen Zeilen.
+
+**EINGEFRORENE VORGABEN**
+
+1. **Frage:** Ist früher Ausstieg nach 3 Handelstagen besser als 10 Tage Halten,
+   gemessen an den gepaarten Renditen derselben Zeile?
+2. **Stichprobe:** ausschließlich `matured_backtest_export.jsonl`;
+   `provenance == "forward"` **UND** `score ≥ 70` (Definition A wie §4) **UND**
+   Einstiegsdatum (`date`, `DD.MM.YYYY`, ET-Handelstag) **≥ 09.11.2026**. Dedup nach
+   `(ticker, date)`. Keine Zeile mit früherem Einstieg zählt — insbesondere
+   **keine** der §4-Zeilen (Einstieg bis 23.10.2026). **Sicherheitsklausel:** wird
+   dieser Block erst nach dem 09.11.2026 gemergt, bleibt der Start 09.11.2026; eine
+   Zeile erreicht den Export frühestens etwa zwei Wochen nach dem Einstieg, ein
+   Ergebnis kann vor dem Merge also nicht gesehen worden sein.
+3. **Ausschluss:** Zeilen mit fehlendem oder nicht endlichem `return_3d` oder
+   `return_10d` werden ausgeschlossen, gezählt und als Anteil berichtet (über 20 %
+   → als Einschränkung genannt, kein Abbruch; wie Erratum 22.10.2026 Punkt 3).
+4. **n-Ziel / Auslöser:** **n ≥ 500** verwertbare Paare (nach Punkt 3), datumsfrei,
+   **einmaliger** Lauf, keine Zwischenauswertung. Grobe Schätzung, nicht bindend:
+   bei ~3,8 Zeilen mit `score ≥ 70` pro Handelstag etwa Mitte/Ende Mai 2027 an
+   Einstiegen, plus ~2 Wochen Reife.
+5. **Bindender Test (brutto):** gepaarter **Wilcoxon-Vorzeichen-Rang-Test** auf
+   d = `return_3d` − `return_10d`, **einseitig**, Alternative „d nach oben
+   verschoben“ (früh raus besser). Mechanik wie
+   `stats_helpers.wilcoxon_signed_rank_paired` (Normal-Approximation, Tie-
+   Korrektur, Stetigkeitskorrektur 0,5, Differenzen exakt 0 vor der Rangbildung
+   entfernt und gezählt), aber einseitig:
+   p = 1 − Φ((W⁺ − n(n+1)/4 − 0,5) / √Var(W⁺)). **Nicht** p_zweiseitig/2, wenn W⁺
+   unter dem Erwartungswert liegt. Dieser p ist der Holm-Input.
+6. **Bootstrap-CI des Median-Δ:** Punktschätzung = Median aller verwertbaren d
+   (Nullen eingeschlossen). CI: Resampling der Paare mit Zurücklegen, **N = 2000**,
+   **Seed = 42**, **95 % zweiseitig, Perzentil 2,5 / 97,5**.
+7. **Regime-Split:** je `market_regime` (bull/bear/neutral) Median von d; prüfbar ab
+   **n ≥ 10** Paaren; „plausibel“ = kein prüfbares Regime mit Median auf der
+   anderen Seite von 0 als der Gesamt-Median (Median genau 0 gilt nicht als
+   Gegenrichtung). Nicht prüfbare Regime zählen nicht als Widerlegung (wie §4-
+   Protokolleintrag 31.10.2026 (a)/(b)).
+8. **Erfolgskriterium — alle drei:** (a) Holm-signifikant in der Familie „Runde
+   November 2026“ (k = 3, α = 0,05); (b) **2,5.-Perzentil des Median-Δ > 0**;
+   (c) Regime-Split „plausibel“. Verdikt-Stufen Beleg/bedingt/Unklar wie §4. Eine
+   Punktschätzung allein ist nie Beleg.
+9. **Keine weiteren Arme:** kein 5d-Arm, kein Netto-, kein SPY-Arm, kein
+   Mittelwert-Δ. Nur die Regime-Tabelle als Kontext.
+10. **Planungsgröße, keine Schwelle:** Δ = +1,8 pp ist **nur** die Größe, mit der die
+    Teststärke geplant wurde. Sie ist **kein** Erfolgskriterium und keine
+    Mindest-Effektgröße. Ein kleinerer Effekt kann „Beleg“ sein, wenn (a)–(c)
+    erfüllt sind.
+11. **Score-Änderungen während der Sammlung:** jede Änderung an `score()`, an der
+    Glättung oder an der Top-10-Auswahl vor dem Lauf ändert, welche Zeilen
+    `score ≥ 70` haben, und braucht hier einen datierten Eintrag (analog Setup-Edge
+    Punkt 8c). Bekannter Kandidat: open_item
+    `score-smoothing-textsortierung-monatswechsel`.
+
+**Begründung des n-Ziels (Planung, KEIN Kriterium).** Grundlage ist die
+Reife-Inventur vom 07.11.2026 auf der **§4-Population** (Einstieg 21.07.–
+23.10.2026) — **disjunkt** von dieser Stichprobe. Die Zahlen stammen aus deren
+Renditen und bestimmen **nur** die Stichprobengröße, keine Schwelle: Streuung der
+Differenz `return_3d − return_10d` ≈ **17,2 pp**; Planungs-Δ **+1,8 pp** (= §4-
+Punktschätzung Δ(3d−10d), also eher zu optimistisch). Geschätzte Teststärke des
+einseitigen Wilcoxon (Simulation, reine Verschiebung einer symmetrischen
+Verteilung): n = 250 → ~0,59–0,77; **n = 500 → ~0,90–0,96** (je nach Niveau
+α/3 … α). Zum Vergleich ein t-Test bei n = 500: ~0,58–0,76. Wegen der zu
+optimistischen Planungsgröße ist die echte Teststärke eher niedriger.
+
+**Bekannte Eigenheiten (offen benannt):** Der Wilcoxon-Test prüft eine
+Verschiebung der Verteilung (Pseudo-Median), das CI-Kriterium den Median von d —
+verwandte, aber nicht identische Größen. Einseitiger Test mit zweiseitigem
+95-%-CI ist strenger als ein einseitiges CI (bewusst so, wie §4).
+
+**Änderungs-Protokoll (bindend ab 07.11.2026, analog §4):** Keine Änderung an
+diesem Block ohne datierten Protokolleintrag, der die Änderung und ihren Grund
+festhält.
+
+### VORABREGISTRIERUNG — Holm-Familie Runde November 2026 (Paper C + Exit-B.1-Nachfolger, k = 3), eingefroren 07.11.2026
+
+**Easy-Entscheid 07.11.2026.** Gegen die Mehrfachtest-Inflation über mehrere
+Hypothesen hinweg bilden die Bestätigungstests dieser Runde **eine** gemeinsame
+Holm-Familie:
+
+| # | Hypothese | Holm-Input |
+|---|---|---|
+| PC-1 | Paper C, Ziel 1 (Gipfel `max_gain_pct ≥ 30`) | `p_two_sided` Mann-Whitney |
+| PC-2 | Paper C, Ziel 2 (`return_10d` ≥ +10 / ≤ −5) | `p_two_sided` Mann-Whitney |
+| EX-1 | Exit-B.1-Nachfolger (gepaart, `return_3d − return_10d`) | einseitiger Wilcoxon-p |
+
+**k = 3, α = 0,05 familienweit**, Verfahren `stats_helpers.
+multiple_testing_correction` (Holm). Netto-Zusätze, Regime-Tabellen und der
+Cluster-Doppellauf sind **keine** Hypothesen dieser Familie.
+
+**Alt-Familien bleiben unverändert** — kein rückwirkendes Zusammenlegen: §4
+Exit-B.1 (k = 2, ausgewertet 07.11.2026), Setup-Edge/Conviction (k = 3), KI-Score
+(k = 2), H5 (k = 16).
+
+**Berichtsregel:** Jeder Ergebnisbericht (Push, Digest, Doku) nennt die
+**Gesamtzahl bisher gelaufener Bestätigungstests**, gezählt als Testzeilen in
+`eval_results.jsonl` (Hauptläufe; Sensitivitätsläufe nicht doppelt). Stand
+07.11.2026: **2** (`exit_b1_a`, `exit_b1_b`). Frühere Auswertungen vor dieser
+Datei (30.06., 01.07., 04.07., 15.07., 17.07.) stehen in §5
+„Auswertungs-Historie“ und werden dort gesondert genannt.
+
+**OFFENER PUNKT — Easy-Entscheid VOR dem Paper-C-Skript-Bau (kein Ergebnis
+eingesehen):** Holm braucht alle drei p-Werte **gleichzeitig**. Paper C kann
+sofort rechnen, EX-1 erst etwa Mitte 2027. Wird Paper C heute mit Holm k = 3
+bewertet, kann sich sein Urteil ändern, sobald EX-1 vorliegt (zum Beispiel stoppt
+Holm schon beim ersten Schritt, wenn EX-1 den kleinsten p hat und nicht
+signifikant ist). Mögliche Regeln, alle halten die familienweite Fehlerrate:
+- (i) **Holm k = 3 strikt:** das Paper-C-Urteil bleibt „vorläufig“, bis EX-1
+  vorliegt; erst dann endgültiges Holm über alle drei.
+- (ii) **Bonferroni-Anteil:** jede der drei Hypothesen wird sofort und endgültig
+  gegen α/3 ≈ 0,0167 geprüft (etwas strenger als Holm, nie lockerer).
+- (iii) **Fester α-Anteil + Holm innen:** Paper C bekommt 2α/3, darin Holm über
+  PC-1/PC-2 (Schwellen α/3 und 2α/3); EX-1 bekommt α/3 allein.
+Bis zu Easys Entscheid wird **kein** Paper-C-Auswertungsskript gebaut.
+
+**Änderungs-Protokoll (bindend ab 07.11.2026, analog §4):** Keine Änderung an
+diesem Block ohne datierten Protokolleintrag, der die Änderung und ihren Grund
+festhält.
 
 ### PAPER-PLAN-STATUS (Svoboda et al. 2026 — 4 Schritte A–C + Ausblick D, je 1/Tag)
 
@@ -6020,6 +6320,27 @@ seit 30.06. verschoben.
 wenn (a) Holm-signifikant über der pre-registrierten Klammer, **UND** (b)
 Bootstrap-CI-Untergrenze der AUC > 0.5, **UND** (c) plausibel im Regime-Split
 reproduzierbar. Punktschätzung ist nie Beleg.
+
+### REIFE-INVENTUR 07.11.2026 — Stand der Edge-Hypothesen (Easy-Entscheide)
+
+Read-only Inventur vom 07.11.2026, danach Easy-Entscheide. Nur Zeilen ab
+**21.07.2026** mit `provenance = forward` zählen; In-Sample und Out-of-Sample
+werden nie gepoolt. Erfolgs-Definition unverändert (oben).
+
+| Hypothese | Stand / Entscheid |
+|---|---|
+| **Paper C** (Momentum → Gipfel) | **Eingefroren 07.11.2026** (Block „VORABREGISTRIERUNG — Paper C“ in §4). Stichprobe fest 21.07.–23.10.2026. Nächster Schritt: Skript + Mock-Test, dann **ein** Lauf (open_item `paper-c-skript-bauen`), vorher Easy-Entscheid zum Holm-Timing. |
+| **Exit-B.1-Nachfolger** (gepaart) | **Eingefroren 07.11.2026** (Block in §4). Sammelt ab Einstieg 09.11.2026, n-Ziel 500 (open_item `exit-b1-nachfolger-sammelphase`). |
+| **H5** (Score × Katalysator × Momentum × SI) | **Unverändert** (Freeze 12.09.2026). Zählung 07.11. (nur Prädiktoren, keine Ergebnisse): 570 vollständige Zeilen, kleinste der 16 Zellen **5**, nur 6 Zellen ≥ 40. Realistisch reif **~2028**. Hinweis: „Fuel × Fuse“ (SI × Attention) ist **nicht** Teil des registrierten H5. |
+| **Svoboda `squeeze_event`** | **Kein Freeze vor 2027.** Erst Definitionen festlegen: Attention-Spike-Schwelle **nur aus der Literatur**, eigenes Feld für das **5-Tage-Hoch** (`max_gain_pct` misst 10 Handelstage). Näherungszählung seit 13.07. im einstelligen Bereich (Obergrenze), Ziel n ≥ 40 weit entfernt. |
+| **FTD** (Fails-to-Deliver) | Nicht im Export, eigene Datei `ftd_history.json` (ab 11.08.2026). **Stichtags-Regel festgehalten:** nur Werte mit `first_available ≤ Einstiegsdatum` verwenden, **nie** `settlement_date` (Veröffentlichung im Median ~25 Tage nach dem Stichtag). Noch keine Hypothese, kein Freeze. |
+| **Reg-SHO-Threshold** | Seit 11.08.2026 **0 Positivfälle** (`restricted = true` nie) — derzeit **nicht testbar**. |
+| Inst-Ownership, Options-OI/Gamma, ApeWisdom | **Nur sammeln** (ab 11.08. bzw. 23.10.2026). Keine Hypothese, kein Freeze. |
+
+**Holm über Familien:** Paper C (2 Ziele) + Exit-Nachfolger bilden eine gemeinsame
+Familie k = 3; Alt-Familien bleiben unverändert. Jeder Ergebnisbericht nennt die
+Gesamtzahl bisher gelaufener Bestätigungstests (Block „Holm-Familie Runde November
+2026“ in §4).
 
 ### PAPER-C-READ (Momentum) — 17.07., EXPLORATIV: KEIN belegter Effekt
 
