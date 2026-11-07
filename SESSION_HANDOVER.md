@@ -3297,7 +3297,11 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   nachher; `lint_protected_zones` grün (nur Einfügungen außerhalb der Zonen).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#659`,
   höchste in Block 1 erwähnte PR = `#660` (eigene) — kein Rückstand.
-- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Guardian-Lauf vor Ready:** keine Blocker; 1 mittel (Holm-Timing, bereits
+  offener Easy-Punkt — Option (i) präzisiert), 4 niedrig (Seitigkeit,
+  Regime-AUC bei kleinen Gruppen, ergebnis-informierte EX-1-Wahl, Trefferquote
+  in der Inventur gesehen) — 3 davon als Klarstellung in die Blöcke ergänzt,
+  einer war schon offen benannt.
 
 ### 07.11.2026 — Aktive warns im OK-Digest sichtbar (1 PR, Auto-Merge)
 
@@ -6083,6 +6087,14 @@ abweicht, steht das unten unter „Abweichungen“ — nicht still geglättet.
 - (e) **Gipfel-Fenster:** Das Paper misst den Peak in **1 Handelswoche**,
   `max_gain_pct` misst bis zu **10 Handelstage**. Das galt schon im 17.07.-Text; es
   wird hier nur offen benannt.
+- (f) **Seitigkeit:** die Richtung ist fixiert, der Holm-Input ist trotzdem der
+  **zweiseitige** Mann-Whitney-p (wie §4 und Erratum 22.10.2026); die Richtung
+  sichert Kriterium (b) (CI-Untergrenze > 0,5). Der Exit-Nachfolger nutzt dagegen
+  einen einseitigen p — bewusst unterschiedlich, so von Easy entschieden.
+- (g) **Regime-Prüfbarkeit bei der AUC:** „n ≥ 10 und mindestens eine Zeile je
+  Gruppe“ ist bei sehr kleinen Gruppen instabil (z. B. 1 Treffer in einem Regime).
+  Ob eine Mindestgröße je Gruppe gelten soll, entscheidet Easy **zusammen mit dem
+  offenen Holm-Punkt vor dem Skript-Bau** — bis dahin gilt der Text oben.
 
 **Grenzen:** Die Stichprobe ist fast ganz `neutral`/`bull`, `bear` fehlt — ein
 Ergebnis gilt nur für dieses Marktumfeld. Ticker wiederholen sich; die effektive
@@ -6164,6 +6176,11 @@ Verteilung): n = 250 → ~0,59–0,77; **n = 500 → ~0,90–0,96** (je nach Niv
 α/3 … α). Zum Vergleich ein t-Test bei n = 500: ~0,58–0,76. Wegen der zu
 optimistischen Planungsgröße ist die echte Teststärke eher niedriger.
 
+**Ergebnis-informierte Wahl (offen benannt):** Die Wahl des 3d-Arms, des
+gepaarten Wilcoxon-Tests und des Median-Δ wurde durch die §4-Auswertung vom
+07.11.2026 angeregt (dort Arm (b), explorativer Wilcoxon). Die Stichprobe hier ist
+disjunkt; Schwellen und Erfolgskriterium stammen nicht aus jenen Daten.
+
 **Bekannte Eigenheiten (offen benannt):** Der Wilcoxon-Test prüft eine
 Verschiebung der Verteilung (Pseudo-Median), das CI-Kriterium den Median von d —
 verwandte, aber nicht identische Größen. Einseitiger Test mit zweiseitigem
@@ -6207,7 +6224,11 @@ bewertet, kann sich sein Urteil ändern, sobald EX-1 vorliegt (zum Beispiel stop
 Holm schon beim ersten Schritt, wenn EX-1 den kleinsten p hat und nicht
 signifikant ist). Mögliche Regeln, alle halten die familienweite Fehlerrate:
 - (i) **Holm k = 3 strikt:** das Paper-C-Urteil bleibt „vorläufig“, bis EX-1
-  vorliegt; erst dann endgültiges Holm über alle drei.
+  vorliegt; erst dann endgültiges Holm über alle drei. Dafür bräuchte Paper C eine
+  Verdikt-Stufe „vorläufig“ und einen zweiten Rechenschritt 2027 — das weicht von
+  Paper C Punkt 11 („einmaliger Lauf“, Push mit festem Verdikt) ab. Ein
+  Platzhalter p = 1 für EX-1 macht das Urteil **nicht** endgültig (ein später
+  kleiner, nicht signifikanter EX-1-p kann Holm sofort stoppen).
 - (ii) **Bonferroni-Anteil:** jede der drei Hypothesen wird sofort und endgültig
   gegen α/3 ≈ 0,0167 geprüft (etwas strenger als Holm, nie lockerer).
 - (iii) **Fester α-Anteil + Holm innen:** Paper C bekommt 2α/3, darin Holm über
