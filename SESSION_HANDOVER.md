@@ -3275,6 +3275,30 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 07.11.2026 — Freezes Paper C + Exit-B.1-Nachfolger + Holm-Runde November, §4-Ergebnis dokumentiert (1 PR, Manual-Merge)
+
+- Easy-Entscheide 07.11.2026 nach read-only Reife-Inventur: `#660` (Branch
+  `claude/bold-mayer-5dlyrd`, Branch-Commit `9812d298`, kein Merge-Hash — Regel a).
+  Nur Doku (`SESSION_HANDOVER.md`, `open_items.json`).
+- **§4-Protokolleintrag 07.11.2026:** Exit-B.1 ausgewertet (Auto-Lauf 15:07 UTC,
+  `fe3986dd`, n=255): beide Arme „Unklar“, Sensitivität „nicht belegt“,
+  Wilcoxon nur explorativ, Auffanglinie bleibt. §4-Block byte-unverändert.
+- **Neue Freeze-Blöcke (eingefroren 07.11.2026):** Paper C (Momentum → Gipfel,
+  feste Stichprobe 21.07.–23.10.2026, zwei Ziele), Exit-B.1-Nachfolger
+  (gepaarter einseitiger Wilcoxon, Einstieg ≥ 09.11.2026, n-Ziel 500), Holm-
+  Familie „Runde November 2026“ (k=3) mit **offenem Punkt Holm-Timing**
+  (Easy-Entscheid vor dem Paper-C-Skript-Bau). RE-TEST-KALENDER +3 Zeilen,
+  §5 „REIFE-INVENTUR 07.11.2026“ (H5 ~2028, Svoboda erst Definitionen,
+  FTD-Stichtags-Regel, Reg SHO nicht testbar).
+- `open_items.json`: neu `paper-c-skript-bauen` (offen),
+  `exit-b1-nachfolger-sammelphase` (beobachtet);
+  `exit-b1-freeze-autorun-vorab-check` → erledigt mit Ergebnis.
+- MD5 aller 10 bestehenden Freeze-/Errata-/§4-Protokoll-Blöcke vorher =
+  nachher; `lint_protected_zones` grün (nur Einfügungen außerhalb der Zonen).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#659`,
+  höchste in Block 1 erwähnte PR = `#660` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 07.11.2026 — Aktive warns im OK-Digest sichtbar (1 PR, Auto-Merge)
 
 - Easy-Auftrag 07.11.2026: `#659` (Branch `claude/digest-warn-sichtbar-m3q8`,
