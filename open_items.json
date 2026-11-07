@@ -597,7 +597,7 @@
       "id": "paper-c-replikation-sammelphase",
       "title": "Paper C Replikation (Gipfel): Sammelphase bis n>=300",
       "opened": "2026-11-07",
-      "description": "Freeze 07.11.2026: SESSION_HANDOVER.md 'VORABREGISTRIERUNG -- Paper C Replikation (Gipfel), eingefroren 07.11.2026'. Stichprobe matured_backtest_export.jsonl, provenance=forward, Einstiegsdatum (Feld 'date', DD.MM.YYYY) >= 24.10.2026 (erster Handelstag 26.10.2026), keine Ueberlappung mit 21.07.-23.10.2026. Ein Ziel max_gain_pct >= 30, eigene Familie 'Runde Replikation' alpha=0,05, Erfolg = p < 0,05 UND CI-Untergrenze > 0,5 UND Regime plausibel (min. 30 je Gruppe), Floor 40 -> p=1, Netto nachrangig. Ausloeser datumsfrei n>=300 verwertbare Zeilen, einmaliger Lauf. Stand beim Freeze: 0 Zeilen im Fenster. Schaetzung (nicht bindend): ~Ende Dezember 2026 (Easy-Vorgabe nannte ~Februar 2027). Bis dahin keine Ergebnisse ansehen, nur zaehlen.",
+      "description": "Freeze 07.11.2026: SESSION_HANDOVER.md 'VORABREGISTRIERUNG -- Paper C Replikation (Gipfel), eingefroren 07.11.2026'. Stichprobe matured_backtest_export.jsonl, provenance=forward, Einstiegsdatum (Feld 'date', DD.MM.YYYY) >= 24.10.2026 (erster Handelstag 26.10.2026), keine Ueberlappung mit 21.07.-23.10.2026. Ein Ziel max_gain_pct >= 30, eigene Familie 'Runde Replikation' alpha=0,05, Erfolg = p < 0,05 UND CI-Untergrenze > 0,5 UND Regime plausibel (min. 30 je Gruppe), Floor 40 -> p=1, Netto nachrangig. Ausloeser datumsfrei n>=300 verwertbare Zeilen, einmaliger Lauf. Stand beim Freeze: 0 Zeilen im Fenster. Schaetzung (nicht bindend): ~21./22.12.2026 (300 Einstiege bis ~07.12.2026 plus ~14 Tage Reife). Bis dahin keine Ergebnisse ansehen, nur zaehlen.",
       "status": "beobachtet",
       "status_date": "2026-11-07"
     },

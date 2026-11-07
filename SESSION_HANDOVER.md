@@ -3300,6 +3300,10 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   vor der Zählung, Sperrschlüssel `paper_c_replikation`, Auslöser-Mechanik beim
   Skript-Bau, „p < 0,05“ = §5-Holm bei k = 1. Kalender-Schätzung ~21.–22.12.2026
   vom Guardian bestätigt.
+- Nachtrag vor dem Merge (Easy-Entscheide 07.11.2026): Replikations-Termin
+  ~21./22.12.2026 gilt (die frühere Februar-Angabe war ein Fehler und ist
+  gestrichen); „5 Hypothesen“/„Easy-Zählung“ entfernt — es gilt allein die
+  Tabelle der 7 registrierten Freeze-Blöcke.
 
 ### 07.11.2026 — Paper-C-Auswertungsskript + Mock-Tests + Workflow-Input (1 PR, Manual-Merge)
 
@@ -4475,7 +4479,7 @@ Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. **ÜBERHOLT 10.10.2026:** neu registriert und eingefroren — siehe „VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026“ unten (Stand 02.11.: n=50/250). Diese Zeile bleibt als Historie. |
 | **AUSGEWERTET 07.11.2026** | Exit-B.1-Re-Test (§4, Zeile oben) | n=255 | Beide Arme **„Unklar“**, Auffanglinie bleibt — siehe „§4-Protokolleintrag 07.11.2026“ weiter unten. Die Zeile oben bleibt als Historie stehen. |
 | **AUSGEWERTET 07.11.2026** | **Paper C (Momentum → Gipfel)** — vorabregistriert, eingefroren 07.11.2026 | 668 verwendet (21.07.–23.10.2026) | Ziel 1 Gipfel **Beleg**, Ziel 2 `return_10d` **Unklar** — „PROTOKOLLEINTRAG Paper C 07.11.2026“. |
-| **datumsfrei · Auslöser n≥300** | **Paper C Replikation (Gipfel)** — vorabregistriert, eingefroren 07.11.2026 | n ≥ 300 · forward ∧ Einstieg ≥ 24.10.2026 | Schätzung (nicht bindend): ~10 Zeilen/Handelstag ab 26.10. → 300 Einstiege etwa bis 07.12.2026, plus ~14 Tage Reife → **~Ende Dezember 2026**. Easy-Vorgabe 07.11. nannte ~Februar 2027 — die Rechnung ergibt früher (siehe PR-Bericht). |
+| **datumsfrei · Auslöser n≥300** | **Paper C Replikation (Gipfel)** — vorabregistriert, eingefroren 07.11.2026 | n ≥ 300 · forward ∧ Einstieg ≥ 24.10.2026 | Schätzung (nicht bindend): ~10 Zeilen/Handelstag ab 26.10. → 300 Einstiege etwa bis 07.12.2026, plus ~14 Tage Reife → **~21./22.12.2026**. |
 | **datumsfrei · Auslöser n≥500** | **Exit-B.1-Nachfolger (gepaart, Wilcoxon)** — vorabregistriert, eingefroren 07.11.2026 | n ≥ 500 · `score≥70` ∧ `provenance=forward` ∧ Einstieg ≥ 09.11.2026 | Block „VORABREGISTRIERUNG — Exit-B.1-Nachfolger“. Schätzung (nicht bindend): Einstiege bis ~Mitte/Ende Mai 2027, plus ~2 Wochen Reife. |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
@@ -6596,8 +6600,8 @@ werden nie gepoolt. Erfolgs-Definition unverändert (oben).
 
 **Edge-Status (Stand 07.11.2026):** **4** Bestätigungstests gelaufen
 (`eval_results.jsonl`: `exit_b1_a`, `exit_b1_b`, `paper_c_gipfel`,
-`paper_c_return_10d`), **1** Beleg (Paper C, Ziel 1). Easy-Zählung: **5**
-Hypothesen. Registrierte Freeze-Blöcke und Stand:
+`paper_c_return_10d`), **1** Beleg (Paper C, Ziel 1). Registrierte Freeze-Blöcke
+und Stand:
 
 | Freeze | Stand |
 |---|---|
