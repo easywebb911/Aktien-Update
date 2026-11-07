@@ -3293,7 +3293,10 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   erledigt.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#660`,
   höchste in Block 1 erwähnte PR = `#661` (eigene) — kein Rückstand.
-- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Guardian-Lauf vor Ready:** keine Blocker. Behoben: Cluster-Doppellauf
+  bestimmt Folgeeinträge jetzt über alle verwendeten Zeilen (vorher nur über die
+  Zielgruppen). Vermerkt (open_item `paper-c-einmal-lauf`): Restrisiko bei
+  gescheitertem Commit-Push nach dem Lauf; MD5-Pin koppelt Block und Mock-Test.
 
 ### 07.11.2026 — Freezes Paper C + Exit-B.1-Nachfolger + Holm-Runde November, §4-Ergebnis dokumentiert (1 PR, Manual-Merge)
 

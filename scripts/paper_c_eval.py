@@ -375,7 +375,10 @@ def evaluate(used: Sequence[dict], excluded: Sequence[dict], params: dict, *,
         boot = s["boot"]
         ci_ok = boot["ci_lo"] is not None and boot["ci_lo"] > 0.5
         reg_status, reg_detail = regime_split(s["a"], s["b"], boot["point_auc"], params["regime_min"])
-        cluster = freeze_eval.cluster_double_run(list(s["a"]) + list(s["b"]),
+        # Cluster-Folgeeinträge über ALLE verwendeten Zeilen bestimmen (Freeze:
+        # „Lauf mit allen Zeilen und ohne Cluster-Folgeeinträge"); die
+        # Gruppenbildung je Ziel passiert danach in ``_auc_eval_fn``.
+        cluster = freeze_eval.cluster_double_run(list(used),
                                                  _auc_eval_fn(t, params),
                                                  point_key="auc", baseline=0.5)
         verdict, reason = verdict_for(floor_ok[t], holm_by[t], ci_ok, reg_status)
