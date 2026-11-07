@@ -589,7 +589,31 @@
       "id": "paper-c-einmal-lauf",
       "title": "Paper C: EIN Auswertungslauf nach dem Merge von #661",
       "opened": "2026-11-07",
-      "description": "Nach dem Merge von PR #661 genau EIN Lauf: GitHub Actions -> Workflow 'Health-Check Daily Digest' -> Run workflow (Branch main) -> Haken 'paper_c' setzen. Das Skript scripts/paper_c_eval.py bricht selbst ab, wenn es nicht von main laeuft, der Freeze-Block abweicht, die Stichprobe nicht der Freeze-Zaehlung entspricht (672 Zeilen, 4 ohne entry_past_return_5d) oder schon eine paper_c-Zeile in eval_results.jsonl steht. Ergebnis: zwei Zeilen in eval_results.jsonl (paper_c_gipfel, paper_c_return_10d) und ein ntfy-Push nur mit den Verdikten je Ziel und der Gesamtzahl bisheriger Bestaetigungstests. Danach im Handover einen Protokolleintrag mit dem Ergebnis anlegen und dieses Item auf erledigt setzen. Kein zweiter Lauf ohne datierten Protokolleintrag. Revert von #661 nur vor diesem Lauf. RESTRISIKO (Guardian #661): eval_results.jsonl wird erst im Commit-Schritt des Workflows gepusht. Scheitert dieser Push nach 5 Versuchen, ist die Sperre auf main nicht gesetzt (Ergebnis nur im Runner-Log und per ntfy) -- dann KEIN Neustart, sondern Workflow-Log sichern und Protokolleintrag. Hinweis: jede Aenderung am Paper-C-Freeze-Block (auch ein Protokolleintrag darin) aendert den MD5-Pin -> Skript bricht ab und der Mock-Test wird rot; Pin dann bewusst nachziehen.",
+      "description": "Nach dem Merge von PR #661 genau EIN Lauf: GitHub Actions -> Workflow 'Health-Check Daily Digest' -> Run workflow (Branch main) -> Haken 'paper_c' setzen. Das Skript scripts/paper_c_eval.py bricht selbst ab, wenn es nicht von main laeuft, der Freeze-Block abweicht, die Stichprobe nicht der Freeze-Zaehlung entspricht (672 Zeilen, 4 ohne entry_past_return_5d) oder schon eine paper_c-Zeile in eval_results.jsonl steht. Ergebnis: zwei Zeilen in eval_results.jsonl (paper_c_gipfel, paper_c_return_10d) und ein ntfy-Push nur mit den Verdikten je Ziel und der Gesamtzahl bisheriger Bestaetigungstests. Danach im Handover einen Protokolleintrag mit dem Ergebnis anlegen und dieses Item auf erledigt setzen. Kein zweiter Lauf ohne datierten Protokolleintrag. Revert von #661 nur vor diesem Lauf. RESTRISIKO (Guardian #661): eval_results.jsonl wird erst im Commit-Schritt des Workflows gepusht. Scheitert dieser Push nach 5 Versuchen, ist die Sperre auf main nicht gesetzt (Ergebnis nur im Runner-Log und per ntfy) -- dann KEIN Neustart, sondern Workflow-Log sichern und Protokolleintrag. Hinweis: jede Aenderung am Paper-C-Freeze-Block (auch ein Protokolleintrag darin) aendert den MD5-Pin -> Skript bricht ab und der Mock-Test wird rot; Pin dann bewusst nachziehen. NACHTRAG 07.11.2026 (ERLEDIGT): Lauf am 07.11.2026 19:42 UTC (Skript-Commit a6b17182, Datenhash 8ddf857d...), Commit nach main ok, Sperre gesetzt. Ziel 1 Gipfel >=30%: BELEG (AUC 0,607, CI 0,556-0,658, p 1,6e-5 < 0,016667); Ziel 2 return_10d: UNKLAR (p 0,033396 >= 0,033333, knapp verfehlt, keine Widerlegung). Netto nur nachrangig. Bestaetigungstests gesamt 4. Dokumentiert in SESSION_HANDOVER.md 'PROTOKOLLEINTRAG Paper C 07.11.2026'; Freeze-Block byte-unveraendert. Folge: Replikation eingefroren (paper-c-replikation-sammelphase).",
+      "status": "erledigt",
+      "status_date": "2026-11-07"
+    },
+    {
+      "id": "paper-c-replikation-sammelphase",
+      "title": "Paper C Replikation (Gipfel): Sammelphase bis n>=300",
+      "opened": "2026-11-07",
+      "description": "Freeze 07.11.2026: SESSION_HANDOVER.md 'VORABREGISTRIERUNG -- Paper C Replikation (Gipfel), eingefroren 07.11.2026'. Stichprobe matured_backtest_export.jsonl, provenance=forward, Einstiegsdatum (Feld 'date', DD.MM.YYYY) >= 24.10.2026 (erster Handelstag 26.10.2026), keine Ueberlappung mit 21.07.-23.10.2026. Ein Ziel max_gain_pct >= 30, eigene Familie 'Runde Replikation' alpha=0,05, Erfolg = p < 0,05 UND CI-Untergrenze > 0,5 UND Regime plausibel (min. 30 je Gruppe), Floor 40 -> p=1, Netto nachrangig. Ausloeser datumsfrei n>=300 verwertbare Zeilen, einmaliger Lauf. Stand beim Freeze: 0 Zeilen im Fenster. Schaetzung (nicht bindend): ~Ende Dezember 2026 (Easy-Vorgabe nannte ~Februar 2027). Bis dahin keine Ergebnisse ansehen, nur zaehlen.",
+      "status": "beobachtet",
+      "status_date": "2026-11-07"
+    },
+    {
+      "id": "paper-c-replikations-skript",
+      "title": "scripts/paper_c_eval.py fuer die Replikation parametrisieren (Block-Name, Fenster)",
+      "opened": "2026-11-07",
+      "description": "Das Paper-C-Skript (#661) ist fest auf den ersten Block (MD5-Pin 51e187ad...), das Fenster 21.07.-23.10.2026, zwei Ziele und die Familie 'Runde November 2026' (2alpha/3, Holm innen) gebaut. Fuer die Replikation (Block 'VORABREGISTRIERUNG -- Paper C Replikation (Gipfel)') per Parameter wiederverwendbar machen: Block-Name + eigener MD5-Pin, Fenster ab 24.10.2026 ohne Obergrenze, ein Ziel, alpha=0,05 ohne Holm, Ausloeser n>=300 statt Freeze-Zaehlung 672/4, eigene Sperre (family paper_c_replikation). Bedingung: der erste Lauf darf sich in Verhalten und Ausgabe nicht aendern (Mock-Test des ersten Laufs bleibt unveraendert gruen). Mock-Tests nur mit synthetischen Daten. Ausloeser-Mechanik (Workflow-Input oder Digest-Autorun) dabei entscheiden. Bauen spaetestens, bevor n=300 erreicht ist.",
+      "status": "offen",
+      "status_date": "2026-11-07"
+    },
+    {
+      "id": "momentum-marker-karte",
+      "title": "Live-Anzeige 'Momentum 5T' auf der Karte (belegt fuer Gipfel >=30 %)",
+      "opened": "2026-11-07",
+      "description": "Naechster PR nach dem Paper-C-Beleg (07.11.2026): Anzeige 'Momentum 5T' auf Top-10- und Watchlist-Karten, berechnet live aus dem Enrichment (stock['close_5td_before_entry'] gegen den aktuellen Kurs), NIE aus entry_past_return_5d in backtest_history.json oder dem Export (Look-Ahead-Konvention, CLAUDE.md 'Backtest-Schema (Stufe A)'). Status-Text 'belegt fuer Gipfel >=30 % (1 Fenster, Replikation offen)'. Kein Score-, Filter- oder Push-Eingriff, keine Schwelle (eine Schwelle ist nicht belegt). Golden-Test/Methodik-Sync pruefen. Offener Easy-Entscheid: Farbe GRUEN fuer den Marker.",
       "status": "offen",
       "status_date": "2026-11-07"
     }
