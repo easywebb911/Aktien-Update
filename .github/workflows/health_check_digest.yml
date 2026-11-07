@@ -18,6 +18,15 @@ on:
     - cron: '47 8 * * *'
   workflow_dispatch:   # Manueller Trigger jederzeit (Mehrfach-Trigger-
                        # Schutz im Skript via last_digest_sent-Datum).
+    inputs:
+      paper_c:
+        # Paper-C-Freeze (SESSION_HANDOVER.md, eingefroren 07.11.2026):
+        # EINMALIGER Auswertungslauf. Das Skript bricht selbst ab, wenn
+        # schon eine paper_c-Zeile in eval_results.jsonl steht, der
+        # Freeze-Block abweicht oder nicht von main gestartet wurde.
+        description: 'Paper C einmalig auswerten (nur einmal setzen)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # Für Commit von health_check_digest_state.json
@@ -50,6 +59,12 @@ jobs:
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: python scripts/health_check_digest.py
+
+      - name: Paper C — einmalige Freeze-Auswertung (nur bei Input paper_c)
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.paper_c }}
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python scripts/paper_c_eval.py --run
 
       - name: Commit digest state
         if: always()   # state immer persistieren, auch wenn Skript exit 1
