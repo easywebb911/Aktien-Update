@@ -215,6 +215,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "ATEN": {
+    "qid": "Q16157155",
+    "title": "A10_Networks",
+    "resolved_at": "2026-11-07T01:09:07Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "A10 Networks, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "AVXL": {
     "qid": null,
     "title": null,
@@ -710,6 +719,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "EVC": {
+    "qid": "Q5380687",
+    "title": "Entravision_Communications",
+    "resolved_at": "2026-11-07T01:09:07Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Entravision Communications Corporation",
+    "substrate": "en",
+    "reason": null
+  },
   "EVGO": {
     "qid": null,
     "title": null,
@@ -869,6 +887,15 @@
     "resolved_at": "2026-08-13T22:06:25Z",
     "issuer_verified": true,
     "company_name_at_resolve": "Grocery Outlet Holding Corp.",
+    "substrate": "en",
+    "reason": null
+  },
+  "GOGO": {
+    "qid": "Q27065",
+    "title": "Gogo_Inflight_Internet",
+    "resolved_at": "2026-11-07T01:09:07Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Gogo Inc.",
     "substrate": "en",
     "reason": null
   },
