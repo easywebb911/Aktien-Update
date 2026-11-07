@@ -3275,6 +3275,27 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 07.11.2026 — Aktive warns im OK-Digest sichtbar (1 PR, Auto-Merge)
+
+- Easy-Auftrag 07.11.2026: `#659` (Branch `claude/digest-warn-sichtbar-m3q8`,
+  kein Merge-Hash — Regel a).
+- `health_check.format_digest_body`: OK-Klasse (kein crit, < 3 warn) zeigt
+  jetzt je aktive warn (State + Provider) eine Zeile „🟡 …“; vorher waren
+  einzelne warns unsichtbar (Beleg S8 12.10./19.10./01.11.2026). Detail ≤ 240
+  Zeichen, Kürzung „+N weitere warn“ über 3800 Bytes; S15-Sonderweg aufgelöst.
+  crit-/warn-Klasse und Diagnose-Prompt byte-identisch.
+- CLAUDE.md: healthchecks.io-Cron `17,37 6,21 * * 1-5` (seit #656 21:37;
+  in healthchecks.io von Hand nachziehen).
+- `open_items.json` neu: `tests-umgebungsabhaengig-ci-skip` (offen),
+  `august-sammeldateien-utc-verschiebung` (beobachtet).
+- Diagnose dazu (kein Code): `apply_score_smoothing` sortiert die Vorläufe
+  als Text (`TT.MM.JJJJ`) — am Monatsanfang zählen alte Monatsend-Tage als
+  „letzte 3 Läufe“ (Beleg METC 04.09.: §4-Mitglied nur dadurch). Geschützte
+  Score-Logik → Easy-Entscheid offen (open_item
+  `score-smoothing-textsortierung-monatswechsel`).
+- Test `mock_test_digest_warn_visible.py`; Gegenprobe alter Stand rot.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#658`, höchste in Block 1 erwähnte PR = `#659` (eigene) — kein Rückstand.
+
 ### 06.11.2026 — Health-Check S15: Postclose-Lücke des letzten Handelstags (1 PR, Auto-Merge)
 
 - Easy-Auftrag 06.11.2026: `#658` (Branch `claude/postclose-luecke-warn-k4p7`,

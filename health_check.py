@@ -4072,6 +4072,54 @@ def position_watchlist_watchdog_lines(
         return []
 
 
+# ── OK-Digest: aktive warns sichtbar (07.11.2026) ────────────────────────────
+# In der OK-Klasse (kein crit, < 3 warn) erscheint jede aktive warn als eigene
+# Zeile. Detail je Zeile gekappt; passt der Body nicht mehr unter
+# DIGEST_BODY_SAFE_BYTES, werden warn-Zeilen von hinten durch EINE
+# Sammelzeile „+N weitere warn“ ersetzt (die erste bleibt immer stehen).
+_OK_WARN_DETAIL_MAX = 240
+
+
+def _ok_digest_warn_lines(active_state: list[dict],
+                          provider_fails: list[dict]) -> list[str]:
+    """Je aktive warn (State + Provider) eine Zeile ``🟡 <id>: <detail>``."""
+    def _cut(txt: str) -> str:
+        txt = str(txt or "").replace("\n", " ").strip()
+        if len(txt) > _OK_WARN_DETAIL_MAX:
+            txt = txt[:_OK_WARN_DETAIL_MAX - 1].rstrip() + "…"
+        return txt
+    out: list[str] = []
+    for f in active_state:
+        if f.get("severity") == "warn":
+            out.append(f"🟡 {f.get('id', '?')}: {_cut(f.get('detail', ''))}")
+    for f in provider_fails:
+        if f.get("severity") == "warn":
+            out.append(f"🟡 {f.get('provider', '?')} (Tier {f.get('tier', '?')}): "
+                       f"{_cut(f.get('reason', ''))}")
+    return out
+
+
+def _fit_ok_warn_lines(body_lines: list[str], pos: int, n_warn: int) -> list[str]:
+    """Kürzt die warn-Zeilen (ab ``pos``, Anzahl ``n_warn``), bis der Body
+    ≤ ``DIGEST_BODY_SAFE_BYTES`` ist. Die erste warn-Zeile bleibt immer."""
+    def _size(lines):
+        return len("\n".join(lines).encode("utf-8"))
+    if n_warn <= 0 or _size(body_lines) <= DIGEST_BODY_SAFE_BYTES:
+        return body_lines
+    head, warns, tail = (body_lines[:pos], body_lines[pos:pos + n_warn],
+                         body_lines[pos + n_warn:])
+    keep = len(warns)
+    while keep > 1:
+        keep -= 1
+        cand = head + warns[:keep] + [f"🟡 +{len(warns) - keep} weitere warn "
+                                      f"(Details: health_check_log.jsonl)"] + tail
+        if _size(cand) <= DIGEST_BODY_SAFE_BYTES:
+            return cand
+    return head + warns[:1] + ([f"🟡 +{len(warns) - 1} weitere warn "
+                                f"(Details: health_check_log.jsonl)"]
+                               if len(warns) > 1 else []) + tail
+
+
 def format_digest_body(state_fails: list[dict],
                        provider_fails: list[dict],
                        *,
@@ -4184,13 +4232,14 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(
                 f"↩︎ {f['id']} erholt seit {f.get('recovered_since') or '—'} "
                 f"(kein Alarm, {f.get('count', 1)}× im 24h-Fenster)")
-        # S15 (06.11.2026): einzelne warns tauchen in der OK-Klasse sonst gar
-        # nicht auf (Schwelle ≥ 3 warn). Die Postclose-Lücke soll aber im
-        # nächsten Digest sichtbar sein — nur als Hinweis-Zeile, OK-Titel und
-        # Priorität bleiben (Nachholen ist ohnehin nicht mehr möglich).
-        for f in active_state:
-            if f.get("id") == "S15":
-                body_lines.append(f"🟡 S15: {f.get('detail', '')}")
+        # Aktive warns (07.11.2026): bis zur Schwelle (≥ 3 warn → warn-Klasse)
+        # tauchten einzelne warns in der OK-Klasse gar nicht auf (Beleg:
+        # S8 an 12.10./19.10./01.11.2026 unsichtbar). Jetzt je aktive warn
+        # (State + Provider) eine Hinweis-Zeile; OK-Titel und Priorität
+        # bleiben. Ersetzt den S15-Sonderweg vom 06.11.2026.
+        warn_lines = _ok_digest_warn_lines(active_state, provider_fails)
+        warn_pos = len(body_lines)
+        body_lines.extend(warn_lines)
         if retest_line:
             body_lines.append(retest_line)
         if freeze_line:
@@ -4228,6 +4277,7 @@ def format_digest_body(state_fails: list[dict],
         if watchdog_lines:
             body_lines.extend(watchdog_lines)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
+        body_lines = _fit_ok_warn_lines(body_lines, warn_pos, len(warn_lines))
         return "\n".join(body_lines), "✅ Health-Check OK", "default", None
 
     n_ok = max(0, n_runs - n_crit - n_warn)
