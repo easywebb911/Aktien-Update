@@ -3286,13 +3286,19 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Neue Freeze-Blöcke (eingefroren 07.11.2026):** Paper C (Momentum → Gipfel,
   feste Stichprobe 21.07.–23.10.2026, zwei Ziele), Exit-B.1-Nachfolger
   (gepaarter einseitiger Wilcoxon, Einstieg ≥ 09.11.2026, n-Ziel 500), Holm-
-  Familie „Runde November 2026“ (k=3) mit **offenem Punkt Holm-Timing**
+  Familie „Runde November 2026“ (k=3; Holm-Timing per Easy-Entscheid Option (iii): Paper C 2α/3 mit Holm innen, Exit-Nachfolger α/3, beide sofort endgültig; Regime-Split mind. 30 je Gruppe)
   (Easy-Entscheid vor dem Paper-C-Skript-Bau). RE-TEST-KALENDER +3 Zeilen,
   §5 „REIFE-INVENTUR 07.11.2026“ (H5 ~2028, Svoboda erst Definitionen,
   FTD-Stichtags-Regel, Reg SHO nicht testbar).
 - `open_items.json`: neu `paper-c-skript-bauen` (offen),
   `exit-b1-nachfolger-sammelphase` (beobachtet);
   `exit-b1-freeze-autorun-vorab-check` → erledigt mit Ergebnis.
+- Nachtrag vor dem Merge (Easy-Entscheide 07.11.2026, gleicher PR): Holm-Timing
+  Option (iii) (Paper C 2α/3 mit Holm innen, Exit-Nachfolger α/3, beide sofort
+  endgültig; (i)/(ii) als verworfen vermerkt), Teststärke im Exit-Block auf α/3
+  angepasst (n=500 → ~0,90), Regime-Split mind. 30 je Gruppe in beiden Freezes;
+  Cluster nur berichtet, Floor 40 mit p=1, Zählung über `eval_results.jsonl`
+  bestätigt.
 - MD5 aller 10 bestehenden Freeze-/Errata-/§4-Protokoll-Blöcke vorher =
   nachher; `lint_protected_zones` grün (nur Einfügungen außerhalb der Zonen).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#659`,
@@ -4419,7 +4425,7 @@ Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
 | **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf seit `#621` (31.10.2026), **PAUSIERT 02.11.2026** (`#644`, Rendite-Diagnose — siehe „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ unten); Mechanik-Fix `#647` (03.11.2026), Wiederaufnahme erst nach Bestandskorrektur (Schritt 2); **WIEDER AKTIV ab Merge von `#650`** (03.11.2026, Korrektur `#648`/`872ac43f`, §4 nur mit gekoppelter Sensitivität — siehe „§4-Protokolleintrag 03.11.2026 — Schritt 2 abgeschlossen“) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. **ÜBERHOLT 10.10.2026:** neu registriert und eingefroren — siehe „VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026“ unten (Stand 02.11.: n=50/250). Diese Zeile bleibt als Historie. |
 | **AUSGEWERTET 07.11.2026** | Exit-B.1-Re-Test (§4, Zeile oben) | n=255 | Beide Arme **„Unklar“**, Auffanglinie bleibt — siehe „§4-Protokolleintrag 07.11.2026“ weiter unten. Die Zeile oben bleibt als Historie stehen. |
-| **einmaliger Lauf nach Skript-Bau + Mock-Test** | **Paper C (Momentum → Gipfel)** — vorabregistriert, eingefroren 07.11.2026 | feste Stichprobe 21.07.–23.10.2026 | Block „VORABREGISTRIERUNG — Paper C“ (vor „PAPER-PLAN-STATUS“). Vor dem Skript-Bau: Easy-Entscheid zum Holm-Timing (Familien-Block). |
+| **einmaliger Lauf nach Skript-Bau + Mock-Test** | **Paper C (Momentum → Gipfel)** — vorabregistriert, eingefroren 07.11.2026 | feste Stichprobe 21.07.–23.10.2026 | Block „VORABREGISTRIERUNG — Paper C“ (vor „PAPER-PLAN-STATUS“). Holm-Timing entschieden (Option (iii): Paper C 2α/3 mit Holm innen, sofort endgültig). |
 | **datumsfrei · Auslöser n≥500** | **Exit-B.1-Nachfolger (gepaart, Wilcoxon)** — vorabregistriert, eingefroren 07.11.2026 | n ≥ 500 · `score≥70` ∧ `provenance=forward` ∧ Einstieg ≥ 09.11.2026 | Block „VORABREGISTRIERUNG — Exit-B.1-Nachfolger“. Schätzung (nicht bindend): Einstiege bis ~Mitte/Ende Mai 2027, plus ~2 Wochen Reife. |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
@@ -6029,8 +6035,10 @@ abweicht, steht das unten unter „Abweichungen“ — nicht still geglättet.
      Richtung ja/nein“ berichtet (siehe Abweichung (d) unten).
    - **Regime-Split** nach `market_regime` (bull/bear/neutral), Mechanik wie §4-
      Protokolleintrag 31.10.2026 (a)/(b), übertragen auf die AUC: ein Regime ist
-     prüfbar bei **n ≥ 10** Zeilen dieses Ziels **und** mindestens einer Zeile in
-     jeder der beiden Gruppen; sonst „nicht prüfbar“. „Plausibel“ = kein prüfbares
+     prüfbar, wenn **jede der beiden Gruppen** (Treffer/Nicht-Treffer bzw.
+     Gewinner/Verlierer) in diesem Regime **mindestens 30 Zeilen** hat
+     (Easy-Entscheid 07.11.2026, vor dem Merge; strenger als die n ≥ 10 von §4);
+     sonst „nicht prüfbar“. „Plausibel“ = kein prüfbares
      Regime liegt mit seiner AUC auf der anderen Seite von 0,5 als die Gesamt-AUC
      (AUC genau 0,5 gilt nicht als Gegenrichtung). Ein nicht prüfbares Regime —
      z. B. **bear mit n = 0** — zählt **nicht** als Widerlegung und wird als „nicht
@@ -6042,11 +6050,13 @@ abweicht, steht das unten unter „Abweichungen“ — nicht still geglättet.
 7. **Holm-Familie:** die zwei Ziele bilden zusammen mit dem Exit-B.1-Nachfolger die
    gemeinsame **Holm-Familie „Runde November 2026“, k = 3** (Block
    „VORABREGISTRIERUNG — Holm-Familie Runde November 2026“ unten). Innerhalb von
-   Paper C sind es 2 der 3 Hypothesen. **Wie der Holm-Schritt gerechnet wird,
-   solange der Exit-Nachfolger noch keinen p-Wert hat, ist dort als OFFENER PUNKT
-   vermerkt — Easy entscheidet vor dem Skript-Bau.**
-8. **Erfolgskriterium je Ziel — alle drei:** (a) Holm-signifikant in der Familie
-   (α = 0,05); (b) **2,5.-Perzentil der Bootstrap-AUC > 0,5**; (c) Regime-Split
+   Paper C sind es 2 der 3 Hypothesen. **α-Aufteilung (Easy-Entscheid 07.11.2026,
+   Option (iii)):** Paper C bekommt **2α/3** und rechnet darin **Holm über die zwei
+   Ziele** — der kleinere p wird gegen **α/3 ≈ 0,0167** geprüft, nur wenn er
+   besteht, der größere gegen **2α/3 ≈ 0,0333** (α = 0,05). Das Urteil ist
+   **sofort endgültig** und hängt nicht vom späteren Exit-Nachfolger ab.
+8. **Erfolgskriterium je Ziel — alle drei:** (a) Holm-signifikant innerhalb des
+   Paper-C-Anteils 2α/3 (Punkt 7); (b) **2,5.-Perzentil der Bootstrap-AUC > 0,5**; (c) Regime-Split
    „plausibel“. Verdikt-Stufen wie §4 (Protokolleintrag 31.10.2026 (b)): „Beleg“ =
    (a)+(b)+(c); „bedingt“ = (a)+(b), aber kein Regime prüfbar; „Unklar“ = (a) oder
    (b) verfehlt, oder ein prüfbares Regime widerspricht. Weder „bedingt“ noch
@@ -6061,8 +6071,7 @@ abweicht, steht das unten unter „Abweichungen“ — nicht still geglättet.
     stammt aus der Backfill-Population (Einstieg vor 13.07.) und ist mit dieser
     Stichprobe **nie** zu poolen.
 11. **Auslöser:** **einmaliger** Lauf, sobald das Auswertungsskript gebaut und mit
-    einem Mock-Test (künstliche Daten) geprüft ist **und** der offene Holm-Punkt aus
-    Punkt 7 entschieden ist. Kein Zwischenblick, kein zweiter Lauf mit mehr Daten.
+    einem Mock-Test (künstliche Daten) geprüft ist. Kein Zwischenblick, kein zweiter Lauf mit mehr Daten.
     Ergebnis per ntfy **nur als Verdikt je Ziel** (Beleg/bedingt/Unklar/nicht
     auswertbar); die Zahlen stehen in `eval_results.jsonl`.
 12. **Pflichtangaben im Ergebnisbericht:** n je Ziel und Gruppe, Ausschlüsse,
@@ -6091,10 +6100,9 @@ abweicht, steht das unten unter „Abweichungen“ — nicht still geglättet.
   **zweiseitige** Mann-Whitney-p (wie §4 und Erratum 22.10.2026); die Richtung
   sichert Kriterium (b) (CI-Untergrenze > 0,5). Der Exit-Nachfolger nutzt dagegen
   einen einseitigen p — bewusst unterschiedlich, so von Easy entschieden.
-- (g) **Regime-Prüfbarkeit bei der AUC:** „n ≥ 10 und mindestens eine Zeile je
-  Gruppe“ ist bei sehr kleinen Gruppen instabil (z. B. 1 Treffer in einem Regime).
-  Ob eine Mindestgröße je Gruppe gelten soll, entscheidet Easy **zusammen mit dem
-  offenen Holm-Punkt vor dem Skript-Bau** — bis dahin gilt der Text oben.
+- (g) **Regime-Prüfbarkeit:** abweichend von §4 (n ≥ 10) gilt hier mindestens
+  **30 Zeilen je Gruppe** (Easy-Entscheid 07.11.2026), weil eine AUC aus sehr
+  kleinen Gruppen beliebig schwankt. Darunter „nicht prüfbar“, nie Widerlegung.
 
 **Grenzen:** Die Stichprobe ist fast ganz `neutral`/`bull`, `bear` fehlt — ein
 Ergebnis gilt nur für dieses Marktumfeld. Ticker wiederholen sich; die effektive
@@ -6140,17 +6148,22 @@ eigenem Freeze-Datum** — hier für einen gepaarten Test auf neuen Zeilen.
    Korrektur, Stetigkeitskorrektur 0,5, Differenzen exakt 0 vor der Rangbildung
    entfernt und gezählt), aber einseitig:
    p = 1 − Φ((W⁺ − n(n+1)/4 − 0,5) / √Var(W⁺)). **Nicht** p_zweiseitig/2, wenn W⁺
-   unter dem Erwartungswert liegt. Dieser p ist der Holm-Input.
+   unter dem Erwartungswert liegt. Dieser p wird gegen den festen Anteil α/3
+   geprüft (Punkt 8).
 6. **Bootstrap-CI des Median-Δ:** Punktschätzung = Median aller verwertbaren d
    (Nullen eingeschlossen). CI: Resampling der Paare mit Zurücklegen, **N = 2000**,
    **Seed = 42**, **95 % zweiseitig, Perzentil 2,5 / 97,5**.
 7. **Regime-Split:** je `market_regime` (bull/bear/neutral) Median von d; prüfbar ab
-   **n ≥ 10** Paaren; „plausibel“ = kein prüfbares Regime mit Median auf der
+   **mindestens 30 Paaren** im Regime (Easy-Entscheid 07.11.2026, vor dem Merge;
+   gepaarter Test → die „Gruppe“ ist das Regime selbst; strenger als die n ≥ 10
+   von §4), darunter „nicht prüfbar“, nie Widerlegung; „plausibel“ = kein prüfbares Regime mit Median auf der
    anderen Seite von 0 als der Gesamt-Median (Median genau 0 gilt nicht als
    Gegenrichtung). Nicht prüfbare Regime zählen nicht als Widerlegung (wie §4-
    Protokolleintrag 31.10.2026 (a)/(b)).
 8. **Erfolgskriterium — alle drei:** (a) Holm-signifikant in der Familie „Runde
-   November 2026“ (k = 3, α = 0,05); (b) **2,5.-Perzentil des Median-Δ > 0**;
+   November 2026“ mit dem **festen Anteil α/3 ≈ 0,0167** (α = 0,05; einseitiger p
+   ≤ α/3; Easy-Entscheid 07.11.2026, Option (iii)) — sofort endgültig, unabhängig
+   von Paper C; (b) **2,5.-Perzentil des Median-Δ > 0**;
    (c) Regime-Split „plausibel“. Verdikt-Stufen Beleg/bedingt/Unklar wie §4. Eine
    Punktschätzung allein ist nie Beleg.
 9. **Keine weiteren Arme:** kein 5d-Arm, kein Netto-, kein SPY-Arm, kein
@@ -6172,9 +6185,9 @@ Renditen und bestimmen **nur** die Stichprobengröße, keine Schwelle: Streuung 
 Differenz `return_3d − return_10d` ≈ **17,2 pp**; Planungs-Δ **+1,8 pp** (= §4-
 Punktschätzung Δ(3d−10d), also eher zu optimistisch). Geschätzte Teststärke des
 einseitigen Wilcoxon (Simulation, reine Verschiebung einer symmetrischen
-Verteilung): n = 250 → ~0,59–0,77; **n = 500 → ~0,90–0,96** (je nach Niveau
-α/3 … α). Zum Vergleich ein t-Test bei n = 500: ~0,58–0,76. Wegen der zu
-optimistischen Planungsgröße ist die echte Teststärke eher niedriger.
+Verteilung) auf dem **festen Niveau α/3 ≈ 0,0167 einseitig**: n = 250 → ~0,59;
+**n = 500 → ~0,90**. Zum Vergleich ein t-Test bei n = 500 und α/3: ~0,58. Wegen
+der zu optimistischen Planungsgröße ist die echte Teststärke eher niedriger.
 
 **Ergebnis-informierte Wahl (offen benannt):** Die Wahl des 3d-Arms, des
 gepaarten Wilcoxon-Tests und des Median-Δ wurde durch die §4-Auswertung vom
@@ -6196,14 +6209,16 @@ festhält.
 Hypothesen hinweg bilden die Bestätigungstests dieser Runde **eine** gemeinsame
 Holm-Familie:
 
-| # | Hypothese | Holm-Input |
+| # | Hypothese | Test-p (Input) |
 |---|---|---|
 | PC-1 | Paper C, Ziel 1 (Gipfel `max_gain_pct ≥ 30`) | `p_two_sided` Mann-Whitney |
 | PC-2 | Paper C, Ziel 2 (`return_10d` ≥ +10 / ≤ −5) | `p_two_sided` Mann-Whitney |
 | EX-1 | Exit-B.1-Nachfolger (gepaart, `return_3d − return_10d`) | einseitiger Wilcoxon-p |
 
-**k = 3, α = 0,05 familienweit**, Verfahren `stats_helpers.
-multiple_testing_correction` (Holm). Netto-Zusätze, Regime-Tabellen und der
+**k = 3, α = 0,05 familienweit**, aufgeteilt nach **Option (iii)** (Entscheidung
+unten): Paper C (PC-1, PC-2) **2α/3** mit Holm innen
+(`stats_helpers.multiple_testing_correction` über die zwei Paper-C-p-Werte,
+Schwellen α/3 und 2α/3); EX-1 **α/3** allein. Netto-Zusätze, Regime-Tabellen und der
 Cluster-Doppellauf sind **keine** Hypothesen dieser Familie.
 
 **Alt-Familien bleiben unverändert** — kein rückwirkendes Zusammenlegen: §4
@@ -6217,23 +6232,27 @@ Exit-B.1 (k = 2, ausgewertet 07.11.2026), Setup-Edge/Conviction (k = 3), KI-Scor
 Datei (30.06., 01.07., 04.07., 15.07., 17.07.) stehen in §5
 „Auswertungs-Historie“ und werden dort gesondert genannt.
 
-**OFFENER PUNKT — Easy-Entscheid VOR dem Paper-C-Skript-Bau (kein Ergebnis
-eingesehen):** Holm braucht alle drei p-Werte **gleichzeitig**. Paper C kann
-sofort rechnen, EX-1 erst etwa Mitte 2027. Wird Paper C heute mit Holm k = 3
-bewertet, kann sich sein Urteil ändern, sobald EX-1 vorliegt (zum Beispiel stoppt
-Holm schon beim ersten Schritt, wenn EX-1 den kleinsten p hat und nicht
-signifikant ist). Mögliche Regeln, alle halten die familienweite Fehlerrate:
-- (i) **Holm k = 3 strikt:** das Paper-C-Urteil bleibt „vorläufig“, bis EX-1
-  vorliegt; erst dann endgültiges Holm über alle drei. Dafür bräuchte Paper C eine
-  Verdikt-Stufe „vorläufig“ und einen zweiten Rechenschritt 2027 — das weicht von
-  Paper C Punkt 11 („einmaliger Lauf“, Push mit festem Verdikt) ab. Ein
-  Platzhalter p = 1 für EX-1 macht das Urteil **nicht** endgültig (ein später
-  kleiner, nicht signifikanter EX-1-p kann Holm sofort stoppen).
-- (ii) **Bonferroni-Anteil:** jede der drei Hypothesen wird sofort und endgültig
-  gegen α/3 ≈ 0,0167 geprüft (etwas strenger als Holm, nie lockerer).
-- (iii) **Fester α-Anteil + Holm innen:** Paper C bekommt 2α/3, darin Holm über
-  PC-1/PC-2 (Schwellen α/3 und 2α/3); EX-1 bekommt α/3 allein.
-Bis zu Easys Entscheid wird **kein** Paper-C-Auswertungsskript gebaut.
+**ENTSCHEIDUNG EASY 07.11.2026 (vor dem Merge, kein Ergebnis eingesehen) —
+Holm-Timing:** Holm über alle drei p-Werte bräuchte sie **gleichzeitig**; Paper C
+kann sofort rechnen, EX-1 erst etwa Mitte 2027. Gewählt ist **Option (iii) —
+fester α-Anteil + Holm innen:** Paper C bekommt **2α/3** und rechnet darin Holm
+über PC-1/PC-2 (kleinerer p gegen α/3 ≈ 0,0167, danach größerer p gegen 2α/3 ≈
+0,0333); EX-1 bekommt **α/3 ≈ 0,0167** allein. **Beide Urteile sind sofort
+endgültig**, keines wird später neu gerechnet. Die familienweite Fehlerrate bleibt
+≤ α = 0,05 (Bonferroni-Aufteilung zwischen den Teilen, Holm innerhalb von Paper C).
+
+**Verworfen:**
+- (i) **Holm k = 3 strikt** — Paper C bliebe „vorläufig“ bis 2027 und bräuchte
+  einen zweiten Rechenschritt; widerspricht dem einmaligen Lauf mit festem Verdikt.
+  Ein Platzhalter p = 1 für EX-1 hätte das Urteil auch nicht endgültig gemacht.
+- (ii) **Bonferroni α/3 für alle drei** — ebenfalls sofort endgültig, aber für den
+  zweiten Paper-C-p strenger als nötig.
+
+**Ebenfalls bestätigt (Easy 07.11.2026):** Cluster-Doppellauf nur berichtet (kein
+Erfolgskriterium); Floor 40 mit p = 1 bei Unterschreitung; Zählung der
+Bestätigungstests über `eval_results.jsonl` (Berichtsregel oben). Regime-Split in
+beiden neuen Freezes: mindestens **30 Zeilen je Gruppe**, darunter „nicht
+prüfbar“, nie Widerlegung.
 
 **Änderungs-Protokoll (bindend ab 07.11.2026, analog §4):** Keine Änderung an
 diesem Block ohne datierten Protokolleintrag, der die Änderung und ihren Grund
@@ -6374,7 +6393,7 @@ werden nie gepoolt. Erfolgs-Definition unverändert (oben).
 
 | Hypothese | Stand / Entscheid |
 |---|---|
-| **Paper C** (Momentum → Gipfel) | **Eingefroren 07.11.2026** (Block „VORABREGISTRIERUNG — Paper C“ in §4). Stichprobe fest 21.07.–23.10.2026. Nächster Schritt: Skript + Mock-Test, dann **ein** Lauf (open_item `paper-c-skript-bauen`), vorher Easy-Entscheid zum Holm-Timing. |
+| **Paper C** (Momentum → Gipfel) | **Eingefroren 07.11.2026** (Block „VORABREGISTRIERUNG — Paper C“ in §4). Stichprobe fest 21.07.–23.10.2026. Nächster Schritt: Skript + Mock-Test, dann **ein** Lauf (open_item `paper-c-skript-bauen`). Holm-Timing entschieden: Paper C 2α/3 mit Holm innen, Exit-Nachfolger α/3, beide sofort endgültig. |
 | **Exit-B.1-Nachfolger** (gepaart) | **Eingefroren 07.11.2026** (Block in §4). Sammelt ab Einstieg 09.11.2026, n-Ziel 500 (open_item `exit-b1-nachfolger-sammelphase`). |
 | **H5** (Score × Katalysator × Momentum × SI) | **Unverändert** (Freeze 12.09.2026). Zählung 07.11. (nur Prädiktoren, keine Ergebnisse): 570 vollständige Zeilen, kleinste der 16 Zellen **5**, nur 6 Zellen ≥ 40. Realistisch reif **~2028**. Hinweis: „Fuel × Fuse“ (SI × Attention) ist **nicht** Teil des registrierten H5. |
 | **Svoboda `squeeze_event`** | **Kein Freeze vor 2027.** Erst Definitionen festlegen: Attention-Spike-Schwelle **nur aus der Literatur**, eigenes Feld für das **5-Tage-Hoch** (`max_gain_pct` misst 10 Handelstage). Näherungszählung seit 13.07. im einstelligen Bereich (Obergrenze), Ziel n ≥ 40 weit entfernt. |
