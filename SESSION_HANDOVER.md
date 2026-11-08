@@ -1,4 +1,4 @@
-# SESSION_HANDOVER.md — Stand 02.11.2026 (Bogen 01.–02.11.: Monatsrundgang + Merge-/Datenkorrektur-Disziplin + NaN-Baseline-Abbau + Positions-Stand + Watchlist-Earnings + Postclose-Halbzeilen-Diagnose + §4-Sensitivität vorab registriert + [halfrow_probe]; davor: Woche 15.08.–09.10.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix + Handover-Staleness-CI-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix, S10-crit seit 03.10. abgeklungen) + NYSE-empty-Detail-Logging + Open-Items-Oktober-Rundgang + US-Feiertage algorithmisch + SI-Timestamp-Logging + NaN-Guard-Symmetrie entry_past_return_5d + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel)
+# SESSION_HANDOVER.md — Stand 08.11.2026 (Bogen 04.–08.11.: Daten-Wahrheit → §4 „Unklar“ → Paper C Beleg → Replikations-Freeze → Exit-Nachfolger → Marker GRÜN → Wächter S15/S16; davor: Bogen 01.–02.11.: Monatsrundgang + Merge-/Datenkorrektur-Disziplin + NaN-Baseline-Abbau + Positions-Stand + Watchlist-Earnings + Postclose-Halbzeilen-Diagnose + §4-Sensitivität vorab registriert + [halfrow_probe]; davor: Woche 15.08.–09.10.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix + Handover-Staleness-CI-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix, S10-crit seit 03.10. abgeklungen) + NYSE-empty-Detail-Logging + Open-Items-Oktober-Rundgang + US-Feiertage algorithmisch + SI-Timestamp-Logging + NaN-Guard-Symmetrie entry_past_return_5d + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
@@ -18,7 +18,30 @@ ein zweiter, push-getriggerter Workflow **erst NACH** dem Commit — rein
 detektiv, verhindert den Verlust nicht, macht ihn nur sichtbar. Ein
 roter Check-Run auf einem main-Commit braucht also einen Follow-up-Fix.
 
-**Aktueller Bogen 01.–02.11.2026** (PRs `#624`–`#639`, alle git-belegt
+**Aktueller Bogen 04.–08.11.2026** (PRs `#653`–`#664`, Vorlauf 02.–03.11.
+`#644`–`#652`; alle git-belegt gemergt, Details in „## 1) HEUTE
+IMPLEMENTIERT“), in dieser Reihenfolge:
+1. **Daten-Wahrheit:** Renditen, `max_gain_pct`/`max_drawdown_pct` und
+   Exit-Shadow-Forwards nur noch aus finalen Schlusskursen, Bestand
+   korrigiert (`#647`–`#655`); Postclose-Grenze 16:20 ET + Cron 21:37 UTC
+   (`#656`); „unbekannt“ = `None` statt 0.0 (`#657`).
+2. **§4 Exit-B.1 ausgewertet 07.11.** (n=255): beide Arme **„Unklar“**,
+   Auffanglinie bleibt (`#660`).
+3. **Paper C** (Momentum → Gipfel) ausgewertet 07.11.: Ziel 1 Gipfel ≥ 30 %
+   **Beleg** — erster belegter Prädiktor (1 Fenster); Ziel 2 `return_10d`
+   „Unklar“ (`#661`/`#662`).
+4. **Replikations-Freeze** Paper C (nur Gipfel, Einstieg ≥ 24.10.2026,
+   n ≥ 300, Schätzung ~21./22.12.2026) (`#662`).
+5. **Exit-B.1-Nachfolger** eingefroren (gepaart, Wilcoxon, Einstieg ab
+   09.11.2026, n = 500) (`#660`).
+6. **Marker GRÜN:** Karten-Zeile „Momentum 5T“, `SCORE_STATUS_LABELS
+   ["paper_c"]` = erstes GRÜN; Setup/Conviction blau (Test läuft), KI
+   heuristisch, Exit-Druck „Unklar“ + Nachfolger läuft (`#663`).
+7. **Wächter:** S15 Postclose-Lücke (`#658`), aktive warns im OK-Digest
+   (`#659`), **S16 Wahrheits-Abgleich** (`#664`).
+Nächste Schritte: Block 4, „Wiedervorlagen Stand 08.11.2026“.
+
+**Vorheriger Bogen 01.–02.11.2026** (PRs `#624`–`#639`, alle git-belegt
 gemergt, Details in „## 1) HEUTE IMPLEMENTIERT“): Monatsrundgang November ·
 CLAUDE.md-Regel „Merge- und Datenkorrektur-Disziplin“ (`#625`/`#626`) ·
 NaN-Lint-Baseline 70 → 36 und inhaltsbasiert (`#631`–`#634`, `#636`) ·
@@ -48,7 +71,9 @@ zwei Zählzeitpunkten, kein Logik-Bug — siehe §4-Protokolleintrag
 27.09.2026); Stand **27.09.2026, 07:16:50 UTC**: **n=144/250** (direkt
 gegen `matured_backtest_export.jsonl` nachgerechnet). **Dieser Wert ist
 überholt** — aktueller Stand siehe §4-Block weiter unten
-(Protokolleintrag 31.10.2026, Zähler-Refresh: n=242/250).
+(Auslöser erreicht, ausgewertet 07.11.2026 bei n=255 — beide Arme „Unklar“,
+siehe „§4-Protokolleintrag 07.11.2026“; der Zähler-Refresh 31.10.2026 mit
+n=242/250 ist Historie).
 
 **Vorheriger Bogen — Woche 03.–08.08.2026** (PRs #500–#512, alle git-belegt
 gemergt): Prune-Konsequenz-
@@ -4479,6 +4504,18 @@ neu getestet.
 
 ## 4) GEPLANTE AUFGABEN + WIEDERVORLAGEN (mit Daten)
 
+### Wiedervorlagen Stand 08.11.2026 (Bogen 04.–08.11.)
+
+| Datum / Auslöser | Was | open_item |
+|---|---|---|
+| ab 09.11.2026 (Einstieg) · Auslöser n = 500 | **Exit-B.1-Nachfolger** sammelt (gepaart, Wilcoxon); Schätzung Einstiege bis ~Mitte/Ende Mai 2027 + Reife | `exit-b1-nachfolger-sammelphase` |
+| **16.11.2026** | **ApeWisdom-Abdeckung** prüfen (Treffer-Quote 4,5–12,5 % seit 23.10.) | `apewisdom-abdeckung` |
+| **~21.11.2026** (nach 10 Läufen) | **Wahrheits-Abgleich Einlaufphase**: erste 10 Läufe von `truth_check.yml` auf Fehlalarme prüfen (Dividenden-Nachadjustierung, Präfix-Fenster max_gain, vix/regime, Backfill-Zeilen) | `wahrheits-abgleich-einlaufphase` |
+| nächste Woche (offen) | **Berichtsdatum-Wurzellösung + Nacht-Probe** (Mitternachts-Falle 27.08., Postclose-Ausfall 04.11.; S15 meldet nur das Symptom) | `berichtsdatum-wurzelloesung-nacht-probe` |
+| Prüfpunkt (kein Termin) | **`entry_past_return_5d`: gemeinsamer Index vs. eigene Handelstage** — Produktion rechnet auf dem Mehr-Ticker-Index ohne dropna, der Wahrheits-Abgleich auf den eigenen Handelstagen des Tickers; Abweichungen in S16 bewerten, bevor die Replikation läuft | `epr-gemeinsamer-index-vs-eigene-handelstage` |
+| **03.12.2026** | **Sammel-Wiedervorlage** (geparkte Punkte bis nach den Freeze-Auswertungen): NaN-Baseline Gruppe 1, FINRA-SSR-UTC-Cache-Schlüssel, KI-Score-Edge-Freeze, Options-Rohketten, PR-#532-Sibling-Bugs | `nan-bypass-baseline-70`, `finra-ssr-utc-cache-key`, `ki-score-edge-freeze`, `options-chain-raw-sammelfeld`, `pr532-or0-sibling-bugs` |
+| **~21./22.12.2026** · Auslöser n ≥ 300 | **Paper C Replikation** (nur Gipfel, Einstieg ≥ 24.10.2026); vorher Skript parametrisieren | `paper-c-replikation-sammelphase`, `paper-c-replikations-skript` |
+
 ### Wiedervorlagen Postclose-Halbzeile (Stand 02.11.2026, Reihenfolge = Easy-Entscheid)
 
 Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
@@ -4510,7 +4547,7 @@ Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
 |---|---|---|---|
 | ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
 | **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. **ERSETZT (10.10.2026)** — kein Zielgröße/Kriterium war hier je festgelegt; siehe Erratum-Block „Erweiterung vor Auswertung — Test (c) Conviction-Zusatznutzen" im Setup-Edge-Re-Test-Freeze unten (Test (c), Holm k=3). Diese Zeile bleibt als Historie stehen, nicht gelöscht. |
-| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf seit `#621` (31.10.2026), **PAUSIERT 02.11.2026** (`#644`, Rendite-Diagnose — siehe „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ unten); Mechanik-Fix `#647` (03.11.2026), Wiederaufnahme erst nach Bestandskorrektur (Schritt 2); **WIEDER AKTIV ab Merge von `#650`** (03.11.2026, Korrektur `#648`/`872ac43f`, §4 nur mit gekoppelter Sensitivität — siehe „§4-Protokolleintrag 03.11.2026 — Schritt 2 abgeschlossen“) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=242 (nachgerechnet 31.10.2026 — Zähler-Refresh, siehe Protokolleintrag unten; vorheriger Stand n=144 vom 27.09. war überholt).** **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). Projektion grob (keine feste Schätzung, nur Richtwert): bei zuletzt ~2,7–2,75 Forward-Zeilen/Kalendertag noch **wenige Tage bis ~2 Wochen** bis n=250 — deutlich früher als die alte „Mitte Nov."-Schätzung, die auf dem überholten n=144-Stand basierte. |
+| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)**, Auto-Auswertungslauf seit `#621` (31.10.2026), **PAUSIERT 02.11.2026** (`#644`, Rendite-Diagnose — siehe „§4-Protokolleintrag 02.11.2026 — Freeze-Auto-Lauf pausiert“ unten); Mechanik-Fix `#647` (03.11.2026), Wiederaufnahme erst nach Bestandskorrektur (Schritt 2); **WIEDER AKTIV ab Merge von `#650`** (03.11.2026, Korrektur `#648`/`872ac43f`, §4 nur mit gekoppelter Sensitivität — siehe „§4-Protokolleintrag 03.11.2026 — Schritt 2 abgeschlossen“) | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **Auslöser erreicht — ausgewertet 07.11.2026 bei n=255** (Zeile „AUSGEWERTET 07.11.2026“ unten; frühere Zwischenstände n=144 vom 27.09. und n=242 vom 31.10. sind Historie). **Sensitivitätsprüfung vorab registriert 02.11.2026** (Postclose-Halbzeile, siehe „§4-Protokolleintrag 02.11.2026“ weiter unten). |
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. **ÜBERHOLT 10.10.2026:** neu registriert und eingefroren — siehe „VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026“ unten (Stand 02.11.: n=50/250). Diese Zeile bleibt als Historie. |
 | **AUSGEWERTET 07.11.2026** | Exit-B.1-Re-Test (§4, Zeile oben) | n=255 | Beide Arme **„Unklar“**, Auffanglinie bleibt — siehe „§4-Protokolleintrag 07.11.2026“ weiter unten. Die Zeile oben bleibt als Historie stehen. |
 | **AUSGEWERTET 07.11.2026** | **Paper C (Momentum → Gipfel)** — vorabregistriert, eingefroren 07.11.2026 | 668 verwendet (21.07.–23.10.2026) | Ziel 1 Gipfel **Beleg**, Ziel 2 `return_10d` **Unklar** — „PROTOKOLLEINTRAG Paper C 07.11.2026“. |
