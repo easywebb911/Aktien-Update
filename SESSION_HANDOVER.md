@@ -3292,7 +3292,10 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Momentum 5T“; open_item `momentum-marker-karte` → erledigt.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#662`,
   höchste in Block 1 erwähnte PR = `#663` (eigene) — kein Rückstand.
-- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Guardian-Lauf vor Ready:** keine Blocker. Hinweise: Panel-Angabe „n ≥ 250“
+  für Setup/Conviction/KI gegen die Freeze-Blöcke geprüft (Setup-Edge Punkt 4,
+  KI-Score Punkt 5 — stimmt); „Handelstag N“ zählt Handelstage **nach** dem
+  Einstiegstag (Einstieg = 0).
 
 ### 07.11.2026 — Paper-C-Ergebnis protokolliert + Freeze Paper C Replikation (1 PR, Manual-Merge)
 
