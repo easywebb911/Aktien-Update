@@ -18,8 +18,8 @@ ein zweiter, push-getriggerter Workflow **erst NACH** dem Commit — rein
 detektiv, verhindert den Verlust nicht, macht ihn nur sichtbar. Ein
 roter Check-Run auf einem main-Commit braucht also einen Follow-up-Fix.
 
-**Aktueller Bogen 04.–08.11.2026** (PRs `#653`–`#664`, Vorlauf 02.–03.11.
-`#644`–`#652`; alle git-belegt gemergt, Details in „## 1) HEUTE
+**Aktueller Bogen 04.–08.11.2026** (PRs `#644`–`#664` inkl. Vorlauf
+02.–03.11.; alle git-belegt gemergt, Details in „## 1) HEUTE
 IMPLEMENTIERT“), in dieser Reihenfolge:
 1. **Daten-Wahrheit:** Renditen, `max_gain_pct`/`max_drawdown_pct` und
    Exit-Shadow-Forwards nur noch aus finalen Schlusskursen, Bestand
@@ -36,7 +36,7 @@ IMPLEMENTIERT“), in dieser Reihenfolge:
    09.11.2026, n = 500) (`#660`).
 6. **Marker GRÜN:** Karten-Zeile „Momentum 5T“, `SCORE_STATUS_LABELS
    ["paper_c"]` = erstes GRÜN; Setup/Conviction blau (Test läuft), KI
-   heuristisch, Exit-Druck „Unklar“ + Nachfolger läuft (`#663`).
+   heuristisch, Exit-Druck „Unklar“, Nachfolger sammelt ab 09.11. (`#663`).
 7. **Wächter:** S15 Postclose-Lücke (`#658`), aktive warns im OK-Digest
    (`#659`), **S16 Wahrheits-Abgleich** (`#664`).
 Nächste Schritte: Block 4, „Wiedervorlagen Stand 08.11.2026“.
@@ -4524,7 +4524,7 @@ neu getestet.
 |---|---|---|
 | ab 09.11.2026 (Einstieg) · Auslöser n = 500 | **Exit-B.1-Nachfolger** sammelt (gepaart, Wilcoxon); Schätzung Einstiege bis ~Mitte/Ende Mai 2027 + Reife | `exit-b1-nachfolger-sammelphase` |
 | **16.11.2026** | **ApeWisdom-Abdeckung** prüfen (Treffer-Quote 4,5–12,5 % seit 23.10.) | `apewisdom-abdeckung` |
-| **~21.11.2026** (nach 10 Läufen) | **Wahrheits-Abgleich Einlaufphase**: erste 10 Läufe von `truth_check.yml` auf Fehlalarme prüfen (Dividenden-Nachadjustierung, Präfix-Fenster max_gain, vix/regime, Backfill-Zeilen) | `wahrheits-abgleich-einlaufphase` |
+| **~20./21.11.2026** (nach 10 Werktags-Läufen) | **Wahrheits-Abgleich Einlaufphase**: erste 10 Läufe von `truth_check.yml` auf Fehlalarme prüfen (Dividenden-Nachadjustierung, Präfix-Fenster max_gain, vix/regime, Backfill-Zeilen) | `wahrheits-abgleich-einlaufphase` |
 | nächste Woche (offen) | **Berichtsdatum-Wurzellösung + Nacht-Probe** (Mitternachts-Falle 27.08., Postclose-Ausfall 04.11.; S15 meldet nur das Symptom) | `berichtsdatum-wurzelloesung-nacht-probe` |
 | Prüfpunkt (kein Termin) | **`entry_past_return_5d`: gemeinsamer Index vs. eigene Handelstage** — Produktion rechnet auf dem Mehr-Ticker-Index ohne dropna, der Wahrheits-Abgleich auf den eigenen Handelstagen des Tickers; Abweichungen in S16 bewerten, bevor die Replikation läuft | `epr-gemeinsamer-index-vs-eigene-handelstage` |
 | **03.12.2026** | **Sammel-Wiedervorlage** (geparkte Punkte bis nach den Freeze-Auswertungen): NaN-Baseline Gruppe 1, FINRA-SSR-UTC-Cache-Schlüssel, KI-Score-Edge-Freeze, Options-Rohketten, PR-#532-Sibling-Bugs | `nan-bypass-baseline-70`, `finra-ssr-utc-cache-key`, `ki-score-edge-freeze`, `options-chain-raw-sammelfeld`, `pr532-or0-sibling-bugs` |
