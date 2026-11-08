@@ -64,6 +64,7 @@ exec(
     "    SCORE_CONFIDENCE_N_ROBUST,\n"
     "    SCORE_CONFIDENCE_N_MITTEL,\n"
     "    SCORE_CONFIDENCE_N_PROVISORISCH,\n"
+    "    VALIDATION_SUMMARY_TEXT,\n"
     ")\n"
     "from datetime import datetime\n"
     "from zoneinfo import ZoneInfo\n"

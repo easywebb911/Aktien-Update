@@ -3557,6 +3557,45 @@ def _rs_spy_row_html(stock: dict) -> str:
     )
 
 
+def _momentum_5t_live(stock: dict):
+    """5-Tage-Anstieg vor heute in Prozent — LIVE aus dem Enrichment.
+
+    Zähler ``stock["price"]`` und Nenner ``stock["close_5td_before_entry"]``
+    stammen aus derselben ``_hist_stats``-Abfrage (Adj-Close), gleiche Formel
+    wie die Backtest-Persistenz. Liest NIE ``entry_past_return_5d`` aus
+    ``backtest_history.json``/dem Export (Look-Ahead-Konvention). Rein
+    Anzeige. ``None`` bei fehlendem/nicht endlichem/≤ 0 Nenner."""
+    price = stock.get("price")
+    base = stock.get("close_5td_before_entry")
+    if not (_finite(price) and _finite(base)) or base <= 0:
+        return None
+    return (float(price) / float(base) - 1.0) * 100.0
+
+
+def _momentum_5t_row_html(stock: dict) -> str:
+    """Detail-Zeile „Momentum 5T“ (Paper-C-Befund, Easy-Entscheid 07.11.2026).
+
+    Wert aus ``_momentum_5t_live`` (fehlt er → „—“, nie 0), darunter der
+    Befund-Text aus ``config.PAPER_C_BADGE`` mit Status-Farbe aus
+    ``SCORE_STATUS_LABELS`` (``_status_kind_of``). Keine Schwelle, keine
+    Färbung des Werts, kein Sortieren. ``PAPER_C_BADGE`` leer → keine Zeile."""
+    badge = PAPER_C_BADGE if isinstance(PAPER_C_BADGE, dict) else {}
+    text = str(badge.get("text") or "").strip()
+    if not text:
+        return ""
+    val = _momentum_5t_live(stock)
+    val_str = f"{val:+.1f}%" if val is not None else "—"
+    kind = _status_kind_of(str(badge.get("status_key") or ""))
+    safe = (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+    return (
+        f'<tr><td>Momentum 5T</td>'
+        f'<td><span class="m5t-val">{val_str}</span> '
+        f'<span class="m5t-dir">(höher = häufiger Gipfel)</span>'
+        f'<span class="m5t-note"><span class="conf-status-dot conf-kind-{kind}" '
+        f'aria-hidden="true"></span> {safe}</span></td></tr>'
+    )
+
+
 def _float_turnover_pts(stock: dict) -> tuple[float, float]:
     """Float-Turnover = today_volume / float_shares.
 
@@ -7275,7 +7314,8 @@ def _card(i: int, s: dict) -> str:
     earn_surp_row = _earnings_surprise_html(s) # Feature 3
     # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-SPY).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
-    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + rs_spy_row
+    momentum_rows = (_rsi_row + _ma_combined_row + _ma50_row2 + rs_spy_row
+                     + _momentum_5t_row_html(s))
     float_turnover_row = _float_turnover_row_html(s)
 
     # Options market data rows — Feature 4: <0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch
@@ -7811,7 +7851,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     _earn_surp_row_ = _earnings_surprise_html(s)   # Feature 3
     # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-SPY).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
-    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_spy_row_
+    momentum_rows = (_rsi_row + _ma_combined_row + _ma50_row2 + _rs_spy_row_
+                     + _momentum_5t_row_html(s))
     float_turnover_row = _float_turnover_row_html(s)
 
     # ── Options rows — Feature 4 (<0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch) ──
@@ -8583,6 +8624,28 @@ def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
             f'<span class="sb-pts"></span>'
             f'<span class="sb-note">{dot}<strong>{safe_status}</strong> · {daten_note}</span></li>'
         )
+    # Paper C (Momentum 5T → Gipfel): eigener Status-Eintrag ohne Daten-
+    # Dimension aus compute_score_confidence — Datenbasis aus dem Befund-Text.
+    _pc = (SCORE_STATUS_LABELS.get("paper_c") or {})
+    if _pc.get("status"):
+        _pc_kind = _status_kind_of("paper_c")
+        _pc_parts = []
+        if _pc.get("status_date"):
+            _pc_parts.append(f"Befund {_iso_to_de(_pc['status_date'])}")
+        if _pc.get("review_cond"):
+            _pc_parts.append(_pc["review_cond"])
+        _pc_status = _pc["status"].replace("<", "&lt;").replace(">", "&gt;")
+        rows.append(
+            f'<li><span class="sb-lbl">Momentum 5T (Paper C)</span>'
+            f'<span class="sb-pts"></span>'
+            f'<span class="sb-note"><span class="conf-status-dot conf-kind-{_pc_kind}" '
+            f'aria-hidden="true"></span> <strong>{_pc_status}</strong> · '
+            f'{" · ".join(_pc_parts)}</span></li>'
+        )
+    _summary = str(VALIDATION_SUMMARY_TEXT or "").strip()
+    if _summary:
+        _summary = _summary.replace("<", "&lt;").replace(">", "&gt;")
+        rows.insert(0, f'<li class="sb-summary"><span class="sb-note">{_summary}</span></li>')
     computed_at = confidence.get("computed_at") or "—"
     return ("\n".join(rows), computed_at)
 
@@ -11018,6 +11081,45 @@ function _psAsofLabel() {{
     return `<span class="ps-asof">Stand ${{txt}}</span>`;
   }} catch (e) {{ return ''; }}
 }}
+// Gipfel-Zeile im Position-Status (Paper-C-Befund 07.11.2026, rein Anzeige):
+// Hoch seit Einstieg, aktuell, Handelstag seit Einstieg. Handelstage über den
+// JS-Feiertagsspiegel (_isNonTradingDay = Spiegel von config/trading_date).
+// Null-tolerant: fehlende Werte → „—“. Kein neues app_data-Feld.
+function _psFmtFrac(v) {{
+  return (typeof v === 'number' && isFinite(v))
+    ? ((v >= 0 ? '+' : '') + (v * 100).toFixed(1) + ' %') : '—';
+}}
+function _psTradingDaysSince(isoDate) {{
+  try {{
+    if (!isoDate || typeof isoDate !== 'string') return null;
+    const p = isoDate.split('-');
+    if (p.length !== 3) return null;
+    const d = new Date(+p[0], +p[1] - 1, +p[2]);
+    if (!isFinite(d.getTime())) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (d > today) return null;
+    let n = 0;
+    const cur = new Date(d);
+    for (let i = 0; i < 5000; i++) {{
+      cur.setDate(cur.getDate() + 1);
+      if (cur > today) break;
+      const nonTrading = (typeof _isNonTradingDay === 'function')
+        ? _isNonTradingDay(cur) : (cur.getDay() === 0 || cur.getDay() === 6);
+      if (!nonTrading) n++;
+    }}
+    return n;
+  }} catch (e) {{ return null; }}
+}}
+function _psPeakLine(pos) {{
+  const ex = pos && pos.exit_state;
+  if (!ex) return '';
+  const peak = _psFmtFrac(ex.peak_pnl_pct_since_entry);
+  const cur = _psFmtFrac(ex.current_pnl_pct);
+  const n = _psTradingDaysSince(pos.entry_date);
+  const nStr = (n == null) ? '—' : String(n);
+  const tip = 'Der Gipfel ist das belegte Ereignis — Ausstiegsregel unbelegt (Exit-Nachfolger läuft).';
+  return `<div class="ps-peak" title="${{tip}}">Hoch seit Einstieg ${{peak}} · aktuell ${{cur}} · Handelstag ${{nStr}}</div>`;
+}}
 function buildPositionStatus(ticker) {{
   try {{
     const all = (typeof window !== 'undefined') ? window._POSITIONS_DATA : null;
@@ -11055,7 +11157,8 @@ function buildPositionStatus(ticker) {{
     // Render-Bedingung: mindestens Composite ODER mindestens eine
     // warn/crit-Trigger-Zeile muss vorhanden sein. Kein exit_pressure
     // UND keine Zeile → kein Block (= keine sinnvolle Information).
-    if (!pressureLine && !rows.length) return '';
+    const peakLine = _psPeakLine(pos);
+    if (!pressureLine && !rows.length && !peakLine) return '';
     // Ruhig-Hinweis nur wenn Composite gezeigt wird, aber keine Warn-
     // oder Crit-Trigger aktiv sind — dezent in --txt-dim.
     const quietHint = (pressureLine && !rows.length)
@@ -11064,6 +11167,7 @@ function buildPositionStatus(ticker) {{
     return `<div class="position-status-block" data-ticker="${{ticker}}">
       <div class="ps-head">📍 Position-Status ${{_psAsofLabel()}}</div>
       ${{pressureLine}}
+      ${{peakLine}}
       ${{rows.join('')}}
       ${{quietHint}}
     </div>`;

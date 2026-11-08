@@ -2161,9 +2161,9 @@ WIKI_ATTENTION_STATUS_ROW = (
 #                        aus der Panel-Palette, KEINE Warnung)
 #   heuristic → GRAU  — Heuristik, beansprucht keinen Edge
 #   validated → GRÜN  — Holm + Bootstrap-CI belegt (Erfolgs-Definition).
-#                        DEFINIERT, aber HEUTE von KEINEM Eintrag getragen —
-#                        das ist korrekt so; kein Score hat die Erfolgs-
-#                        Definition bisher erfüllt (Wächter im Mock-Test).
+#                        Seit 07.11.2026 genau EIN Eintrag ("paper_c"). Nur
+#                        erlaubt mit `eval_ref` auf eine eval_results.jsonl-
+#                        Zeile mit verdict "Beleg" (Wächter im Mock-Test).
 # PFLEGE-PFLICHT (unverändert Single-Source): ein Status-Wechsel nach einem
 # Re-Test ändert Text UND status_kind UND status_date UND review_by (bzw.
 # review_cond) in DEMSELBEN Eintrag — nie nur eins davon. Konkrete Termine
@@ -2212,15 +2212,57 @@ SCORE_STATUS_LABELS = {
         "review_cond": "falsifiziert 30.06. — kein Re-Test im Kalender",
     },
     "exit_pressure": {
-        "status":      "unvalidiert · Score-Edge unbelegt (nur Exit-Timing-Hinweis 01.07.)",
+        # 07.11.2026: Status-Text an das §4-Ergebnis angeglichen (Exit-B.1
+        # beide Arme „Unklar“, Nachfolger-Freeze n=500). review_by bleibt als
+        # historischer Beleg stehen (Opt-Out-Entscheid 30.10.2026,
+        # STATUS_REVIEW_WECKER_SKIP_LABELS).
+        "status":      "unvalidiert · Score-Edge unbelegt · Exit-Timing-Re-Test "
+                       "07.11. „Unklar“, Nachfolger-Test läuft (n=500)",
         "status_kind": "pending",
-        "status_date": "2026-07-01",
+        "status_date": "2026-11-07",
         "review_by":   "2026-09-30",
+    },
+    # Paper C (Momentum 5T → Gipfel ≥ 30 % in 10 Handelstagen): ERSTER Eintrag
+    # mit status_kind "validated" (GRÜN), Easy-Entscheid 07.11.2026.
+    # GRÜN-REGEL: "validated" ist NUR erlaubt mit `eval_ref` auf eine Zeile in
+    # eval_results.jsonl, deren verdict "Beleg" ist (Wächter in
+    # scripts/mock_test_score_status_badges.py, test_15). Rein Anzeige — kein
+    # Score-/Filter-/Push-Effekt. Ändert die Replikation das Bild, hier
+    # status/status_kind/status_date/review_cond in einem Schritt anpassen.
+    "paper_c": {
+        "status":      "belegt · Gipfel ≥ 30 % in 10 T (1 Fenster, Replikation läuft)",
+        "status_kind": "validated",
+        "status_date": "2026-11-07",
+        "review_by":   None,
+        "review_cond": "Replikation eingefroren 07.11.2026 — Auswertung bei "
+                       "n ≥ 300 (Schätzung ~Dez. 2026)",
+        "eval_ref":    {"file": "eval_results.jsonl", "test_id": "paper_c_gipfel"},
     },
 }
 
 # Erlaubte status_kind-Werte (Single-Source für Anzeige + Mock-Test-Wächter).
 SCORE_STATUS_KINDS = ("falsified", "pending", "heuristic", "validated")
+
+# Karten-Zeile „Momentum 5T“ (Easy-Entscheid 07.11.2026, rein Anzeige). Der
+# Wert kommt LIVE aus dem Enrichment (price gegen close_5td_before_entry), NIE
+# aus entry_past_return_5d in backtest_history/Export (Look-Ahead-Konvention).
+# `status_key` zeigt auf den SCORE_STATUS_LABELS-Eintrag (Farbe), `text` ist
+# der Befund-Zusatz. Rückweg: PAPER_C_BADGE = {} → die Zeile verschwindet.
+# Nach der Replikation NUR hier (und im Label-Eintrag "paper_c") anpassen.
+PAPER_C_BADGE = {
+    "status_key": "paper_c",
+    "text": "belegt für Gipfel ≥ 30 % in 10 T · AUC 0,61 · n=668 · 1 Fenster, "
+            "Replikation ~Dez.",
+}
+
+# Kopfzeile im Konfidenz-Panel (Produkt-Text, einfache Sprache). Zahlen nur
+# aus eval_results.jsonl bzw. den Freeze-Blöcken; Termine sind Schätzungen.
+VALIDATION_SUMMARY_TEXT = (
+    "Stand 07.11.2026: 4 Bestätigungstests, 1 Beleg (Paper C: Momentum 5T → "
+    "Gipfel ≥ 30 %). Exit-B.1 „Unklar“ — Nachfolger-Test läuft (n=500, "
+    "Schätzung ~Mitte 2027). Setup/Conviction und KI: Tests laufen, Auswertung "
+    "automatisch bei n ≥ 250. Replikation Paper C: Schätzung ~Dez. 2026."
+)
 
 # Status-Drift-Wecker (Teil 2): der TÄGLICHE Daily-Run (generate_report.main)
 # ruft status_review_reminder.run() → erinnert per ntfy an fällige Re-Tests.
