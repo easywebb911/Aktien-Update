@@ -160,6 +160,28 @@ def test_verdicts():
         rec["batch"], rec["batch_err"], rec["single"] = [], "rate_limit:X", None
     r4 = p.evaluate([rl, ms[1], ms[2], ms[3]])
     check("Flakiness → kein NEIN", r4["verdikte"]["F1_zeile"] != "NEIN", r4["verdikte"])
+    # Volumen 0 in Nacht und Tag → final (kein falsches NEIN)
+    z1, z2 = _m("2026-11-10T06:30:00", D1)[0], _m("2026-11-10T14:47:00", D1)[0]
+    for mm in (z1, z2):
+        for rec in mm["records"]:
+            for key in ("batch", "single"):
+                rec[key][-1]["v"] = 0.0
+    r5 = p.evaluate([z1, z2, ms[2], ms[3]])
+    check("Volumen 0 beidseitig → kein NEIN", r5["verdikte"]["F1_zeile"] == "JA", r5["f1"][:1])
+    # Nachadjustierung (Dividende nach D) → unbestimmt statt NEIN
+    a1, a2 = _m("2026-11-10T06:30:00", D1)[0], _m("2026-11-10T14:47:00", D1)[0]
+    for rec in a2["records"]:
+        for key in ("batch", "single"):
+            rec[key][-1]["c"] *= 0.98
+        rec["single"].append({"d": "2026-11-10", "o": 1, "h": 1, "l": 1, "c": 1, "v": 1,
+                              "action": {"div": 0.1, "split": None}})
+    r6 = p.evaluate([a1, a2, ms[2], ms[3]])
+    check("Dividende nach D → kein NEIN", r6["verdikte"]["F1_zeile"] != "NEIN", r6["f1"][:1])
+    check("Klasse neu_adjustiert sichtbar", "neu_adjustiert" in r6["f1"][0]["detail"], r6["f1"][0])
+    # rvol: NaN-Volumen im Fenster wird übersprungen (wie pandas)
+    rows = _rows(D1)
+    rows[-3]["v"] = None
+    check("rvol überspringt NaN-Volumen", p._rvol_at(rows, D1.isoformat()) is not None)
     # Log-Parser = Artifact-Inhalt
     with tempfile.TemporaryDirectory() as td:
         lp = pathlib.Path(td) / "log.txt"

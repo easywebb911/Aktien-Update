@@ -68,7 +68,10 @@ F1-Zeile (Batch-Download = Produktionspfad UND Einzelabruf; Paar-Klasse =
   schlechteste der beiden Wege): je Ticker
   unbestimmt  = Abruf-Fehler/keine Daten in N oder T (auch Rate-Limit)
   nicht_final = Zeile D fehlt in N, oder ein OHLCV-Feld in N leer (Halbzeile),
-                oder |N/T−1|·100 > 0,02 bei O/H/L/C oder Volumen
+                oder |N/T−1|·100 > 0,02 bei O/H/L/C oder Volumen (gleiche Werte,
+                auch 0, sind gleich); liegt nach D eine Dividende/ein Split
+                (Einzelabruf, actions=True), wird ein solches Paar unbestimmt
+                ('neu_adjustiert', wie S16)
   final       = sonst
   JA = ≥ 2 verschiedene D mit Paaren, kein nicht_final, unbestimmt ≤ 20 %
   NEIN = mindestens ein nicht_final
@@ -83,7 +86,8 @@ F2-OI (nächster gemeinsamer Verfall, gemeinsame Strikes, exakte Gleichheit):
   NEIN = mindestens ein nacht!=tag; UNBESTIMMT = sonst
   Zeitpunkt der Änderung: 'über Nacht' = nacht!=prod; 'vor Handelsbeginn' =
   nacht==prod und tag!=nacht
-F3 (Top-10 von D): entry_price vs Close_N(D) (0,02 pp), rvol vs Volumen_N(D)/
+F3 (Top-10 von D; fehlt D im Backtest, nimmt das Ticker-Set den jüngsten Tag
+  davor ('top10_quelle' im Meta) und F3 hat für diesen Lauf keine Zeilen): entry_price vs Close_N(D) (0,02 pp), rvol vs Volumen_N(D)/
   Mittel der letzten 20 Volumen bis D (gespeichert auf 3 Stellen: |Δ| ≤ 0,0011), entry_past_return_5d vs
   (Close_N(D)/Close_N(D−5)−1)·100 (0,02 pp absolut)
   gleich = entry_price + alle übrigen vergleichbaren Felder passen; anders =
@@ -194,6 +198,8 @@ def num(x):
 
 def rel_pp(a, b):
     a, b = num(a), num(b)
+    if a is not None and a == b:
+        return 0.0                  # gleich, auch bei Volumen 0
     if a is None or b is None or b == 0:
         return None
     return abs(a / b - 1.0) * 100.0
@@ -215,9 +221,13 @@ def _df_rows(df) -> list:
     if df is None or getattr(df, "empty", True):
         return rows
     for ts, r in df.iterrows():
-        rows.append({"d": ts.date().isoformat(),
-                     "o": num(r.get("Open")), "h": num(r.get("High")), "l": num(r.get("Low")),
-                     "c": num(r.get("Close")), "v": num(r.get("Volume"))})
+        row = {"d": ts.date().isoformat(),
+               "o": num(r.get("Open")), "h": num(r.get("High")), "l": num(r.get("Low")),
+               "c": num(r.get("Close")), "v": num(r.get("Volume"))}
+        div, spl = num(r.get("Dividends")), num(r.get("Stock Splits"))
+        if div or spl:
+            row["action"] = {"div": div, "split": spl}
+        rows.append(row)
     return rows
 
 
@@ -248,7 +258,7 @@ def real_fetchers():
         except Exception:  # noqa: BLE001
             pass
         return _df_rows(yf.Ticker(t).history(period="3mo", interval="1d", auto_adjust=True,
-                                             actions=False))
+                                             actions=True))
 
     def info(t):
         inf = yf.Ticker(t).info or {}
@@ -418,11 +428,13 @@ def _rvol_at(rows, D):
     idx = next((i for i, r in enumerate(rows or []) if r.get("d") == D), None)
     if idx is None:
         return None
-    vols = [num(r.get("v")) for r in rows[max(0, idx - 19):idx + 1]]
-    if any(v is None for v in vols) or not vols:
+    window = [num(r.get("v")) for r in rows[max(0, idx - 19):idx + 1]]
+    last = window[-1] if window else None
+    vols = [v for v in window if v is not None]       # pandas mean() überspringt NaN
+    if last is None or not vols:
         return None
     avg = sum(vols) / len(vols)
-    return vols[-1] / avg if avg > 0 else None
+    return last / avg if avg > 0 else None
 
 
 def _epr_at(rows, D):
@@ -474,6 +486,12 @@ def evaluate(ms: list[dict], halfrow: dict | None = None) -> dict:
             rank = {"nicht_final": 2, "unbestimmt": 1, "final": 0}
             cls, detail = max((c_b, c_s), key=lambda c: rank[c[0]])
             detail = f"batch={c_b[0]} {c_b[1]} | einzeln={c_s[0]} {c_s[1]}".strip()
+            # Dividende/Split nach D (Yahoo passt die Historie rückwirkend an)
+            # → Paar nicht bewertbar (wie S16 'neu_adjustiert'), nie NEIN.
+            acts = [x for x in ((r.get("single") or []) + ((tr or {}).get("single") or []))
+                    if x.get("action") and x.get("d", "") > D]
+            if acts and cls == "nicht_final":
+                cls, detail = "unbestimmt", "neu_adjustiert (Dividende/Split nach D) | " + detail
             f1.append({**base, "klasse": cls, "detail": detail})
             # F1 .info
             inf = r.get("info") or {}
