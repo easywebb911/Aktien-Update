@@ -616,6 +616,14 @@
       "description": "Naechster PR nach dem Paper-C-Beleg (07.11.2026): Anzeige 'Momentum 5T' auf Top-10- und Watchlist-Karten, berechnet live aus dem Enrichment (stock['close_5td_before_entry'] gegen den aktuellen Kurs), NIE aus entry_past_return_5d in backtest_history.json oder dem Export (Look-Ahead-Konvention, CLAUDE.md 'Backtest-Schema (Stufe A)'). Status-Text 'belegt fuer Gipfel >=30 % (1 Fenster, Replikation offen)'. Kein Score-, Filter- oder Push-Eingriff, keine Schwelle (eine Schwelle ist nicht belegt). Golden-Test/Methodik-Sync pruefen. Offener Easy-Entscheid: Farbe GRUEN fuer den Marker. NACHTRAG 08.11.2026 (ERLEDIGT mit PR #663): Karten-Zeile 'Momentum 5T' (Top-10 + Watchlist-Drawer, v1==v2) live aus price/close_5td_before_entry, fehlt -> '—'; Befund-Text aus config.PAPER_C_BADGE; Farbe GRUEN (erstes validated, SCORE_STATUS_LABELS['paper_c'] mit eval_ref paper_c_gipfel; Test-Waechter: Gruen nur mit Beleg-Verweis). Dazu Gipfel-Zeile im Position-Status und Kopfzeile + Paper-C-Zeile im Konfidenz-Panel. Kein Score-/Filter-/Push-/Exit-Eingriff.",
       "status": "erledigt",
       "status_date": "2026-11-08"
+    },
+    {
+      "id": "wahrheits-abgleich-einlaufphase",
+      "title": "Wahrheits-Abgleich (S16): erste 10 Läufe auf Fehlalarme prüfen",
+      "opened": "2026-11-08",
+      "description": "Neuer dauerhafter Wächter scripts/truth_check.py + Health-Check S16 (Easy-Entscheid 08.11.2026). Die ersten 10 Läufe (truth_check_log.jsonl) auf Fehlalarme prüfen, besonders: (1) Dividenden-/Split-Nachadjustierungen durch Yahoo (Klasse neu_adjustiert vs. abweichung); (2) max_gain_pct/max_drawdown_pct — Prüfung über Präfix-Fenster, weil der Zeitpunkt des letzten Rolling-Updates nicht gespeichert ist; (3) entry_past_return_5d — Produktion rechnete auf dem Mehr-Ticker-Index ohne dropna, der Abgleich auf den eigenen Handelstagen; (4) vix_level/market_regime — hängen am Laufzeitpunkt des Postclose (alte premarket-Zeilen vor 12.05.2026, vorläufiger VIX-Schluss); (5) Backfill-Zeilen (provenance backfill) mit älteren Rechenwegen. Erst danach entscheiden, ob Schwellen/Felder angepasst werden. Rein beobachtend, nichts bauen.",
+      "status": "beobachtet",
+      "status_date": "2026-11-08"
     }
   ]
 }

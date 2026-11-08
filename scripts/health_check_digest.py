@@ -348,6 +348,16 @@ def main(*, now_ts: datetime | None = None,
         log.warning("freeze_counter_line unerwartet: %r", _fz_exc)
         freeze_line = None
 
+    # Wahrheits-Abgleich (S16, 08.11.2026): eine Zeile aus dem letzten Lauf von
+    # scripts/truth_check.py. Die S16-Wertung selbst läuft im Daily-Run
+    # (health_check_log) und erscheint hier über state_fails. raise-frei;
+    # try/except ist reine Absicherung.
+    try:
+        truth_check_line = hc.truth_check_digest_line(ROOT / hc._S16_DEFAULT_LOG)
+    except Exception as _tc_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("truth_check_digest_line unerwartet: %r", _tc_exc)
+        truth_check_line = None
+
     # inst_ownership_history-Liveness (fail-soft, backend-only): eine Zeile im
     # Body. Zeigt LIVENESS (läuft/noch-nie/kaputt), nicht Änderungen — 13F ist
     # quartalsweise. WICHTIG: der Sammler läuft NUR im Daily-Run, NICHT im
@@ -654,6 +664,7 @@ def main(*, now_ts: datetime | None = None,
         eval_lines=eval_lines,
         weekly_lines=weekly_lines,
         watchdog_lines=watchdog_lines,
+        truth_check_line=truth_check_line,
     )
 
     log.info("Digest %s — %d state-fails, %d provider-fails, %d runs",

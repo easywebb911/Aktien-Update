@@ -54,6 +54,10 @@ from config import (
     HEALTH_CHECK_S14_MAX_AGE_HOURS,
     HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET,
     HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE,
+    HEALTH_CHECK_S16_CRIT_ROWS,
+    HEALTH_CHECK_S16_UNKNOWN_PCT,
+    HEALTH_CHECK_S16_UNKNOWN_STREAK,
+    HEALTH_CHECK_S16_MAX_TRADING_DAYS,
     S10_MUSS_FIELDS,
     S10_LAG_FIELDS,
     S10_OBSERVED_FIELDS,
@@ -408,6 +412,152 @@ def _postclose_missing_last_trading_day(now_utc: datetime,
     return ltd.strftime("%d.%m.%Y")
 
 
+# ── S16 — Wahrheits-Abgleich (08.11.2026) ─────────────────────────────────
+# Liest NUR ``truth_check_log.jsonl`` (geschrieben von scripts/truth_check.py,
+# eigener Workflow truth_check.yml) — kein Netz. Bewertet den LETZTEN Lauf:
+#   warn  ab 1 Abweichungs-Zeile; crit ab HEALTH_CHECK_S16_CRIT_ROWS (3) in
+#         einem Lauf ODER dieselbe Abweichung (datei/ticker/date/feld) in zwei
+#         Läufen hintereinander (abweichende Zeilen prüft der nächste Lauf erneut).
+#   warn  > HEALTH_CHECK_S16_UNKNOWN_PCT (30 %) der Zeilen unbekannt, ODER
+#         derselbe Ticker HEALTH_CHECK_S16_UNKNOWN_STREAK (5) geprüfte Läufe in
+#         Folge unbekannt.
+#   warn  „läuft nicht“: kein Log, oder letzter Lauf älter als
+#         HEALTH_CHECK_S16_MAX_TRADING_DAYS (2) US-Handelstage.
+# ``neu_adjustiert`` (Dividende/Split im Fenster) ist KEIN Fail, nur Zähler.
+_S16_DEFAULT_LOG = getattr(config, "TRUTH_CHECK_LOG_FILE", "truth_check_log.jsonl")
+
+
+def _read_truth_check_log(path) -> list[dict] | None:
+    """Gültige Log-Zeilen (älteste zuerst); ``None`` = Datei fehlt/unlesbar."""
+    try:
+        out = []
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except ValueError:
+                    continue
+                if isinstance(obj, dict) and obj.get("run_ts"):
+                    out.append(obj)
+        return out
+    except (OSError, UnicodeDecodeError):
+        return None
+
+
+def _s16_trading_days_since(run_ts: str, now_utc: datetime) -> int | None:
+    """US-Handelstage im Intervall (ET-Datum des Laufs, heutiges ET-Datum]."""
+    dt = _parse_iso_utc(run_ts)
+    if dt is None:
+        return None
+    d0 = dt.astimezone(_S4_EASTERN).date()
+    d1 = now_utc.astimezone(_S4_EASTERN).date()
+    n, d = 0, d0 + timedelta(days=1)
+    while d <= d1:
+        if d.weekday() < 5 and d.isoformat() not in config.US_MARKET_HOLIDAYS:
+            n += 1
+        d += timedelta(days=1)
+    return n
+
+
+def _s16_unknown_total(line: dict) -> int:
+    u = line.get("unbekannt") or {}
+    return sum(int(v or 0) for v in u.values()) if isinstance(u, dict) else 0
+
+
+def evaluate_s16_truth_check(path=None, *, now_utc: datetime | None = None) -> list[dict]:
+    """S16 — höchstens EIN Fail-Dict (schlimmste Stufe, Gründe verbunden).
+    Pure bis auf das Lesen des Logs; fail-soft (nie Exception)."""
+    try:
+        now = now_utc or datetime.now(timezone.utc)
+        if now.tzinfo is None:
+            now = now.replace(tzinfo=timezone.utc)
+        lines = _read_truth_check_log(path if path is not None else _S16_DEFAULT_LOG)
+        if not lines:
+            return [{"id": "S16", "severity": "warn",
+                     "detail": "Wahrheits-Abgleich läuft nicht (kein Log)"}]
+        last = lines[-1]
+        reasons: list[tuple[str, str]] = []
+        age = _s16_trading_days_since(last.get("run_ts"), now)
+        if age is None or age > HEALTH_CHECK_S16_MAX_TRADING_DAYS:
+            reasons.append(("warn", f"Wahrheits-Abgleich läuft nicht (letzter Lauf "
+                                    f"{last.get('run_ts')}, {age} Handelstage alt)"))
+        n_dev = int(last.get("abweichung") or 0)
+        devs = [d for d in (last.get("abweichungen") or [])
+                if isinstance(d, dict) and d.get("klasse") == "abweichung"]
+
+        def _k(d):
+            return (d.get("datei"), d.get("ticker"), d.get("date"), d.get("feld"))
+        repeat = []
+        if len(lines) >= 2:
+            prev = {_k(d) for d in (lines[-2].get("abweichungen") or [])
+                    if isinstance(d, dict) and d.get("klasse") == "abweichung"}
+            repeat = [d for d in devs if _k(d) in prev]
+        sample = ", ".join(f"{d.get('ticker')} {d.get('date')} {d.get('feld')} "
+                           f"{d.get('alt')}→{d.get('neu')}" for d in devs[:3])
+        if repeat:
+            r0 = repeat[0]
+            reasons.append(("crit", f"dieselbe Abweichung in 2 Läufen hintereinander "
+                                    f"({len(repeat)}×, z. B. {r0.get('ticker')} {r0.get('date')} "
+                                    f"{r0.get('feld')} {r0.get('alt')}→{r0.get('neu')})"))
+        if n_dev >= HEALTH_CHECK_S16_CRIT_ROWS:
+            reasons.append(("crit", f"{n_dev} Zeilen weichen ab ({sample})"))
+        elif n_dev >= 1 and not repeat:
+            reasons.append(("warn", f"{n_dev} Zeile(n) weichen ab ({sample})"))
+        n_rows = int(last.get("n_zeilen") or 0) - int(last.get("nicht_pruefbar") or 0)
+        n_unk = _s16_unknown_total(last)
+        if n_rows > 0 and n_unk / n_rows * 100.0 > HEALTH_CHECK_S16_UNKNOWN_PCT:
+            reasons.append(("warn", f"{n_unk} von {n_rows} Zeilen unbekannt "
+                                    f"({n_unk / n_rows * 100.0:.0f} %)"))
+        streaks = []
+        for t in sorted((last.get("ticker_unbekannt") or {})):
+            n = 0
+            for ln in reversed(lines):
+                tried = set(ln.get("ticker_geprueft") or [])
+                if t not in tried:
+                    continue
+                if t in (ln.get("ticker_unbekannt") or {}):
+                    n += 1
+                else:
+                    break
+            if n >= HEALTH_CHECK_S16_UNKNOWN_STREAK:
+                streaks.append(f"{t} ({n}×)")
+        if streaks:
+            reasons.append(("warn", "Ticker in Folge unbekannt: " + ", ".join(streaks)))
+        if not reasons:
+            return []
+        sev = "crit" if any(r[0] == "crit" for r in reasons) else "warn"
+        return [{"id": "S16", "severity": sev,
+                 "detail": "Wahrheits-Abgleich: " + "; ".join(r[1] for r in reasons)}]
+    except Exception:  # pragma: no cover — nie den Lauf brechen
+        return []
+
+
+def truth_check_digest_line(path=None) -> str:
+    """Eine Digest-Zeile aus dem LETZTEN Lauf. Fail-soft (nie Exception)."""
+    try:
+        lines = _read_truth_check_log(path if path is not None else _S16_DEFAULT_LOG)
+        if not lines:
+            return "🔍 Wahrheits-Abgleich: noch kein Lauf"
+        ln = lines[-1]
+        u = ln.get("unbekannt") or {}
+        u_yahoo = int(u.get("yahoo_fehler") or 0)
+        u_leer = int(u.get("ausdruecklich_leer") or 0)
+        u_rl = int(u.get("rate_limit") or 0)
+        md = ln.get("max_abs_delta")
+        md_txt = (f"{float(md):.2f}".replace(".", ",") + " pp") if md is not None else "—"
+        rl = f", Rate-Limit {u_rl}" if u_rl else ""
+        return (f"🔍 Wahrheits-Abgleich: {int(ln.get('n_zeilen') or 0)} Zeilen · "
+                f"{int(ln.get('abweichung') or 0)} Abweichung · "
+                f"{int(ln.get('neu_adjustiert') or 0)} neu-adjustiert · "
+                f"{u_yahoo + u_leer + u_rl} unbekannt (Yahoo {u_yahoo}, leer {u_leer}{rl}) · "
+                f"max |Δ| {md_txt}")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "🔍 Wahrheits-Abgleich: Status nicht ermittelbar"
+
+
 # ── S10 — Daten-Integritäts-Check (Phase 1, minimal) ──────────────────────
 
 
@@ -760,6 +910,7 @@ def evaluate_state_invariants(
     now_utc: datetime | None = None,
     html_path: str | None = None,
     backtest_path: str | None = None,
+    truth_check_log_path: str | None = None,
 ) -> list[dict]:
     """Bewertet alle 8 State-Invariants. Returnt Liste von Fail-Dicts.
 
@@ -1166,6 +1317,13 @@ def evaluate_state_invariants(
                            f"Einträge mit diesem Datum) — Datenlücke, "
                            f"Nachholen nicht mehr möglich"),
             })
+
+    # === S16 (warn/crit) — Wahrheits-Abgleich (08.11.2026) =================
+    # Nur Daily-Run-Pfad und nur mit übergebenem ``truth_check_log_path``
+    # (Hook in generate_report.py) — ohne Pfad SKIP, bestehende Aufrufer/Tests
+    # unverändert. Liest nur das Log, kein Netz.
+    if not ki_agent_only and truth_check_log_path:
+        fails.extend(evaluate_s16_truth_check(truth_check_log_path, now_utc=now_for_s8))
 
     return fails
 
@@ -1638,6 +1796,16 @@ _DIAGNOSE_SIGNAL_BLOCKS = {
         "→ Prüfe: Welches MUSS-Feld füllt nicht, welcher Fetch/Helper speist es, "
         "seit wann null (letzter grüner V4-Eintrag in backtest_history.json)? "
         "Provider tot / Schema-Drift? Betrifft es neue oder alle Einträge?"
+    ),
+    "S16": (
+        "[S16] Wahrheits-Abgleich: {d}\n"
+        "→ Prüfe: Welche Zeilen/Felder weichen ab (truth_check_log.jsonl, letzte "
+        "zwei Läufe)? Rechnet scripts/truth_check.py hier exakt wie die Produktion "
+        "(ki_agent.update_backtest_returns / backtest_history._final_window / "
+        "update_exit_shadow_forwards)? Wann und von welchem Pfad wurde der "
+        "gespeicherte Wert geschrieben (vor Final-Close-Fix #647/#651, Backfill, "
+        "Korrektur #648/#652)? Hat Yahoo eine Dividende/einen Split nachträglich "
+        "eingerechnet? Ein Ticker oder viele (Yahoo-Datenänderung)?"
     ),
     "S12": (
         "[S12] postclose-Run-Frequenz: {d}\n"
@@ -4144,6 +4312,7 @@ def format_digest_body(state_fails: list[dict],
                        eval_lines: list[str] | None = None,
                        weekly_lines: list[str] | None = None,
                        watchdog_lines: list[str] | None = None,
+                       truth_check_line: str | None = None,
                        ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
 
@@ -4170,6 +4339,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{retest_line}"
         if freeze_line:
             body += f"\n{freeze_line}"
+        if truth_check_line:
+            body += f"\n{truth_check_line}"
         if inst_own_line:
             body += f"\n{inst_own_line}"
         if options_oi_line:
@@ -4244,6 +4415,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(retest_line)
         if freeze_line:
             body_lines.append(freeze_line)
+        if truth_check_line:
+            body_lines.append(truth_check_line)
         if inst_own_line:
             body_lines.append(inst_own_line)
         if options_oi_line:
@@ -4315,6 +4488,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(retest_line)
     if freeze_line:
         lines.append(freeze_line)
+    if truth_check_line:
+        lines.append(truth_check_line)
     if inst_own_line:
         lines.append(inst_own_line)
     if options_oi_line:
