@@ -3275,6 +3275,19 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 08.11.2026 — Wahrheits-Abgleich als dauerhafter Wächter (1 PR, Manual-Merge)
+
+- Easy-Entscheid 08.11.2026 (Variante A): `#664` (Branch
+  `claude/bold-mayer-5dlyrd`, Branch-Commit `b031cc19`, kein Merge-Hash —
+  Regel a). Neu: `scripts/truth_check.py` (nur lesend; schreibt nur
+  `truth_check_log.jsonl` + `truth_check_state.json`), Workflow
+  `truth_check.yml` (werktags 23:07 UTC, eigene concurrency-Gruppe, kein
+  healthchecks-Ping), Health-Check **S16** + Digest-Zeile + Diagnose-Block,
+  Test `mock_test_truth_check.py`, open_item `wahrheits-abgleich-einlaufphase`.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#663`,
+  höchste in Block 1 erwähnte PR = `#664` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 08.11.2026 — Paper-C-Befund sichtbar: Momentum 5T, Gipfel-Zeile, Panel (1 PR, Easy-Merge wegen erstem GRÜN)
 
 - Easy-Auftrag 08.11.2026: `#663` (Branch `claude/bold-mayer-5dlyrd`,

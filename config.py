@@ -122,6 +122,22 @@ HAIRCUT_ROUND_TRIP_PCT    = -4.0
 MATURED_EXPORT_ENABLED    = True
 MATURED_EXPORT_FILE       = "matured_backtest_export.jsonl"
 
+# Wahrheits-Abgleich (scripts/truth_check.py, Easy-Entscheid 08.11.2026):
+# täglicher, NUR LESENDER Vergleich gespeicherter Verhältnis-Felder (Renditen,
+# max_gain/max_drawdown, Exit-Shadow-Forwards, vix_level, market_regime,
+# entry_past_return_5d) gegen frisch geladene Yahoo-Kurse, nachgerechnet nach
+# den Produktionsregeln. Schreibt AUSSCHLIESSLICH truth_check_log.jsonl +
+# truth_check_state.json — nie eine Datendatei. Gelesen von Health-Check S16
+# (ohne Netz). Kein Score-/Filter-/Push-Effekt.
+TRUTH_CHECK_LOG_FILE      = "truth_check_log.jsonl"
+TRUTH_CHECK_STATE_FILE    = "truth_check_state.json"
+TRUTH_CHECK_TOLERANCE_PP  = 0.02   # |alt − neu| darüber = Abweichung
+TRUTH_CHECK_ROTATION_N    = 10     # Bestands-Ticker pro Lauf (deterministisch)
+TRUTH_CHECK_MAX_WORKERS   = 2      # max. parallele Yahoo-Abrufe
+# Bekannt delistete Ticker (Yahoo liefert nichts mehr) → Zähler
+# "nicht_pruefbar", kein Abruf. Pflege: neuen Ticker nur mit Beleg ergänzen.
+TRUTH_CHECK_DELISTED      = frozenset({"BNRG", "PRA", "SNBR", "SNSE", "YYGH"})
+
 # Open-Items-Tracker (siehe CLAUDE.md "scripts/lint_open_items_consistency.py")
 # — Dateiname zentralisiert, damit health_check.py (Wochen-Digest-Block) und
 # scripts/lint_open_items_consistency.py dieselbe Quelle referenzieren können,
@@ -1816,6 +1832,11 @@ HEALTH_CHECK_S14_MAX_AGE_HOURS      = 26   # max Alter last_successful_gist_pull
 # der Cron strukturell nicht, daher keine Erwartung → keine false-positives.
 HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET = 5   # warn ab Werktagen ohne echten premarket-Run
 HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE = 2   # crit (NUR-REPORTING) ab Werktagen ohne echten postclose-Run
+# S16 Wahrheits-Abgleich (08.11.2026, liest nur truth_check_log.jsonl):
+HEALTH_CHECK_S16_CRIT_ROWS          = 3    # crit ab so vielen Abweichungs-Zeilen in EINEM Lauf
+HEALTH_CHECK_S16_UNKNOWN_PCT        = 30.0 # warn, wenn > so viel % der Zeilen unbekannt
+HEALTH_CHECK_S16_UNKNOWN_STREAK     = 5    # warn, wenn derselbe Ticker so oft in Folge unbekannt
+HEALTH_CHECK_S16_MAX_TRADING_DAYS   = 2    # warn „läuft nicht", wenn letzter Lauf älter
 HEALTH_CHECK_CUTOFF_DAYS            = 30   # JSONL-Prune-Cutoff
 
 # Quote-Proxy-Probe (Tier-2-Provider, 1× pro Daily-Run):
