@@ -3300,6 +3300,20 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 08.11.2026 — Handover-Konsistenz nach #657–#664 (1 PR, Auto-Merge Doku)
+
+- Easy-Auftrag 08.11.2026: `#665` (Branch `claude/bold-mayer-5dlyrd`,
+  Branch-Commit `2cc34e1f`, kein Merge-Hash — Regel a). Kopfzeile + „Aktueller
+  Bogen 04.–08.11.“; veraltete §4-Zählerstände (n=242) im Kopf und in der
+  RE-TEST-KALENDER-Zeile auf „ausgewertet 07.11. bei n=255“; Block 4
+  „Wiedervorlagen Stand 08.11.2026“. open_items: `backtest-rendite-aus-
+  laufendem-handelstag` → erledigt; neu `berichtsdatum-wurzelloesung-nacht-
+  probe`, `epr-gemeinsamer-index-vs-eigene-handelstage`. Freeze-Blöcke
+  byte-identisch (MD5 vorher = nachher, 15 Blöcke).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#664`,
+  höchste in Block 1 erwähnte PR = `#665` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 08.11.2026 — Wahrheits-Abgleich als dauerhafter Wächter (1 PR, Manual-Merge)
 
 - Easy-Entscheid 08.11.2026 (Variante A): `#664` (Branch
