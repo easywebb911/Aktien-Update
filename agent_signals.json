@@ -1,17 +1,17 @@
 {
-  "updated": "2026-11-08T20:42:20.292914+01:00",
+  "updated": "2026-11-09T00:43:27.607535+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 14.1,
+    "elapsed_s": 13.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 10,
+      "score": 22,
       "confidence": 17,
-      "drivers": "UOA Call/Put 5.1×",
+      "drivers": "News-KI 12/30: Positive recovery narrative lacks short squeeze catalysts like high short interest, low float, or forced buying pressure + UOA Call/Put 5.1×",
       "price": 3.14,
       "chg_pct": 0.0,
       "rvol_4d": 0.52,
@@ -22,8 +22,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.1×"
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 5.1437125748503
     },
     "AMRC": {
-      "score": 55,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (09.11.2026) + Spanne 10.0% + News: contract + Earnings in 1d",
+      "drivers": "Earnings in 1 Tagen (09.11.2026) + Spanne 10.0% + News-KI 8/30: Routine earnings outlook and conference participation lack short-squeeze catalysts; positive stock movement is insuffici + Earnings in 1d",
       "price": 21.61,
       "chg_pct": 0.0,
       "rvol_4d": 1.45,
@@ -44,9 +44,9 @@
       "upcoming_event": "Earnings in 1 Tagen (09.11.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.2962962962962963,
@@ -276,9 +276,9 @@
       "uoa_cp_ratio": null
     },
     "WOLF": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 14.4% + News-KI 8/30: Earnings-focused headlines with no mention of short interest, squeeze indicators, or significant institutional positioni",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 14.4%",
       "price": 23.79,
       "chg_pct": 0.0,
       "rvol_4d": 1.04,
@@ -290,7 +290,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 2.3075571177504393,
