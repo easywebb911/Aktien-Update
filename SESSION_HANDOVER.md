@@ -3300,6 +3300,20 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 08.11.2026 — Nacht-Probe als Wegwerf-Workflow (1 PR, Manual-Merge, neuer Workflow)
+
+- Easy-Auftrag 08.11.2026: `#666` (Branch `claude/bold-mayer-5dlyrd`,
+  Branch-Commit `c444af25`, kein Merge-Hash — Regel a). Read-only Probe
+  `.github/workflows/diagnose_night_probe.yml` + `scripts/diagnose_night_probe.py`
+  (+ Mock-Test): Nacht 00:10/01:30/02:50 ET, Tag-Referenz 09:47 ET, Di–Sa;
+  beantwortet F1 (Tageszeile D nachts final? `.info`-Bezugstag), F2 (Options-OI
+  nachts vs. Tag vs. Produktion), F3 (Nacht-Zeile vs. Produktions-Postclose).
+  Keine Secrets, `contents: read`, kein Commit; ab 21.11. no-op. Cleanup-PR nach
+  der Auswertung. open_item `berichtsdatum-wurzelloesung-nacht-probe` → beobachtet.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#665`,
+  höchste in Block 1 erwähnte PR = `#666` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 08.11.2026 — Handover-Konsistenz nach #657–#664 (1 PR, Auto-Merge Doku)
 
 - Easy-Auftrag 08.11.2026: `#665` (Branch `claude/bold-mayer-5dlyrd`,
@@ -4525,7 +4539,7 @@ neu getestet.
 | ab 09.11.2026 (Einstieg) · Auslöser n = 500 | **Exit-B.1-Nachfolger** sammelt (gepaart, Wilcoxon); Schätzung Einstiege bis ~Mitte/Ende Mai 2027 + Reife | `exit-b1-nachfolger-sammelphase` |
 | **16.11.2026** | **ApeWisdom-Abdeckung** prüfen (Treffer-Quote 4,5–12,5 % seit 23.10.) | `apewisdom-abdeckung` |
 | **~20./21.11.2026** (nach 10 Werktags-Läufen) | **Wahrheits-Abgleich Einlaufphase**: erste 10 Läufe von `truth_check.yml` auf Fehlalarme prüfen (Dividenden-Nachadjustierung, Präfix-Fenster max_gain, vix/regime, Backfill-Zeilen) | `wahrheits-abgleich-einlaufphase` |
-| nächste Woche (offen) | **Berichtsdatum-Wurzellösung + Nacht-Probe** (Mitternachts-Falle 27.08., Postclose-Ausfall 04.11.; S15 meldet nur das Symptom) | `berichtsdatum-wurzelloesung-nacht-probe` |
+| nächste Woche (offen; Probe `#666` gebaut, läuft ab Merge, ≥ 2 Handelsnächte) | **Berichtsdatum-Wurzellösung + Nacht-Probe** (Mitternachts-Falle 27.08., Postclose-Ausfall 04.11.; S15 meldet nur das Symptom) | `berichtsdatum-wurzelloesung-nacht-probe` |
 | Prüfpunkt (kein Termin) | **`entry_past_return_5d`: gemeinsamer Index vs. eigene Handelstage** — Produktion rechnet auf dem Mehr-Ticker-Index ohne dropna, der Wahrheits-Abgleich auf den eigenen Handelstagen des Tickers; Abweichungen in S16 bewerten, bevor die Replikation läuft | `epr-gemeinsamer-index-vs-eigene-handelstage` |
 | **03.12.2026** | **Sammel-Wiedervorlage** (geparkte Punkte bis nach den Freeze-Auswertungen): NaN-Baseline Gruppe 1, FINRA-SSR-UTC-Cache-Schlüssel, KI-Score-Edge-Freeze, Options-Rohketten, PR-#532-Sibling-Bugs | `nan-bypass-baseline-70`, `finra-ssr-utc-cache-key`, `ki-score-edge-freeze`, `options-chain-raw-sammelfeld`, `pr532-or0-sibling-bugs` |
 | **~21./22.12.2026** · Auslöser n ≥ 300 | **Paper C Replikation** (nur Gipfel, Einstieg ≥ 24.10.2026); vorher Skript parametrisieren | `paper-c-replikation-sammelphase`, `paper-c-replikations-skript` |
