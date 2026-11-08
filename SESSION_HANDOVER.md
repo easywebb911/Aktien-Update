@@ -3275,6 +3275,28 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 08.11.2026 — Paper-C-Befund sichtbar: Momentum 5T, Gipfel-Zeile, Panel (1 PR, Easy-Merge wegen erstem GRÜN)
+
+- Easy-Auftrag 08.11.2026: `#663` (Branch `claude/bold-mayer-5dlyrd`,
+  Branch-Commit `ea907ade`, kein Merge-Hash — Regel a). Rein Anzeige.
+- Karten-Zeile „Momentum 5T“ (Top-10 + Watchlist-Drawer, v1 == v2) live aus
+  `price`/`close_5td_before_entry` (nie `entry_past_return_5d`), fehlt → „—“;
+  Befund-Text aus `config.PAPER_C_BADGE`, Farbe aus `SCORE_STATUS_LABELS
+  ["paper_c"]` = **erstes GRÜN** (`validated`, `eval_ref` `paper_c_gipfel`).
+- Test-Wächter angepasst: GRÜN nur mit Verweis auf eine `eval_results`-Zeile
+  „Beleg“ (Gegenproben). Position-Status: „Hoch seit Einstieg · aktuell ·
+  Handelstag N“. Konfidenz-Panel: Kopfzeile „Stand 07.11.2026“ + Zeile
+  Momentum 5T; `exit_pressure`-Status-Text aktualisiert.
+- Golden neu (nur Karten-Zeile, WL-Kartendaten, JS-Gipfel-Zeile), neuer
+  Test `mock_test_paper_c_marker.py`. CLAUDE.md-Abschnitt „Karten-Zeile
+  Momentum 5T“; open_item `momentum-marker-karte` → erledigt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#662`,
+  höchste in Block 1 erwähnte PR = `#663` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** keine Blocker. Hinweise: Panel-Angabe „n ≥ 250“
+  für Setup/Conviction/KI gegen die Freeze-Blöcke geprüft (Setup-Edge Punkt 4,
+  KI-Score Punkt 5 — stimmt); „Handelstag N“ zählt Handelstage **nach** dem
+  Einstiegstag (Einstieg = 0).
+
 ### 07.11.2026 — Paper-C-Ergebnis protokolliert + Freeze Paper C Replikation (1 PR, Manual-Merge)
 
 - Easy-Entscheide 07.11.2026 nach dem Paper-C-Lauf: `#662` (Branch

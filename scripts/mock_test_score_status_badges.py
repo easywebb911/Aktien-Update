@@ -13,7 +13,7 @@ trägt ein ``status_date`` (kein undatierter Status), und ``compute_score_
 confidence`` enthält keine Validierungs-Literale mehr.
 
 Tests (Source-Inspektion + config-Import — kein yfinance-Import):
-  1. SCORE_STATUS_LABELS: 6 Keys, jeder mit non-empty ``status`` (str).
+  1. SCORE_STATUS_LABELS: 7 Keys, jeder mit non-empty ``status`` (str).
   2. Pflege-Pflicht-Kommentar (PFLEGE-PFLICHT + Re-Test-Termine).
   3. _score_status_badge_html liest den Status aus der config.
   4. KEIN Status-VALUE als Literal im Badge-/Card-Render-Pfad.
@@ -43,8 +43,10 @@ _spec = importlib.util.spec_from_file_location("config", ROOT / "config.py")
 config = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(config)
 
-# 4 Karten-Scores + 2 Panel-only (earliness, exit_pressure) = 6 (eine Pflegeliste).
-_EXPECTED_KEYS = {"setup", "monster", "ki", "conviction", "earliness", "exit_pressure"}
+# 4 Karten-Scores + 2 Panel-only (earliness, exit_pressure) + Paper C
+# (Momentum 5T, Karten-Zeile + Panel, seit 07.11.2026) = 7 (eine Pflegeliste).
+_EXPECTED_KEYS = {"setup", "monster", "ki", "conviction", "earliness", "exit_pressure",
+                  "paper_c"}
 _CARD_KEYS = {"setup", "monster", "ki", "conviction"}
 _ISO_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -194,6 +196,7 @@ def test_13_conf_class_reads_single_source() -> None:
 _EXPECTED_KIND = {
     "setup": "pending", "earliness": "falsified", "monster": "falsified",
     "ki": "heuristic", "conviction": "pending", "exit_pressure": "pending",
+    "paper_c": "validated",
 }
 
 
@@ -209,16 +212,66 @@ def test_14_status_kind_mandatory_and_valid() -> None:
             f"{k}: status_kind {kind!r} != erwartet {_EXPECTED_KIND[k]!r}"
 
 
-def test_15_no_entry_validated_today() -> None:
-    # WÄCHTER gegen versehentliches Selbst-Grün: heute darf KEIN Score
-    # status_kind=="validated" tragen (kein Score hat die Holm+CI-Erfolgs-
-    # Definition erfüllt). BEIM ERSTEN echten validated-Befund wird DIESE
-    # Assertion bewusst angepasst (Ausnahme für den belegten Score) —
-    # NICHT gelöscht, damit der Wächter für die übrigen scharf bleibt.
-    validated = [k for k, v in config.SCORE_STATUS_LABELS.items()
-                 if v.get("status_kind") == "validated"]
-    assert validated == [], \
-        f"Kein Score darf heute validated sein (Selbst-Grün-Wächter): {validated}"
+def _eval_rows(path) -> list[dict]:
+    import json as _json
+    out = []
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for ln in fh:
+                ln = ln.strip()
+                if not ln:
+                    continue
+                try:
+                    obj = _json.loads(ln)
+                except ValueError:
+                    continue
+                if isinstance(obj, dict):
+                    out.append(obj)
+    except FileNotFoundError:
+        pass
+    return out
+
+
+def _green_violations(labels: dict, eval_rows: list[dict]) -> list[str]:
+    """GRÜN-REGEL (Easy-Entscheid 07.11.2026): status_kind "validated" ist nur
+    erlaubt, wenn der Eintrag ``eval_ref.test_id`` trägt UND in
+    eval_results.jsonl eine Zeile mit genau dieser test_id und verdict "Beleg"
+    steht. Returnt die Liste der verletzenden Keys (leer = Regel erfüllt)."""
+    beleg_ids = {r.get("test_id") for r in eval_rows if r.get("verdict") == "Beleg"}
+    bad = []
+    for k, v in labels.items():
+        if v.get("status_kind") != "validated":
+            continue
+        ref = v.get("eval_ref") or {}
+        if not isinstance(ref, dict) or ref.get("test_id") not in beleg_ids:
+            bad.append(k)
+    return bad
+
+
+def test_15_green_only_with_beleg_reference() -> None:
+    # WÄCHTER gegen Selbst-Grün (angepasst beim ersten echten Beleg, 07.11.2026,
+    # NICHT gelöscht): GRÜN nur mit Verweis auf eine eval_results-Zeile mit
+    # verdict "Beleg". Setup/Monster/KI/Conviction bleiben nicht-grün.
+    rows = _eval_rows(ROOT / "eval_results.jsonl")
+    bad = _green_violations(config.SCORE_STATUS_LABELS, rows)
+    assert bad == [], f"GRÜN ohne Beleg-Verweis: {bad}"
+    validated = sorted(k for k, v in config.SCORE_STATUS_LABELS.items()
+                       if v.get("status_kind") == "validated")
+    assert validated == ["paper_c"], f"Nur paper_c darf heute grün sein: {validated}"
+    for k in ("setup", "monster", "ki", "conviction"):
+        assert config.SCORE_STATUS_LABELS[k]["status_kind"] != "validated", k
+    # Gegenprobe 1: grüner Eintrag OHNE Verweis → Verletzung.
+    assert _green_violations({"x": {"status_kind": "validated"}}, rows) == ["x"]
+    # Gegenprobe 2: Verweis auf eine Zeile, die KEIN "Beleg" ist → Verletzung.
+    assert _green_violations(
+        {"x": {"status_kind": "validated", "eval_ref": {"test_id": "exit_b1_a"}}},
+        rows) == ["x"], "Verweis auf 'Unklar'-Zeile darf nicht grün machen"
+    # Gegenprobe 3: Verweis auf eine nicht existierende Zeile → Verletzung.
+    assert _green_violations(
+        {"x": {"status_kind": "validated", "eval_ref": {"test_id": "gibt_es_nicht"}}},
+        rows) == ["x"]
+    # Gegenprobe 4: nicht-grüne Einträge brauchen keinen Verweis.
+    assert _green_violations({"x": {"status_kind": "pending"}}, rows) == []
 
 
 def test_16_color_only_from_status_kind() -> None:
@@ -258,7 +311,7 @@ def main() -> None:
         ("12 Single-Source: kein has_auc/tier in compute", test_12_single_source_no_validation_in_compute),
         ("13 _conf_class liest SCORE_STATUS_LABELS",    test_13_conf_class_reads_single_source),
         ("14 status_kind Pflichtfeld + 4 Werte",        test_14_status_kind_mandatory_and_valid),
-        ("15 kein Eintrag heute validated (Wächter)",   test_15_no_entry_validated_today),
+        ("15 GRÜN nur mit Beleg-Verweis (Wächter + Gegenproben)",   test_15_green_only_with_beleg_reference),
         ("16 Färbung nur aus status_kind",              test_16_color_only_from_status_kind),
     ]
     failed = 0

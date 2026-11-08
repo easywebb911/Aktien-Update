@@ -546,6 +546,32 @@ sind **wiederverwendbar** auf `.cockpit-pillar-value` und
 Unterstreichung). `_conf_class("setup" | "monster" | "ki" | "conviction")`
 ist Single-Source-of-Truth für Tier-Bestimmung.
 
+### Karten-Zeile „Momentum 5T“ (Paper-C-Befund, seit 07.11.2026)
+
+Detail-Zeile im Momentum-Block jeder Top-10- und Watchlist-Drawer-Karte
+(`_momentum_5t_row_html`, in v1 `_card` und v2 `_build_card_ctx` an
+`momentum_rows` angehängt → v1 == v2). **Rein Anzeige** — kein Score-,
+Filter-, Push- oder Exit-Effekt, keine Schwelle, keine Färbung des Werts,
+kein Sortieren.
+
+- **Wert:** `_momentum_5t_live(s)` = `price / close_5td_before_entry − 1`
+  in Prozent, **live aus dem Enrichment** (`_hist_stats`). **Nie**
+  `entry_past_return_5d` aus `backtest_history.json`/Export lesen
+  (Look-Ahead-Konvention, Test E in `mock_test_entry_past_return_5d.py`
+  + `mock_test_paper_c_marker.py`). Fehlt ein Feld → „—“, nie 0.
+- **Befund-Text** aus `config.PAPER_C_BADGE["text"]`, Farbe über
+  `_status_kind_of(PAPER_C_BADGE["status_key"])` = `SCORE_STATUS_LABELS
+  ["paper_c"]`. Nach der Replikation **nur** diese zwei config-Stellen
+  ändern. Rückweg: `PAPER_C_BADGE = {}` → Zeile verschwindet.
+- **GRÜN-Regel:** `status_kind = "validated"` (grün) ist **nur** erlaubt mit
+  `eval_ref.test_id` auf eine Zeile in `eval_results.jsonl` mit verdict
+  „Beleg“ (Wächter `test_15` in `mock_test_score_status_badges.py`, mit
+  Gegenproben). Heute trägt nur `paper_c` Grün; Setup/Monster/KI/Conviction
+  nicht.
+- **Position-Status** zeigt dazu „Hoch seit Einstieg · aktuell · Handelstag
+  N“ (`_psPeakLine`, JS, Handelstage über den Feiertagsspiegel
+  `_isNonTradingDay`), Tooltip: Gipfel belegt, Ausstiegsregel unbelegt.
+
 ### Pflege
 
 - Bei Schema-Erweiterung an Sub-Scores (z. B. neuer Entry-Score ab
