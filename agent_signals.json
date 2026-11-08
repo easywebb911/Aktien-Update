@@ -1,10 +1,10 @@
 {
-  "updated": "2026-11-07T21:53:18.003485+01:00",
+  "updated": "2026-11-08T01:36:46.376133+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 11.0,
+    "elapsed_s": 11.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 0.5254237288135594
     },
     "ATEN": {
-      "score": 33,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 8.2% + News-KI 8/30: Positive fundamentals (record revenue, raised guidance) reduce short squeeze potential, as company strength typically de",
+      "drivers": "Volumen 1.7× + Spanne 8.2% + News: earnings beat",
       "price": 24.76,
       "chg_pct": 0.0,
       "rvol_4d": 1.71,
@@ -66,8 +66,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.0423728813559322,
@@ -118,9 +118,9 @@
       "uoa_cp_ratio": 1.6725663716814159
     },
     "GOGO": {
-      "score": 99,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 21.2× + 🚀 Massives Volumen 21.2×+ + Spanne 77.0% + SEC 8-K + News: contract + UOA Call-Vol/OI 4.0× ATM",
+      "drivers": "Volumen 21.2× + 🚀 Massives Volumen 21.2×+ + Spanne 77.0% + News: contract + UOA Call-Vol/OI 4.0× ATM",
       "price": 3.88,
       "chg_pct": 0.13,
       "rvol_4d": 21.25,
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 8.216216216216216
     },
     "QUBT": {
-      "score": 66,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (09.11.2026) + Spanne 12.8% + News: halt + Earnings in 2d + UOA Call/Put 4.6×",
+      "drivers": "Earnings in 2 Tagen (09.11.2026) + Spanne 12.8% + News-KI 12/30: Moderate fundamentals but lacking short squeeze catalysts like high short interest, recent borrow restrictions, or signi + Earnings in 2d + UOA Call/Put 4.6×",
       "price": 6.33,
       "chg_pct": -0.0,
       "rvol_4d": 1.41,
@@ -178,7 +178,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.6×"
@@ -255,13 +255,13 @@
       "uoa_cp_ratio": 1.0
     },
     "VEEA": {
-      "score": 37,
-      "confidence": 70,
-      "drivers": "Spanne 11.4% + News-KI 12/30: Positive business developments but no evidence of high short interest, significant short squeeze setup, or catalyst-driv + FINRA Short-Vol 66%",
+      "score": 30,
+      "confidence": 33,
+      "drivers": "News: merger + FINRA Short-Vol 66%",
       "price": 4.89,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.49,
-      "rvol_20d": 0.03,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -269,7 +269,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
