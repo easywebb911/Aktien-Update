@@ -1,0 +1,75 @@
+name: Diagnose Nacht-Probe (Wegwerf)
+
+# WEGWERF-DIAGNOSE (open_item berichtsdatum-wurzelloesung-nacht-probe).
+# Read-only: kein Commit, kein Push, keine Secrets, schreibt nichts ins Repo.
+# Ergebnisse: Job-Log (Zeilen [night_probe_meta]/[night_probe]) + Artifact.
+# Rückweg: Cleanup-PR löscht diese Datei + scripts/diagnose_night_probe.py +
+# scripts/mock_test_diagnose_night_probe.py. Ab 21.11.2026 (ET) läuft das
+# Skript ohnehin als no-op.
+#
+# Zeitplan (Drift egal — jede Messung loggt ihre echte Zeit UTC + ET):
+#  * Nacht: Start 04:41 UTC (= 23:41 ET, Winterzeit) Di–Sa, also in den
+#    Nächten nach jedem Handelstag Mo–Fr. Der Job wartet bis 00:10 / 01:30 /
+#    02:50 ET und misst jeweils einmal (Ziele, die bei verspätetem Start schon
+#    vorbei sind, entfallen; Start nach 02:50, aber vor 09:30 ET → sofort eine
+#    Messung). Darum timeout 250 min (≈ 3 h 10 min Warten + Messungen).
+#  * Tag-Referenz: 14:47 UTC (= 09:47 ET) Di–Sa, eine Messung.
+#  * workflow_dispatch: eine Messung jetzt (mode once) oder auto.
+# Eigene concurrency-Gruppe (nie zwei Probe-Läufe gleichzeitig); keine
+# gemeinsame Gruppe mit anderen Workflows.
+
+on:
+  schedule:
+    - cron: '41 4 * * 2-6'
+    - cron: '47 14 * * 2-6'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'auto (wie Zeitplan) oder once (eine Messung jetzt)'
+        type: choice
+        options: [once, auto]
+        default: once
+
+permissions:
+  contents: read
+
+concurrency:
+  group: diagnose-night-probe
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 250
+    steps:
+      - name: Checkout main (nur lesen)
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Nacht-Probe messen
+        env:
+          PROBE_KIND: ${{ github.event.schedule == '47 14 * * 2-6' && 'day' || 'night' }}
+        run: python scripts/diagnose_night_probe.py --mode "${{ github.event.inputs.mode || 'auto' }}" --kind "$PROBE_KIND"
+
+      - name: Artifact hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: night-probe-${{ github.run_id }}
+          path: ${{ runner.temp }}/night_probe/
+          if-no-files-found: warn
+          retention-days: 30

@@ -629,8 +629,8 @@
       "id": "berichtsdatum-wurzelloesung-nacht-probe",
       "title": "Berichtsdatum-Wurzellösung + Nacht-Probe (Mitternachts-Falle)",
       "opened": "2026-11-08",
-      "description": "Läuft der Postclose erst nach 00:00 ET, gilt der Folgetag als Berichtsdatum; der Vintage-Guard überspringt dann den Backtest-Append (Beleg: 27.08.2026, Lauf 01:28 ET; dazu Ausfall 04.11.2026, siehe postclose-2026-11-04-verloren). Health-Check S15 (#658) meldet nur das Symptom. Offen: Wurzellösung für das Berichtsdatum plus eine Nacht-Probe — für die Woche ab 09.11.2026 vorgesehen (Easy, 08.11.2026). Nichts gebaut.",
-      "status": "offen",
+      "description": "Läuft der Postclose erst nach 00:00 ET, gilt der Folgetag als Berichtsdatum; der Vintage-Guard überspringt dann den Backtest-Append (Beleg: 27.08.2026, Lauf 01:28 ET; dazu Ausfall 04.11.2026, siehe postclose-2026-11-04-verloren). Health-Check S15 (#658) meldet nur das Symptom. Offen: Wurzellösung für das Berichtsdatum plus eine Nacht-Probe — für die Woche ab 09.11.2026 vorgesehen (Easy, 08.11.2026). Nichts gebaut. NACHTRAG 08.11.2026: Read-only Nacht-Probe gebaut (Wegwerf-Workflow .github/workflows/diagnose_night_probe.yml + scripts/diagnose_night_probe.py, Manual-Merge). Läuft ab Merge: Nacht-Start 04:41 UTC (Messungen 00:10/01:30/02:50 ET) und Tag-Referenz 14:47 UTC, Di–Sa, mindestens 2 Handelsnächte; Auswertung über die Actions-API, danach Cleanup-PR. Noch keine Wurzellösung, kein Ersatz-Cron.",
+      "status": "beobachtet",
       "status_date": "2026-11-08"
     },
     {
