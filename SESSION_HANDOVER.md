@@ -6117,6 +6117,13 @@ UTC-Datum des Laufs; Postclose nach UTC-Mitternacht). Der Agent-Boost
   13.10.2026 eingeschlossen): die Schätzung nahm für alle Zeilen ein 14-Tage-Fenster
   an; mit dem tatsächlich wirksamen 13-Tage-Fenster ist MNRO 13.10.2026 nicht
   betroffen. Gültig sind die Zahlen dieses Eintrags.
+- Dieselbe exakte Nachrechnung ergibt für die anderen Freezes: Setup-Edge-Population
+  **7 von 100** (|Δ| bis 4,0), H5 **62** abweichende Scores mit **6** Stufen-Wechseln;
+  über alle Zeilen 120 abweichende Scores, 10 Wechsel über/unter 70 (1 Backfill-Zeile,
+  PDYN 28.05.2026, unerklärt). Die Freeze-Einträge vom 09.11.2026 (`#667`) in
+  Setup-Edge (8 von 100, bis 4,6) und H5 (65 / 7) nennen noch die erste Schätzung;
+  ob sie berichtigt werden, entscheidet Easy (offen, open_item
+  `score-smoothing-textsortierung-monatswechsel`).
 
 **Folge (Easy-Entscheid):** **Keine Neuauswertung.** Das Ergebnis vom 07.11.2026
 (beide Arme „Unklar“, „§4-Protokolleintrag 07.11.2026“) **bleibt bindend**. Die
