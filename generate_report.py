@@ -4979,12 +4979,29 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
         s["score_raw"] = today_raw
         s["score_trend_bonus_pts"] = 0.0  # default; wird unten gesetzt falls aktiv
 
-        # Past entries (exclude today to avoid double-counting)
-        past = sorted(
-            [e for e in history.get(ticker, []) if e.get("date", "") != today],
-            key=lambda x: x.get("date", ""),
-            reverse=True,
-        )[:3]
+        # Past entries (exclude today to avoid double-counting).
+        # CHRONOLOGISCH über das geparste Datum (Fix 09.11.2026, open_item
+        # score-smoothing-textsortierung-monatswechsel): das Datum ist
+        # TT.MM.JJJJ — die frühere Text-Sortierung holte am Monatswechsel alte
+        # Monatsend-Tage statt der jüngsten Läufe in den 3-Tage-Schnitt und
+        # den Trend-Bonus/-Malus. Unparsbares Datum → Eintrag NICHT verwenden
+        # (laut geloggt), nie raten. Tie-Break über den Text macht das
+        # Ergebnis unabhängig von der Reihenfolge in der Datei.
+        _past_dated = []
+        for e in history.get(ticker, []):
+            _d_txt = e.get("date", "")
+            if _d_txt == today:
+                continue
+            _d = _parse_de_date(_d_txt)
+            if _d is None:
+                log.warning("Score-Glättung %s: Eintrag mit unparsbarem Datum %r "
+                            "nicht verwendet", ticker, _d_txt)
+                continue
+            _past_dated.append((_d, _d_txt, e))
+        # Schlüssel (Datum, Text, Score): auch doppelte Tage ordnen sich fest.
+        _past_dated.sort(key=lambda x: (x[0], x[1], _safe_float(x[2].get("score"))),
+                         reverse=True)
+        past = [e for _d, _t, e in _past_dated[:3]]
 
         if len(past) >= 2:
             # Smoothing greift nur ab 2 Vorläufen — neue Ticker bekommen keinen Abzug
