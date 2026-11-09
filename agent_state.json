@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-11-09T07:30:21.799957+01:00",
+  "last_run": "2026-11-09T17:22:33.499441+01:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,42 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-10-28T22:05:34.963500+01:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale PDYN: trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-10-28T22:05:34.963521+01:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock",
-      "body": "🔻 Exit-Signale WOLF: profit_lock crit · Warnung pressure 58/100",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-10-28T22:05:34.963536+01:00",
-      "ticker": "GRPN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale GRPN: trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-10-29T01:57:35.403802+01:00",
       "ticker": "IONQ",
@@ -1311,22 +1275,57 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-11-09T17:22:27.944585+01:00",
+      "ticker": "LCID",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "conviction_high",
+      "body": "LCID 🎯 KAUFSIGNAL — Conviction 77/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Aggregations-Anzeige…",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 77
+    },
+    {
+      "ts": "2026-11-09T17:22:33.499547+01:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "escalation",
+      "trigger": "overheated,profit_lock",
+      "body": "🚨 Exit-Eskalation WOLF: pressure 64→82/100 · Trigger: overheated, profit_lock",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-11-09T17:22:33.499559+01:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "overheated,profit_lock",
+      "body": "🔻 Exit-Signale WOLF: overheated, profit_lock crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "SERV": 70.0,
-    "INDI": 67.0,
-    "GOGO": 69.0,
-    "QUBT": 65.0,
-    "ATEN": 62.0,
-    "FIP": 69.0,
-    "SVV": 55.0,
-    "EVC": 55.0,
-    "AMRC": 62.0,
-    "SPCE": 52.0,
-    "WOLF": 43.0,
-    "VEEA": 9.0,
-    "AMC": 9.0
+    "ULCC": 65.0,
+    "PCT": 64.0,
+    "METC": 64.0,
+    "LENZ": 63.0,
+    "SERV": 49.0,
+    "LCID": 77.0,
+    "INBX": 69.0,
+    "WOLF": 52.0,
+    "INDI": 43.0,
+    "UAMY": 49.0,
+    "AMC": 10.0,
+    "VEEA": 8.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1383,7 +1382,7 @@
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-11-09T07:30:21.800044+01:00"
+      "updated": "2026-11-09T17:22:33.499564+01:00"
     },
     "GRPN": {
       "last_active": [],
