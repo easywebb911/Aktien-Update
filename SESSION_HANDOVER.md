@@ -3300,6 +3300,23 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 09.11.2026 — Score-Glättung chronologisch statt Datums-Text (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Auftrag 09.11.2026: `#667` (Branch `claude/bold-mayer-5dlyrd`,
+  Branch-Commit `8146220b`, kein Merge-Hash — Regel a). `apply_score_smoothing`
+  wählt die 3 Vorläufe über `_parse_de_date` statt per Text-Sortierung
+  `TT.MM.JJJJ` (ULCC 09.11.: 71,3 → 62,2, Malus statt Bonus; INBX +3,0);
+  unparsbare Einträge geloggt und nicht verwendet. Sparkline unberührt.
+  Test `mock_test_score_smoothing_chrono.py`. Protokolleinträge 09.11.2026 in
+  den Freezes Setup-Edge (8c), Exit-B.1-Nachfolger (Punkt 11), H5; Bestand
+  nicht umgeschrieben. open_items: Glättungs-Punkt → beobachtet; neu
+  `sparkline-datum-textsortierung`, `sparkline-ki-score-ueberschreibt-setup`,
+  `momentum-5t-intraday-bezug`, `watchlist-score-history-textsortierung`,
+  `score-history-listenreihenfolge`.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#666`,
+  höchste in Block 1 erwähnte PR = `#667` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 08.11.2026 — Nacht-Probe als Wegwerf-Workflow (1 PR, Manual-Merge, neuer Workflow)
 
 - Easy-Auftrag 08.11.2026: `#666` (Branch `claude/bold-mayer-5dlyrd`,
