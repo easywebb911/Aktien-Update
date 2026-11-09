@@ -6069,6 +6069,48 @@ das Tool ist Attention-Router/Screener, kein belegter Alpha-Generator.
 Zeilen `score ≥ 70` erreichen. Das Ergebnis oben gilt wie registriert; ob und wie
 das nachträglich einzuordnen ist, entscheidet Easy getrennt.
 
+#### §4-Protokolleintrag 09.11.2026 — Glättungs-Fehler (Text-Sortierung): Population betroffen, keine Neuauswertung, „Unklar“ bleibt bindend
+
+**Bindend gemäß Änderungs-Protokoll-Regel des §4-Blocks (05.08.2026).** Eigener
+Abschnitt **außerhalb** des eingefrorenen §4-Registrierungsblocks (wie die
+Einträge vom 02., 03. und 07.11.2026); alle Freeze-Blöcke bleiben byte-identisch
+(MD5 vorher = nachher, im PR-Bericht belegt). Easy-Entscheid 09.11.2026.
+
+**Anlass:** `generate_report.apply_score_smoothing` wählte die „letzten 3 Läufe“
+für den 3-Tage-Schnitt (70/30) und den Trend-Bonus/-Malus (±3) per Text-Sortierung
+des Datums `TT.MM.JJJJ`; am Monats- und Jahreswechsel kamen dadurch alte
+Monatsend-Tage in die Rechnung. Behoben mit `#667` (gemergt 09.11.2026, 18:42 UTC);
+der gespeicherte `score` der §4-Zeilen ist **nicht** umgeschrieben. Die Glättung
+läuft erst nach der Top-10-Auswahl (`generate_report.py:19565`) — betroffen war nur
+der gespeicherte `score` und damit die Schwelle `score ≥ 70`, nicht die Auswahl.
+
+**Befund (belegt, nur Prädiktor, keine Renditen angesehen):** Nachgerechnet aus
+allen Git-Ständen von `score_history.json` (rekonstruierte Rohwert-Historie je
+Ticker und Tag) mit der Produktionsformel. Von den 672 Forward-Zeilen des
+§4-Fensters (Einstieg 21.07.–23.10.2026) sind **alle 672** exakt reproduziert,
+**0 unerklärt**: 570 direkt, 89 mit dem späteren Late-Runner-Abschlag ×0,85
+(`generate_report.py:5129`, angewandt nach der Glättung `:19660`), 13 mit einem
+13-Tage- statt 14-Tage-Fenster (Load-Prune `generate_report.py:3768` rechnet vom
+UTC-Datum des Laufs; Postclose nach UTC-Mitternacht). Der Agent-Boost
+(`generate_report.py:4953`, nach der Glättung `:19691`) ist über das gespeicherte
+`agent_boost_factor` eingerechnet.
+- In der §4-Population (`score ≥ 70`, n = 255) tragen **24 von 255** Zeilen einen
+  anderen Score als bei chronologischer Glättung (Median |Δ| 2,8, max 7,0 Pkt).
+- **6 Zeilen liegen auf der falschen Seite von 70:** **2 zu Unrecht drin** (METC
+  04.09.2026: 75,8 statt 68,8; XRX 11.09.2026: 74,9 statt 69,8) und **4 zu Unrecht
+  draußen** (SHOE 04.09.2026: 64,8 statt 70,3; GRPN 08.10.2026: 69,8 statt 72,0;
+  GRPN 09.10.2026: 65,1 statt 71,7; SHOE 12.10.2026: 67,3 statt 70,8).
+- Abweichung zur ersten Schätzung im Diagnose-Bericht (26/255, 7 Wechsel, MNRO
+  13.10.2026 eingeschlossen): die Schätzung nahm für alle Zeilen ein 14-Tage-Fenster
+  an; mit dem tatsächlich wirksamen 13-Tage-Fenster ist MNRO 13.10.2026 nicht
+  betroffen. Gültig sind die Zahlen dieses Eintrags.
+
+**Folge (Easy-Entscheid):** **Keine Neuauswertung.** Das Ergebnis vom 07.11.2026
+(beide Arme „Unklar“, „§4-Protokolleintrag 07.11.2026“) **bleibt bindend**. Die
+Entscheidung über früh-raus vs. 10 Tage halten fällt im **Exit-B.1-Nachfolger**
+(„VORABREGISTRIERUNG — Exit-B.1-Nachfolger“, Einstieg ab 09.11.2026; `#667` wurde
+vor dem ersten Nachfolger-Postclose gemergt).
+
 #### ⚠ Datenherkunft des vorabregistrierten Exit-B.1-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
 
 **Gilt für den vorabregistrierten Exit-B.1-Re-Test oben (Score≥70-Bucket): bei der
