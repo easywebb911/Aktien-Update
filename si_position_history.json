@@ -5358,6 +5358,12 @@
       "shares_short": 43767924,
       "short_pct_float": 27.3,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 43657910,
+      "short_pct_float": 27.19,
+      "pub_date": "2026-10-26"
     }
   ],
   "VOYG": [
@@ -11076,6 +11082,12 @@
       "shares_short": 61164528,
       "short_pct_float": 33.37,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 60096831,
+      "short_pct_float": 32.78,
+      "pub_date": "2026-10-26"
     }
   ],
   "SRZN": [
