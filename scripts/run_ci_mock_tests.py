@@ -34,11 +34,12 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 
-# ── ALLOWLIST (120) — abgeleitet zur Bauzeit (ls mock_test_*.py − EXCLUDED),
+# ── ALLOWLIST (121) — abgeleitet zur Bauzeit (ls mock_test_*.py − EXCLUDED),
 #    danach statisch festgeschrieben. Kategorie A: deterministisch, kein
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
     "truth_check",
+    "score_smoothing_chrono",
     "diagnose_night_probe",
     "paper_c_marker",
     "paper_c_eval",

@@ -565,9 +565,9 @@
       "id": "score-smoothing-textsortierung-monatswechsel",
       "title": "apply_score_smoothing sortiert Vorläufe als Text (TT.MM.JJJJ)",
       "opened": "2026-11-07",
-      "description": "generate_report.apply_score_smoothing wählt die 'letzten 3 Läufe' per sorted(key=date-String, reverse=True) — das Datum ist TT.MM.JJJJ, also Textsortierung. Am Monatsanfang zählen dadurch alte Monatsend-Tage (z. B. 31.08./28.08./27.08.) statt der neuesten Tage (03.09./01.09./31.08.); betrifft Glättung (70/30) und Trend-Bonus/-Malus. Beleg METC 04.09.2026: gespeicherter Score über 70 (§4-Mitglied) nur durch die Textsortierung, chronologisch korrekt nachgerechnet unter 70; CABA 02.09.2026 lag chronologisch korrekt knapp unter 70 (kein Wechsel). Potenziell betroffen: §4-Zeilen mit Datum in den ersten ~14 Tagen eines Monats (Stand 07.11.: 119 von 255). Geschützte Score-Logik (_compute_sub_scores-Umfeld/apply_score_smoothing) — Fix und ggf. Umgang mit §4 nur nach Easy-Entscheid (Änderungs-Protokoll-Regel).",
-      "status": "offen",
-      "status_date": "2026-11-07"
+      "description": "generate_report.apply_score_smoothing wählt die 'letzten 3 Läufe' per sorted(key=date-String, reverse=True) — das Datum ist TT.MM.JJJJ, also Textsortierung. Am Monatsanfang zählen dadurch alte Monatsend-Tage (z. B. 31.08./28.08./27.08.) statt der neuesten Tage (03.09./01.09./31.08.); betrifft Glättung (70/30) und Trend-Bonus/-Malus. Beleg METC 04.09.2026: gespeicherter Score über 70 (§4-Mitglied) nur durch die Textsortierung, chronologisch korrekt nachgerechnet unter 70; CABA 02.09.2026 lag chronologisch korrekt knapp unter 70 (kein Wechsel). Potenziell betroffen: §4-Zeilen mit Datum in den ersten ~14 Tagen eines Monats (Stand 07.11.: 119 von 255). Geschützte Score-Logik (_compute_sub_scores-Umfeld/apply_score_smoothing) — Fix und ggf. Umgang mit §4 nur nach Easy-Entscheid (Änderungs-Protokoll-Regel). NACHTRAG 09.11.2026: Beleg live — ULCC (Rang 1) zeigte 71,3 statt 62,2: Text-Sortierung holte 27./28./29.10. statt 03./04./05.11. in den 3-Tage-Schnitt und löste Trendbonus +3 statt Malus −3 aus; INBX −3,0 Pkt (Bonus fehlte). Fix #667: apply_score_smoothing sortiert chronologisch über _parse_de_date, unparsbare Einträge werden laut geloggt und nicht verwendet; Top-10-Auswahl unberührt (Glättung läuft nach der Auswahl). Bestand NICHT umgeschrieben. Nachgerechnet aus allen Git-Ständen von score_history.json (nur Prädiktor, keine Outcomes): 123 gespeicherte Scores an 41 Tagen / 40 Tickern abweichend (Median |Δ| 2,6, max 10,4 Pkt; 52 ≥ 3 Pkt), 59 mit falschem Trend-Vorzeichen, 11 wechseln über/unter 70, 0 Top-10-Wechsel (strukturell ausgeschlossen). §4 (ausgewertet 07.11.): 26 der 255 Populations-Zeilen mit abweichendem Score, 7 Schwellen-Wechsel (2 heraus, 5 hinein). Protokolleinträge in den Freezes Setup-Edge (8c), Exit-B.1-Nachfolger (Punkt 11) und H5. Status beobachtet bis zum ersten Daily-Run nach dem Merge (chronologisch korrekt geglättet?), dann erledigt. Offen (Easy): Umgang mit Nachfolger-Zeilen vor der Naht (bei Merge vor dem Postclose 09.11. sind es 0). WIEDERVORLAGE (Guardian #667): direkt nach dem Merge prüfen, ob vor der Naht noch ein Postclose mit Einstieg ≥ 09.11.2026 lief; falls ja, Zahl der Zeilen und Wechsel über/unter 70 als Nachtrag im Block 'Exit-B.1-Nachfolger' festhalten (angekündigt im Protokolleintrag 09.11.2026).",
+      "status": "beobachtet",
+      "status_date": "2026-11-09"
     },
     {
       "id": "paper-c-skript-bauen",
@@ -640,6 +640,46 @@
       "description": "Produktion (_hist_stats) liest close_5td_before_entry als df['Close'].iloc[-6] aus dem Mehr-Ticker-Batch ohne dropna; der Wahrheits-Abgleich (#664) rechnet auf den eigenen Handelstagen des Tickers. Bei Handelsaussetzungen können beide abweichen. Prüfpunkt: S16-Abweichungen bei entry_past_return_5d gesondert bewerten, bevor die Paper-C-Replikation ausgewertet wird (Prädiktor dieses Freezes). Kein Termin, nichts gebaut.",
       "status": "offen",
       "status_date": "2026-11-08"
+    },
+    {
+      "id": "sparkline-datum-textsortierung",
+      "title": "Score-Verlauf (Sparkline) und Δ T-1: Datum als Text sortiert, JS erwartet ISO",
+      "opened": "2026-11-09",
+      "description": "Diagnose 09.11.2026 (ULCC-Karte): apply_score_smoothing baut den Sparkline-Payload (generate_report.py, Block 'Sparkline data: last 7 calendar entries') per Text-Sortierung des TT.MM.JJJJ-Datums — am Monatswechsel stehen Oktober-Tage hinter November-Tagen. Folgen: Kurvenreihenfolge falsch; Δ T-1 (_score_delta_html, sparkline.scores[-1]-[-2]) und 7-Tage-Trend ('↑ +x Pkt', scores[-1]-scores[0]) falsch (ULCC: +6,0/+5,7 statt +2,3/↓ −22,8). Zusätzlich erwartet drawSparkline ISO-Datum (parseIso hängt 'T12:00:00' an, Kommentar 'ISO YYYY-MM-DD'), bekommt aber TT.MM.JJJJ: Wochentag-Labels/Tooltip-Datum kaputt, isGap immer wahr, Text-Vergleich todayS > dates[-1] falsch. Nur Anzeige (kein Score). Fix: Payload chronologisch + ISO, eigener PR.",
+      "status": "offen",
+      "status_date": "2026-11-09"
+    },
+    {
+      "id": "sparkline-ki-score-ueberschreibt-setup",
+      "title": "Setup-Score-Kurve: letzter Punkt wird mit dem KI-Agent-Score überschrieben",
+      "opened": "2026-11-09",
+      "description": "Diagnose 09.11.2026: drawSparkline (generate_report.py JS) ersetzt den rechten Kurvenpunkt durch _AGENT_SIGNALS.signals[ticker].score, sobald agent_signals ≤ 4 h alt ist — eine andere Kennzahl (KI-Score) in der Setup-Score-Kurve. ULCC: 91,5 → 25 (rot, unterer Rand). Betrifft alle Karten mit Kurve (09.11.: 9 von 9 Top-10) und Watchlist-Karten, zu jeder Uhrzeit. Farben per Punkt mit KI-Dot-Schwellen (KI_DOT_*). Nur Anzeige. Fix: KI-Score nicht in die Setup-Kurve schreiben (ggf. eigener Marker), zusammen mit sparkline-datum-textsortierung.",
+      "status": "offen",
+      "status_date": "2026-11-09"
+    },
+    {
+      "id": "momentum-5t-intraday-bezug",
+      "title": "Karten-Zeile Momentum 5T ist in Intraday-/Premarket-Läufen nicht die getestete Größe",
+      "opened": "2026-11-09",
+      "description": "Diagnose 09.11.2026: _momentum_5t_live = price / close_5td_before_entry − 1 aus dem Bericht-Lauf (Live-Polling patcht die Zeile nicht). Formel identisch zu entry_past_return_5d; deckungsgleich mit der Paper-C-Größe aber nur im Postclose (Schlusskurs D). Premarket vor 09:30 ET: Größe des Vortags (bei leerer Tageszeile Zähler aus dem Screener-Kurs, Nenner passt dann nicht). Intraday (z. B. Lauf 09.11. 11:21 ET): Zähler = Kurs mitten im Handel; bei den Top-10 steckten +7 bis +21 % unfertiger Tag im Wert (ULCC +10,8 % Momentum bei +11,0 % Tagesplus). Nur Anzeige. Vorschlag: Kennzeichnung 'Stand HH:MM ET, unfertiger Tag' oder nur Postclose zeigen — Easy entscheidet.",
+      "status": "offen",
+      "status_date": "2026-11-09"
+    },
+    {
+      "id": "watchlist-score-history-textsortierung",
+      "title": "Watchlist: letzter Score und Mini-Kurve aus score_history per Text-Sortierung",
+      "opened": "2026-11-09",
+      "description": "Grep 09.11.2026: generate_report.py (_wl_raw-Block, WL_SCORES/_wl_hist) wählt den 'letzten' Score und die 7-Punkte-Kurve per sorted(key=Datums-Text). Am Monatswechsel zeigt die Watchlist-Kachel (Fallback-Stufe 3 der Watchlist-Score-Single-Source, nur ohne Top-10-/Karten-Daten) einen alten Score aus dem Vormonat und eine falsch sortierte Kurve. Nur Anzeige. Mit sparkline-datum-textsortierung beheben.",
+      "status": "offen",
+      "status_date": "2026-11-09"
+    },
+    {
+      "id": "score-history-listenreihenfolge",
+      "title": "score_history: zwei Leser verlassen sich auf die Listen-Reihenfolge der Datei",
+      "opened": "2026-11-09",
+      "description": "Grep 09.11.2026: ki_agent.detect_anomalies (Score-Sprung, history[-2]) und generate_report.process_exit_signals (Setup-Verfall, entries[-1]) nehmen 'gestern'/'heute' aus der Listen-Position, nicht aus dem Datum. Heute korrekt, weil apply_score_smoothing den Tageseintrag immer hinten anhängt; bricht, falls die Datei je anders sortiert geschrieben wird. Anomalie- und Exit-Pushes sind derzeit aus (PUSH_*_NTFY_ENABLED=False); Setup-Verfall wirkt aber auf den angezeigten Exit-Score. Kein akuter Fehler, Härtung optional.",
+      "status": "offen",
+      "status_date": "2026-11-09"
     }
   ]
 }
