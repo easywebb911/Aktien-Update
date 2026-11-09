@@ -4,7 +4,8 @@
    (``price`` gegen ``close_5td_before_entry``), fehlt ein Feld → „—“ (nie 0).
    Liest NIE ``entry_past_return_5d`` (Look-Ahead-Konvention).
 2. ``PAPER_C_BADGE`` leer → keine Zeile (Rückweg).
-3. Status-Farbe aus ``SCORE_STATUS_LABELS["paper_c"]`` (GRÜN = validated).
+3. Status-Farbe aus ``SCORE_STATUS_LABELS["paper_c"]`` (GRÜN = validated) —
+   seit 09.11.2026 NUR im Postclose-Bericht; sonst grau + „unfertiger Tag“.
 4. v1 == v2 (``_render_test``) mit Fixture-Stocks inkl. Momentum-Wert.
 5. Konfidenz-Panel: Kopfzeile + Zeile „Momentum 5T (Paper C)“.
 6. Position-Status: Gipfel-Zeile (JS) vorhanden, null-tolerant, Tooltip.
@@ -68,30 +69,70 @@ def test_live_value_from_enrichment():
     check("kein Aufruf des Backtest-Helfers", "_compute_entry_past_return_5d(" not in GR_SRC)
 
 
+NB = "\u00a0"
+
+
+def _row(stock, phase):
+    orig = gr._REPORT_RUN_PHASE
+    try:
+        gr._REPORT_RUN_PHASE = phase
+        return gr._momentum_5t_row_html(stock)
+    finally:
+        gr._REPORT_RUN_PHASE = orig
+
+
 def test_row_rendering():
-    row = gr._momentum_5t_row_html({"price": 110.0, "close_5td_before_entry": 100.0})
-    check("Zeile mit Wert +10.0%", '<span class="m5t-val">+10.0%</span>' in row, row)
-    check("Zeile trägt Befund-Text", "belegt für Gipfel ≥ 30 % in 10 T" in row)
-    check("Status-Farbe GRÜN (validated)", "conf-kind-validated" in row)
-    check("Richtung sichtbar", "höher = häufiger Gipfel" in row)
-    miss = gr._momentum_5t_row_html({"price": 5.0})
+    full = {"price": 110.0, "close_5td_before_entry": 100.0}
+    row = _row(full, "postclose")
+    check("Postclose: Wert +10,0 % (Komma, geschütztes Leerzeichen)",
+          f'<span class="m5t-val">+10,0{NB}%</span>' in row, row)
+    check("Postclose: Befund-Text", f"belegt für Gipfel ≥ 30{NB}% in 10{NB}T" in row, row)
+    check("Postclose: AUC mit Komma", "AUC 0,61" in row)
+    check("Postclose: Status-Farbe GRÜN (validated)", "conf-kind-validated" in row)
+    check("Postclose: Richtung sichtbar", "höher = häufiger Gipfel" in row)
+    check("kein Umbruch „10 T“ / „30 %“", "10 T" not in row and "30 %" not in row)
+    miss = _row({"price": 5.0}, "postclose")
     check("fehlender Wert → „—“", '<span class="m5t-val">—</span>' in miss, miss)
-    check("fehlender Wert nie 0", "+0.0%" not in miss and "0.0%" not in miss)
+    check("fehlender Wert nie 0", "+0,0" not in miss and "0.0%" not in miss)
     check("keine Schwelle im Text", not re.search(r"ab \d|≥ \d+ ?% Momentum|Schwelle", row))
+    # Easy-Entscheid 09.11.2026: außerhalb Postclose grau, kein Beleg.
+    for phase in ("premarket", None, "", "intraday", "POSTCLOSE"):
+        r = _row(full, phase)
+        check(f"Phase {phase!r}: grau + Zusatz",
+              f'<span class="m5t-val m5t-unfinal">+10,0{NB}%</span>' in r
+              and "unfertiger Tag — belegt ist der Schlusskurs-Wert" in r, r)
+        check(f"Phase {phase!r}: kein Status-Punkt / kein Grün",
+              "conf-status-dot" not in r and "conf-kind-" not in r, r)
+        check(f"Phase {phase!r}: keine AUC/Beleg-Angabe",
+              "AUC" not in r and "belegt für" not in r and "höher = häufiger" not in r, r)
+    check("Premarket fehlender Wert → „—“ grau",
+          '<span class="m5t-val m5t-unfinal">—</span>' in _row({"price": 5.0}, "premarket"))
+    check("Default-Phase (nicht gesetzt) = unbekannt → grau",
+          gr._REPORT_RUN_PHASE is None
+          and "m5t-unfinal" in gr._momentum_5t_row_html(full))
     orig = gr.PAPER_C_BADGE
     try:
         gr.PAPER_C_BADGE = {}
-        check("PAPER_C_BADGE leer → keine Zeile", gr._momentum_5t_row_html(
-            {"price": 110.0, "close_5td_before_entry": 100.0}) == "")
+        check("PAPER_C_BADGE leer → keine Zeile (postclose)", _row(full, "postclose") == "")
+        check("PAPER_C_BADGE leer → keine Zeile (premarket)", _row(full, "premarket") == "")
     finally:
         gr.PAPER_C_BADGE = orig
     orig_l = gr.SCORE_STATUS_LABELS
     try:
         gr.SCORE_STATUS_LABELS = dict(orig_l, paper_c=dict(orig_l["paper_c"], status_kind="pending"))
-        check("Farbe folgt status_kind", "conf-kind-pending" in gr._momentum_5t_row_html(
-            {"price": 110.0, "close_5td_before_entry": 100.0}))
+        check("Farbe folgt status_kind", "conf-kind-pending" in _row(full, "postclose"))
     finally:
         gr.SCORE_STATUS_LABELS = orig_l
+    body = _fn_body("_momentum_5t_row_html")
+    check("Phase aus _REPORT_RUN_PHASE (keine eigene Uhrzeit-Logik)",
+          "_REPORT_RUN_PHASE" in body and "datetime" not in body
+          and "us_session_state" not in body and "now(" not in body)
+    check("main() setzt _REPORT_RUN_PHASE aus _resolve_run_phase",
+          re.search(r'run_phase\s*=\s*_resolve_run_phase\(\)[\s\S]{0,400}'
+                    r'globals\(\)\["_REPORT_RUN_PHASE"\]\s*=\s*run_phase', GR_SRC) is not None)
+    check("app_data run_phase = dieselbe Variable (Kopfzeilen-Quelle)",
+          '"run_phase":       run_phase,' in GR_SRC
+          and "_renderRunPhasePill(appData.run_phase" in GR_SRC)
 
 
 def test_v1_equals_v2_and_cards():
@@ -116,11 +157,21 @@ def test_v1_equals_v2_and_cards():
         gr._load_backtest_history = orig["lbh"]
         gr._load_score_history = orig["lsh"]
         gr.health_check.provider_liveness = orig["pl"]
-    expect = f"{(5.10 / 4.25 - 1) * 100:+.1f}%"
-    check(f"Top-10-Karte AAAA zeigt {expect}", f'<span class="m5t-val">{expect}</span>' in html_out)
-    check("Top-10-Karte BBBB zeigt „—“", '<span class="m5t-val">—</span>' in html_out)
+    expect = f"{(5.10 / 4.25 - 1) * 100:+.1f}".replace(".", ",") + NB + "%"
+    check(f"Top-10-Karte AAAA zeigt {expect} (grau, Phase unbekannt)",
+          f'<span class="m5t-val m5t-unfinal">{expect}</span>' in html_out)
+    check("Top-10-Karte BBBB zeigt „—“", '<span class="m5t-val m5t-unfinal">—</span>' in html_out)
     wl = gr._wl_full_card_html(stocks[0])
-    check("Watchlist-Drawer-Karte enthält die Zeile", f'<span class="m5t-val">{expect}</span>' in wl)
+    check("Watchlist-Drawer-Karte enthält die Zeile",
+          f'<span class="m5t-val m5t-unfinal">{expect}</span>' in wl)
+    orig_p = gr._REPORT_RUN_PHASE
+    try:
+        gr._REPORT_RUN_PHASE = "postclose"
+        wl_pc = gr._wl_full_card_html(stocks[0])
+    finally:
+        gr._REPORT_RUN_PHASE = orig_p
+    check("Watchlist-Drawer postclose: grün + Beleg",
+          f'<span class="m5t-val">{expect}</span>' in wl_pc and "conf-kind-validated" in wl_pc)
 
 
 def test_panel_rows():

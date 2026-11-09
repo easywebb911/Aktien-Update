@@ -81,7 +81,8 @@ PATCHER_SELECTORS: dict[str, list[str]] = {
         ".detail-rvol-row",
         ".ki-signal-block",
         ".ki-signal-body",
-        ".spark-wrap",
+        # ".spark-wrap" entfernt (09.11.2026): renderAgentSignals zeichnet die
+        # Setup-Kurve nicht mehr neu (kein KI-Score in der Kurve).
     ],
     "_refreshPositionPanel": [
         ".position-panel",

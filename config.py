@@ -2272,8 +2272,10 @@ SCORE_STATUS_KINDS = ("falsified", "pending", "heuristic", "validated")
 # Nach der Replikation NUR hier (und im Label-Eintrag "paper_c") anpassen.
 PAPER_C_BADGE = {
     "status_key": "paper_c",
-    "text": "belegt für Gipfel ≥ 30 % in 10 T · AUC 0,61 · n=668 · 1 Fenster, "
-            "Replikation ~Dez.",
+    # Geschützte Leerzeichen (\u00a0) in „30 %“ / „10 T“: kein Zeilenumbruch
+    # zwischen Zahl und Einheit (09.11.2026).
+    "text": "belegt für Gipfel ≥ 30\u00a0% in 10\u00a0T · AUC 0,61 · n=668 · "
+            "1 Fenster, Replikation ~Dez.",
 }
 
 # Kopfzeile im Konfidenz-Panel (Produkt-Text, einfache Sprache). Zahlen nur

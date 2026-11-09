@@ -39,6 +39,7 @@ SCRIPTS = ROOT / "scripts"
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
     "truth_check",
+    "sparkline_view",
     "score_smoothing_chrono",
     "diagnose_night_probe",
     "paper_c_marker",
