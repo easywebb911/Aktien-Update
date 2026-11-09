@@ -3300,6 +3300,19 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 09.11.2026 — §4-Protokolleintrag zum Glättungs-Fehler (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Entscheid 09.11.2026 (Guardian-Finding 1 aus `#667`): `#668` (Branch
+  `claude/bold-mayer-5dlyrd`, Branch-Commit `1237cf9a`, kein Merge-Hash — Regel a).
+  Eigener Abschnitt „§4-Protokolleintrag 09.11.2026“ nach dem 07.11.-Eintrag:
+  24 von 255 Populationszeilen mit anderem Score, 6 auf der falschen Seite von 70
+  (2 drin, 4 draußen), alle 672 Forward-Zeilen exakt nachgerechnet; keine
+  Neuauswertung, „Unklar“ bleibt bindend, Entscheidung im Exit-B.1-Nachfolger.
+  open_item-Bestandszahlen berichtigt (120 / 10 statt Schätzung 123 / 11).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#667`,
+  höchste in Block 1 erwähnte PR = `#668` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 09.11.2026 — Score-Glättung chronologisch statt Datums-Text (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Auftrag 09.11.2026: `#667` (Branch `claude/bold-mayer-5dlyrd`,
