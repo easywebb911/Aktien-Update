@@ -26,6 +26,7 @@ Tests (Source-Inspektion + config-Import — kein yfinance-Import):
  11. JEDER Eintrag trägt status_date (kein undatierter Status).
  12. Single-Source: compute_score_confidence OHNE has_auc / Validierungs-Tier.
  13. _conf_class liest den Validierungs-Status aus SCORE_STATUS_LABELS.
+ 17. Karten-Zeile „Momentum 5T“: grün nur bei Postclose-Phase UND Beleg-Verweis.
 """
 from __future__ import annotations
 
@@ -295,6 +296,59 @@ def test_16_color_only_from_status_kind() -> None:
     assert "#3b82f6" in HJ_SRC, "Info-Blau (#3b82f6) nicht in der Palette"
 
 
+def _green_row_violation(row_html: str, phase, labels: dict, eval_rows: list[dict]) -> bool:
+    """GRÜN-REGEL für die Karten-Zeile „Momentum 5T“ (Easy-Entscheid 09.11.2026):
+    ein grüner Status-Punkt (``conf-kind-validated``) ist nur erlaubt bei
+    Postclose-Phase UND gültigem Beleg-Verweis von ``paper_c``. True = Verletzung."""
+    if "conf-kind-validated" not in row_html:
+        return False
+    beleg_ok = "paper_c" not in _green_violations(
+        {"paper_c": labels.get("paper_c") or {}}, eval_rows)
+    return not (phase == "postclose" and beleg_ok)
+
+
+def test_17_momentum_row_green_only_postclose_and_beleg() -> None:
+    # WÄCHTER-Erweiterung (09.11.2026): Grün in der Karten-Zeile nur bei
+    # Postclose-Phase UND Beleg-Verweis. Rendert die echte Zeile (Golden-
+    # Harness-Stubs, kein Netz).
+    hs = importlib.util.spec_from_file_location(
+        "golden_harness_17", ROOT / "scripts" / "mock_test_outer_page_golden.py")
+    golden = importlib.util.module_from_spec(hs)
+    hs.loader.exec_module(golden)
+    gr = golden.gr
+    rows = _eval_rows(ROOT / "eval_results.jsonl")
+    stock = {"price": 110.0, "close_5td_before_entry": 100.0}
+
+    def render(phase, labels=None):
+        o_p, o_l = gr._REPORT_RUN_PHASE, gr.SCORE_STATUS_LABELS
+        try:
+            gr._REPORT_RUN_PHASE = phase
+            if labels is not None:
+                gr.SCORE_STATUS_LABELS = labels
+            return gr._momentum_5t_row_html(stock)
+        finally:
+            gr._REPORT_RUN_PHASE, gr.SCORE_STATUS_LABELS = o_p, o_l
+
+    labels = config.SCORE_STATUS_LABELS
+    for phase in ("postclose", "premarket", None, "", "intraday", "Postclose"):
+        row = render(phase)
+        assert not _green_row_violation(row, phase, labels, rows), (phase, row)
+        if phase != "postclose":
+            assert "conf-kind-validated" not in row, f"Grün außerhalb Postclose: {phase!r}"
+    assert "conf-kind-validated" in render("postclose"), "Postclose mit Beleg soll grün sein"
+    # Gegenprobe 1: Grün außerhalb Postclose → Verletzung.
+    fake = '<span class="conf-status-dot conf-kind-validated"></span>'
+    assert _green_row_violation(fake, "premarket", labels, rows)
+    assert _green_row_violation(fake, None, labels, rows)
+    # Gegenprobe 2: Postclose, aber paper_c grün OHNE Beleg-Verweis → Verletzung.
+    no_ref = dict(labels, paper_c={k: v for k, v in labels["paper_c"].items()
+                                   if k != "eval_ref"})
+    assert _green_row_violation(render("postclose", no_ref), "postclose", no_ref, rows)
+    # Gegenprobe 3: Verweis auf eine Nicht-Beleg-Zeile → Verletzung.
+    bad_ref = dict(labels, paper_c=dict(labels["paper_c"], eval_ref={"test_id": "exit_b1_a"}))
+    assert _green_row_violation(render("postclose", bad_ref), "postclose", bad_ref, rows)
+
+
 def main() -> None:
     tests = [
         ("01 SCORE_STATUS_LABELS 6 Keys + status",      test_01_config_struct_present),
@@ -313,6 +367,7 @@ def main() -> None:
         ("14 status_kind Pflichtfeld + 4 Werte",        test_14_status_kind_mandatory_and_valid),
         ("15 GRÜN nur mit Beleg-Verweis (Wächter + Gegenproben)",   test_15_green_only_with_beleg_reference),
         ("16 Färbung nur aus status_kind",              test_16_color_only_from_status_kind),
+        ("17 Momentum-Zeile grün nur Postclose+Beleg",  test_17_momentum_row_green_only_postclose_and_beleg),
     ]
     failed = 0
     for name, fn in tests:

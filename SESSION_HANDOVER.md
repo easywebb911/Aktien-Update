@@ -3315,6 +3315,23 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#670` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 09.11.2026 — Anzeige: Score-Verlauf chronologisch, ohne KI-Score; Momentum 5T nur Postclose grün (1 PR, Manual-Merge)
+
+- Easy-Auftrag 09.11.2026: `#669` (Branch `claude/bold-mayer-5dlyrd`,
+  Branch-Commit `a1a04097` (nach Rebase auf #670), kein Merge-Hash — Regel a). Rein Anzeige:
+  Kurve/Δ T-1/Trend/Watchlist aus `_sparkline_view` (geparstes Datum,
+  JJJJ-MM-TT, Feld `s["sparkline_view"]` nach der Glättung, außerhalb der
+  Schutzzone); `drawSparkline` ohne KI-Agent-Score, Punktfarbe = Karten-Ampel
+  `_tri_score_color` (`_TRI_SCORE_*`); Momentum 5T nur bei `run_phase`
+  postclose grün + Beleg, sonst grau „unfertiger Tag“ (Wächter `test_17`).
+  `s["sparkline"]` (Backtest-Quelle) unverändert → neue open_items
+  `backtest-score-delta-t1-textsortierung` (106/376 `score_delta_t1_raw`
+  betroffen) und `sparkline-ende-rohwert-vs-setup-score` (Easy-Entscheid).
+  Golden neu (beabsichtigte Stellen), neuer Test `mock_test_sparkline_view.py`.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#670`,
+  höchste in Block 1 erwähnte PR = `#670` — kein Rückstand (nach Rebase auf #670).
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 09.11.2026 — §4-Protokolleintrag zum Glättungs-Fehler (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Entscheid 09.11.2026 (Guardian-Finding 1 aus `#667`): `#668` (Branch

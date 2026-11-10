@@ -80,7 +80,19 @@ def _extract_helper():
     # beim Aufruf. Reihenfolge: Dependencies zuerst, dann Consumer.
     # Name-basierte Extraktion ist immun gegen Einrueckungs-/Reihenfolge-
     # Aenderungen (Lesson #327); Prod-Funktionen bleiben unberuehrt.
-    for _dep in ("_cockpit_delta_html", "_status_kind_of",
+    # Anzeige-Kurve (09.11.2026): _cockpit_delta_html liest _sparkline_view →
+    # Helfer + ihre Modul-Abhängigkeiten in die ns.
+    import json as _json
+    import math as _math
+    from datetime import datetime as _dt
+    ns["json"] = _json
+    ns["datetime"] = _dt
+    ns["_finite"] = (lambda v: isinstance(v, (int, float))
+                     and not isinstance(v, bool) and _math.isfinite(v))
+    ns["_SPARK_VIEW_POINTS"] = 7
+    for _dep in ("_spark_parse_date", "_spark_de",
+                 "_sparkline_view_from_entries", "_sparkline_view",
+                 "_cockpit_delta_html", "_status_kind_of",
                  "_score_status_badge_html", "_card_cockpit_html"):
         m = re.search(rf"^def {_dep}\(.*?(?=\n\ndef )",
                       GR_SRC, re.MULTILINE | re.DOTALL)

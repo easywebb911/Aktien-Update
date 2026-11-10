@@ -645,32 +645,32 @@
       "id": "sparkline-datum-textsortierung",
       "title": "Score-Verlauf (Sparkline) und Δ T-1: Datum als Text sortiert, JS erwartet ISO",
       "opened": "2026-11-09",
-      "description": "Diagnose 09.11.2026 (ULCC-Karte): apply_score_smoothing baut den Sparkline-Payload (generate_report.py, Block 'Sparkline data: last 7 calendar entries') per Text-Sortierung des TT.MM.JJJJ-Datums — am Monatswechsel stehen Oktober-Tage hinter November-Tagen. Folgen: Kurvenreihenfolge falsch; Δ T-1 (_score_delta_html, sparkline.scores[-1]-[-2]) und 7-Tage-Trend ('↑ +x Pkt', scores[-1]-scores[0]) falsch (ULCC: +6,0/+5,7 statt +2,3/↓ −22,8). Zusätzlich erwartet drawSparkline ISO-Datum (parseIso hängt 'T12:00:00' an, Kommentar 'ISO YYYY-MM-DD'), bekommt aber TT.MM.JJJJ: Wochentag-Labels/Tooltip-Datum kaputt, isGap immer wahr, Text-Vergleich todayS > dates[-1] falsch. Nur Anzeige (kein Score). Fix: Payload chronologisch + ISO, eigener PR.",
-      "status": "offen",
+      "description": "Diagnose 09.11.2026 (ULCC-Karte): apply_score_smoothing baut den Sparkline-Payload (generate_report.py, Block 'Sparkline data: last 7 calendar entries') per Text-Sortierung des TT.MM.JJJJ-Datums — am Monatswechsel stehen Oktober-Tage hinter November-Tagen. Folgen: Kurvenreihenfolge falsch; Δ T-1 (_score_delta_html, sparkline.scores[-1]-[-2]) und 7-Tage-Trend ('↑ +x Pkt', scores[-1]-scores[0]) falsch (ULCC: +6,0/+5,7 statt +2,3/↓ −22,8). Zusätzlich erwartet drawSparkline ISO-Datum (parseIso hängt 'T12:00:00' an, Kommentar 'ISO YYYY-MM-DD'), bekommt aber TT.MM.JJJJ: Wochentag-Labels/Tooltip-Datum kaputt, isGap immer wahr, Text-Vergleich todayS > dates[-1] falsch. Nur Anzeige (kein Score). Fix: Payload chronologisch + ISO, eigener PR. — STAND 09.11.2026 (Anzeige-PR, Branch claude/bold-mayer-5dlyrd): behoben in der ANZEIGE. Neuer Helfer _sparkline_view_from_entries (7 jüngste Tage nach geparstem Datum, JJJJ-MM-TT) → Feld s['sparkline_view'] (apply_sparkline_view nach der Glättung, außerhalb der Schutzzone). Karte v1/v2, Δ T-1 (Tooltip-Datum TT.MM.JJJJ), 7-Tage-Trend, Wochentage, Lücken, Ghost-Vergleich lesen die Anzeige-Kurve; JS parst ohne String-Date (Safari). s['sparkline'] aus apply_score_smoothing bleibt unverändert (Backtest-Quelle, siehe backtest-score-delta-t1-textsortierung). Nachweis: mock_test_sparkline_view.py (Monats-/Jahreswechsel, Determinismus, Render-Prüfung des erzeugten HTML) + Chromium-Render (ULCC Mi 28.10 … Mo 09.11, 0 JS-Fehler). Status 'beobachtet' bis Live-Prüfung im nächsten Bericht.",
+      "status": "beobachtet",
       "status_date": "2026-11-09"
     },
     {
       "id": "sparkline-ki-score-ueberschreibt-setup",
       "title": "Setup-Score-Kurve: letzter Punkt wird mit dem KI-Agent-Score überschrieben",
       "opened": "2026-11-09",
-      "description": "Diagnose 09.11.2026: drawSparkline (generate_report.py JS) ersetzt den rechten Kurvenpunkt durch _AGENT_SIGNALS.signals[ticker].score, sobald agent_signals ≤ 4 h alt ist — eine andere Kennzahl (KI-Score) in der Setup-Score-Kurve. ULCC: 91,5 → 25 (rot, unterer Rand). Betrifft alle Karten mit Kurve (09.11.: 9 von 9 Top-10) und Watchlist-Karten, zu jeder Uhrzeit. Farben per Punkt mit KI-Dot-Schwellen (KI_DOT_*). Nur Anzeige. Fix: KI-Score nicht in die Setup-Kurve schreiben (ggf. eigener Marker), zusammen mit sparkline-datum-textsortierung.",
-      "status": "offen",
+      "description": "Diagnose 09.11.2026: drawSparkline (generate_report.py JS) ersetzt den rechten Kurvenpunkt durch _AGENT_SIGNALS.signals[ticker].score, sobald agent_signals ≤ 4 h alt ist — eine andere Kennzahl (KI-Score) in der Setup-Score-Kurve. ULCC: 91,5 → 25 (rot, unterer Rand). Betrifft alle Karten mit Kurve (09.11.: 9 von 9 Top-10) und Watchlist-Karten, zu jeder Uhrzeit. Farben per Punkt mit KI-Dot-Schwellen (KI_DOT_*). Nur Anzeige. Fix: KI-Score nicht in die Setup-Kurve schreiben (ggf. eigener Marker), zusammen mit sparkline-datum-textsortierung. — STAND 09.11.2026 (Anzeige-PR): behoben. drawSparkline übernimmt keinen KI-Agent-Score mehr (Ersetzen/Anhängen entfernt, kein Ersatz-Marker); renderAgentSignals zeichnet die Kurven nicht mehr neu. Punktfarbe = Karten-Ampel _tri_score_color (Konstanten _TRI_SCORE_GREEN_MIN 60 / _TRI_SCORE_ORANGE_MIN 30, eine Quelle für Python + JS) statt KI_DOT_*. Status 'beobachtet' bis Live-Prüfung.",
+      "status": "beobachtet",
       "status_date": "2026-11-09"
     },
     {
       "id": "momentum-5t-intraday-bezug",
       "title": "Karten-Zeile Momentum 5T ist in Intraday-/Premarket-Läufen nicht die getestete Größe",
       "opened": "2026-11-09",
-      "description": "Diagnose 09.11.2026: _momentum_5t_live = price / close_5td_before_entry − 1 aus dem Bericht-Lauf (Live-Polling patcht die Zeile nicht). Formel identisch zu entry_past_return_5d; deckungsgleich mit der Paper-C-Größe aber nur im Postclose (Schlusskurs D). Premarket vor 09:30 ET: Größe des Vortags (bei leerer Tageszeile Zähler aus dem Screener-Kurs, Nenner passt dann nicht). Intraday (z. B. Lauf 09.11. 11:21 ET): Zähler = Kurs mitten im Handel; bei den Top-10 steckten +7 bis +21 % unfertiger Tag im Wert (ULCC +10,8 % Momentum bei +11,0 % Tagesplus). Nur Anzeige. Vorschlag: Kennzeichnung 'Stand HH:MM ET, unfertiger Tag' oder nur Postclose zeigen — Easy entscheidet.",
-      "status": "offen",
+      "description": "Diagnose 09.11.2026: _momentum_5t_live = price / close_5td_before_entry − 1 aus dem Bericht-Lauf (Live-Polling patcht die Zeile nicht). Formel identisch zu entry_past_return_5d; deckungsgleich mit der Paper-C-Größe aber nur im Postclose (Schlusskurs D). Premarket vor 09:30 ET: Größe des Vortags (bei leerer Tageszeile Zähler aus dem Screener-Kurs, Nenner passt dann nicht). Intraday (z. B. Lauf 09.11. 11:21 ET): Zähler = Kurs mitten im Handel; bei den Top-10 steckten +7 bis +21 % unfertiger Tag im Wert (ULCC +10,8 % Momentum bei +11,0 % Tagesplus). Nur Anzeige. Vorschlag: Kennzeichnung 'Stand HH:MM ET, unfertiger Tag' oder nur Postclose zeigen — Easy entscheidet. — STAND 09.11.2026 (Easy-Entscheid umgesetzt, Anzeige-PR): nur im Postclose-Bericht Wert + grüner Punkt + Befund-Text; sonst (premarket/intraday/unbekannt) grauer Wert mit 'unfertiger Tag — belegt ist der Schlusskurs-Wert', kein Punkt, keine AUC. Phase = _REPORT_RUN_PHASE aus _resolve_run_phase() (dieselbe Quelle wie app_data.run_phase → Kopfzeilen-Kennung), keine eigene Uhrzeit-Logik. Wächter test_17 (Grün nur Postclose + Beleg-Verweis). Format '+10,8 %', '10 T'/'30 %' mit geschütztem Leerzeichen. Status 'beobachtet' bis Live-Prüfung.",
+      "status": "beobachtet",
       "status_date": "2026-11-09"
     },
     {
       "id": "watchlist-score-history-textsortierung",
       "title": "Watchlist: letzter Score und Mini-Kurve aus score_history per Text-Sortierung",
       "opened": "2026-11-09",
-      "description": "Grep 09.11.2026: generate_report.py (_wl_raw-Block, WL_SCORES/_wl_hist) wählt den 'letzten' Score und die 7-Punkte-Kurve per sorted(key=Datums-Text). Am Monatswechsel zeigt die Watchlist-Kachel (Fallback-Stufe 3 der Watchlist-Score-Single-Source, nur ohne Top-10-/Karten-Daten) einen alten Score aus dem Vormonat und eine falsch sortierte Kurve. Nur Anzeige. Mit sparkline-datum-textsortierung beheben.",
-      "status": "offen",
+      "description": "Grep 09.11.2026: generate_report.py (_wl_raw-Block, WL_SCORES/_wl_hist) wählt den 'letzten' Score und die 7-Punkte-Kurve per sorted(key=Datums-Text). Am Monatswechsel zeigt die Watchlist-Kachel (Fallback-Stufe 3 der Watchlist-Score-Single-Source, nur ohne Top-10-/Karten-Daten) einen alten Score aus dem Vormonat und eine falsch sortierte Kurve. Nur Anzeige. Mit sparkline-datum-textsortierung beheben. — STAND 09.11.2026 (Anzeige-PR): behoben. WL_SCORES = jüngster Tag nach geparstem Datum (_spark_latest_entry), WL_HIST über denselben Helfer wie die Karten-Kurve (chronologisch, JJJJ-MM-TT); 'Letzter Datenstand' zeigt TT.MM.JJJJ. Status 'beobachtet' bis Live-Prüfung.",
+      "status": "beobachtet",
       "status_date": "2026-11-09"
     },
     {
@@ -688,6 +688,22 @@
       "description": "Fund 10.11.2026 (S16-Diagnose vix_level): drei der acht geprüften Zeilen wurden am ET-Vortag nach Börsenschluss geschrieben, tragen aber das Berlin-Datum (AEVA 14.05.: Commit dfcf3b6b 13.05. 22:19 UTC; AEVA 26.05.: bfac7d58 25.05. 22:19 UTC, Memorial Day; ABSI 01.06.: f6d3323f 01.06. 01:17 UTC = Sonntagabend ET). report_date ist erst seit 01.06.2026 an den ET-Handelstag gekoppelt; korrigiert wurde damals nur die 28.05.-Kohorte (1aa36e7d). Folge: Einstiegsdatum dieser Zeilen = Folgetag, entry_price/vix_level = Stand des Vortags. Betrifft nur Zeilen vor 01.06.2026 (im Export provenance backfill) — KEINE Forward-Zeile (ab 21.07.2026), also kein laufender Freeze. Umfang nicht gezählt (bräuchte Commit-Scan aller Läufe bis 01.06.). Der Wahrheits-Abgleich erkennt das nicht (der Wert entspricht dem Vortagsschluss). Easy entscheidet: zählen + kennzeichnen oder so lassen.",
       "status": "offen",
       "status_date": "2026-11-10"
+    },
+    {
+      "id": "backtest-score-delta-t1-textsortierung",
+      "title": "Backtest score_delta_t1 / _raw (und Entry-Score-Schatten) aus text-sortiertem Sparkline-Payload",
+      "opened": "2026-11-09",
+      "description": "Fund 09.11.2026 (Anzeige-PR Kurve): backtest_history._build_backtest_extension liest score_delta_t1/score_delta_t1_raw aus s['sparkline']['scores'] — dem Payload aus apply_score_smoothing, der die TT.MM.JJJJ-Daten als Text sortiert. Am Monatswechsel ist [-1]−[-2] dann nicht 'heute − Vortag'. Nachrechnung (Rohwerte aus allen Git-Ständen von score_history.json, 14-Tage-Fenster): Methode alt reproduziert 363/376 gespeicherte score_delta_t1_raw; bei 106/376 weicht sie vom chronologischen Wert ab (z. B. HZO 10.08.: gespeichert −12,6, chronologisch +12,6). Betrifft auch entry_score (Schatten) über normalize_score_delta_t1. Der Anzeige-PR ändert das bewusst NICHT (Daten, Easy-Entscheid): Korrektur = apply_score_smoothing-Payload chronologisch (geschützte Funktion, protected-ok) und ggf. Einmal-Korrektur/Protokoll für die Entry-Auswertung.",
+      "status": "offen",
+      "status_date": "2026-11-09"
+    },
+    {
+      "id": "sparkline-ende-rohwert-vs-setup-score",
+      "title": "Kurvenende = heutiger Setup-ROHWERT, nicht der angezeigte Setup-Score",
+      "opened": "2026-11-09",
+      "description": "Fund 09.11.2026: Die Kurve zeigt gespeicherte Rohwerte (score_history, vor Glättung/Late-Runner/Boost); die Karte zeigt den geglätteten Setup-Score. Darum ist der letzte Punkt i. d. R. ≠ Setup-Score (Bericht 09.11. intraday: 0 von 9 Karten gleich, z. B. ULCC Kurve 62,7 vs. Karte 71,3). Kein Fehler des Anzeige-PR — die Δ T-1-/Trend-Logik ist bewusst auf Rohwerten definiert (CLAUDE.md 'Score-Delta T-1'). Easy entscheidet: (a) so lassen + Untertitel 'Rohwert' oder (b) letzten Punkt/Kurve auf den angezeigten Score umstellen.",
+      "status": "offen",
+      "status_date": "2026-11-09"
     }
   ]
 }

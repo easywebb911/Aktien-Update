@@ -3572,19 +3572,46 @@ def _momentum_5t_live(stock: dict):
     return (float(price) / float(base) - 1.0) * 100.0
 
 
+# Lauf-Phase dieses Berichts (``_resolve_run_phase()``, in ``main()`` gesetzt) —
+# dieselbe Quelle wie die Kopfzeilen-Kennung (app_data["run_phase"] →
+# ``_renderRunPhasePill``). ``None`` (Tests/Altpfade) = unbekannt → grau.
+_REPORT_RUN_PHASE: "str | None" = None
+
+# Zusatz bei unfertigem Tag (Easy-Entscheid 09.11.2026).
+_M5T_UNFINAL_NOTE = "unfertiger Tag — belegt ist der Schlusskurs-Wert"
+
+
+def _de_pct(val: float) -> str:
+    """+10.8 → „+10,8 %“ (deutsches Komma, geschütztes Leerzeichen vor %)."""
+    return f"{val:+.1f}".replace(".", ",") + "\u00a0%"
+
+
 def _momentum_5t_row_html(stock: dict) -> str:
     """Detail-Zeile „Momentum 5T“ (Paper-C-Befund, Easy-Entscheid 07.11.2026).
 
-    Wert aus ``_momentum_5t_live`` (fehlt er → „—“, nie 0), darunter der
-    Befund-Text aus ``config.PAPER_C_BADGE`` mit Status-Farbe aus
-    ``SCORE_STATUS_LABELS`` (``_status_kind_of``). Keine Schwelle, keine
-    Färbung des Werts, kein Sortieren. ``PAPER_C_BADGE`` leer → keine Zeile."""
+    Wert aus ``_momentum_5t_live`` (fehlt er → „—“, nie 0). Keine Schwelle,
+    keine Färbung des Werts, kein Sortieren. ``PAPER_C_BADGE`` leer → keine
+    Zeile.
+
+    Phasen-Gate (Easy-Entscheid 09.11.2026): belegt ist die Größe auf dem
+    finalen Schlusskurs. NUR im Postclose-Bericht (``_REPORT_RUN_PHASE ==
+    "postclose"``; ``resolve_run_phase`` vergibt das erst ab 16:20 ET) steht
+    der Befund-Text aus ``config.PAPER_C_BADGE`` mit Status-Farbe aus
+    ``SCORE_STATUS_LABELS`` (``_status_kind_of``). In jedem anderen Bericht
+    (premarket, intraday, unbekannt) wird der Wert grau gezeigt mit dem Zusatz
+    ``_M5T_UNFINAL_NOTE`` — kein Status-Punkt, kein AUC-/Beleg-Text."""
     badge = PAPER_C_BADGE if isinstance(PAPER_C_BADGE, dict) else {}
     text = str(badge.get("text") or "").strip()
     if not text:
         return ""
     val = _momentum_5t_live(stock)
-    val_str = f"{val:+.1f}%" if val is not None else "—"
+    val_str = _de_pct(val) if val is not None else "—"
+    if _REPORT_RUN_PHASE != "postclose":
+        return (
+            f'<tr><td>Momentum 5T</td>'
+            f'<td><span class="m5t-val m5t-unfinal">{val_str}</span>'
+            f'<span class="m5t-note m5t-unfinal">{_M5T_UNFINAL_NOTE}</span></td></tr>'
+        )
     kind = _status_kind_of(str(badge.get("status_key") or ""))
     safe = (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
     return (
@@ -6525,19 +6552,31 @@ def _score_status_badge_html(conf_key: str) -> str:
             f'aria-label="{name}-Score-Status: {safe}">{safe}</span>')
 
 
+# Schwellen/Farben der Score-Ampel (Setup + KI im Karten-Cockpit) — EINE
+# Quelle für ``_tri_score_color`` UND die Punktfarben der Score-Verlauf-Kurve
+# (``scoreColor`` im Sparkline-JS, per f-String eingebrannt, 09.11.2026).
+_TRI_SCORE_GREEN_MIN  = 60
+_TRI_SCORE_ORANGE_MIN = 30
+_TRI_COL_GREEN  = "#22c55e"
+_TRI_COL_ORANGE = "#f97316"
+_TRI_COL_RED    = "#ef4444"
+_TRI_COL_NONE   = "#94a3b8"
+
+
 def _tri_score_color(sc) -> str:
     """Einheitliche Farblogik für Setup- und KI-Score (NICHT Monster).
 
     ≥60 grün · 30–59 orange · <30 rot · None grau. Monster nutzt bewusst
     NICHT diese Ampel, sondern ``_MONSTER_NEUTRAL_COLOR`` (siehe oben).
+    Dieselben Konstanten färben die Punkte der Score-Verlauf-Kurve.
     """
     if sc is None:
-        return "#94a3b8"
-    if sc >= 60:
-        return "#22c55e"
-    if sc >= 30:
-        return "#f97316"
-    return "#ef4444"
+        return _TRI_COL_NONE
+    if sc >= _TRI_SCORE_GREEN_MIN:
+        return _TRI_COL_GREEN
+    if sc >= _TRI_SCORE_ORANGE_MIN:
+        return _TRI_COL_ORANGE
+    return _TRI_COL_RED
 
 
 # Anzeige-Label der DATEN-Dimension (Panel „Datenbasis: …"). Rein Datenmenge,
@@ -6589,6 +6628,138 @@ def _conf_class(score_class: str) -> tuple[str, str, str]:
     return "sb-conf-heur", title, aria
 
 
+# ── Score-Verlauf (Kurve) für die ANZEIGE: chronologisch + ISO (09.11.2026) ──
+# open_items sparkline-datum-textsortierung / watchlist-score-history-
+# textsortierung: der Payload aus apply_score_smoothing (``s["sparkline"]``)
+# sortiert die TT.MM.JJJJ-Daten als Text (Monatswechsel falsch) und liefert
+# TT.MM.JJJJ an den Browser, der ISO erwartet. ``s["sparkline"]`` bleibt
+# bewusst UNVERÄNDERT: es speist auch Backtest-Felder (score_delta_t1,
+# score_delta_t1_raw, entry_score in backtest_history.py) — eine Korrektur
+# dort wäre eine Daten-, keine Anzeige-Änderung (Easy-Entscheid offen).
+# Alle Anzeige-Pfade (Karte v1/v2, Δ T-1, Watchlist-Kachel) lesen stattdessen
+# ``_sparkline_view(s)``. Rein Anzeige, kein Score-/Filter-/Push-Effekt.
+_SPARK_VIEW_POINTS = 7
+
+
+def _spark_parse_date(txt) -> "date | None":
+    """TT.MM.JJJJ oder JJJJ-MM-TT → ``date``; sonst ``None``.
+
+    Eigener Anzeige-Parser (zählt NICHT in ``_PARSE_DE_DATE_FAIL_COUNT``)."""
+    if not isinstance(txt, str):
+        return None
+    t = txt.strip()
+    for fmt in ("%d.%m.%Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(t, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _spark_de(txt) -> str:
+    """Datum (ISO oder TT.MM.JJJJ) → TT.MM.JJJJ für Anzeige-Texte; „—“ bei leer."""
+    d = _spark_parse_date(txt)
+    if d is not None:
+        return d.strftime("%d.%m.%Y")
+    return txt if (isinstance(txt, str) and txt) else "—"
+
+
+def _sparkline_view_from_entries(entries, today) -> "dict | None":
+    """Kurven-Payload für die Anzeige aus History-Einträgen
+    (``{"date", "score", "drivers"}``): die ``_SPARK_VIEW_POINTS`` jüngsten
+    Tage nach GEPARSTEM Datum, alt → neu, Datum als JJJJ-MM-TT.
+
+    Deterministisch: jede Reihenfolge der Einträge → gleiche Kurve (Sortier-
+    schlüssel Datum, Score, Treiber; doppelte Tage → genau ein Punkt).
+    Unparsbares Datum / nicht endlicher Score → Eintrag nicht verwendet.
+    < 2 Tage → ``None``. Trend/Farbe wie im bisherigen Payload
+    (letzter − erster Punkt, ±3)."""
+    dated = []
+    for e in entries or []:
+        if not isinstance(e, dict):
+            continue
+        d = _spark_parse_date(e.get("date"))
+        sc = e.get("score")
+        if d is None or not _finite(sc):
+            continue
+        drv = [str(x) for x in (e.get("drivers") or []) if x is not None]
+        dated.append((d, float(sc), drv))
+    dated.sort(key=lambda x: (x[0], x[1], json.dumps(x[2], ensure_ascii=False)))
+    by_day: dict = {}
+    for d, sc, drv in dated:
+        by_day[d] = (sc, drv)
+    days = sorted(by_day)[-_SPARK_VIEW_POINTS:]
+    if len(days) < 2:
+        return None
+    scores = [round(by_day[d][0], 1) for d in days]
+    delta = scores[-1] - scores[0]
+    if delta >= 3:
+        trend, col = f"↑ +{delta:.1f} Pkt", "#22c55e"
+    elif delta <= -3:
+        trend, col = f"↓ {delta:.1f} Pkt", "#ef4444"
+    else:
+        trend, col = "→ stabil", "#94a3b8"
+    td = _spark_parse_date(today)
+    return {
+        "scores":  scores,
+        "dates":   [d.isoformat() for d in days],
+        "drivers": [list(by_day[d][1]) for d in days],
+        "trend":   trend,
+        "col":     col,
+        "today":   td.isoformat() if td else "",
+    }
+
+
+def _spark_latest_entry(entries) -> "dict | None":
+    """Jüngster History-Eintrag nach GEPARSTEM Datum (nicht Listen-/Text-
+    Reihenfolge); unparsbares Datum / nicht endlicher Score → ignoriert.
+    Gleiches Datum doppelt → höherer Score (deterministisch)."""
+    best = None
+    for e in entries or []:
+        if not isinstance(e, dict):
+            continue
+        d = _spark_parse_date(e.get("date"))
+        if d is None or not _finite(e.get("score")):
+            continue
+        key = (d, float(e["score"]))
+        if best is None or key > best[0]:
+            best = (key, e)
+    return best[1] if best else None
+
+
+def _sparkline_view(s: dict) -> "dict | None":
+    """Anzeige-Kurve einer Karte: ``s["sparkline_view"]`` (aus der vollen
+    History, gesetzt von ``apply_sparkline_view``), sonst — z. B. Fixtures/
+    Altpfade — aus ``s["sparkline"]`` umsortiert und nach ISO gewandelt."""
+    if "sparkline_view" in s:
+        v = s.get("sparkline_view")
+        return v if isinstance(v, dict) else None
+    sp = s.get("sparkline")
+    if not isinstance(sp, dict):
+        return None
+    sc = sp.get("scores") or []
+    dt = sp.get("dates") or []
+    dr = sp.get("drivers") or []
+    entries = [{"date": dt[i] if i < len(dt) else None,
+                "score": sc[i],
+                "drivers": dr[i] if i < len(dr) else []}
+               for i in range(len(sc))]
+    return _sparkline_view_from_entries(entries, sp.get("today", ""))
+
+
+def apply_sparkline_view(stocks: list[dict], today: str,
+                         history: "dict | None" = None) -> None:
+    """Setzt ``s["sparkline_view"]`` je Karte aus der vollen Score-History.
+
+    Läuft im Daily-Run NACH ``apply_score_smoothing`` (dessen Payload
+    ``s["sparkline"]`` bleibt unverändert). Rein Anzeige."""
+    if history is None:
+        history = _load_score_history()
+    for s in stocks:
+        s["sparkline_view"] = _sparkline_view_from_entries(
+            history.get(s.get("ticker"), []), today)
+
+
 def _score_delta_html(s: dict) -> str:
     """Setup-Score-Delta T-1 als kleine Span unter der Score-Zahl.
 
@@ -6598,8 +6769,8 @@ def _score_delta_html(s: dict) -> str:
       - ``|Δ| ≥ 5``:  farbig grün/rot mit ▲/▼ (``.sb-delta-up`` / ``-down``)
       - ``|Δ| ≥ 15``: zusätzlich Bold (``.sb-delta-strong`` als Modifier)
 
-    Quelle: ``s["sparkline"]["scores"]`` (raw Setup-Scores, oldest→newest,
-    bereits aus ``score_history.json`` materialisiert). Nutzt die zwei
+    Quelle: ``_sparkline_view(s)["scores"]`` (raw Setup-Scores, chronologisch
+    nach geparstem Datum, aus ``score_history.json``). Nutzt die zwei
     jüngsten Einträge. Bei < 2 Einträgen (Erst-Render, Ticker neu in
     Top-10): leerer String.
 
@@ -6611,7 +6782,7 @@ def _score_delta_html(s: dict) -> str:
     Conviction/Monster/KI-Delta: heute nicht persistiert. Folge-PR via
     eigene History-Files wenn gewünscht (CLAUDE.md-Sektion).
     """
-    spark = s.get("sparkline") or {}
+    spark = _sparkline_view(s) or {}
     scores = spark.get("scores") or []
     dates = spark.get("dates") or []
     if len(scores) < 2:
@@ -6625,7 +6796,7 @@ def _score_delta_html(s: dict) -> str:
     abs_d = abs(delta)
     if abs_d < 2:
         return ""
-    prev_date = dates[-2] if len(dates) >= 2 else "—"
+    prev_date = _spark_de(dates[-2]) if len(dates) >= 2 else "—"
     sign      = "▲" if delta > 0 else "▼"
     sign_pref = "+"  if delta > 0 else ""
     if abs_d < 5:
@@ -6649,8 +6820,8 @@ def _cockpit_delta_html(s: dict) -> str:
       - |Δ| ≥ 5:  farbig grün/rot mit ▲/▼ (cockpit-delta-up / -down)
       - |Δ| ≥ 15: zusätzlich Bold (cockpit-delta-strong als Modifier)
 
-    Quelle: ``s["sparkline"]["scores"]`` (raw Setup-Scores oldest→newest,
-    bereits aus ``score_history.json`` materialisiert). Nutzt die zwei
+    Quelle: ``_sparkline_view(s)["scores"]`` (raw Setup-Scores chronologisch
+    nach geparstem Datum, aus ``score_history.json``). Nutzt die zwei
     jüngsten Einträge. Bei < 2 Einträgen (Erst-Render, neuer Top-10-
     Einsteiger): leerer String.
 
@@ -6660,7 +6831,7 @@ def _cockpit_delta_html(s: dict) -> str:
     Score-Methodik-Sync: nicht betroffen — reine Display-Anzeige des
     Score-Delta, keine Score-Berechnung beruehrt.
     """
-    spark  = s.get("sparkline") or {}
+    spark  = _sparkline_view(s) or {}
     scores = spark.get("scores") or []
     dates  = spark.get("dates")  or []
     if len(scores) < 2:
@@ -6674,7 +6845,7 @@ def _cockpit_delta_html(s: dict) -> str:
     abs_d = abs(delta)
     if abs_d < 2:
         return ""
-    prev_date = dates[-2] if len(dates) >= 2 else "—"
+    prev_date = _spark_de(dates[-2]) if len(dates) >= 2 else "—"
     sign      = "▲" if delta > 0 else "▼"
     sign_pref = "+"  if delta > 0 else ""
     if abs_d < 5:
@@ -7147,7 +7318,7 @@ def _card(i: int, s: dict) -> str:
     news_sum = news_summary(s.get("news", []))
 
     # Sparkline — embed history data as data-attributes; JS draws SVG at load
-    _spark = s.get("sparkline")
+    _spark = _sparkline_view(s)
     if _spark:
         _sc_json  = json.dumps(_spark["scores"])
         _dt_json  = json.dumps(_spark["dates"])
@@ -7689,7 +7860,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     sc_col   = _score_color(sc)
 
     # ── Sparkline block (pre-render HTML) ─────────────────────────────────
-    _spark = s.get("sparkline")
+    _spark = _sparkline_view(s)
     if _spark:
         _sc_json  = json.dumps(_spark["scores"])
         _dt_json  = json.dumps(_spark["dates"])
@@ -8775,24 +8946,22 @@ def _build_context(stocks: list[dict], report_date: str,
     # (alt dict-per-entry, neu Tuple-per-entry) transparent normalisiert werden.
     try:
         _wl_raw = _load_score_history()
-        _wl_scores = {
-            t: sorted(entries, key=lambda e: e.get("date",""))[-1]["score"]
-            for t, entries in _wl_raw.items() if entries
-        }
+        # Chronologisch nach GEPARSTEM Datum (open_item watchlist-score-
+        # history-textsortierung) — derselbe Helfer wie die Karten-Kurve.
+        _wl_scores = {}
+        for t, entries in _wl_raw.items():
+            _latest = _spark_latest_entry(entries)
+            if _latest is not None:
+                _wl_scores[t] = _latest["score"]
         _wl_hist: dict = {}
         for _t, _entries in _wl_raw.items():
-            _sorted = sorted(_entries, key=lambda e: e.get("date",""))[-7:]
-            if len(_sorted) >= 2:
-                _delta = _sorted[-1]["score"] - _sorted[0]["score"]
+            _v = _sparkline_view_from_entries(_entries, "")
+            if _v is not None:
                 _wl_hist[_t] = {
-                    "scores": [e["score"] for e in _sorted],
-                    "dates":  [e["date"]  for e in _sorted],
-                    "col":    ("#22c55e" if _delta >= 3
-                               else "#ef4444" if _delta <= -3
-                               else "#94a3b8"),
-                    "trend":  (f"↑ +{_delta:.1f}" if _delta >= 3
-                               else f"↓ {_delta:.1f}" if _delta <= -3
-                               else "→ stabil"),
+                    "scores": _v["scores"],
+                    "dates":  _v["dates"],     # JJJJ-MM-TT
+                    "col":    _v["col"],
+                    "trend":  _v["trend"],
                 }
     except Exception:
         _wl_raw    = {}
@@ -13971,22 +14140,37 @@ function _fmtGerman(d) {{
   const PAD_Y    = 8;
   const PT_R     = isMobile ? 6 : 5;
 
-  function parseIso(s) {{ return new Date(s + 'T12:00:00'); }}
+  // Datum JJJJ-MM-TT → lokales Date (12:00, ohne String-Parsing — sicher in
+  // Safari/iOS). Python liefert die Kurve seit 09.11.2026 als ISO
+  // (_sparkline_view). TT.MM.JJJJ wird toleriert (Altdaten), sonst null.
+  function parseIso(s) {{
+    const t = String(s == null ? '' : s).trim();
+    let m = /^(\\d{{4}})-(\\d{{2}})-(\\d{{2}})$/.exec(t);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3], 12, 0, 0);
+    m = /^(\\d{{2}})\\.(\\d{{2}})\\.(\\d{{4}})$/.exec(t);
+    if (m) return new Date(+m[3], +m[2] - 1, +m[1], 12, 0, 0);
+    return null;
+  }}
+  // Date → JJJJ-MM-TT (für Text-Vergleiche/Labels, Altdaten-tolerant).
+  function isoOf(d) {{
+    if (!d) return '';
+    const p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }}
 
-  // Per-point color by score threshold — identical palette to ticker-dot
-  // (.agent-dot strong/moderate/weak/none): grün / orange / rot / grau.
-  // Schwellen aus config.py (KI_DOT_STRONG/MODERATE/WEAK), damit Endpunkt-
-  // Farbe und pulsierender Dot immer im selben Score-Band liegen.
+  // Punktfarbe = dieselbe Ampel, mit der die Karte den Setup-Score färbt
+  // (_tri_score_color, Konstanten _TRI_SCORE_* — eine Quelle, 09.11.2026).
+  // Vorher: KI-Dot-Schwellen (KI_DOT_*), also eine fremde Kennzahl.
   function scoreColor(s) {{
-    if (s == null || isNaN(+s)) return '#6b7280';
-    if (s >= {KI_DOT_STRONG})    return '#22c55e';
-    if (s >= {KI_DOT_MODERATE})  return '#f59e0b';
-    if (s >= {KI_DOT_WEAK})      return '#ef4444';
-    return '#6b7280';
+    if (s == null || isNaN(+s)) return '{_TRI_COL_NONE}';
+    if (s >= {_TRI_SCORE_GREEN_MIN})  return '{_TRI_COL_GREEN}';
+    if (s >= {_TRI_SCORE_ORANGE_MIN}) return '{_TRI_COL_ORANGE}';
+    return '{_TRI_COL_RED}';
   }}
 
   // Returns true if consecutive data points have a missing trading day between them
   function isGap(d1, d2) {{
+    if (!d1 || !d2) return false;
     const diff = Math.round((d2 - d1) / 86400000);
     if (diff <= 1) return false;
     if (diff === 3 && d1.getDay() === 5) return false; // Fri→Mon = normal weekend
@@ -14007,42 +14191,9 @@ function _fmtGerman(d) {{
     const col     = wrap.dataset.col   || '#94a3b8';
     const todayS  = wrap.dataset.today || '';
 
-    // Sync rightmost point mit aktuellem KI-Agent-Score (≤ 4 h alt) damit
-    // pulsierender Punkt und Sparkline-Endpunkt dieselbe Farbe + Wert zeigen.
-    // Bei Ghost-Pfad (heute > letztes History-Datum): neuen Punkt anhängen,
-    // sonst rechtester History-Eintrag in-place überschreiben.
-    // Ticker-Lookup robust: ``data-ticker`` ist sowohl auf TopTen-
-    // ``<article>`` als auch auf Watchlist-``<div class="wl-card">``
-    // gesetzt — ein einziger ``closest('[data-ticker]')`` deckt beide Pfade ab.
-    const _agData = window._AGENT_SIGNALS;
-    if (_agData && _agData.updated) {{
-      const _ageMs = Date.now() - new Date(_agData.updated).getTime();
-      if (_ageMs >= 0 && _ageMs <= 4 * 3600 * 1000) {{
-        const _host   = wrap.closest('[data-ticker]');
-        const _ticker = _host ? _host.dataset.ticker : null;
-        const _sig = (_ticker && _agData.signals) ? _agData.signals[_ticker] : null;
-        if (_sig && _sig.score != null && !isNaN(+_sig.score)) {{
-          const _ag = +_sig.score;
-          if (scores.length > 0 && todayS && todayS > dates[dates.length - 1]) {{
-            // Ghost-Pfad: heute fehlt in History → neuen Datenpunkt anhängen
-            scores.push(_ag);
-            dates.push(todayS);
-            // Live-Drivers vom KI-Agent für den frischen Punkt einsetzen
-            const _liveDrv = (typeof _sig.drivers === 'string' && _sig.drivers)
-              ? _sig.drivers.split(' + ').map(d => d.trim()).filter(Boolean)
-              : (Array.isArray(_sig.drivers) ? _sig.drivers : []);
-            drivers.push(_liveDrv);
-          }} else if (scores.length > 0) {{
-            // Letzter History-Eintrag = heute (oder ≤ heute) → überschreiben
-            scores[scores.length - 1] = _ag;
-            const _liveDrv = (typeof _sig.drivers === 'string' && _sig.drivers)
-              ? _sig.drivers.split(' + ').map(d => d.trim()).filter(Boolean)
-              : (Array.isArray(_sig.drivers) ? _sig.drivers : []);
-            if (_liveDrv.length) drivers[drivers.length - 1] = _liveDrv;
-          }}
-        }}
-      }}
-    }}
+    // Kein KI-Agent-Score in der Setup-Kurve (09.11.2026, open_item
+    // sparkline-ki-score-ueberschreibt-setup): der KI-Wert steht schon auf der
+    // Karte; die Kurve zeigt nur gespeicherte Setup-Scores.
 
     const n       = scores.length;
     if (n < 2) return;
@@ -14054,10 +14205,12 @@ function _fmtGerman(d) {{
     const W = wrap.clientWidth || 280;
 
     const dateParsed = dates.map(parseIso);
+    const datesIso   = dateParsed.map(isoOf);
+    const todayIso   = isoOf(parseIso(todayS));
 
     // Ghost dot: show if today is strictly after the last recorded date
-    const hasGhost  = todayS && todayS > dates[n - 1];
-    const ghostDate = hasGhost ? parseIso(todayS) : null;
+    // (Vergleich auf JJJJ-MM-TT — chronologisch korrekt als Text).
+    const hasGhost  = !!(todayIso && datesIso[n - 1] && todayIso > datesIso[n - 1]);
 
     // X = Index (evenly spread left→right, like a stock chart)
     const xDenom = hasGhost ? n : Math.max(n - 1, 1);
@@ -14107,8 +14260,8 @@ function _fmtGerman(d) {{
     for (let i = 0; i < n; i++) {{
       const cx  = xOf(i).toFixed(1);
       const cy  = yOf(scores[i]).toFixed(1);
-      const dow = DAYS_DE[dateParsed[i].getDay()];
-      const dd  = dates[i].slice(8, 10) + '.' + dates[i].slice(5, 7);
+      const dow = dateParsed[i] ? DAYS_DE[dateParsed[i].getDay()] : '';
+      const dd  = datesIso[i] ? datesIso[i].slice(8, 10) + '.' + datesIso[i].slice(5, 7) : '—';
       const ptCol = scoreColor(scores[i]);
       const drvJson = JSON.stringify(drivers[i] || []).replace(/"/g, '&quot;');
       const hitX = (xOf(i) - HIT_W/2).toFixed(1);
@@ -14146,7 +14299,7 @@ function _fmtGerman(d) {{
         const lbl = document.createElement('span');
         lbl.className = 'spark-day-lbl';
         lbl.style.left = pct + '%';
-        lbl.textContent = DAYS_DE[dateParsed[i].getDay()];
+        lbl.textContent = dateParsed[i] ? DAYS_DE[dateParsed[i].getDay()] : '';
         daysWrap.appendChild(lbl);
       }}
       if (hasGhost) {{
@@ -14237,8 +14390,7 @@ function _fmtGerman(d) {{
 // ── KI-Agent Signal Indicators ───────────────────────────────────────────────
 (function() {{
   function renderAgentSignals(data) {{
-    // Globale Referenz für drawSparkline — synchronisiert den rechtesten
-    // Punkt mit dem aktuellen KI-Agent-Score (gleiche Farbe wie pulsierender Dot).
+    // Globale Referenz auf die KI-Agent-Signale (Live-Konsumenten im Frontend).
     window._AGENT_SIGNALS = data || {{}};
     const statusEl = document.getElementById('agent-status');
     const updated  = data.updated ? new Date(data.updated) : null;
@@ -14485,11 +14637,8 @@ function _fmtGerman(d) {{
       }}
     }});
 
-    // Re-draw aller Sparklines, damit der rechteste Punkt mit dem aktuellen
-    // KI-Agent-Score synchronisiert ist (gleiche Farbe wie pulsierender Dot).
-    if (typeof drawSparkline === 'function') {{
-      document.querySelectorAll('.spark-wrap').forEach(drawSparkline);
-    }}
+    // (Kein Sparkline-Re-Draw mehr: die Setup-Kurve übernimmt seit 09.11.2026
+    // keinen KI-Agent-Score — open_item sparkline-ki-score-ueberschreibt-setup.)
     // Re-Sort wenn KI-Modus aktiv — Card-DataAttr ``kiScore`` ist jetzt
     // erst gefüllt (vor dem agent_signals.json-Fetch wäre der Sort
     // sinnlos gewesen). Server-side Setup-Sort braucht das nicht.
@@ -14932,7 +15081,11 @@ function _fmtGerman(d) {{
 
       // Detail-Tabelle: letzter bekannter Score + Datum aus WL_HIST, Rest \u201e\u2014"
       const histDates = (h && h.dates) ? h.dates : [];
-      const lastDate  = histDates.length ? histDates[histDates.length - 1] : '\u2014';
+      // WL_HIST-Daten sind JJJJ-MM-TT (seit 09.11.2026) → Anzeige TT.MM.JJJJ.
+      const _lastRaw  = histDates.length ? String(histDates[histDates.length - 1]) : '';
+      const _lastM    = /^(\\d{{4}})-(\\d{{2}})-(\\d{{2}})$/.exec(_lastRaw);
+      const lastDate  = _lastM ? (_lastM[3] + '.' + _lastM[2] + '.' + _lastM[1])
+                               : (_lastRaw || '\u2014');
       const tableHtml = `<div class="detail-table-wrap" style="padding:0 10px 10px">
         <table class="detail-table">
           <tr><td>Letzter bekannter Score</td><td>${{scNum}}</td></tr>
@@ -18712,6 +18865,9 @@ def main():
     _us_trading_date_iso = trading_date.us_trading_date_iso()
     run_phase   = _resolve_run_phase()
     log.info("=== Squeeze Report %s (run_phase=%s) ===", report_date, run_phase)
+    # Anzeige-Gate „Momentum 5T“ (Easy-Entscheid 09.11.2026): dieselbe Quelle
+    # wie die Kopfzeilen-Kennung (app_data["run_phase"] aus diesem Lauf).
+    globals()["_REPORT_RUN_PHASE"] = run_phase
     # Health-Check Phase 2 — Provider-Aggregatoren zurücksetzen, damit
     # wiederholte main()-Aufrufe (Tests) sauber starten.
     _finviz_acct_reset()
@@ -19574,6 +19730,15 @@ def main():
         _persist_si_position_history(enriched)
     except Exception as _si_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("SI-Positions-Zeitreihe übersprungen: %s", _si_exc)
+
+    # Anzeige-Kurve chronologisch + ISO (09.11.2026, rein Anzeige): eigenes
+    # Feld ``sparkline_view`` aus der vollen Score-History; ``s["sparkline"]``
+    # (Backtest-Quelle für score_delta_t1) bleibt unverändert. Fail-soft:
+    # Fehler → Karten fallen auf den umsortierten Alt-Payload zurück.
+    try:
+        apply_sparkline_view(top10, report_date)
+    except Exception as _sv_exc:   # pragma: no cover  (nie den Daily-Run brechen)
+        log.warning("Anzeige-Kurve übersprungen: %s", _sv_exc)
 
     # inst_ownership_history (10.08.2026): forward-only 13F-Institutional- +
     # Insider-Ownership über den vollen enriched US-Pool. Werte liegen schon

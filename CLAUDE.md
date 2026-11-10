@@ -568,6 +568,14 @@ kein Sortieren.
   „Beleg“ (Wächter `test_15` in `mock_test_score_status_badges.py`, mit
   Gegenproben). Heute trägt nur `paper_c` Grün; Setup/Monster/KI/Conviction
   nicht.
+- **Nur im Postclose grün (Easy-Entscheid 09.11.2026):** belegt ist die Größe
+  auf dem finalen Schlusskurs. Phase = ``_REPORT_RUN_PHASE`` (in ``main()`` aus
+  ``_resolve_run_phase()`` — dieselbe Quelle wie die Kopfzeilen-Kennung via
+  ``app_data["run_phase"]``). Nur ``"postclose"`` zeigt Wert + Status-Punkt +
+  Befund-Text; sonst (premarket/intraday/unbekannt) grauer Wert mit „unfertiger
+  Tag — belegt ist der Schlusskurs-Wert“, kein Punkt, keine AUC. Wächter
+  ``test_17`` (Grün nur bei Postclose UND Beleg-Verweis). Format „+10,8 %“
+  (Komma, geschütztes Leerzeichen).
 - **Position-Status** zeigt dazu „Hoch seit Einstieg · aktuell · Handelstag
   N“ (`_psPeakLine`, JS, Handelstage über den Feiertagsspiegel
   `_isNonTradingDay`), Tooltip: Gipfel belegt, Ausstiegsregel unbelegt.
@@ -1934,8 +1942,9 @@ Easy entscheidet ob „Squeeze in Ignition" oder „sterbend".
 | `≥ 5` (negativ) | rot ▼ | `.sb-delta-down` |
 | `≥ 15` (zusätzlich) | bold | `.sb-delta-strong` Modifier |
 
-**Quelle**: `s["sparkline"]["scores"]` (raw Setup-Scores aus
-`score_history.json`, materialisiert in `apply_score_smoothing`).
+**Quelle**: `_sparkline_view(s)["scores"]` (raw Setup-Scores aus
+`score_history.json`, chronologisch nach geparstem Datum, seit 09.11.2026;
+vorher `s["sparkline"]` mit Text-Sortierung — am Monatswechsel falsch).
 Letzte zwei Einträge: `[-2]` = Vortag, `[-1]` = heute. Bei < 2
 Einträgen kein Delta.
 
@@ -2030,11 +2039,20 @@ gestrippt):
 - **Schließen:** Tap außerhalb der ``.spark-wrap`` ODER Esc-Taste.
   Listener pro wrap einmal angebunden via ``wrap._sparkTipBound``-Flag,
   damit mehrere Sparklines auf der Seite unabhängig sind.
-- **Live-Sync für rechtesten Punkt:** ``drivers[lastIdx]`` wird beim
-  Live-Sync (KI-Agent-Snapshot ≤ 4 h alt) aus ``_AGENT_SIGNALS.signals
-  [ticker].drivers`` aktualisiert. Ghost-Pfad pusht eigenen Driver-
-  Eintrag, Overwrite-Pfad ersetzt nur wenn Live-Drivers nicht leer
-  sind (sonst bleiben die History-Drivers erhalten).
+- **Kein KI-Live-Sync mehr (seit 09.11.2026):** ``drawSparkline`` ersetzt
+  oder ergänzt den rechten Punkt NICHT mehr mit dem KI-Agent-Score (war eine
+  fremde Kennzahl in der Setup-Kurve). Die Kurve zeigt nur gespeicherte
+  Setup-Rohwerte; Punktfarbe = Karten-Ampel ``_tri_score_color``
+  (``_TRI_SCORE_*``, ≥ 60 grün · ≥ 30 orange · sonst rot), nicht ``KI_DOT_*``.
+- **Chronologisch + ISO (seit 09.11.2026):** Anzeige-Pfade lesen
+  ``_sparkline_view(s)`` (Feld ``s["sparkline_view"]``, gesetzt von
+  ``apply_sparkline_view`` NACH der Glättung, außerhalb der Schutzzone):
+  7 jüngste Tage nach geparstem Datum, Daten als JJJJ-MM-TT. Gleicher Helfer
+  für ``WL_HIST``/``WL_SCORES``. ``s["sparkline"]`` aus
+  ``apply_score_smoothing`` bleibt unverändert, weil er die Backtest-Felder
+  ``score_delta_t1``/``_raw`` speist (Datenkorrektur = Easy-Entscheid,
+  open_item ``backtest-score-delta-t1-textsortierung``). JS parst Daten ohne
+  String-Date-Parsing (``new Date(y, m-1, d, 12)``, Safari-sicher).
 
 ### Pflege
 
