@@ -3311,9 +3311,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Merge von `#667`; Nachfolger 0 Zeilen mit altem Score, nur trivial; Wirk-Nachweis
   erst am Monatswechsel, Status beobachtet). MD5: 14 von 16 Blöcken unverändert, die
   zwei geänderten nur um die Einträge verlängert (0 Zeilen gelöscht).
-- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#669`,
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#670`,
   höchste in Block 1 erwähnte PR = `#671` (eigene) — kein Rückstand.
-- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Guardian-Lauf vor Ready:** 1 Finding (Staleness-Nummer #669 → #670), behoben.
 
 ### 10.11.2026 — Wahrheits-Abgleich: vix_level/market_regime gegen die Produktions-Definition (1 PR, Auto-Merge Wächter-Reparatur)
 
