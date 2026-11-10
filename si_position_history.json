@@ -4434,6 +4434,12 @@
       "shares_short": 12925869,
       "short_pct_float": 24.14,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 11963625,
+      "short_pct_float": 22.22,
+      "pub_date": "2026-10-26"
     }
   ],
   "ALT": [
@@ -5697,6 +5703,12 @@
       "shares_short": 106062298,
       "short_pct_float": 31.44,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 107157106,
+      "short_pct_float": 31.58,
+      "pub_date": "2026-10-26"
     }
   ],
   "FIP": [
@@ -6507,6 +6519,12 @@
       "shares_short": 9618412,
       "short_pct_float": 18.26,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 9543350,
+      "short_pct_float": 18.12,
+      "pub_date": "2026-10-26"
     }
   ],
   "NCNO": [
@@ -9345,6 +9363,12 @@
       "shares_short": 12536823,
       "short_pct_float": 17.5,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 12549794,
+      "short_pct_float": 17.58,
+      "pub_date": "2026-10-26"
     }
   ],
   "NTST": [

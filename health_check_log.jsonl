@@ -220,3 +220,4 @@
 {"run_ts": "2026-11-10T03:48:47Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S16", "severity": "warn", "detail": "Wahrheits-Abgleich läuft nicht (kein Log)"}], "provider_fails": []}
 {"run_ts": "2026-11-10T03:49:32Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-11-10T09:51:34Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-11-10T14:54:39Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [{"id": "S16", "severity": "crit", "detail": "Wahrheits-Abgleich: 8 Zeilen weichen ab (ABSI 06.05.2026 vix_level 17.03→17.39, AEVA 07.05.2026 vix_level 17.39→17.08, ABCL 11.05.2026 vix_level 17.94→18.38)"}], "provider_fails": []}

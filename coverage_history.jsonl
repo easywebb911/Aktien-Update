@@ -389,3 +389,7 @@
 {"date":"2026-11-10","run_phase":"ki_agent_tick","quelle":"reddit_mentions","tick_hour":"09","ts_utc":"2026-11-10T09:51:34.593408+00:00","n_erwartet":13,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"RuntimeError":13}}
 {"date":"2026-11-10","run_phase":"ki_agent_tick","quelle":"fda_calendar","tick_hour":"09","ts_utc":"2026-11-10T09:51:34.594749+00:00","n_erwartet":1,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"HTTPError":1}}
 {"date":"2026-11-10","run_phase":"ki_agent_tick","quelle":"openinsider","tick_hour":"09","ts_utc":"2026-11-10T09:51:34.595995+00:00","n_erwartet":13,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"ConnectionError":13}}
+{"date":"2026-11-10","run_phase":"premarket","quelle":"options_atm","tick_hour":null,"ts_utc":"2026-11-10T14:54:25.941163+00:00","n_erwartet":5,"n_erhalten":5,"n_mit_daten":5,"error_counts":{}}
+{"date":"2026-11-10","run_phase":"premarket","quelle":"earnings_date","tick_hour":null,"ts_utc":"2026-11-10T14:54:25.943075+00:00","n_erwartet":10,"n_erhalten":10,"n_mit_daten":4,"error_counts":{}}
+{"date":"2026-11-10","run_phase":"premarket","quelle":"earnings_surprise","tick_hour":null,"ts_utc":"2026-11-10T14:54:25.944690+00:00","n_erwartet":10,"n_erhalten":10,"n_mit_daten":10,"error_counts":{}}
+{"date":"2026-11-10","run_phase":"premarket","quelle":"apewisdom_shadow","tick_hour":null,"ts_utc":"2026-11-10T14:54:25.946353+00:00","n_erwartet":12,"n_erhalten":12,"n_mit_daten":1,"error_counts":{}}
