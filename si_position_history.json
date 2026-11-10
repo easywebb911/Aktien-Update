@@ -2283,6 +2283,12 @@
       "shares_short": 18593538,
       "short_pct_float": 15.61,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 18746363,
+      "short_pct_float": 15.73,
+      "pub_date": "2026-10-26"
     }
   ],
   "KURA": [
@@ -6645,6 +6651,12 @@
       "shares_short": 4696008,
       "short_pct_float": 30.71,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 4327995,
+      "short_pct_float": 28.3,
+      "pub_date": "2026-10-26"
     }
   ],
   "MPLT": [

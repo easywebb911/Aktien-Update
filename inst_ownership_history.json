@@ -410,6 +410,11 @@
       "date": "2026-11-03",
       "inst_ownership": 1.23994,
       "insider_ownership": 0.00916
+    },
+    {
+      "date": "2026-11-09",
+      "inst_ownership": 1.24401,
+      "insider_ownership": 0.00916
     }
   ],
   "INR": [
@@ -2022,6 +2027,11 @@
       "date": "2026-11-06",
       "inst_ownership": 0.61599,
       "insider_ownership": 0.17665
+    },
+    {
+      "date": "2026-11-09",
+      "inst_ownership": 0.62235,
+      "insider_ownership": 0.17665
     }
   ],
   "AMPG": [
@@ -3303,6 +3313,11 @@
     {
       "date": "2026-11-06",
       "inst_ownership": 0.74567,
+      "insider_ownership": 0.09437
+    },
+    {
+      "date": "2026-11-09",
+      "inst_ownership": 0.74611,
       "insider_ownership": 0.09437
     }
   ],
@@ -6004,6 +6019,11 @@
       "date": "2026-10-15",
       "inst_ownership": 0.87637,
       "insider_ownership": 0.13918
+    },
+    {
+      "date": "2026-11-09",
+      "inst_ownership": 0.86919,
+      "insider_ownership": 0.16625999
     }
   ],
   "ABEO": [
@@ -6699,6 +6719,11 @@
       "date": "2026-11-06",
       "inst_ownership": 0.95287,
       "insider_ownership": 0.0030399999
+    },
+    {
+      "date": "2026-11-09",
+      "inst_ownership": 0.9543,
+      "insider_ownership": 0.0030399999
     }
   ],
   "MNRO": [
@@ -6839,6 +6864,11 @@
     {
       "date": "2026-10-28",
       "inst_ownership": 0.5004,
+      "insider_ownership": 0.0334
+    },
+    {
+      "date": "2026-11-09",
+      "inst_ownership": 0.51697,
       "insider_ownership": 0.0334
     }
   ],
@@ -9060,6 +9090,11 @@
       "date": "2026-11-06",
       "inst_ownership": 0.48786,
       "insider_ownership": 0.12157
+    },
+    {
+      "date": "2026-11-09",
+      "inst_ownership": 0.4864,
+      "insider_ownership": 0.12157
     }
   ],
   "ANNX": [
@@ -9416,6 +9451,11 @@
     {
       "date": "2026-10-23",
       "inst_ownership": 0.80862,
+      "insider_ownership": 0.25542998
+    },
+    {
+      "date": "2026-11-09",
+      "inst_ownership": 0.81378,
       "insider_ownership": 0.25542998
     }
   ],
@@ -11334,6 +11374,11 @@
     {
       "date": "2026-11-06",
       "inst_ownership": 1.11248,
+      "insider_ownership": 0.01608
+    },
+    {
+      "date": "2026-11-09",
+      "inst_ownership": 1.1104599,
       "insider_ownership": 0.01608
     }
   ],

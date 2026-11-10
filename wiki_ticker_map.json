@@ -413,6 +413,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "CCOI": {
+    "qid": "Q1106938",
+    "title": "Cogent_Communications",
+    "resolved_at": "2026-11-10T03:47:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Cogent Communications Holdings, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "CERT": {
     "qid": null,
     "title": null,
@@ -493,6 +502,15 @@
     "company_name_at_resolve": "Collegium Pharmaceutical, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "CRI": {
+    "qid": "Q5047083",
+    "title": "Carter's",
+    "resolved_at": "2026-11-10T03:47:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Carter's, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "CRMT": {
     "qid": null,
@@ -1169,6 +1187,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "LUNR": {
+    "qid": "Q60760151",
+    "title": "Intuitive_Machines",
+    "resolved_at": "2026-11-10T03:47:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Intuitive Machines, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "LXEO": {
     "qid": null,
     "title": null,
@@ -1592,6 +1619,15 @@
     "substrate": "en",
     "reason": null
   },
+  "SG": {
+    "qid": "Q18636413",
+    "title": "Sweetgreen",
+    "resolved_at": "2026-11-10T03:47:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Sweetgreen, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "SHOE": {
     "qid": null,
     "title": null,
@@ -1787,6 +1823,15 @@
     "resolved_at": "2026-09-04T23:05:13Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Tyra Biosciences, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "UAMY": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-10T03:47:56Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "United States Antimony Corporation",
     "substrate": "none",
     "reason": "no_p249"
   },
