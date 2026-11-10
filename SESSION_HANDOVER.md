@@ -3300,6 +3300,21 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 10.11.2026 — Freeze-Berichtigung Glättung: Setup-Edge 7/100, H5 62/6 (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Entscheid 09.11.2026: `#671` (Branch `claude/bold-mayer-5dlyrd`, Branch-Commit
+  `1bfd8841`, kein Merge-Hash — Regel a). Datierte Protokolleinträge 10.11.2026 in den
+  Freezes Setup-Edge (7 von 100, |Δ| bis 4,0 statt 8 / 4,6) und H5 (62 abweichend,
+  6 Stufen-Wechsel statt 65 / 7) angehängt; die `#667`-Einträge bleiben stehen. Grund:
+  13- statt 14-Tage-Fenster (`generate_report.py:3768`). open_item
+  `score-smoothing-textsortierung-monatswechsel`: Nachtrag Postclose 09.11. (nach dem
+  Merge von `#667`; Nachfolger 0 Zeilen mit altem Score, nur trivial; Wirk-Nachweis
+  erst am Monatswechsel, Status beobachtet). MD5: 14 von 16 Blöcken unverändert, die
+  zwei geänderten nur um die Einträge verlängert (0 Zeilen gelöscht).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#670`,
+  höchste in Block 1 erwähnte PR = `#671` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** 1 Finding (Staleness-Nummer #669 → #670), behoben.
+
 ### 10.11.2026 — Wahrheits-Abgleich: vix_level/market_regime gegen die Produktions-Definition (1 PR, Auto-Merge Wächter-Reparatur)
 
 - Anlass S16 crit 10.11. (8/35 Zeilen, alle `vix_level`, Export-Zeilen 06.05.–01.06.):
@@ -5164,6 +5179,8 @@ beim Eintrag n=60/250, kein Ergebnis erzeugt oder gelesen. Details:
 „§4-Protokolleintrag 03.11.2026 — Renditen aus dem laufenden Handelstag“.
 
 **Protokolleintrag 09.11.2026 (Punkt 8c — Score-Änderung während des Tests, `#667`).** **Grund:** `generate_report.apply_score_smoothing` wählte die „letzten 3 Läufe“ für den 3-Tage-Schnitt (70/30) und den Trend-Bonus/-Malus (±3) per Text-Sortierung des Datums `TT.MM.JJJJ`. Am Monats- und Jahreswechsel (etwa die ersten 14 Tage jedes Monats) kamen dadurch alte Monatsend-Tage statt der jüngsten Läufe in die Rechnung (Beleg 09.11.2026: ULCC 71,3 statt 62,2, Trendbonus +3 statt Malus −3; open_item `score-smoothing-textsortierung-monatswechsel`). Fix `#667`: chronologische Sortierung über das geparste Datum, unparsbare Einträge werden nicht verwendet. **Naht** = Merge von `#667` (ET-Datum des Merge-Commits); erster korrekt geglätteter Lauf = erster Daily-Run nach dem Merge. **Top-10-Auswahl unverändert:** die Glättung läuft erst NACH der Auswahl (`generate_report.py`, Zone `filter-top10-selection`, `apply_score_smoothing(top10, …)`), die Zusammensetzung der Top-10 hing nie an diesem Fehler. **Gespeicherte Werte werden nicht umgeschrieben** (`score_history`, `backtest_history`, Export, `eval_results` bleiben, wie sie sind). **Was sich ändert:** der gespeicherte Prädiktor `score` (und über die Setup-Komponente der Conviction auch Test c) ist ab der Naht chronologisch geglättet. **Vorher/Nachher-Vergleich** (nachgerechnet aus allen Git-Ständen von `score_history.json`, keine Outcomes angesehen): in der bestätigenden Population (Einstieg > 10.10.2026, Stand n=100/250) weichen **8 von 100** gespeicherten Scores ab (12.–14.10.2026, |Δ| bis 4,6 Pkt; GRPN, SHOE, WOLF, MNRO); keine Zeile wird umgeschrieben. Im Bericht auszuweisen: Prädiktor vor der Naht mit Text-Sortierung, danach chronologisch. Kein Ergebnis erzeugt oder gelesen.
+
+**Protokolleintrag 10.11.2026 (Berichtigung zu Punkt 8c vom 09.11.2026).** Der Eintrag oben bleibt unverändert stehen; er nennt noch die erste Schätzung. **Belegte Zahl:** in der bestätigenden Population (Einstieg > 10.10.2026, Stand n=100/250) weichen **7 von 100** gespeicherten Scores ab (|Δ| bis **4,0** Pkt), nicht 8 von 100 mit |Δ| bis 4,6. **Grund der Differenz:** die Schätzung nahm für alle Zeilen ein 14-Tage-Fenster an; der Load-Prune (`generate_report.py:3768`) rechnet vom UTC-Datum des Laufs, Postclose-Läufe nach UTC-Mitternacht sehen dadurch nur 13 Tage. Exakte Nachrechnung je Zeile wie im „§4-Protokolleintrag 09.11.2026 — Glättungs-Fehler“ (`#668`). Keine Zeile umgeschrieben, kein Ergebnis erzeugt oder gelesen. Easy-Entscheid 09.11.2026.
 
 ### VORABREGISTRIERUNG — KI-Score-Edge-Test (ki_signal_score), eingefroren 13.10.2026
 
@@ -7036,6 +7053,8 @@ Sammel-Untergrenze.
 der die Änderung und ihren Grund festhält.
 
 **Protokolleintrag 09.11.2026 (Glättung, `#667`).** **Grund:** `generate_report.apply_score_smoothing` wählte die „letzten 3 Läufe“ für den 3-Tage-Schnitt (70/30) und den Trend-Bonus/-Malus (±3) per Text-Sortierung des Datums `TT.MM.JJJJ`. Am Monats- und Jahreswechsel (etwa die ersten 14 Tage jedes Monats) kamen dadurch alte Monatsend-Tage statt der jüngsten Läufe in die Rechnung (Beleg 09.11.2026: ULCC 71,3 statt 62,2, Trendbonus +3 statt Malus −3; open_item `score-smoothing-textsortierung-monatswechsel`). Fix `#667`: chronologische Sortierung über das geparste Datum, unparsbare Einträge werden nicht verwendet. **Naht** = Merge von `#667` (ET-Datum des Merge-Commits); erster korrekt geglätteter Lauf = erster Daily-Run nach dem Merge. **Top-10-Auswahl unverändert:** die Glättung läuft erst NACH der Auswahl (`generate_report.py`, Zone `filter-top10-selection`, `apply_score_smoothing(top10, …)`), die Zusammensetzung der Top-10 hing nie an diesem Fehler. **Gespeicherte Werte werden nicht umgeschrieben** (`score_history`, `backtest_history`, Export, `eval_results` bleiben, wie sie sind). **Was sich ändert:** die Score-Stufe (≥ 70 / < 70) einer Zeile hängt am gespeicherten `score`. Nachgerechnet über alle Forward-Zeilen im Export (672, Stand 09.11.2026, nur Prädiktor, keine Outcomes): **65** Scores weichen ab, **7** wechseln die Stufe. Die Zellen-Zuordnung nutzt weiter den gespeicherten `score`; im Bericht auszuweisen (Naht + Zahl der Stufen-Wechsel). Kein Ergebnis erzeugt oder gelesen.
+
+**Protokolleintrag 10.11.2026 (Berichtigung zum Glättungs-Eintrag vom 09.11.2026).** Der Eintrag oben bleibt unverändert stehen; er nennt noch die erste Schätzung. **Belegte Zahlen:** über die 672 Forward-Zeilen weichen **62** gespeicherte Scores ab, **6** wechseln die Stufe (≥ 70 / < 70), nicht 65 und 7. **Grund der Differenz:** die Schätzung nahm für alle Zeilen ein 14-Tage-Fenster an; der Load-Prune (`generate_report.py:3768`) rechnet vom UTC-Datum des Laufs, Postclose-Läufe nach UTC-Mitternacht sehen dadurch nur 13 Tage. Exakte Nachrechnung je Zeile wie im „§4-Protokolleintrag 09.11.2026 — Glättungs-Fehler“ (`#668`). Im Bericht auszuweisen sind die berichtigten Zahlen. Keine Zeile umgeschrieben, kein Ergebnis erzeugt oder gelesen. Easy-Entscheid 09.11.2026.
 
 ### PAPER-BEFUND (Svoboda/Kapounek/Albrecht 2026, ausgewertet 12.07.)
 
