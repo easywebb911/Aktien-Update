@@ -18,9 +18,19 @@ nachgerechnet nach den Produktionsregeln:
   (Produktion schreibt den Wert des jeweils bis dahin finalen Fensters).
 * ``forward_3d/5d/10d`` (exit_shadow_log.jsonl) —
   ``ki_agent.update_exit_shadow_forwards`` + ``exit_shadow.compute_forward_return``.
-* ``vix_level`` — ^VIX-Schluss am Entry-Tag, gerundet auf 2 Stellen.
-* ``market_regime`` — ``backtest_history._market_regime_from_spy``: SPY-Close am
-  Entry-Tag gegen 50 Handelstage davor, ±5 %.
+* ``vix_level`` / ``market_regime`` — PRODUKTIONS-Definition (Fix 10.11.2026):
+  ``backtest_history._vix_close`` / ``_market_regime_from_spy`` (Aufruf
+  ``backtest_history.py:1396-1401``) nehmen den LETZTEN Wert eines Downloads
+  ZUM LAUFZEITPUNKT: in der US-Sitzung ein Intraday-Stand, vor der Öffnung der
+  Vortagsschluss, im Postclose (ab 16:20 ET) der Tagesschluss. Der Zeitpunkt
+  ist nicht gespeichert. ``vix_level`` gilt darum als bestätigt, wenn er in der
+  ^VIX-Tagesspanne (Tief bis Hoch) des Entry-Tags liegt ODER dem Tagesschluss
+  ODER dem Schluss des vorigen ^VIX-Handelstags entspricht (Toleranz wie
+  unten); ``market_regime`` (SPY gegen 50 Handelstage davor, +-5 %), wenn es
+  ein Regime ist, das ein SPY-Kurs innerhalb der Tagesspanne ergibt, oder das
+  Regime aus dem Vortagsschluss. Alles andere bleibt ``abweichung``.
+  Bestätigungen über diese Laufzeit-Regel (nicht exakt der Schluss) stehen mit
+  Spanne in ``laufzeit_regel`` der Log-Zeile.
 * ``entry_past_return_5d`` — ``_compute_entry_past_return_5d``: Close am
   Entry-Tag gegen den 5. Handelstag davor (eigene Handelstage des Tickers).
 
@@ -154,6 +164,12 @@ class Series:
         except ValueError:
             return -1
 
+    def row_at(self, d: date):
+        for r in self.rows:
+            if r["d"] == d:
+                return r
+        return None
+
     def has_action(self, d0: date, d1: date) -> bool:
         for r in self.rows:
             if d0 <= r["d"] <= d1:
@@ -220,16 +236,69 @@ def recompute_backtest(row: dict, s: Series | None, spy: Series | None,
     if vix is not None:
         vi = vix.cpos(edate)
         if vi >= 0:
-            out["vix_level"] = (round(vix.closes[vi][1], 2), (edate, edate), (VIX,))
+            r_e = vix.row_at(edate) or {}
+            spec = {
+                "schluss": round(vix.closes[vi][1], 2),
+                "tief": _round2(_num(r_e.get("l"))),
+                "hoch": _round2(_num(r_e.get("h"))),
+                "vortag": round(vix.closes[vi - 1][1], 2) if vi >= 1 else None,
+            }
+            out["vix_level"] = (spec, (edate, edate), (VIX,))
     if spy is not None:
         si = spy.cpos(edate)
         if si >= 50:
             cur, ref = spy.closes[si][1], spy.closes[si - 50][1]
             if ref > 0:
-                delta = (cur - ref) / ref * 100.0
-                regime = "bull" if delta > 5.0 else ("bear" if delta < -5.0 else "neutral")
-                out["market_regime"] = (regime, (spy.cidx[si - 50], edate), (SPY,))
+                regime = _regime((cur - ref) / ref * 100.0)
+                allowed = {regime}
+                r_e = spy.row_at(edate) or {}
+                lo, hi = _num(r_e.get("l")), _num(r_e.get("h"))
+                if lo is not None and hi is not None:
+                    allowed |= _regimes_between((lo - ref) / ref * 100.0,
+                                                (hi - ref) / ref * 100.0)
+                if si >= 51 and spy.closes[si - 51][1] > 0:
+                    pc, pref = spy.closes[si - 1][1], spy.closes[si - 51][1]
+                    allowed.add(_regime((pc - pref) / pref * 100.0))
+                out["market_regime"] = ({"schluss": regime, "erlaubt": sorted(allowed)},
+                                        (spy.cidx[si - 50], edate), (SPY,))
     return out
+
+
+def _round2(v):
+    return round(v, 2) if v is not None else None
+
+
+def _regime(delta_pct: float) -> str:
+    """Spiegel der Schwellen in ``_market_regime_from_spy`` (+-5 %)."""
+    return "bull" if delta_pct > 5.0 else ("bear" if delta_pct < -5.0 else "neutral")
+
+
+def _regimes_between(d_lo: float, d_hi: float) -> set:
+    """Alle Regime, die ein Delta im geschlossenen Intervall [d_lo, d_hi]
+    ergibt (die Klassen sind monoton im Kurs)."""
+    lo, hi = min(d_lo, d_hi), max(d_lo, d_hi)
+    out = set()
+    if hi > 5.0:
+        out.add("bull")
+    if lo < -5.0:
+        out.add("bear")
+    if lo <= 5.0 and hi >= -5.0:
+        out.add("neutral")
+    return out
+
+
+def vix_runtime_verdict(alt: float, spec: dict, tol: float):
+    """Regel für ``vix_level``: Rückgabe "schluss", "spanne" oder "vortag"
+    (bestätigt, mit Regel) bzw. None (Abweichung). Pure, deterministisch."""
+    eps = tol + 1e-9
+    if spec.get("schluss") is not None and abs(alt - spec["schluss"]) <= eps:
+        return "schluss"
+    lo, hi = spec.get("tief"), spec.get("hoch")
+    if lo is not None and hi is not None and min(lo, hi) - eps <= alt <= max(lo, hi) + eps:
+        return "spanne"
+    if spec.get("vortag") is not None and abs(alt - spec["vortag"]) <= eps:
+        return "vortag"
+    return None
 
 
 def recompute_shadow(row: dict, s: Series | None, final_cut: date) -> dict:
@@ -258,9 +327,12 @@ def _fields_of(datei: str, row: dict) -> tuple:
     return RETURN_FIELDS + MAX_FIELDS + ("vix_level", "market_regime", "entry_past_return_5d")
 
 
-def compare_row(datei: str, row: dict, rec: dict, series: dict, tol: float):
+def compare_row(datei: str, row: dict, rec: dict, series: dict, tol: float,
+                notes: list | None = None):
     """Vergleicht die gespeicherten Felder einer Zeile. Returnt
-    ``(n_verglichen, [abweichung-dicts], max_abs_delta)``."""
+    ``(n_verglichen, [abweichung-dicts], max_abs_delta)``. ``notes`` (optional)
+    sammelt Bestätigungen über die Laufzeit-Regel (vix_level / market_regime
+    nicht exakt gleich dem Schluss-Wert) samt Spanne -- reine Transparenz."""
     devs, n_cmp, max_d = [], 0, None
     for f in _fields_of(datei, row):
         alt = row.get(f)
@@ -269,8 +341,26 @@ def compare_row(datei: str, row: dict, rec: dict, series: dict, tol: float):
         neu, span, srcs = rec[f]
         if f == "market_regime":
             n_cmp += 1
-            if alt != neu:
-                devs.append((f, alt, neu, span, srcs, None))
+            if alt not in neu["erlaubt"]:
+                devs.append((f, alt, neu["schluss"], span, srcs, None))
+            elif alt != neu["schluss"] and notes is not None:
+                notes.append({"ticker": row.get("ticker"), "date": row.get("date"),
+                              "feld": f, "alt": alt, "schluss": neu["schluss"],
+                              "erlaubt": neu["erlaubt"], "regel": "spanne_oder_vortag"})
+            continue
+        if f == "vix_level":
+            a = _num(alt)
+            if a is None or neu.get("schluss") is None:
+                continue
+            n_cmp += 1
+            verdict = vix_runtime_verdict(a, neu, tol)
+            if verdict is None:
+                delta = abs(neu["schluss"] - a)
+                devs.append((f, alt, neu["schluss"], span, srcs, delta))
+                max_d = delta if max_d is None else max(max_d, delta)
+            elif verdict != "schluss" and notes is not None:
+                notes.append({"ticker": row.get("ticker"), "date": row.get("date"),
+                              "feld": f, "alt": alt, **neu, "regel": verdict})
             continue
         a = _num(alt)
         if a is None:
@@ -509,6 +599,7 @@ def run(now: datetime, root: pathlib.Path = ROOT, fetch_fn=None, *,
     cnt = {"stimmt": 0, "abweichung": 0, "neu_adjustiert": 0, "nicht_pruefbar": 0}
     unk = {k: 0 for k in UNKNOWN_REASONS}
     devs_all, max_d, n_cmp_total = [], None, 0
+    runtime_notes: list = []
     recheck, retry = [], []
     for k, (datei, r) in scope.items():
         t = r.get("ticker")
@@ -523,7 +614,7 @@ def run(now: datetime, root: pathlib.Path = ROOT, fetch_fn=None, *,
         s = series.get(t)
         rec = (recompute_shadow(r, s, final_cut) if datei == "exit_shadow"
                else recompute_backtest(r, s, series.get(SPY), series.get(VIX), final_cut, today))
-        n_cmp, devs, md = compare_row(datei, r, rec, series, tol)
+        n_cmp, devs, md = compare_row(datei, r, rec, series, tol, notes=runtime_notes)
         n_cmp_total += n_cmp
         if n_cmp == 0:
             unk["ausdruecklich_leer"] += 1
@@ -555,6 +646,9 @@ def run(now: datetime, root: pathlib.Path = ROOT, fetch_fn=None, *,
         "max_abs_delta": round(max_d, 4) if max_d is not None else None,
         "abweichungen": devs_all[:MAX_DEVIATIONS_LOGGED],
         "abweichungen_gekuerzt": max(0, len(devs_all) - MAX_DEVIATIONS_LOGGED),
+        # Bestätigungen über die Laufzeit-Regel (vix_level/market_regime) mit
+        # Spanne -- Beleg, dass kein Feld pauschal ausgenommen ist (Fix 10.11.2026).
+        "laufzeit_regel": runtime_notes[:MAX_DEVIATIONS_LOGGED],
         "rotation": rotation,
         "ticker_geprueft": sorted(t for t in need),
         "ticker_unbekannt": {t: v for t, v in sorted(unknown.items()) if t in need},

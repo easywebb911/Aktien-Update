@@ -621,9 +621,9 @@
       "id": "wahrheits-abgleich-einlaufphase",
       "title": "Wahrheits-Abgleich (S16): erste 10 Läufe auf Fehlalarme prüfen",
       "opened": "2026-11-08",
-      "description": "Neuer dauerhafter Wächter scripts/truth_check.py + Health-Check S16 (Easy-Entscheid 08.11.2026). Die ersten 10 Läufe (truth_check_log.jsonl) auf Fehlalarme prüfen, besonders: (1) Dividenden-/Split-Nachadjustierungen durch Yahoo (Klasse neu_adjustiert vs. abweichung); (2) max_gain_pct/max_drawdown_pct — Prüfung über Präfix-Fenster, weil der Zeitpunkt des letzten Rolling-Updates nicht gespeichert ist; (3) entry_past_return_5d — Produktion rechnete auf dem Mehr-Ticker-Index ohne dropna, der Abgleich auf den eigenen Handelstagen; (4) vix_level/market_regime — hängen am Laufzeitpunkt des Postclose (alte premarket-Zeilen vor 12.05.2026, vorläufiger VIX-Schluss); (5) Backfill-Zeilen (provenance backfill) mit älteren Rechenwegen. Erst danach entscheiden, ob Schwellen/Felder angepasst werden. Rein beobachtend, nichts bauen.",
+      "description": "Neuer dauerhafter Wächter scripts/truth_check.py + Health-Check S16 (Easy-Entscheid 08.11.2026). Die ersten 10 Läufe (truth_check_log.jsonl) auf Fehlalarme prüfen, besonders: (1) Dividenden-/Split-Nachadjustierungen durch Yahoo (Klasse neu_adjustiert vs. abweichung); (2) max_gain_pct/max_drawdown_pct — Prüfung über Präfix-Fenster, weil der Zeitpunkt des letzten Rolling-Updates nicht gespeichert ist; (3) entry_past_return_5d — Produktion rechnete auf dem Mehr-Ticker-Index ohne dropna, der Abgleich auf den eigenen Handelstagen; (4) vix_level/market_regime — hängen am Laufzeitpunkt des Postclose (alte premarket-Zeilen vor 12.05.2026, vorläufiger VIX-Schluss); (5) Backfill-Zeilen (provenance backfill) mit älteren Rechenwegen. Erst danach entscheiden, ob Schwellen/Felder angepasst werden. Rein beobachtend, nichts bauen. — NACHTRAG 10.11.2026 (Punkt 4 entschieden): S16 crit im Digest 10.11. (Lauf 04:35 UTC, 8/35 Zeilen, alle vix_level, alle Export-Zeilen 06.05.–01.06.2026, provenance backfill = Bestandsübernahme 04.08., Werte damals live geschrieben). Ursache = Definitions-Differenz: Produktion speichert den ^VIX-Wert ZUM LAUFZEITPUNKT (backtest_history._vix_close, Aufruf backtest_history.py:1401; market_regime analog :1396/:1400), truth_check verglich mit dem Tagesschluss. Schreib-Commits der 8 Zeilen: 4 Läufe in der US-Sitzung (06.05. 15:16, 11.05. 16:16/16:22 UTC), 2 vor Öffnung (07.05. 04:23, 12.05. 04:34 UTC → Vortagsschluss), 3 am ET-Vortagsabend mit Berlin-Datum +1 (14.05., 26.05., 01.06.; siehe backtest-datum-berlin-plus1-vor-0106). Fix (Branch claude/truthcheck-vix-def-x7k2): vix_level/market_regime gelten als bestätigt in der Tagesspanne, beim Tagesschluss oder beim Vortagsschluss; sonst weiter abweichung; Bestätigungen mit Spanne in laufzeit_regel. Beleg: erneuter Lauf nach Merge (die 8 Zeilen stehen in recheck). entry_past_return_5d (Punkt 3) nicht angefasst — andere Ursache (Mehr-Ticker-Index ohne dropna), bisher keine Abweichung im Log. Punkte 1, 2, 5 weiter beobachten.",
       "status": "beobachtet",
-      "status_date": "2026-11-08"
+      "status_date": "2026-11-10"
     },
     {
       "id": "berichtsdatum-wurzelloesung-nacht-probe",
@@ -680,6 +680,14 @@
       "description": "Grep 09.11.2026: ki_agent.detect_anomalies (Score-Sprung, history[-2]) und generate_report.process_exit_signals (Setup-Verfall, entries[-1]) nehmen 'gestern'/'heute' aus der Listen-Position, nicht aus dem Datum. Heute korrekt, weil apply_score_smoothing den Tageseintrag immer hinten anhängt; bricht, falls die Datei je anders sortiert geschrieben wird. Anomalie- und Exit-Pushes sind derzeit aus (PUSH_*_NTFY_ENABLED=False); Setup-Verfall wirkt aber auf den angezeigten Exit-Score. Kein akuter Fehler, Härtung optional.",
       "status": "offen",
       "status_date": "2026-11-09"
+    },
+    {
+      "id": "backtest-datum-berlin-plus1-vor-0106",
+      "title": "Backtest-Zeilen vor 01.06.2026: Einstiegsdatum teils Berlin-Datum +1 (Lauf am ET-Vortagsabend)",
+      "opened": "2026-11-10",
+      "description": "Fund 10.11.2026 (S16-Diagnose vix_level): drei der acht geprüften Zeilen wurden am ET-Vortag nach Börsenschluss geschrieben, tragen aber das Berlin-Datum (AEVA 14.05.: Commit dfcf3b6b 13.05. 22:19 UTC; AEVA 26.05.: bfac7d58 25.05. 22:19 UTC, Memorial Day; ABSI 01.06.: f6d3323f 01.06. 01:17 UTC = Sonntagabend ET). report_date ist erst seit 01.06.2026 an den ET-Handelstag gekoppelt; korrigiert wurde damals nur die 28.05.-Kohorte (1aa36e7d). Folge: Einstiegsdatum dieser Zeilen = Folgetag, entry_price/vix_level = Stand des Vortags. Betrifft nur Zeilen vor 01.06.2026 (im Export provenance backfill) — KEINE Forward-Zeile (ab 21.07.2026), also kein laufender Freeze. Umfang nicht gezählt (bräuchte Commit-Scan aller Läufe bis 01.06.). Der Wahrheits-Abgleich erkennt das nicht (der Wert entspricht dem Vortagsschluss). Easy entscheidet: zählen + kennzeichnen oder so lassen.",
+      "status": "offen",
+      "status_date": "2026-11-10"
     }
   ]
 }
