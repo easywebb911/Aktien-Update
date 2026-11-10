@@ -3300,6 +3300,21 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 10.11.2026 — Freeze-Berichtigung Glättung: Setup-Edge 7/100, H5 62/6 (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Entscheid 09.11.2026: `#671` (Branch `claude/bold-mayer-5dlyrd`, Branch-Commit
+  `1bfd8841`, kein Merge-Hash — Regel a). Datierte Protokolleinträge 10.11.2026 in den
+  Freezes Setup-Edge (7 von 100, |Δ| bis 4,0 statt 8 / 4,6) und H5 (62 abweichend,
+  6 Stufen-Wechsel statt 65 / 7) angehängt; die `#667`-Einträge bleiben stehen. Grund:
+  13- statt 14-Tage-Fenster (`generate_report.py:3768`). open_item
+  `score-smoothing-textsortierung-monatswechsel`: Nachtrag Postclose 09.11. (nach dem
+  Merge von `#667`; Nachfolger 0 Zeilen mit altem Score, nur trivial; Wirk-Nachweis
+  erst am Monatswechsel, Status beobachtet). MD5: 14 von 16 Blöcken unverändert, die
+  zwei geänderten nur um die Einträge verlängert (0 Zeilen gelöscht).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#669`,
+  höchste in Block 1 erwähnte PR = `#671` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 10.11.2026 — Wahrheits-Abgleich: vix_level/market_regime gegen die Produktions-Definition (1 PR, Auto-Merge Wächter-Reparatur)
 
 - Anlass S16 crit 10.11. (8/35 Zeilen, alle `vix_level`, Export-Zeilen 06.05.–01.06.):
