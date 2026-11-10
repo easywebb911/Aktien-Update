@@ -174,16 +174,25 @@ def test_render_generated_html():
               sc.get("AAAA") == 35.0 and sc.get("ULCC") == 62.72, sc)
     else:
         check("WL_SCORES gefunden", False)
-    # v1 == v2
+    # v1 == v2 — mit fester Uhr wie im Golden/Paper-C-Test: ohne sie können
+    # die eingebrannten Zeitstempel zwischen den zwei Renderings um eine
+    # Sekunde springen (gleiche Länge, anderer Inhalt → Fehlalarm).
+    orig = {"lsh": gr._load_score_history, "dt": gr.datetime,
+            "lbh": gr._load_backtest_history, "pl": gr.health_check.provider_liveness}
     try:
-        orig = gr._load_score_history
         gr._load_score_history = lambda: history
+        gr.datetime = golden._FixedDateTime
+        gr._load_backtest_history = golden._fixture_backtest_history
+        gr.health_check.provider_liveness = golden._stub_provider_liveness
         gr._render_test([st], "09.11.2026")
         check("v1 == v2 (_render_test)", True)
     except AssertionError as exc:
         check("v1 == v2 (_render_test)", False, str(exc)[:300])
     finally:
-        gr._load_score_history = orig
+        gr._load_score_history = orig["lsh"]
+        gr.datetime = orig["dt"]
+        gr._load_backtest_history = orig["lbh"]
+        gr.health_check.provider_liveness = orig["pl"]
 
 
 def _sparkline_js():
