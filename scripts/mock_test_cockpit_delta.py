@@ -48,7 +48,7 @@ def _func_block(func_def: str) -> str:
 
 def _replicate_cockpit_delta(s: dict) -> str:
     """1:1-Replikat der _cockpit_delta_html-Logik."""
-    spark  = s.get("sparkline") or {}
+    spark  = s.get("sparkline_view") or {}
     scores = spark.get("scores") or []
     dates  = spark.get("dates")  or []
     if len(scores) < 2:
@@ -81,7 +81,7 @@ def _replicate_cockpit_delta(s: dict) -> str:
 def _stock(scores, dates=None):
     if dates is None:
         dates = [f"1{i}.05.2026" for i in range(len(scores))]
-    return {"sparkline": {"scores": scores, "dates": dates}}
+    return {"sparkline_view": {"scores": scores, "dates": dates}}
 
 
 def test_01_below_silence_threshold() -> None:
@@ -134,11 +134,11 @@ def test_07_one_day_history() -> None:
 
 def test_08_no_sparkline() -> None:
     assert _replicate_cockpit_delta({}) == ""
-    assert _replicate_cockpit_delta({"sparkline": None}) == ""
+    assert _replicate_cockpit_delta({"sparkline_view": None}) == ""
 
 
 def test_09_invalid_scores() -> None:
-    s = {"sparkline": {"scores": [None, "abc"], "dates": ["x", "y"]}}
+    s = {"sparkline_view": {"scores": [None, "abc"], "dates": ["x", "y"]}}
     assert _replicate_cockpit_delta(s) == ""
 
 

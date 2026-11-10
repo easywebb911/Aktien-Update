@@ -166,7 +166,7 @@ def _baseline_stock(sparkline_scores=None):
         "finra_bonus_pts": 0.0, "short_float_source": "yfinance",
         "finra_data": {"trend": "no_data", "history": [],
                        "si_trend_source": "finra"},
-        "sparkline": ({"scores": sparkline_scores}
+        "sparkline_view": ({"scores": sparkline_scores}
                       if sparkline_scores is not None else None),
     }
 

@@ -137,7 +137,7 @@ def _baseline_stock():
         "finra_bonus_pts": 0.0, "short_float_source": "yfinance",
         "finra_data": {"trend": "no_data", "history": [],
                        "si_trend_source": "finra"},
-        "sparkline": None,
+        "sparkline_view": None,
     }
 
 

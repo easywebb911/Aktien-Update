@@ -774,10 +774,13 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
 
     # Entry-Modul-Vorarbeit (Shadow-Persist 25.05.2026) — kein Score-/Push-
     # Effekt, nur frühe Datensammlung. score_delta_t1 aus dem bereits am
-    # Stock-Dict liegenden sparkline (apply_score_smoothing läuft VOR dem
-    # Backtest-Append). anomaly_freshness aus dem per-Ticker durchgereichten
-    # jüngsten Push-Timestamp (Snapshot zur Report-Zeit).
-    _spark = s.get("sparkline") or {}
+    # Stock-Dict liegenden Score-Verlauf ``sparkline_view`` (apply_score_
+    # smoothing läuft VOR dem Backtest-Append; chronologisch nach geparstem
+    # Datum, [-1] = heute, [-2] = jüngster Vorlauf — Fix 11.11.2026, vorher
+    # text-sortiert, open_item backtest-score-delta-t1-textsortierung).
+    # anomaly_freshness aus dem per-Ticker durchgereichten jüngsten Push-
+    # Timestamp (Snapshot zur Report-Zeit).
+    _spark = s.get("sparkline_view") or {}
     score_delta_t1 = _compute_score_delta_t1(_spark.get("scores"))
     # Twin-Roh-Feld (29.05.2026): ungecappt, gleiche Quelle/Guard.
     score_delta_t1_raw = _compute_score_delta_t1_raw(_spark.get("scores"))
@@ -836,7 +839,7 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         # (None möglich). Schema-ADDITIV — KEIN v4→v5-Bump: der
         # S10-v4-Filter (health_check._s10_load_v4_entries, == 4) würde
         # neue Einträge sonst aus der Überwachung ausschließen.
-        #   score_delta_t1:    aus s["sparkline"]["scores"] (last−prev, ±15)
+        #   score_delta_t1:    aus s["sparkline_view"]["scores"] (heute − Vorlauf, ±15)
         #   anomaly_freshness: aus push_history-ts (max(1−age_h/72, 0))
         "score_delta_t1":         score_delta_t1,
         "anomaly_freshness":      anomaly_freshness,

@@ -10,7 +10,9 @@ Geprüft (ohne Netz, Golden-Harness-Stubs):
   4. Render-Prüfung des ERZEUGTEN HTML (generate_html_v1): data-dates
      chronologisch + ISO, data-today ISO, letzter Punkt = heutiger Rohwert,
      Δ-T-1-Tooltip mit Vortag; WL_HIST/WL_SCORES chronologisch.
-  5. ``s["sparkline"]`` (Backtest-Quelle score_delta_t1) bleibt unverändert.
+  5. Seit 11.11.2026 EINE Quelle: ``apply_score_smoothing`` setzt
+     ``s["sparkline_view"]`` über den Helfer; der text-sortierte Payload
+     ``s["sparkline"]`` ist entfernt; der Backtest liest ``sparkline_view``.
   6. JS: kein KI-Agent-Score mehr in drawSparkline; Punktfarbe aus
      ``_TRI_SCORE_*`` (= ``_tri_score_color``), nicht aus ``KI_DOT_*``;
      Datums-Parser ohne String-Date-Parsing (Safari).
@@ -137,15 +139,9 @@ def test_render_generated_html():
     history = {"ULCC": [dict(e) for e in MONTH],
                "AAAA": [E("31.12.2026", 30.0), E("04.01.2027", 35.0)]}
     st = golden._fixture_stock("ULCC", score=62.2, price=8.0, change=11.0)
-    # Alter (text-sortierter) Payload, wie apply_score_smoothing ihn heute baut.
-    legacy = sorted(MONTH, key=lambda e: e["date"])[-7:]
-    st["sparkline"] = {"scores": [round(e["score"], 1) for e in legacy],
-                       "dates": [e["date"] for e in legacy],
-                       "drivers": [e["drivers"] for e in legacy],
-                       "trend": "x", "col": "#94a3b8", "today": "09.11.2026"}
-    legacy_copy = json.loads(json.dumps(st["sparkline"]))
-    gr.apply_sparkline_view([st], "09.11.2026", history)
-    check("s['sparkline'] (Backtest-Quelle) unverändert", st["sparkline"] == legacy_copy)
+    # Wie apply_score_smoothing ihn setzt (gemeinsamer Helfer, volle History).
+    st.pop("sparkline", None)
+    st["sparkline_view"] = gr._sparkline_view_from_entries(history["ULCC"], "09.11.2026")
     out = _render([st], history)
     m = re.search(r'<article[^>]*data-ticker="ULCC"[\s\S]*?</article>', out)
     card = m.group(0) if m else out
@@ -224,15 +220,20 @@ def test_js():
 
 
 def test_main_wiring():
-    m = re.search(r"apply_score_smoothing\(top10, report_date\)\n    # PROTECTED-ZONE-END: "
-                  r"filter-top10-selection([\s\S]{0,2500})", GR_SRC)
-    check("apply_sparkline_view nach der Glättung, außerhalb der Schutzzone",
-          m is not None and "apply_sparkline_view(top10, report_date)" in m.group(1))
-    body = GR_SRC[GR_SRC.index("def apply_score_smoothing("):GR_SRC.index("# Score-Trend-Bonus/-Malus")]
-    check("apply_score_smoothing unberührt (kein sparkline_view)", "sparkline_view" not in body)
+    a = GR_SRC.index("def apply_score_smoothing(")
+    body = GR_SRC[a:GR_SRC.index("\ndef ", a + 10)]
+    check("apply_score_smoothing setzt sparkline_view über den Helfer",
+          's["sparkline_view"] = _sparkline_view_from_entries(history[ticker], today)' in body)
+    check("kein text-sortierter Payload mehr (s['sparkline'] entfernt)",
+          's["sparkline"]' not in body.replace('``s["sparkline"]``', "")
+          and 'key=lambda x: x.get("date", "")' not in body)
+    check("apply_sparkline_view entfernt (eine Quelle)", "apply_sparkline_view" not in GR_SRC)
     bt = (ROOT / "backtest_history.py").read_text(encoding="utf-8")
-    check("Backtest liest weiter s['sparkline'] (keine Datenänderung)",
-          '_spark = s.get("sparkline") or {}' in bt and "sparkline_view" not in bt)
+    check("Backtest liest sparkline_view", '_spark = s.get("sparkline_view") or {}' in bt
+          and 's.get("sparkline")' not in bt)
+    check("kein Konsument von s['sparkline'] mehr",
+          's.get("sparkline")' not in GR_SRC and '_s.get("sparkline")' not in GR_SRC
+          and '["sparkline"]' not in GR_SRC.replace('``s["sparkline"]``', ""))
 
 
 def run_all() -> int:

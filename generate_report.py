@@ -3080,7 +3080,6 @@ def _wl_card_payload(_s: dict) -> dict:
     _fd   = _s.get("finra_data") or {}
     _hist = _fd.get("history", [])
     _opts = _s.get("options") or {}
-    _spark = _s.get("sparkline") or None
     return {
         "score":         _s.get("score", 0),
         "monster_score": _s.get("monster_score"),
@@ -3136,13 +3135,6 @@ def _wl_card_payload(_s: dict) -> dict:
         "cost_to_borrow": _s.get("cost_to_borrow"),
         "utilization":    _s.get("utilization"),
         "borrow_rate":    _s.get("borrow_rate"),
-        "sparkline":     ({
-            "scores": _spark.get("scores", []),
-            "dates":  _spark.get("dates", []),
-            "trend":  _spark.get("trend", ""),
-            "col":    _spark.get("col", "#94a3b8"),
-            "today":  _spark.get("today", ""),
-        } if _spark else None),
         "news": [
             {
                 "title":  n.get("title", ""),
@@ -5074,35 +5066,15 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
             history[ticker] = entries
             _dirty = True   # mark that history was modified and needs saving
 
-        # Sparkline data: last 7 calendar entries (oldest → newest) for this ticker
-        all_entries = sorted(
-            [e for e in history[ticker]],
-            key=lambda x: x.get("date", ""),
-        )[-7:]
-        if len(all_entries) >= 2:
-            spark_scores  = [round(e["score"], 1) for e in all_entries]
-            spark_dates   = [e["date"] for e in all_entries]   # ISO YYYY-MM-DD; JS parses weekday
-            spark_drivers = [list(e.get("drivers") or []) for e in all_entries]
-            delta = spark_scores[-1] - spark_scores[0]
-            if delta >= 3:
-                spark_trend = f"↑ +{delta:.1f} Pkt"
-                spark_col   = "#22c55e"
-            elif delta <= -3:
-                spark_trend = f"↓ {delta:.1f} Pkt"
-                spark_col   = "#ef4444"
-            else:
-                spark_trend = "→ stabil"
-                spark_col   = "#94a3b8"
-            s["sparkline"] = {
-                "scores":  spark_scores,
-                "dates":   spark_dates,
-                "drivers": spark_drivers,
-                "trend":   spark_trend,
-                "col":     spark_col,
-                "today":   today,
-            }
-        else:
-            s["sparkline"] = None
+        # Score-Verlauf (7 jüngste Tage, alt → neu) CHRONOLOGISCH über den
+        # gemeinsamen Datums-Helfer ``_sparkline_view_from_entries`` (geparstes
+        # Datum, JJJJ-MM-TT, deterministisch). Einzige Quelle für Anzeige-Kurve,
+        # Δ T-1 UND die Backtest-Felder score_delta_t1/_raw + Entry-Score-
+        # Schatten (backtest_history._build_backtest_extension). Ersetzt den
+        # früheren ``s["sparkline"]``-Payload, der TT.MM.JJJJ als Text sortierte
+        # (Monatswechsel falsch; open_item backtest-score-delta-t1-textsortierung,
+        # Fix 11.11.2026). Kein Effekt auf ``s["score"]``.
+        s["sparkline_view"] = _sparkline_view_from_entries(history[ticker], today)
 
     # Opt 5: write only when something actually changed (dirty flag)
     _save_score_history(history, _dirty)
@@ -6628,16 +6600,14 @@ def _conf_class(score_class: str) -> tuple[str, str, str]:
     return "sb-conf-heur", title, aria
 
 
-# ── Score-Verlauf (Kurve) für die ANZEIGE: chronologisch + ISO (09.11.2026) ──
-# open_items sparkline-datum-textsortierung / watchlist-score-history-
-# textsortierung: der Payload aus apply_score_smoothing (``s["sparkline"]``)
-# sortiert die TT.MM.JJJJ-Daten als Text (Monatswechsel falsch) und liefert
-# TT.MM.JJJJ an den Browser, der ISO erwartet. ``s["sparkline"]`` bleibt
-# bewusst UNVERÄNDERT: es speist auch Backtest-Felder (score_delta_t1,
-# score_delta_t1_raw, entry_score in backtest_history.py) — eine Korrektur
-# dort wäre eine Daten-, keine Anzeige-Änderung (Easy-Entscheid offen).
-# Alle Anzeige-Pfade (Karte v1/v2, Δ T-1, Watchlist-Kachel) lesen stattdessen
-# ``_sparkline_view(s)``. Rein Anzeige, kein Score-/Filter-/Push-Effekt.
+# ── Score-Verlauf (Kurve): chronologisch + ISO (09.11.2026 / 11.11.2026) ──
+# EINE Quelle: ``s["sparkline_view"]``, gesetzt in ``apply_score_smoothing``
+# über ``_sparkline_view_from_entries`` (geparstes Datum, nie Datums-Text).
+# Liest: Anzeige (Karte v1/v2, Δ T-1, Trend, Tooltip, Watchlist-Kachel über
+# denselben Helfer) UND backtest_history._build_backtest_extension
+# (score_delta_t1, score_delta_t1_raw, Entry-Score-Schatten). Der frühere
+# text-sortierte Payload ``s["sparkline"]`` ist entfernt (open_items
+# sparkline-datum-textsortierung, backtest-score-delta-t1-textsortierung).
 _SPARK_VIEW_POINTS = 7
 
 
@@ -6728,36 +6698,11 @@ def _spark_latest_entry(entries) -> "dict | None":
 
 
 def _sparkline_view(s: dict) -> "dict | None":
-    """Anzeige-Kurve einer Karte: ``s["sparkline_view"]`` (aus der vollen
-    History, gesetzt von ``apply_sparkline_view``), sonst — z. B. Fixtures/
-    Altpfade — aus ``s["sparkline"]`` umsortiert und nach ISO gewandelt."""
-    if "sparkline_view" in s:
-        v = s.get("sparkline_view")
-        return v if isinstance(v, dict) else None
-    sp = s.get("sparkline")
-    if not isinstance(sp, dict):
-        return None
-    sc = sp.get("scores") or []
-    dt = sp.get("dates") or []
-    dr = sp.get("drivers") or []
-    entries = [{"date": dt[i] if i < len(dt) else None,
-                "score": sc[i],
-                "drivers": dr[i] if i < len(dr) else []}
-               for i in range(len(sc))]
-    return _sparkline_view_from_entries(entries, sp.get("today", ""))
-
-
-def apply_sparkline_view(stocks: list[dict], today: str,
-                         history: "dict | None" = None) -> None:
-    """Setzt ``s["sparkline_view"]`` je Karte aus der vollen Score-History.
-
-    Läuft im Daily-Run NACH ``apply_score_smoothing`` (dessen Payload
-    ``s["sparkline"]`` bleibt unverändert). Rein Anzeige."""
-    if history is None:
-        history = _load_score_history()
-    for s in stocks:
-        s["sparkline_view"] = _sparkline_view_from_entries(
-            history.get(s.get("ticker"), []), today)
+    """Score-Verlauf einer Karte: ``s["sparkline_view"]`` (gesetzt von
+    ``apply_score_smoothing`` über ``_sparkline_view_from_entries``);
+    fehlt/kein Dict → ``None``."""
+    v = s.get("sparkline_view")
+    return v if isinstance(v, dict) else None
 
 
 def _score_delta_html(s: dict) -> str:
@@ -7338,7 +7283,7 @@ def _card(i: int, s: dict) -> str:
             f'<div class="spark-header">'
             f'<div class="spark-title-wrap">'
             f'<span class="spark-title">\U0001F4C8 Score-Verlauf</span>'
-            f'<span class="spark-subtitle">(Setup-Score, 7 Tage \u00b7 KI-Treiber im Punkt-Tooltip)</span>'
+            f'<span class="spark-subtitle">(Setup-Score-Rohwert, 7 Tage \u00b7 KI-Treiber im Punkt-Tooltip)</span>'
             f'</div>'
             f'<span class="spark-trend" style="color:{_spark["col"]}">{_spark["trend"]}</span>'
             f'</div>'
@@ -7880,7 +7825,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
             f'<div class="spark-header">'
             f'<div class="spark-title-wrap">'
             f'<span class="spark-title">\U0001F4C8 Score-Verlauf</span>'
-            f'<span class="spark-subtitle">(Setup-Score, 7 Tage \u00b7 KI-Treiber im Punkt-Tooltip)</span>'
+            f'<span class="spark-subtitle">(Setup-Score-Rohwert, 7 Tage \u00b7 KI-Treiber im Punkt-Tooltip)</span>'
             f'</div>'
             f'<span class="spark-trend" style="color:{_spark["col"]}">{_spark["trend"]}</span>'
             f'</div>'
@@ -9575,7 +9520,9 @@ def generate_html_v1(stocks: list[dict], report_date: str,
             (Nicht zu verwechseln mit dem KI-Agent-Punkt neben dem Ticker oben.)</li>
           <li><strong>📈 Score-Verlauf (Setup-Score, 7 Tage)</strong> — die kleine
             Kurve auf jeder Karte zeigt den <em>Setup-Score</em>-Verlauf der
-            letzten 7 Tage, <em>nicht</em> den KI-Score. Die KI-Treiber des
+            letzten 7 Tage als <em>Rohwert</em> (vor Glättung, Late-Runner-Abschlag
+            und KI-Boost — der letzte Punkt weicht darum meist vom Setup-Score der
+            Karte ab), <em>nicht</em> den KI-Score. Die KI-Treiber des
             jeweiligen Tages stehen im Tooltip jedes Punkts (antippen/hovern).
             (Früher als „KI-Signalverlauf" bezeichnet — die Linie war aber schon
             immer der Setup-Score.)</li>
@@ -15072,7 +15019,7 @@ function _fmtGerman(d) {{
           data-col="${{h.col}}" data-today="">
           <div class="spark-header"><div class="spark-title-wrap">
             <span class="spark-title">\U0001F4C8 Score-Verlauf</span>
-            <span class="spark-subtitle">(Setup-Score \u00b7 KI-Treiber im Punkt-Tooltip)</span>
+            <span class="spark-subtitle">(Setup-Score-Rohwert \u00b7 KI-Treiber im Punkt-Tooltip)</span>
           </div></div>
           <div class="spark-svg-wrap" style="height:56px"></div>
           <div class="spark-days"></div>
@@ -19730,15 +19677,6 @@ def main():
         _persist_si_position_history(enriched)
     except Exception as _si_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("SI-Positions-Zeitreihe übersprungen: %s", _si_exc)
-
-    # Anzeige-Kurve chronologisch + ISO (09.11.2026, rein Anzeige): eigenes
-    # Feld ``sparkline_view`` aus der vollen Score-History; ``s["sparkline"]``
-    # (Backtest-Quelle für score_delta_t1) bleibt unverändert. Fail-soft:
-    # Fehler → Karten fallen auf den umsortierten Alt-Payload zurück.
-    try:
-        apply_sparkline_view(top10, report_date)
-    except Exception as _sv_exc:   # pragma: no cover  (nie den Daily-Run brechen)
-        log.warning("Anzeige-Kurve übersprungen: %s", _sv_exc)
 
     # inst_ownership_history (10.08.2026): forward-only 13F-Institutional- +
     # Insider-Ownership über den vollen enriched US-Pool. Werte liegen schon
