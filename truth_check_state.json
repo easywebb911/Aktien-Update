@@ -1,18 +1,11 @@
 {
  "export_lines_seen": 1367,
- "last_run_ts": "2026-11-10T04:35:22Z",
+ "last_run_ts": "2026-11-10T19:05:28Z",
  "recheck": [
-  "export|ABSI|06.05.2026",
-  "export|AEVA|07.05.2026",
-  "export|ABCL|11.05.2026",
-  "export|AEVA|11.05.2026",
-  "export|AEVA|12.05.2026",
-  "export|AEVA|14.05.2026",
-  "export|AEVA|26.05.2026",
-  "export|ABSI|01.06.2026"
+  "export|AMCX|15.07.2026"
  ],
  "retry": [],
- "rotation_pos": 10,
+ "rotation_pos": 20,
  "schema_v": 1,
  "shadow_checked": [
   "exit_shadow|AI|01.07.2026",
