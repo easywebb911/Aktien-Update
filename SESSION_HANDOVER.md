@@ -3300,6 +3300,21 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 10.11.2026 — Wahrheits-Abgleich: vix_level/market_regime gegen die Produktions-Definition (1 PR, Auto-Merge Wächter-Reparatur)
+
+- Anlass S16 crit 10.11. (8/35 Zeilen, alle `vix_level`, Export-Zeilen 06.05.–01.06.):
+  `#670` (Branch `claude/truthcheck-vix-def-x7k2`, Branch-Commit `b5580f5c`, kein
+  Merge-Hash — Regel a). Produktion speichert ^VIX/SPY zum Laufzeitpunkt
+  (`backtest_history.py:1396–1401`); der Abgleich verglich mit dem Tagesschluss.
+  Jetzt bestätigt in Tagesspanne, Tagesschluss oder Vortagsschluss, sonst weiter
+  Abweichung; Bestätigungen mit Spanne in `laufzeit_regel`. Kein Freeze legt
+  „VIX-Schluss“ fest; CLAUDE.md-Feldbeschreibung korrigiert. Neues open_item
+  `backtest-datum-berlin-plus1-vor-0106` (3 der 8 Zeilen am ET-Vortagsabend mit
+  Berlin-Datum geschrieben, nur Zeilen vor 01.06.).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#668`,
+  höchste in Block 1 erwähnte PR = `#670` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 09.11.2026 — §4-Protokolleintrag zum Glättungs-Fehler (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Entscheid 09.11.2026 (Guardian-Finding 1 aus `#667`): `#668` (Branch

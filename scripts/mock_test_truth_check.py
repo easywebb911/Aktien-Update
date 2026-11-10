@@ -433,10 +433,114 @@ def test_digest_budget():
     check("Workflow: kein healthchecks-Ping", "hc_ping" not in wf and "HC_PING" not in wf)
 
 
+def _world_with(t: str, d: date, **vals):
+    """Kopie von WORLD; Zeile ``d`` von ``t`` mit überschriebenen Werten."""
+    w = {k: [dict(r) for r in v] for k, v in WORLD.items()}
+    for r in w[t]:
+        if r["d"] == d:
+            r.update(vals)
+    return w
+
+
+def test_g_runtime_rule():
+    """Fix 10.11.2026: vix_level / market_regime gegen die PRODUKTIONS-
+    Definition (Wert zum Laufzeitpunkt) statt nur gegen den Tagesschluss."""
+    i = DAYS.index(ENTRY)
+    prev = DAYS[i - 1]
+    w = _world_with("^VIX", ENTRY, c=20.0, h=21.0, l=19.0)
+    w = {**w, "^VIX": [dict(r, c=17.5) if r["d"] == prev else r for r in w["^VIX"]]}
+    good = expected_row("AAA", ENTRY)
+    good["vix_level"] = 20.0
+
+    def run_vix(v):
+        line, st, _ = _run([dict(good, vix_level=v)], [], Fetcher(world=w))
+        return line, st
+
+    # Intraday-Lauf: Wert in der Tagesspanne, nicht der Schluss → stimmt.
+    line, _ = run_vix(19.4)
+    check("g: Wert in Spanne → stimmt", line["stimmt"] == 1 and line["abweichung"] == 0,
+          line["abweichungen"])
+    notes = [n for n in line.get("laufzeit_regel", []) if n["feld"] == "vix_level"]
+    check("g: Bestätigung mit Spanne geloggt",
+          len(notes) == 1 and notes[0]["regel"] == "spanne" and notes[0]["tief"] == 19.0
+          and notes[0]["hoch"] == 21.0 and notes[0]["schluss"] == 20.0, notes)
+    # Lauf vor Börsenöffnung: Vortagsschluss (außerhalb der Spanne) → stimmt.
+    line, _ = run_vix(17.5)
+    check("g: Vortagsschluss → stimmt", line["stimmt"] == 1, line["abweichungen"])
+    check("g: Regel vortag geloggt",
+          [n["regel"] for n in line["laufzeit_regel"]] == ["vortag"], line["laufzeit_regel"])
+    # Exakter Schluss → stimmt, ohne Laufzeit-Notiz.
+    line, _ = run_vix(20.0)
+    check("g: Schluss → stimmt ohne Notiz",
+          line["stimmt"] == 1 and line["laufzeit_regel"] == [], line)
+    # Außerhalb Spanne und ≠ Vortag → bleibt Abweichung (kein Stummschalten).
+    line, st = run_vix(22.5)
+    devs = line["abweichungen"]
+    check("g: außerhalb Spanne → abweichung",
+          line["abweichung"] == 1 and len(devs) == 1 and devs[0]["feld"] == "vix_level"
+          and devs[0]["neu"] == 20.0 and devs[0]["klasse"] == "abweichung", devs)
+    check("g: Abweichung vorgemerkt", len(st["recheck"]) == 1, st["recheck"])
+    # Ränder: Toleranz 0,02 an der Spanne.
+    check("g: Tief − 0,02 stimmt", run_vix(18.98)[0]["abweichung"] == 0)
+    check("g: Tief − 0,03 weicht ab", run_vix(18.97)[0]["abweichung"] == 1)
+    check("g: Hoch + 0,02 stimmt", run_vix(21.02)[0]["abweichung"] == 0)
+    check("g: Hoch + 0,03 weicht ab", run_vix(21.03)[0]["abweichung"] == 1)
+    # Determinismus: gleiche Eingabe → gleiche Log-Zeile.
+    a, _ = run_vix(19.4)
+    b, _ = run_vix(19.4)
+    check("g: deterministisch", a == b)
+    # Pure Regel-Funktion.
+    spec = {"schluss": 20.0, "tief": 19.0, "hoch": 21.0, "vortag": 17.5}
+    check("g: vix_runtime_verdict",
+          [tc.vix_runtime_verdict(v, spec, 0.02) for v in (20.0, 19.5, 17.5, 25.0)]
+          == ["schluss", "spanne", "vortag", None])
+    check("g: fehlende Spanne → nur Schluss/Vortag",
+          tc.vix_runtime_verdict(19.5, dict(spec, tief=None), 0.02) is None)
+
+
+def test_h_regime_runtime():
+    """market_regime: Regime aus einem SPY-Kurs in der Tagesspanne → stimmt;
+    unerreichbares Regime → abweichung."""
+    i = DAYS.index(ENTRY)
+    sp = WORLD["SPY"]
+    ref = sp[i - 50]["c"]
+    # Schluss knapp unter +5 % (neutral), Tageshoch darüber (bull erreichbar),
+    # Tief im neutralen Band; Vortag neutral.
+    c, h, lo = ref * 1.049, ref * 1.06, ref * 1.03
+    w = _world_with("SPY", ENTRY, c=c, h=h, l=lo)
+    good = expected_row("AAA", ENTRY)
+
+    def run_regime(rg):
+        line, _, _ = _run([dict(good, market_regime=rg)], [], Fetcher(world=w))
+        return line
+
+    def regime_devs(line):
+        return [d for d in line["abweichungen"] if d["feld"] == "market_regime"]
+
+    line = run_regime("neutral")
+    check("h: Schluss-Regime neutral → keine Regime-Abweichung", regime_devs(line) == [],
+          line["abweichungen"])
+    line = run_regime("bull")
+    check("h: bull (Intraday erreichbar) → keine Regime-Abweichung",
+          regime_devs(line) == [], line["abweichungen"])
+    check("h: bull als Laufzeit-Regel geloggt",
+          any(n["feld"] == "market_regime" and n["alt"] == "bull"
+              for n in line["laufzeit_regel"]), line["laufzeit_regel"])
+    line = run_regime("bear")
+    rd = regime_devs(line)
+    check("h: bear unerreichbar → abweichung",
+          len(rd) == 1 and rd[0]["neu"] == "neutral", line["abweichungen"])
+    check("h: _regimes_between",
+          tc._regimes_between(3.0, 6.0) == {"neutral", "bull"}
+          and tc._regimes_between(-7.0, -6.0) == {"bear"}
+          and tc._regimes_between(-6.0, 6.0) == {"bear", "neutral", "bull"})
+
+
 def run_all() -> int:
     for t in (test_a_correct, test_b_manipulated, test_c_split, test_d_rate_limit,
               test_e_delisted, test_f_bootstrap, test_first_run_and_rotation,
-              test_read_only, test_mirror_vs_production, test_s16, test_digest_budget):
+              test_read_only, test_mirror_vs_production, test_s16, test_digest_budget,
+              test_g_runtime_rule, test_h_regime_runtime):
         print(t.__name__)
         t()
     print()

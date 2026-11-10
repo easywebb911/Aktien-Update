@@ -2694,8 +2694,8 @@ Daten-Persistierung — keine Frontend-Anzeige, keine Score-Konsequenzen.
 |---|---|---|---|
 | `max_drawdown_pct` | Float (negativ) | Max. Drawdown vom rolling Cummax-High zur Tagestief über die ersten ≤ 10 Handelstage seit Entry | `None` (noch nicht berechnet; seit 05.11.2026, vorher `0.0`) |
 | `max_gain_pct` | Float (positiv) | Spiegel zu `max_drawdown_pct` (Hypothese-C-Vorbau, PR #397, 02.07.2026): Max. Gain vom rolling Cummin-Low zum Tageshoch über dieselbe ≤ 10-Handelstage-Slice. Kein zusätzlicher yf-Call, additiv (kein v4-Bump). | `None` (noch nicht berechnet; seit 05.11.2026, vorher `0.0`) |
-| `market_regime` | Str | SPY 50-Trading-Day-Trend zum Entry-Tag: `bull` (>+5 %), `bear` (<−5 %), `neutral` | aus `_market_regime_from_spy()` |
-| `vix_level` | Float \| None | VIX-Schluss zum Entry-Tag (yfinance `^VIX`) | `_vix_close()`, None bei Fehler |
+| `market_regime` | Str | SPY 50-Trading-Day-Trend zum Entry-Tag: `bull` (>+5 %), `bear` (<−5 %), `neutral` — wie `vix_level` aus dem letzten Wert zum Laufzeitpunkt (Postclose = Tagesschluss) | aus `_market_regime_from_spy()` |
+| `vix_level` | Float \| None | ^VIX **zum Laufzeitpunkt** des schreibenden Laufs (letzter `Close` eines 5-Tage-Downloads): Postclose ab 16:20 ET = Tagesschluss; in der US-Sitzung Intraday-Stand, vor der Öffnung Vortagsschluss (betrifft Altzeilen vor 12.05.2026). Klarstellung 10.11.2026 — vorher hier als „VIX-Schluss“ beschrieben. | `_vix_close()`, None bei Fehler |
 
 ### Persistenz-Logik
 
@@ -4357,8 +4357,11 @@ der Diagnose vom 05.11.2026). Skript ``scripts/truth_check.py``, Workflow
 ``max_drawdown_pct`` nur bei Einträgen > 14 Tage, über ``_final_window`` — der
 Zeitpunkt des letzten Rolling-Updates ist nicht gespeichert, deshalb gilt ein
 Wert als bestätigt, wenn er zum Fenster eines **Präfixes** (≥ 2 Zeilen) passt;
-``forward_3d/5d/10d`` (exit_shadow_log); ``vix_level`` (^VIX-Schluss am
-Entry-Tag); ``market_regime`` (SPY, 50 Handelstage, ±5 %);
+``forward_3d/5d/10d`` (exit_shadow_log); ``vix_level`` und ``market_regime``
+(SPY, 50 Handelstage, ±5 %) nach der **Produktions-Definition** (Wert zum
+Laufzeitpunkt, Fix 10.11.2026): bestätigt, wenn in der Tagesspanne (Tief–Hoch)
+des Entry-Tags, gleich dem Tagesschluss oder gleich dem Vortagsschluss (Lauf vor
+Öffnung); Bestätigungen über diese Regel stehen mit Spanne in ``laufzeit_regel``;
 ``entry_past_return_5d`` (eigene Handelstage des Tickers). **Keine**
 Preis-Felder, **keine** Bootstrap-Zeilen. Abweichung → Dividende/Split im
 Fenster (aus derselben Kursabfrage, ``actions=True``)? ja → ``neu_adjustiert``,
