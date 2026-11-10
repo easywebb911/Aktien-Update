@@ -3315,7 +3315,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Golden neu (Untertitel/Methodik/WL_TOP10 ohne `sparkline`). Kein Workflow/Cron.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#671`,
   höchste in Block 1 erwähnte PR = `#672` (eigene) — kein Rückstand.
-- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Guardian-Lauf vor Ready:** OK; 2 kosmetische Hinweise (Docstring-Wort `sparkline` →
+  `sparkline_view`, behoben; `app.html` trägt das alte Feld bis zum nächsten Daily-Run —
+  erzeugtes Artefakt, kein Leser).
 
 ### 10.11.2026 — Freeze-Berichtigung Glättung: Setup-Edge 7/100, H5 62/6 (1 PR, Manual-Merge, protected-ok Regel b)
 

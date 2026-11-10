@@ -257,7 +257,7 @@ def _test_extended_schema():
     }
     assert set(ext.keys()) == expected_keys, set(ext.keys()) ^ expected_keys
     assert ext["backtest_schema_version"] == 4, ext
-    # Entry-Score: full hat keine Entry-Inputs (kein sparkline/hist_5d/uoa,
+    # Entry-Score: full hat keine Entry-Inputs (kein sparkline_view/hist_5d/uoa,
     # <5 FINRA-Punkte, latest_push_ts_by_ticker nicht übergeben → Map None) →
     # 0 eingehende Komponenten → entry_score None, Flag False.
     assert ext["entry_score"] is None, ext
@@ -6719,7 +6719,7 @@ def _score_delta_html(s: dict) -> str:
     jüngsten Einträge. Bei < 2 Einträgen (Erst-Render, Ticker neu in
     Top-10): leerer String.
 
-    Tooltip: konkreter Δ-Wert + Vortags-Datum aus ``sparkline.dates``.
+    Tooltip: konkreter Δ-Wert + Vortags-Datum aus ``sparkline_view["dates"]`` (als TT.MM.JJJJ).
     Phasen-Mismatch (premarket↔postclose) wird nicht ausgewiesen —
     RVOL-Normalisierung (PR-α/β/γ) adressiert die strukturelle Drift
     in der Berechnung selbst.
