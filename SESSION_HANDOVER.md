@@ -3300,6 +3300,23 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 11.11.2026 — score_delta_t1 + Entry-Score-Schatten chronologisch, eine Kurven-Quelle (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Auftrag 11.11.2026: `#672` (Branch `claude/score-delta-t1-chrono-k4p9`, Branch-Commit
+  `aafc00fb`, kein Merge-Hash — Regel a). `apply_score_smoothing` setzt
+  `s["sparkline_view"]` über `_sparkline_view_from_entries` (geparstes Datum);
+  `_build_backtest_extension` liest es → `score_delta_t1`/`_raw` = heute − jüngster
+  Vorlauf, Entry-Score-Schatten folgt. Entfernt: text-sortierter `s["sparkline"]`,
+  `apply_sparkline_view`, `watchlist_cards[t].sparkline`. Kurven-Untertitel
+  „Setup-Score-Rohwert“. Bestand nicht umgeschrieben: 717 gespeicherte
+  `score_delta_t1_raw` exakt reproduziert, 220 falsch (114 Vorzeichenwechsel), die 13
+  aus #669 einzeln erklärt (open_item `backtest-score-delta-t1-textsortierung`). Kein
+  Freeze betroffen (MD5 16/16 = main). Neuer Test `mock_test_score_delta_t1_chrono.py`,
+  Golden neu (Untertitel/Methodik/WL_TOP10 ohne `sparkline`). Kein Workflow/Cron.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#671`,
+  höchste in Block 1 erwähnte PR = `#672` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 10.11.2026 — Freeze-Berichtigung Glättung: Setup-Edge 7/100, H5 62/6 (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Entscheid 09.11.2026: `#671` (Branch `claude/bold-mayer-5dlyrd`, Branch-Commit
