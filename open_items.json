@@ -704,6 +704,22 @@
       "description": "Fund 09.11.2026: Die Kurve zeigt gespeicherte Rohwerte (score_history, vor Glättung/Late-Runner/Boost); die Karte zeigt den geglätteten Setup-Score. Darum ist der letzte Punkt i. d. R. ≠ Setup-Score (Bericht 09.11. intraday: 0 von 9 Karten gleich, z. B. ULCC Kurve 62,7 vs. Karte 71,3). Kein Fehler des Anzeige-PR — die Δ T-1-/Trend-Logik ist bewusst auf Rohwerten definiert (CLAUDE.md 'Score-Delta T-1'). Easy entscheidet: (a) so lassen + Untertitel 'Rohwert' oder (b) letzten Punkt/Kurve auf den angezeigten Score umstellen. — UMGESETZT 11.11.2026 (Easy-Entscheid (a)): so gelassen + gekennzeichnet — Untertitel 'Setup-Score-Rohwert' (Karte v1/v2 + Watchlist-Kachel), Methodik-Zeile erklärt Rohwert vor Glättung/Late-Runner/KI-Boost.",
       "status": "erledigt",
       "status_date": "2026-11-11"
+    },
+    {
+      "id": "postclose-halbzeilen-2028et",
+      "title": "Postclose um ~20:28 ET liefert für fast alle Pool-Ticker eine halbe Tageszeile",
+      "opened": "2026-11-11",
+      "description": "Beleg [halfrow_probe] (Easy-Entscheid 11.11.2026, Nacht-Probe-Endauswertung): Postclose D=10.11.2026 (Run 42939138350, 11.11. 01:28 UTC = 20:28 ET) hatte bei 74 von 78 Tickern eine halbe Tageszeile (letzter Close NaN); Postclose D=09.11.2026 (Run 42751625039, 10.11. 03:47 UTC = 22:47 ET) 0 von 77. Folge im Nacht-Probe-Abgleich F3: die Nachtwerte (07:09 ET des Folgetags) waren VOLLSTÄNDIGER als die Produktion (AMRC, TTEC: rvol aus der halben Zeile). Ein früher Postclose liefert damit heute schon schlechtere Daten als ein später. Zusammenhang: postclose-halbe-tageszeile-preis-score-pfad (Fix B), berichtsdatum-wurzelloesung-nacht-probe. Ob die Tageszeile um ~01:30 ET schon fertig ist, klärt die Nacht-Probe Variante (b) (Dispatch-Nächte 12./13.11.2026). Nichts geändert.",
+      "status": "offen",
+      "status_date": "2026-11-11"
+    },
+    {
+      "id": "options-oi-datierung-vortag",
+      "title": "Options-OI: Postclose-Wert von Tag D ist praktisch der Stand des Vortags",
+      "opened": "2026-11-11",
+      "description": "Beleg Nacht-Probe-Endauswertung 11.11.2026 (F2, 2 Paare D=09.11./10.11.): bei 18 Ticker-Paaren war der Nachtwert (07–08 ET des Folgetags, nächster gemeinsamer Verfall, gemeinsame Strikes) ≠ dem Postclose-Wert von D (options_chain_raw) — das OI wird über Nacht aktualisiert; bei 4 Paaren (AKTS, AMRC, PCT; SPY mit Verfall am selben Tag) änderte es sich bis 15:09 ET noch einmal. Ein OI-Punkt mit Datum D in options_oi_history/options_chain_raw (Postclose) bedeutet damit faktisch den Stand Ende D−1; kein Look-ahead, aber ein Tag Verzug. Bei einer Wurzellösung Berichtsdatum (Lauf nach Mitternacht schreibt D) würde ein Punkt je nach Laufzeit D−1 oder D bedeuten → Abrufzeit + Kennzeichen vor/nach dem nächtlichen Update mitschreiben. Relevant für Gamma-Kandidat (Baig) der Hypothesen-Runde. Nichts geändert.",
+      "status": "offen",
+      "status_date": "2026-11-11"
     }
   ]
 }
