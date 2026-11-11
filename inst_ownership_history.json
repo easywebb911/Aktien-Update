@@ -2640,6 +2640,11 @@
       "date": "2026-11-09",
       "inst_ownership": 1.13084,
       "insider_ownership": 0.01604
+    },
+    {
+      "date": "2026-11-10",
+      "inst_ownership": 1.13143,
+      "insider_ownership": 0.01604
     }
   ],
   "METC": [
@@ -7462,6 +7467,11 @@
       "date": "2026-11-06",
       "inst_ownership": 0.84602,
       "insider_ownership": 0.20745
+    },
+    {
+      "date": "2026-11-10",
+      "inst_ownership": 0.84415,
+      "insider_ownership": 0.20742
     }
   ],
   "VIVK": [
@@ -7490,6 +7500,11 @@
     {
       "date": "2026-10-30",
       "inst_ownership": 0.425,
+      "insider_ownership": 0.49838
+    },
+    {
+      "date": "2026-11-10",
+      "inst_ownership": 0.4289,
       "insider_ownership": 0.49838
     }
   ],
@@ -7882,6 +7897,11 @@
     {
       "date": "2026-10-20",
       "inst_ownership": 0.73190004,
+      "insider_ownership": 0.14053
+    },
+    {
+      "date": "2026-11-10",
+      "inst_ownership": 0.73307997,
       "insider_ownership": 0.14053
     }
   ],
@@ -10895,6 +10915,11 @@
       "date": "2026-10-30",
       "inst_ownership": 0.2595,
       "insider_ownership": 0.58722997
+    },
+    {
+      "date": "2026-11-10",
+      "inst_ownership": 0.23959999,
+      "insider_ownership": 0.58722997
     }
   ],
   "SONO": [
@@ -11169,6 +11194,11 @@
       "date": "2026-10-27",
       "inst_ownership": 0.91819,
       "insider_ownership": 0.09093001
+    },
+    {
+      "date": "2026-11-10",
+      "inst_ownership": 0.91606003,
+      "insider_ownership": 0.09083
     }
   ],
   "NFE": [
@@ -12079,6 +12109,11 @@
       "date": "2026-10-23",
       "inst_ownership": 1.23964,
       "insider_ownership": 0.01395
+    },
+    {
+      "date": "2026-11-10",
+      "inst_ownership": 1.23935,
+      "insider_ownership": 0.01395
     }
   ],
   "UPBD": [
@@ -12406,6 +12441,11 @@
       "date": "2026-11-09",
       "inst_ownership": 0.89929,
       "insider_ownership": 0.04399
+    },
+    {
+      "date": "2026-11-10",
+      "inst_ownership": 0.89796996,
+      "insider_ownership": 0.04399
     }
   ],
   "RCAT": [
@@ -12708,6 +12748,11 @@
       "date": "2026-11-05",
       "inst_ownership": 0.68284,
       "insider_ownership": 0.1452
+    },
+    {
+      "date": "2026-11-10",
+      "inst_ownership": 0.68364,
+      "insider_ownership": 0.145
     }
   ],
   "SDHC": [

@@ -7431,6 +7431,12 @@
       "shares_short": 18537888,
       "short_pct_float": 28.63,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 18218854,
+      "short_pct_float": 28.14,
+      "pub_date": "2026-10-26"
     }
   ],
   "LDI": [
@@ -8820,6 +8826,12 @@
       "shares_short": 4715294,
       "short_pct_float": 29.16,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 4313744,
+      "short_pct_float": 26.68,
+      "pub_date": "2026-10-26"
     }
   ],
   "CPB": [
@@ -10023,6 +10035,12 @@
       "shares_short": 37976544,
       "short_pct_float": 15.54,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 42020301,
+      "short_pct_float": 17.18,
+      "pub_date": "2026-10-26"
     }
   ],
   "NFE": [
