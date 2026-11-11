@@ -10,7 +10,7 @@ Hybrid-Stille-Schwelle:
   - |Δ| ≥ 5:  farbig gruen/rot mit ▲/▼ (.sb-delta-up/-down)
   - |Δ| ≥ 15: zusaetzlich Bold (.sb-delta-strong)
 
-Quelle: s["sparkline"]["scores"] — raw Setup-Scores aus
+Quelle: s["sparkline_view"]["scores"] — raw Setup-Scores aus
 score_history.json, materialisiert vom Daily-Run.
 
 Tests (Source + pythonische Replikation):
@@ -97,7 +97,7 @@ def test_04_css_classes_in_head_jinja() -> None:
 
 def _replicate_score_delta(s: dict) -> str:
     """1:1-Replikat der _score_delta_html-Logik."""
-    spark = s.get("sparkline") or {}
+    spark = s.get("sparkline_view") or {}
     scores = spark.get("scores") or []
     dates = spark.get("dates") or []
     if len(scores) < 2:
@@ -129,7 +129,7 @@ def _replicate_score_delta(s: dict) -> str:
 def _stock(scores, dates=None):
     if dates is None:
         dates = [f"1{i}.05.2026" for i in range(len(scores))]
-    return {"sparkline": {"scores": scores, "dates": dates}}
+    return {"sparkline_view": {"scores": scores, "dates": dates}}
 
 
 def test_05_below_silence_threshold() -> None:
@@ -197,11 +197,11 @@ def test_11_one_day_history() -> None:
 
 def test_12_no_sparkline() -> None:
     assert _replicate_score_delta({}) == ""
-    assert _replicate_score_delta({"sparkline": None}) == ""
+    assert _replicate_score_delta({"sparkline_view": None}) == ""
 
 
 def test_13_invalid_scores() -> None:
-    s = {"sparkline": {"scores": [None, "abc"], "dates": ["x", "y"]}}
+    s = {"sparkline_view": {"scores": [None, "abc"], "dates": ["x", "y"]}}
     # None oder str -> ValueError → leer
     assert _replicate_score_delta(s) == ""
 

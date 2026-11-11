@@ -1942,15 +1942,17 @@ Easy entscheidet ob „Squeeze in Ignition" oder „sterbend".
 | `≥ 5` (negativ) | rot ▼ | `.sb-delta-down` |
 | `≥ 15` (zusätzlich) | bold | `.sb-delta-strong` Modifier |
 
-**Quelle**: `_sparkline_view(s)["scores"]` (raw Setup-Scores aus
-`score_history.json`, chronologisch nach geparstem Datum, seit 09.11.2026;
-vorher `s["sparkline"]` mit Text-Sortierung — am Monatswechsel falsch).
+**Quelle**: `_sparkline_view(s)["scores"]` = `s["sparkline_view"]` (raw
+Setup-Scores aus `score_history.json`, chronologisch nach geparstem Datum,
+gesetzt in `apply_score_smoothing` über `_sparkline_view_from_entries`; seit
+09.11.2026 Anzeige, seit 11.11.2026 auch Backtest — vorher `s["sparkline"]`
+mit Text-Sortierung, am Monatswechsel falsch, entfernt).
 Letzte zwei Einträge: `[-2]` = Vortag, `[-1]` = heute. Bei < 2
 Einträgen kein Delta.
 
 **Helper `_score_delta_html(s)`** in `generate_report.py` direkt vor
 `_score_block_inner_html`. Pure Funktion ohne Side-Effects. Liest aus
-`s.sparkline` — kein Threading durch Aufrufer-Pfade nötig. Returnt
+`_sparkline_view(s)` — kein Threading durch Aufrufer-Pfade nötig. Returnt
 `""` bei Edge-Cases (fehlende Sparkline, invalid scores, < 2 Einträge,
 |Δ| < 2).
 
@@ -2022,7 +2024,7 @@ gestrippt):
 | ``apply_agent_boost`` (generate_report.py) | ``agent_signals.json`` | setzt ``s["ki_signal_score"]`` + ``s["ki_signal_drivers"]`` (String ``"X + Y + Z"``) auf jedem Stock mit Signal-Eintrag |
 | ``apply_score_smoothing`` | ``s["ki_signal_drivers"]`` | persistiert ``[date, score, drivers[]]`` in ``score_history.json``; re-write wenn Score **oder** Drivers sich seit letztem Run geändert haben (jeder Tick erzeugt frische Snapshots) |
 | ``_save_score_history`` | history-Dict | 3-Tuple wenn drivers nicht leer, sonst 2-Tuple (Bytes-Optimierung) |
-| Sparkline-Payload (``s["sparkline"]``) | ``score_history`` | Liste ``drivers`` parallel zu ``scores`` und ``dates`` (gleiche Länge) |
+| Score-Verlauf (``s["sparkline_view"]``, ``apply_score_smoothing`` über ``_sparkline_view_from_entries``) | ``score_history`` | Liste ``drivers`` parallel zu ``scores`` und ``dates`` (gleiche Länge, JJJJ-MM-TT) |
 | Frontend ``drawSparkline`` | ``data-drivers`` JSON-Attribut auf ``.spark-wrap`` | Tooltip-DOM bei Hit-Rect-Click/Hover |
 
 ### Frontend-UI
@@ -2044,14 +2046,18 @@ gestrippt):
   fremde Kennzahl in der Setup-Kurve). Die Kurve zeigt nur gespeicherte
   Setup-Rohwerte; Punktfarbe = Karten-Ampel ``_tri_score_color``
   (``_TRI_SCORE_*``, ≥ 60 grün · ≥ 30 orange · sonst rot), nicht ``KI_DOT_*``.
-- **Chronologisch + ISO (seit 09.11.2026):** Anzeige-Pfade lesen
-  ``_sparkline_view(s)`` (Feld ``s["sparkline_view"]``, gesetzt von
-  ``apply_sparkline_view`` NACH der Glättung, außerhalb der Schutzzone):
-  7 jüngste Tage nach geparstem Datum, Daten als JJJJ-MM-TT. Gleicher Helfer
-  für ``WL_HIST``/``WL_SCORES``. ``s["sparkline"]`` aus
-  ``apply_score_smoothing`` bleibt unverändert, weil er die Backtest-Felder
-  ``score_delta_t1``/``_raw`` speist (Datenkorrektur = Easy-Entscheid,
-  open_item ``backtest-score-delta-t1-textsortierung``). JS parst Daten ohne
+- **Chronologisch + ISO, EINE Quelle (09.11. / 11.11.2026):** Feld
+  ``s["sparkline_view"]``, gesetzt in ``apply_score_smoothing`` über
+  ``_sparkline_view_from_entries`` (7 jüngste Tage nach geparstem Datum,
+  JJJJ-MM-TT, deterministisch). Es lesen: Anzeige (``_sparkline_view(s)``,
+  Karte v1/v2, Δ T-1, Trend; ``WL_HIST``/``WL_SCORES`` über denselben Helfer)
+  UND ``backtest_history._build_backtest_extension`` (``score_delta_t1``,
+  ``_raw``, Entry-Score-Schatten). Der frühere text-sortierte Payload
+  ``s["sparkline"]`` (+ ``watchlist_cards[t].sparkline``) ist entfernt —
+  nirgends eine Reihenfolge aus Datums-Text ableiten. Gespeicherte Alt-Werte
+  bleiben, wie sie sind (open_item ``backtest-score-delta-t1-textsortierung``).
+  Untertitel der Kurve: „Setup-Score-Rohwert“ (der letzte Punkt ist der
+  Rohwert, nicht der geglättete Karten-Score). JS parst Daten ohne
   String-Date-Parsing (``new Date(y, m-1, d, 12)``, Safari-sicher).
 
 ### Pflege
@@ -2059,7 +2065,8 @@ gestrippt):
 - Bei jeder Schema-Änderung in ``score_history`` (z. B. neues Feld
   ``conf``): gleichzeitig ``_load_score_history``-Normalize,
   ``_save_score_history``-Compact-Pfad, ``apply_score_smoothing``-
-  Persist und Sparkline-Payload-Builder (``s["sparkline"]``) anpassen.
+  Persist und den Score-Verlauf-Helfer (``_sparkline_view_from_entries``)
+  anpassen.
 - Score-Methodik-Sync ist **nicht betroffen** — Tooltips zeigen nur,
   was der KI-Agent als Drivers berichtet, nicht die Sub-Score-Komponenten.
 

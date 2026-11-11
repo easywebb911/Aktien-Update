@@ -107,7 +107,7 @@ def main() -> int:
          "score": 60, "short_float": 35.0, "short_ratio": 6.0, "rel_volume": 2.5,
          "conviction": {"score": 50, "level": "medium", "action_text": "A"},
          "finra_data": {"trend": "up", "history": []}, "options": {},
-         "sparkline": None, "news": [], "float_shares": 5e7}
+         "sparkline_view": None, "news": [], "float_shares": 5e7}
     try:
         v1 = gr._card(1, s)
         _check("11 _card(v1, change=None) rendert (kein Crash)", bool(v1))

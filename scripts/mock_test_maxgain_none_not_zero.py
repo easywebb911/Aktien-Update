@@ -142,7 +142,7 @@ def _stock(bar_date):
             "short_ratio": 5.0, "rel_volume": 2.4, "float_shares": 1e8,
             "avg_vol_20d": 1e6, "hist_5d": [], "score_trend_bonus_pts": 0.0,
             "agent_boost_factor": 1.0, "finra_bonus_pts": 0.0,
-            "short_float_source": "yfinance", "sparkline": None,
+            "short_float_source": "yfinance", "sparkline_view": None,
             "finra_data": {"trend": "no_data", "history": [],
                            "si_trend_source": "finra"},
             "bar_date": bar_date.isoformat()}

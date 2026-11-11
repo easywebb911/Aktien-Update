@@ -141,7 +141,7 @@ def _test_persistence_and_int_cast():
         "short_ratio":  5.5,
         "rel_volume":   2.1,
         "finra_data":   {"trend": "up", "history": []},
-        "sparkline":    {"scores": []},
+        "sparkline_view":    {"scores": []},
         "hist_5d":      [],
         "avg_vol_20d":  0,
         "price":        10.5,

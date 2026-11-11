@@ -129,10 +129,13 @@ def _fixture_stock(ticker: str, *, score: float, price: float,
         "ki_signal_score": 80, "ki_signal_drivers": "RVOL 3.4× + SEC 8-K",
         "options": {"pc_ratio": 0.4},
         "news": [], "anomaly": None,
-        "sparkline": {"scores": [50.0, 55.0, score],
-                      "dates": ["28.05.2026", "29.05.2026", "01.06.2026"],
-                      "drivers": [[], [], ["RVOL 3.4×"]],
-                      "trend": "up", "col": "#22c55e", "today": "01.06.2026"},
+        # Score-Verlauf (seit 11.11.2026 einziges Feld, gesetzt von
+        # apply_score_smoothing über den gemeinsamen Helfer).
+        "sparkline_view": gr._sparkline_view_from_entries(
+            [{"date": "28.05.2026", "score": 50.0, "drivers": []},
+             {"date": "29.05.2026", "score": 55.0, "drivers": []},
+             {"date": "01.06.2026", "score": score, "drivers": ["RVOL 3.4×"]}],
+            "01.06.2026"),
         "manual_personal": False,
     }
 

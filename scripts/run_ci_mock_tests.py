@@ -40,6 +40,7 @@ SCRIPTS = ROOT / "scripts"
 ALLOWLIST = [
     "truth_check",
     "sparkline_view",
+    "score_delta_t1_chrono",
     "score_smoothing_chrono",
     "diagnose_night_probe",
     "paper_c_marker",
