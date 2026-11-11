@@ -1,11 +1,11 @@
 {
-  "updated": "2026-11-11T07:22:13.852123+01:00",
+  "updated": "2026-11-11T15:25:36.359920+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 14.4,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 10.3,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AKTS": {
@@ -26,13 +26,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.16666666666666666,
       "uoa_cp_ratio": 1.5
     },
     "AMC": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 5.4% + News-KI 8/30: Positive recovery narrative lacks short-squeeze catalysts like high short interest, borrowing costs, or forced covering  + UOA Call/Put 8.0×",
+      "drivers": "Spanne 5.4% + UOA Call/Put 8.0×",
       "price": 3.46,
       "chg_pct": 0.0,
       "rvol_4d": 0.6,
@@ -44,18 +44,18 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 8.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.39117805271651424,
       "uoa_cp_ratio": 8.001090512540895
     },
     "AMRC": {
-      "score": 18,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 17.0% + News-KI 8/30: Strong fundamentals with record backlog suggest growth but lack the high short interest, volatility, and negative cataly",
+      "drivers": "Spanne 17.0% + News: contract",
       "price": 27.62,
       "chg_pct": 0.0,
       "rvol_4d": 1.39,
@@ -66,17 +66,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.498371335504886,
       "uoa_cp_ratio": 1.8453608247422681
     },
     "FIP": {
-      "score": 35,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 12.6% + SEC Form 4",
+      "drivers": "Volumen 1.7× + Spanne 12.6% + News-KI 5/30: Positive operational metrics and earnings don't indicate short-squeeze potential; no mention of high short interest, low + SEC Form 4",
       "price": 3.84,
       "chg_pct": -0.0,
       "rvol_4d": 1.68,
@@ -88,16 +88,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.0,
       "uoa_cp_ratio": 0.9292035398230089
     },
     "IMRX": {
-      "score": 53,
-      "confidence": 70,
-      "drivers": "Spanne 7.0% + News-KI 8/30: Positive clinical data and conference presentations are bullish but lack short squeeze catalysts like high short interes + FINRA Short-Vol 93% + SEC Form 4",
+      "score": 45,
+      "confidence": 33,
+      "drivers": "Spanne 7.0% + FINRA Short-Vol 93% + SEC Form 4",
       "price": 3.85,
       "chg_pct": -0.0,
       "rvol_4d": 1.02,
@@ -109,7 +109,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -135,13 +135,13 @@
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.0562015503875969,
       "uoa_cp_ratio": 3.2758620689655173
     },
     "LCID": {
       "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 18.1% + News-KI 8/30: Positive funding news reduces bankruptcy risk but doesn't indicate the high short interest, negative catalysts, or techn + SEC Form 4 + UOA Call/Put 2.5×",
+      "drivers": "Volumen 1.8× + Spanne 18.1% + News-KI 8/30: Positive funding news reduces bankruptcy risk but doesn't create short-squeeze conditions; high short interest already p + SEC Form 4 + UOA Call/Put 2.5×",
       "price": 3.77,
       "chg_pct": -0.0,
       "rvol_4d": 1.81,
@@ -158,7 +158,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.4649356413670661,
       "uoa_cp_ratio": 2.5400285918513226
     },
     "PCT": {
@@ -181,13 +181,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.40350877192982454,
       "uoa_cp_ratio": 2.1254437869822485
     },
     "SBGI": {
-      "score": 25,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 9.6% + News-KI 5/30: Routine investor conference appearances and earnings calls lack the short-squeeze catalysts of major bankruptcies, insid + UOA Call/Put 5.1×",
+      "drivers": "Spanne 9.6% + UOA Call/Put 5.1×",
       "price": 15.11,
       "chg_pct": -0.0,
       "rvol_4d": 1.08,
@@ -199,22 +199,45 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.7230483271375465,
       "uoa_cp_ratio": 5.091205211726384
     },
     "SBH": {
-      "score": 60,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 15.0% + SEC 8-K + SEC Form 4 + UOA Call/Put 7.3×",
+      "drivers": "Volumen 1.6× + Spanne 15.0% + SEC Form 4 + UOA Call/Put 7.3×",
       "price": 20.54,
       "chg_pct": 0.0,
       "rvol_4d": 1.55,
       "rvol_20d": 2.01,
+      "earnings": "in 89 Tagen (08.02.2027)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 7.3×"
+      ],
+      "uoa_atm_ratio": 0.15306122448979592,
+      "uoa_cp_ratio": 7.277777777777778
+    },
+    "TTEC": {
+      "score": 50,
+      "confidence": 33,
+      "drivers": "Volumen 114.0× + 🚀 Massives Volumen 114.0×+ + Spanne 51.2%",
+      "price": 2.4,
+      "chg_pct": 0.0,
+      "rvol_4d": 113.95,
+      "rvol_20d": 70.21,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -223,38 +246,17 @@
       "combo_mult": 1.0,
       "active_triggers": 1,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 7.3×"
-      ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 7.277777777777778
-    },
-    "TTEC": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
-      "price": 2.4,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
+      "uoa_atm_ratio": 2.9241917502787067,
+      "uoa_cp_ratio": null,
+      "push_silenced": true,
+      "silenced_reason": "RSI 78 · +74% 2T"
     },
     "VEEA": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 5.5% + News: merger",
+      "drivers": "Spanne 5.5% + News-KI 12/30: Positive business developments but no indicators of high short interest, low float constraints, or catalysts for forced ",
       "price": 4.43,
       "chg_pct": -0.0,
       "rvol_4d": 0.2,
@@ -266,7 +268,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -290,7 +292,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.14457028647568287,
       "uoa_cp_ratio": 1.8032786885245902
     }
   }
