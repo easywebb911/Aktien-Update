@@ -3300,6 +3300,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 11.11.2026 — open_items aus der Nacht-Probe-Endauswertung (1 PR, Auto-Merge Doku)
+
+- Easy-Entscheid 11.11.2026: `#673` (Branch `claude/open-items-nachtprobe-x3q8`, Branch-Commit
+  `60e0e8fb`, kein Merge-Hash — Regel a). Neu: `postclose-halbzeilen-2028et` (Postclose
+  D=10.11. um 20:28 ET: 74/78 Halbzeilen; D=09.11. um 22:47 ET: 0/77) und
+  `options-oi-datierung-vortag` (18 Paare Nachtwert ≠ Postclose-Wert von D → OI-Punkt D =
+  Stand Ende D−1). Nacht-Probe Variante (b): zwei Dispatch-Nächte ~01:30 ET (12./13.11.),
+  per Check-in, Zeitplan unverändert; danach Nachtrag + Cleanup-PR.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#672`,
+  höchste in Block 1 erwähnte PR = `#673` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 11.11.2026 — score_delta_t1 + Entry-Score-Schatten chronologisch, eine Kurven-Quelle (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Auftrag 11.11.2026: `#672` (Branch `claude/score-delta-t1-chrono-k4p9`, Branch-Commit
