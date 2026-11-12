@@ -82,24 +82,30 @@ def _check_push(seg: str, cwd: str | None) -> str | None:
     opts = [a for a in args if a.startswith("-")]
     refs = [a.strip("'\"") for a in args if not a.startswith("-")]
     low = [o.lower() for o in opts]
-    if any(o == "--delete" or o == "-d" for o in low):
+    # kombinierte Kurzflags (-uf, -fu, -df …) einzeln auswerten
+    short = "".join(o[1:] for o in low if o.startswith("-") and not o.startswith("--"))
+    if any(o == "--delete" for o in low) or "d" in short:
         return "git push --delete"
     if any(o == "--mirror" for o in low):
         return "git push --mirror"
     refspecs = refs[1:]                         # erstes Nicht-Option-Argument = Remote
     if any(r.startswith(":") for r in refspecs):
         return "git push :branch (löscht den Ziel-Branch)"
-    force = any(o in ("-f", "--force") or o.startswith("--force-with-lease")
-                or o.startswith("--force-if-includes") for o in low)
+    force = ("f" in short or any(o == "--force" or o.startswith("--force-with-lease")
+                                 or o.startswith("--force-if-includes") for o in low))
     plus = any(r.startswith("+") for r in refspecs)
     if force or plus:
         def _dest(r):
             r = r.lstrip("+")
             return r.split(":", 1)[1] if ":" in r else r
         dests = [_dest(r) for r in refspecs]
-        if any(d in ("main", "refs/heads/main", "master") for d in dests):
+        protected = ("main", "refs/heads/main", "master", "refs/heads/master")
+        if any(d in protected for d in dests):
             return "git push --force auf main"
-        if not refspecs and _current_branch(cwd) in ("main", "master"):
+        cur = None
+        if not refspecs or any(d in ("HEAD", "@") for d in dests):
+            cur = _current_branch(cwd)
+        if cur in ("main", "master"):
             return "git push --force auf main (aktueller Branch)"
     return None
 
@@ -109,9 +115,21 @@ def check(command: str, cwd: str | None = None) -> str | None:
     Pure bis auf den optionalen ``git rev-parse`` für Force-Push ohne Refspec."""
     if not command:
         return None
+    # Zeilenfortsetzung (Backslash + Umbruch) zusammenziehen — sonst läge
+    # „-X DELETE“ in einem eigenen Segment ohne „gh api“ (Guardian #683).
+    command = re.sub(r"\\\r?\n", " ", command)
     for rx, why in _LINE_RULES:
         if rx.search(command):
             return why
+    # Ganze Zeile (konservativ): Trennzeichen in Anführungszeichen (z. B. jq
+    # „.a | .b“) dürfen die Methode nicht vom API-Aufruf abtrennen.
+    api_line = _GH_API.search(command) or _GH_HOST.search(command)
+    if api_line and _METHOD_DELETE.search(command):
+        return "API-Aufruf mit Methode DELETE"
+    if api_line and _PROTECTED_PATH.search(command) and _METHOD_WRITE.search(command):
+        return "Änderung an Ruleset/Branch-Schutz per API"
+    if api_line and _METHOD_WRITE.search(command) and re.search(r"archived|/actions/secrets|/actions/variables|/environments", command, _I):
+        return "Archivieren / Secrets / Umgebungen per API ändern"
     for seg in _segments(command):
         api = _GH_API.search(seg) or (_GH_HOST.search(seg) and re.search(r"\bcurl\b|\bwget\b|\bhttp\b", seg, _I))
         if api and _METHOD_DELETE.search(seg):

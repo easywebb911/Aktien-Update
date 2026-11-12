@@ -3376,7 +3376,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 
 - Easy-Entscheid nach dem Lösch-Vorfall (Lesson 8z9): `#683` (Branch
   `claude/sperren-zerstoerung-d8n4`, kein Merge-Hash — Regel a). `.claude/settings.json`:
-  63 `permissions.deny`-Muster (gh api mit Methode DELETE in allen Schreibweisen, gh repo
+  72 `permissions.deny`-Muster (gh api mit Methode DELETE in allen Schreibweisen, gh repo
   delete/edit/rename/archive, gh secret delete/remove, gh workflow disable, gh run delete,
   schreibende API-Aufrufe auf rulesets/protection, git push --delete/:branch/--mirror,
   Force-Push auf main) + PreToolUse-Hook `.claude/hooks/block_destructive.py`

@@ -52,7 +52,7 @@ REQUIRED_DENY = [
     "Bash(gh workflow disable*)", "Bash(gh run delete*)",
     "Bash(gh api *-X PUT*rulesets*)", "Bash(gh api *-X PUT*protection*)",
     "Bash(git push *--delete*)", "Bash(git push * :*)", "Bash(git push *--mirror*)",
-    "Bash(git push *--force* main*)", "Bash(git push * +main*)",
+    "Bash(git push *--force** main)", "Bash(git push *-f* main)", "Bash(git push * +main)",
 ]
 
 BLOCK = [
@@ -78,6 +78,13 @@ BLOCK = [
     "git push origin +main",
     "git -C . push --force-with-lease origin main",
     "curl -X DELETE https://api.github.com/repos/x/y",
+    # Guardian #683: Umgehungen
+    "gh api repos/x/y \\\n  -X DELETE",
+    "gh api repos/x/y --jq '.a | .b' -X DELETE",
+    "git push -uf origin main",
+    "git push --force origin refs/heads/master",
+    "gh api -X PATCH repos/x/y -f archived=true",
+    "gh api -X PUT repos/x/y/actions/secrets/NTFY_TOPIC --input s.json",
 ]
 
 ALLOW = [
@@ -90,6 +97,9 @@ ALLOW = [
     "gh run list --workflow daily.yml",
     "gh workflow run settled_close_measure.yml --ref main",
     "python scripts/mock_test_x.py",
+    "git push -f origin claude/domain-fix",
+    "git push --force-with-lease origin claude/main-fix-x1",
+    "git push -u origin claude/maintenance-k2",
 ]
 
 

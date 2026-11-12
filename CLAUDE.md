@@ -4453,7 +4453,7 @@ Kein healthchecks.io-Ping (eigener Check wäre Easys Entscheidung).
 Gleichzeitigkeit: eigene concurrency-Gruppe, bewusst **nicht** die des
 Daily-Runs (GitHub verwirft in einer Gruppe einen wartenden Lauf).
 
-**Rückweg:** Workflow löschen/deaktivieren; Log + State bleiben liegen, S16
+**Rückweg:** Workflow-Datei per PR entfernen oder (durch Easy) deaktivieren; Log + State bleiben liegen, S16
 meldet dann nach 2 Handelstagen „läuft nicht“. Test:
 ``scripts/mock_test_truth_check.py``. Einlaufphase: open_items
 ``wahrheits-abgleich-einlaufphase``.
