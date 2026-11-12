@@ -49,7 +49,7 @@ from backtest_history import apply_round_trip_haircut  # noqa: E402
 
 # 13.11.2026: neu gepinnt nach zwei datierten Protokolleinträgen (Auslöser 500,
 # Zielfeld nicht vom max_gain-Fehler betroffen) — vorher 6d7e3d02…
-FREEZE_MD5 = "26011b80377d723597a15b3524880b5e"  # 12.11.2026 abends: Protokolleintrag endgültiger Schlusskurs (#681)
+FREEZE_MD5 = "8ef42f85d17b6b6d537211a5ad778727"  # 12.11.2026 spät: Protokolleintrag Einstieg Open Tag 1 (#684)
 _fails: list[str] = []
 
 

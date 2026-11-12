@@ -3383,7 +3383,13 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Einstiegen 21.07.–23.10.2026 (Familie `hyp_nov26_s1`, Holm k = 3), Stufe 2 blind ab
   24.10.2026 (n ≥ 500, nach Replikation und „Paper C handelbar“). Nur Text, kein Code, kein
   Ergebnis berechnet; alle bestehenden Freeze-Abschnitte MD5-unverändert.
-- `open_items` neu: `hypothesen-runde-nov26-skript` (offen).
+- Nachtrag vor dem Merge (Easy-Entscheid 12.11.2026, Befund: Bericht liegt immer erst nach
+  Börsenschluss D vor, 71 Postclose-Commits 16:09–23:12 ET): bindender Einstieg in allen drei
+  Hypothesen = **Eröffnung Tag 1** (`g` aus `outcome_path`-bars), „ab Close D“ nur berichtet;
+  eine Planungszahl bestimmt (73 Treffer von 669 im Stufe-1-Fenster). Datierter
+  Protokolleintrag im Block „Paper C handelbar“ (gleiche Umstellung, Auslöser n ≥ 500
+  bestätigt); MD5-Pin in `scripts/mock_test_outcome_path.py` nachgezogen. Replikation
+  unverändert. 8-K-Prädiktor ohne eigene 16:00-Grenze (Report lag immer vor Einstieg).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#683`,
   höchste in Block 1 erwähnte PR = `#684` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
@@ -7192,21 +7198,67 @@ alle 702 Zeilen stammen aus dem Backfill 12.11.2026 10:20 ET (Commit `2b2f8430`)
 Abend von Tag 10 geschrieben (Git-Historie, nur Zählung). Kriterien, Zielfeld-Definition,
 Stichprobe und Auslöser unverändert. Kein Ergebnis erzeugt oder gelesen.
 
+**Protokolleintrag 12.11.2026 (spät) — bindender Einstieg = Eröffnung Tag 1 (Easy-Entscheid
+12.11.2026, vor jeder Auswertung; Zeilen ≥ 24.10.2026 weiter ungesehen):**
+**Befund:** Der Bericht für Tag D liegt erst nach Börsenschluss vor. Im Fenster
+21.07.–23.10.2026 liegen alle 71 Postclose-Commits des Daily-Runs, die
+`backtest_history.json` schreiben, zwischen 16:09 und 23:12 ET am Tag D — keiner vor
+16:00 ET, keiner nach 09:30 ET des nächsten Handelstags (git-Historie `main`). Ein Kauf zum
+Schlusskurs D war nie möglich; ein Overnight-Gap D → Tag 1 zählte bisher als Gewinn, den
+niemand bekommt. Frühester realistischer Einstieg ist die Eröffnung von Tag 1.
+**Änderung (Punkte 2, 3, 5, 11):** Bindend ist ab jetzt — mit `bars[0]` = D und `bars[k]` =
+Handelstag k nach D aus derselben Zeile in `outcome_path.jsonl`:
+`o1 = bars[1].o`; `g = (max(bars[1].h, …, bars[10].h) / o1 − 1) × 100`; **Treffer** =
+`g ≥ 30,0`, **Nicht-Treffer** = `g < 30,0`. Verwertbar nur, wenn die Zeile vorhanden ist,
+`grund` `null` ist, `bars` genau 11 Einträge hat, `o1` endlich und > 0 und `bars[1..10].h`
+endlich sind; sonst Ausschluss mit Grund (`zeile_fehlt` / `grund:<Wert>` /
+`bars_unvollstaendig` / `open_tag1_fehlt`), gezählt und berichtet. `g` wird im
+Auswertungs-Skript aus `bars` gerechnet; `outcome_path.jsonl` wird nicht geändert. Netto
+(Punkt 11, nicht bindend): `apply_round_trip_haircut(g) ≥ 30,0`.
+**Bisheriges Ziel nur noch berichtet:** `max_gain_from_entry_pct ≥ 30,0` (ab Close D) wird
+mit demselben Verfahren (Punkt 7) gerechnet und **nur berichtet** — kein
+Erfolgskriterium, kein Teil des Verdikts.
+**Auslöser (Punkt 6) geprüft, bleibt n ≥ 500:** gezählt nach den Ausschlüssen der neuen
+Definition. Planung aus der ersten Stichprobe (21.07.–23.10.2026; für diesen Block nicht
+bindend): Treffer nach neuer Definition **73 von 669** (bestimmt 12.11.2026, nur
+Gesamtzahl, ohne Aufteilung). Bei n = 500 ≈ 54,6 Treffer, Wahrscheinlichkeit < 40 Treffer
+≈ 1,3 % (Binomial). Kein Blick auf Zeilen ≥ 24.10.2026.
+**Folgen für den übrigen Text:** Punkt 12 und die explorativen Schranken beziehen sich auf
+das Ziel „ab Close D“. Der Satz unter „Grenzen“, die Treffer seien eine Teilmenge der
+Treffer nach `max_gain_pct`, gilt für das neue Ziel nicht mehr sicher (die Eröffnung Tag 1
+kann unter dem Tief von D liegen); die beiden Tests bleiben trotzdem nicht unabhängig.
+Frage, Prädiktor, Stichprobe, Verfahren, Floor, Familie, Erfolgskriterium und Reihenfolge
+(nie vor dem Replikationslauf) unverändert. Der Replikations-Block bleibt byte-unverändert.
+Kein Ergebnis zur Momentum-Frage erzeugt oder gelesen.
+
 ### VORABREGISTRIERUNG — Hypothesen-Runde November 2026 (H-G, H-I, H-K), eingefroren mit dem Merge
 
 **Easy-Auftrag 12.11.2026.** Drei neue Hypothesen, je zweistufig. Eingefroren ist dieser
 Block mit Easys Merge (Freeze-Datum = ET-Datum des Merge-Commits). Beim Schreiben wurde
-**kein** Ergebnis berechnet: keine Auswertung, kein Prädiktor gegen ein Ergebnis, keine
-Regel-Rendite. Für Einstiege ≥ 24.10.2026 wurden nur Zeilen gezählt, kein Ergebnisfeld
-gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
+**keine** Hypothese ausgewertet: kein Prädiktor gegen ein Ergebnis, keine Regel-Rendite.
+Bestimmt wurde genau **eine** Ergebniszahl für die Floor-Planung (Gesamtzahl der Treffer
+nach A.1 im Stufe-1-Fenster, siehe F). Für Einstiege ≥ 24.10.2026 wurden nur Zeilen
+gezählt, kein Ergebnisfeld gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
 
-#### A. Gemeinsame Vorgaben (gelten für H-G, H-I, H-K)
+#### A. Gemeinsame Vorgaben (gelten für H-G, H-I, H-K, beide Stufen)
 
-1. **Zielgröße (Regel i):** ausschließlich `outcome_path.jsonl`
-   (`scripts/outcome_path_update.py`). **Treffer** = `max_gain_from_entry_pct ≥ 30,0`
-   (max. High Tag 1–10 / Close D − 1, in %; Tag D zählt nicht); **Nicht-Treffer** =
-   `max_gain_from_entry_pct < 30,0`. Dieselbe Definition wie im Block „Paper C handelbar“.
-   Nie `max_gain_pct`.
+1. **Einstieg und Zielgröße (Regel i, Easy-Entscheid 12.11.2026):** Der Bericht für Tag D
+   liegt erst **nach** Börsenschluss D vor (Beleg in F); der früheste handelbare Einstieg
+   ist die **Eröffnung von Tag 1**. Alles kommt aus derselben Zeile in
+   `outcome_path.jsonl` (`scripts/outcome_path_update.py`); `bars[0]` = D, `bars[k]` =
+   Handelstag k nach D (k = 1…10), Felder `o`/`h`/`l`/`c`.
+   - **Einstiegskurs** `o1 = bars[1].o`.
+   - **Gewinn ab Einstieg** `g = (max(bars[1].h, …, bars[10].h) / o1 − 1) × 100`.
+   - **Treffer** = `g ≥ 30,0`; **Nicht-Treffer** = `g < 30,0`.
+   - **Verwertbar** nur, wenn: Zeile in `outcome_path.jsonl` vorhanden, `grund` ist `null`,
+     `bars` hat genau 11 Einträge, `o1` endlich und > 0, `bars[1..10].h` endlich.
+     Sonst Ausschluss mit Grund (`zeile_fehlt` / `grund:<Wert>` / `bars_unvollstaendig` /
+     `open_tag1_fehlt`), gezählt und berichtet.
+   - `g` steht nicht als Feld in `outcome_path.jsonl`; das Skript rechnet es wie oben aus
+     `bars`. `outcome_path.jsonl` wird nicht geändert.
+   - **Nur berichtet (Vergleich „ab Close D“):** dieselbe Rechnung mit Treffer =
+     `max_gain_from_entry_pct ≥ 30,0` (Basis `close_d`, wie Block „Paper C handelbar“ in
+     seiner ursprünglichen Form). Kein Erfolgskriterium. Nie `max_gain_pct`.
 2. **Join:** Export-Zeile ↔ `outcome_path.jsonl` über `(ticker, date)`; `date` in beiden
    Dateien als `DD.MM.YYYY` (ET-Handelstag D). Prädiktoren und `market_regime` kommen aus
    dem Export bzw. (H-I) aus `inst_ownership_history.json`. Zeilen mit `market_regime` außer
@@ -7217,9 +7269,8 @@ gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
    Dedup nach `(ticker, date)` (erste Zeile gewinnt) **vor** jeder Zählung.
 4. **Stichprobe Stufe 2 (Regel ii):** wie Punkt 3, aber Einstieg D **≥ 24.10.2026**
    (blind; dieselbe Zeilenmenge wie Replikation und „Paper C handelbar“).
-5. **Ausschlüsse (immer gezählt, je Grund berichtet, keine Obergrenze):** Zeile fehlt in
-   `outcome_path.jsonl`; Zielfeld nicht endlich (Grund aus `grund`); Prädiktor fehlt bzw.
-   nicht endlich (je Hypothese unten).
+5. **Ausschlüsse (immer gezählt, je Grund berichtet, keine Obergrenze):** A.1 und
+   Prädiktor fehlt bzw. nicht endlich (je Hypothese unten).
 6. **Bootstrap:** **N = 2000, Seed = 42, 95 % zweiseitig, Perzentil 2,5 / 97,5**
    (`config.EVAL_BOOTSTRAP_*`). AUC: Resampling **je Gruppe getrennt**
    (`freeze_eval.bootstrap_auc_ci`). Gepaart: ein gemeinsamer Zeilen-Index je Resample
@@ -7246,8 +7297,8 @@ gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
     beim Freeze bereits reif. Kein Zwischenblick.
 13. **Auslöser Stufe 2:** **einmaliger** gemeinsamer Lauf, sobald (1) der Replikationslauf
     und der Lauf „Paper C handelbar“ in `eval_results.jsonl` stehen **und** (2) jede
-    weitergereichte Hypothese **n ≥ 500** verwertbare Zeilen nach ihren Ausschlüssen hat.
-    Kein ergebnisabhängiger Auslöser.
+    weitergereichte Hypothese **n ≥ 500** verwertbare Zeilen nach ihren Ausschlüssen hat
+    (Begründung in E). Kein ergebnisabhängiger Auslöser.
 14. **Sperre:** steht eine Zeile mit `family = "hyp_nov26_s1"` (bzw. `"_s2"`) in
     `eval_results.jsonl`, ist kein weiterer Lauf dieser Stufe erlaubt (nur mit datiertem
     Protokolleintrag hier). Das Skript prüft vor dem Lauf die **MD5 dieses Blocks** (von der
@@ -7255,20 +7306,20 @@ gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
     extract_freeze_block`) und bricht bei Abweichung ab. Test-IDs: `hg_s1`, `hi_s1`,
     `hk_s1` bzw. `hg_s2`, `hi_s2`, `hk_s2`.
 15. **Pflichtangaben im Bericht:** n je Gruppe, Ausschlüsse je Grund, Teststatistik, roher
-    und Holm-korrigierter p, CI, Regime-Tabelle, Cluster-Doppellauf, Datenhash (SHA-256 über
-    die Bytes von Export, `outcome_path.jsonl` und – H-I – `inst_ownership_history.json`),
-    Skript-Commit, N, Seed, Zahl der Zeilen mit Split/Dividende im Fenster, Gesamtzahl
-    bisher gelaufener Bestätigungstests (`eval_results.jsonl`).
+    und Holm-korrigierter p, CI, Regime-Tabelle, Cluster-Doppellauf, Vergleich „ab Close D“
+    (A.1), Datenhash (SHA-256 über die Bytes von Export, `outcome_path.jsonl` und – H-I –
+    `inst_ownership_history.json`), Skript-Commit, N, Seed, Zahl der Zeilen mit
+    Split/Dividende im Fenster, Gesamtzahl bisher gelaufener Bestätigungstests
+    (`eval_results.jsonl`).
 
 #### B. H-G — Gewinnziel-Regel (+30 %) gegen 10 Tage Halten
 
-1. **Frage:** Bringt die Regel „Verkauf bei +30 % ab Close D, sonst Halten bis Tag 10“ mehr
-   als 10 Tage Halten?
-2. **Je Zeile** (alles aus derselben `outcome_path.jsonl`-Zeile, `bars[0]` = D,
-   `bars[10]` = Tag 10): Halten `hold = (bars[10].c / close_d − 1) × 100`;
-   Regel `rule = 30,0`, wenn Treffer (A.1), sonst `rule = hold`. Ein Gap über das Ziel wird
-   nur mit +30 % angerechnet. `d = rule − hold`.
-3. **Ausschluss:** A.5; zusätzlich `bars[10].c` oder `close_d` nicht endlich bzw. ≤ 0.
+1. **Frage:** Bringt die Regel „Kauf zur Eröffnung Tag 1, Verkauf bei +30 %, sonst Halten
+   bis Schluss Tag 10“ mehr als Halten bis Schluss Tag 10?
+2. **Je Zeile** (A.1): Halten `hold = (bars[10].c / o1 − 1) × 100`; Regel `rule = 30,0`,
+   wenn Treffer (A.1), sonst `rule = hold`. Ein Gap über das Ziel (Tag 2–10) wird nur mit
+   +30 % angerechnet. `d = rule − hold`.
+3. **Ausschluss:** A.5; zusätzlich `bars[10].c` nicht endlich bzw. ≤ 0 (`close_tag10_fehlt`).
 4. **Bindender Test (brutto):** gepaarter Wilcoxon-Vorzeichen-Rang-Test auf `d`,
    **einseitig**, Alternative „d nach oben verschoben“ (Regel besser). Mechanik wie
    `stats_helpers.wilcoxon_signed_rank_paired` (Normal-Approximation, Tie-Korrektur,
@@ -7287,11 +7338,14 @@ gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
    des Mittelwert-Δ > 0; (c) Regime-Split plausibel.
 9. **Nur berichtet:** Netto (`apply_round_trip_haircut` auf beide Arme) = Brutto-Δ × k mit
    k = 0,98/1,02 ≈ 0,9608 — gleiches Vorzeichen, gleicher Wilcoxon-p, darum keine eigene
-   Hypothese. Momentum-Hälften (Median von `entry_past_return_5d` der verwendeten Zeilen)
-   je Mittelwert-Δ, rein beschreibend. Zahl der Paare mit `d < 0` (Kurs lief über +30 %).
-10. **Grenze:** Ausstieg genau bei +30 % an jedem Tag mit High ≥ Ziel angenommen (keine
-    Gebühren, kein Slippage, kein Stop). `return_10d` aus dem Export wird **nicht**
-    verwendet (andere Kursreihe; teils vor `#680` aus vorläufigem Abend-Schluss gefüllt).
+   Hypothese. Vergleich „ab Close D“: dieselbe Rechnung mit `close_d` statt `o1` und
+   Treffer nach `max_gain_from_entry_pct` (A.1). Momentum-Hälften (Median von
+   `entry_past_return_5d` der verwendeten Zeilen) je Mittelwert-Δ, rein beschreibend.
+   Zahl der Paare mit `d < 0` (Kurs lief über +30 %).
+10. **Grenze:** Kauf genau zum Eröffnungskurs Tag 1 und Ausstieg genau bei +30 % an jedem
+    Tag mit High ≥ Ziel angenommen (keine Gebühren, kein Slippage, kein Stop). `return_10d`
+    aus dem Export wird **nicht** verwendet (andere Kursreihe und Basis Close D; teils vor
+    `#680` aus vorläufigem Abend-Schluss gefüllt).
 
 #### C. H-I — Institutionelle Beteiligung dämpft (Svoboda et al. 2026)
 
@@ -7319,20 +7373,20 @@ gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
    anderen Seite von 0,5 als die Gesamt-AUC (genau 0,5 ist keine Gegenrichtung).
 8. **Erfolgskriterium:** (a) Holm-signifikant; (b) **97,5.-Perzentil der Bootstrap-AUC
    < 0,5**; (c) Regime-Split plausibel.
-9. **Nur berichtet:** Netto-Treffer (`max_gain_from_entry_pct_net ≥ 30,0`), gleiche Rechnung.
+9. **Nur berichtet:** Netto-Treffer (`apply_round_trip_haircut(g) ≥ 30,0`) und Vergleich
+   „ab Close D“ (A.1), gleiche Rechnung.
 
 #### D. H-K — Materielle 8-K vor dem Einstieg
 
 1. **Frage:** Haben Zeilen mit einer materiellen 8-K vor dem Einstieg häufiger Treffer?
    Richtung fixiert: 8-K → häufiger Treffer.
-2. **Prädiktor ja/nein** aus dem Export-Feld `material_8k_events` (Sammeldefinition
+2. **Prädiktor ja/nein** aus dem Export-Feld `material_8k_events`, Sammeldefinition
    unverändert: `material_8k.select_windowed_8k`, Items `MATERIAL_8K_QUALIFYING_ITEMS` =
-   1.01/2.02/5.02/7.01/8.01, Fenster `MATERIAL_8K_LOOKBACK_DAYS` = 5 Kalendertage vor dem
-   Report-Zeitpunkt): **ja** = mindestens ein Eintrag in `events` mit
-   `acceptance_datetime` (EDGAR-Zeit in UTC, `…Z`) **≤ D 16:00 America/New_York**, in UTC
-   umgerechnet mit Sommer-/Winterzeit des Tages D; sonst **nein**. `matched_terms`
-   wird nicht verwendet. Die 16:00-Grenze ist die einzige neue Regel: Filings nach
-   Börsenschluss D lagen beim Einstieg zum Close D noch nicht vor.
+   1.01/2.02/5.02/7.01/8.01, Fenster `MATERIAL_8K_LOOKBACK_DAYS` = 5 Kalendertage bis zum
+   Report-Zeitpunkt. **ja** = `events` enthält mindestens einen Eintrag; sonst **nein**.
+   `matched_terms` wird nicht verwendet. Keine eigene Zeitgrenze: alle gespeicherten
+   Filings haben `acceptance_datetime` ≤ Report-Zeitpunkt, und der Report lag immer vor
+   der Eröffnung von Tag 1 (F), also vor dem Einstieg.
 3. **Ausschluss:** Feld fehlt / kein Dict / `collected` ≠ `true` → „nicht_gesammelt“.
    `truncated == true` bleibt drin und wird gezählt.
 4. **Test:** AUC = `mann_whitney_u_auc(A, B)`, A = Prädiktor (1 = ja, 0 = nein) der
@@ -7344,42 +7398,53 @@ gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
 7. **Erfolgskriterium:** (a) Holm-signifikant; (b) **2,5.-Perzentil der Bootstrap-AUC
    > 0,5**; (c) Regime-Split plausibel.
 8. **Grenze:** Die Untergrenze des Fensters hängt vom Report-Zeitpunkt ab (schwankt um
-   Stunden). Nur berichtet: Netto-Treffer, gleiche Rechnung.
+   Stunden). Nur berichtet: Netto-Treffer und Vergleich „ab Close D“, gleiche Rechnung.
 
-#### E. Zählungen beim Freeze (nur Zeilen, keine Ergebnisse; Stand 12.11.2026)
+#### E. Zählungen beim Freeze (Stand 12.11.2026)
 
-- Stufe 1 (Punkt A.3): **672** Zeilen nach Dedup (0 Duplikate); Ziel nicht endlich **3**;
-  in `outcome_path.jsonl` fehlend **0**. Regime: neutral 592, bull 80, bear 0.
-- **H-G:** **669** Paare. Erwartete Differenzen ≠ 0 ≈ Zahl der Treffer (≈ 71, siehe F).
+- Stufe 1 (Punkt A.3): **672** Zeilen nach Dedup (0 Duplikate); Ausschlüsse nach A.1:
+  `grund` gesetzt **3**, Zeile fehlt **0**, Open Tag 1 fehlt **0**, bars unvollständig **0**
+  → **669** verwertbar. Regime: neutral 592, bull 80, bear 0.
+- **Trefferquote für die Planung:** **73 von 669** (≈ 10,9 %), die eine Zahl aus F.
+- **H-G:** **669** Paare. Erwartete Differenzen ≠ 0 ≈ Zahl der Treffer (≈ 73).
 - **H-I:** **508** verwertbar; 161 ohne Punkt ≤ D (Sammlung erst ab 11.08.2026; 521
-  Zeilen ab 11.08.); Punkt ≤ 7 Tage alt: 472. Erwartete Treffer ≈ 508 × 71/665 ≈ 54;
-  Wahrscheinlichkeit < 40 Treffer ≈ 1,4 % (Binomial). Regime ab 11.08.: neutral 441,
+  Zeilen ab 11.08.); Punkt ≤ 7 Tage alt: 472. Erwartete Treffer ≈ 508 × 73/669 ≈ 55;
+  Wahrscheinlichkeit < 40 Treffer ≈ 0,9 % (Binomial). Regime ab 11.08.: neutral 441,
   bull 80.
-- **H-K:** **669** verwertbar (nicht gesammelt 0, truncated 0); ja **160**, nein **509**;
-  4 Zeilen nur mit Filings nach 16:00 ET (zählen als nein).
-- Stufe 2 (D ≥ 24.10.2026): beim Freeze 30 Export-Zeilen, kein Ergebnisfeld gelesen. Bei
-  n = 500 erwartet ≈ 53 Treffer (Wahrscheinlichkeit < 40 ≈ 1,9 %), wie „Paper C handelbar“.
-- Regime-Split: mit ≈ 54–71 Treffern ist **neutral** voraussichtlich prüfbar, **bull**
-  nicht (≈ 8 Treffer).
+- **H-K:** **669** verwertbar (nicht gesammelt 0, truncated 0); ja **164**, nein **505**.
+- **Stufe 2 (D ≥ 24.10.2026):** beim Freeze 30 Export-Zeilen, kein Ergebnisfeld gelesen.
+  Auslöser **n ≥ 500** bleibt: erwartet ≈ 55 Treffer, Wahrscheinlichkeit < 40 ≈ 1,3 %
+  (Binomial mit 73/669). Bei n = 400 wären es ≈ 44 Treffer mit deutlich höherem Risiko;
+  ein kleinerer Auslöser lohnt nicht, ein größerer verschiebt den Lauf ohne Not.
+- Regime-Split: mit ≈ 55–73 Treffern ist **neutral** voraussichtlich prüfbar, **bull**
+  nicht (≈ 9 Treffer).
 
-#### F. Vorwissen (offen benannt)
+#### F. Vorwissen und Belege (offen benannt)
 
+- **Zeitpunkt des Berichts (Beleg für A.1):** Im Stufe-1-Fenster gibt es 71 Postclose-
+  Commits des Daily-Runs, die `backtest_history.json` schreiben (git-Historie `main`). Alle
+  liegen zwischen **16:09 und 23:12 ET** am Tag D (16–18 Uhr: 13, 18–20: 38, 20–22: 18,
+  22–24: 2) — **keiner vor Börsenschluss, keiner nach Eröffnung Tag 1**. Der Schlusskurs D
+  war damit nie handelbar; die Eröffnung von Tag 1 immer.
+- **Einzige für diesen Block neu bestimmte Ergebniszahl:** Treffer nach A.1 im
+  Stufe-1-Fenster = **73 von 669** (12.11.2026, nur Gesamtzahl, keine Aufteilung nach
+  Prädiktor, Regime oder Momentum).
 - **Nie berechnet** (Suche in Sitzungsprotokollen, git-Historie, `eval_results.jsonl`,
   Handover): `inst_ownership` oder `material_8k_events` gegen ein Ergebnis; die
   Regel-Rendite von H-G. Bestands-Bericht 09.11.2026: nur Abdeckung, Nenner-Grenzen und
   8-K nach 16:00 ET gezählt.
-- **Bekannt aus Stufe-1-Zeilen zum handelbaren Ziel** (explorativ 12.11.2026):
-  **71 Treffer von 665** Zeilen (mit Momentum-Wert); Momentum-AUC **0,622**
-  [0,538–0,705], p 0,0008; Netto **52** Treffer, AUC 0,645. Von 192 Treffern nach
-  `max_gain_pct` sind 70 auch handelbare Treffer, 1 nur handelbar. 18 Zeilen mit
-  Dividende, 0 mit Split im Fenster.
+- **Bekannt aus Stufe-1-Zeilen zum Ziel „ab Close D“** (explorativ 12.11.2026): **71
+  Treffer von 665** Zeilen (mit Momentum-Wert); Momentum-AUC **0,622** [0,538–0,705],
+  p 0,0008; Netto **52** Treffer, AUC 0,645. Von 192 Treffern nach `max_gain_pct` sind 70
+  auch Treffer „ab Close D“, 1 nur dort. 18 Zeilen mit Dividende, 0 mit Split im Fenster.
 - **Bekannt aus denselben Zeilen sonst:** `return_10d` (Paper C Ziel 2, §4/Exit-B.1 bei
   Score ≥ 70, Setup-Edge/KI-Populationen); Verteilung von `max_gain_pct` je Score-Bucket
   (6q, 26.09.2026). Svoboda (Richtung H-I) und Bhojraj (mögliche Gegenrichtung) sind
   Literatur, nicht unsere Daten.
 - **Überschneidungen:** Die Treffer-Definition ist dieselbe wie bei „Paper C handelbar“
-  (Momentum); H-G ist mit „Exit-B.1-Nachfolger“ verwandt (Ausstieg statt Halten), aber
-  andere Regel, andere Zeilen in Stufe 1. H5 (Kombi-Ziel) bleibt unberührt.
+  nach dessen Protokolleintrag 12.11.2026 (Einstieg Open Tag 1); H-G ist mit
+  „Exit-B.1-Nachfolger“ verwandt (Ausstieg statt Halten), aber andere Regel, andere Zeilen
+  in Stufe 1. H5 (Kombi-Ziel) bleibt unberührt.
 
 **Änderungs-Protokoll (bindend ab Merge):** Keine Änderung an diesem Block ohne datierten
 Protokolleintrag, der Änderung und Grund festhält. Ein Revert wird ebenfalls als
