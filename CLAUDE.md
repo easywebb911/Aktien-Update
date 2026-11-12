@@ -2746,7 +2746,8 @@ Daten-Persistierung — keine Frontend-Anzeige, keine Score-Konsequenzen.
   `_apply_rolling_window`). Aktiv solange `D ≤ letzter finaler Schluss ≤
   Tag 10 + ROLLING_WINDOW_GRACE_DAYS (7)` (`_rolling_window_active`; Tag 10
   aus dem Handelskalender `trading_date.nth_trading_day_after`, „final“ über
-  `last_final_close_date`) — unabhängig von Kalendertagen und Laufzeitpunkt.
+  `last_final_close_date`) und das Fenster noch nicht vollständig ist —
+  unabhängig von Kalendertagen und Laufzeitpunkt.
   `rolling_window_n` hält die Zahl der finalen Zeilen (11 = vollständig); ein
   kürzeres Fenster überschreibt nie ein längeres. Der Export
   (`matured_export`) übernimmt die Zeile erst bei vollständigem Fenster oder

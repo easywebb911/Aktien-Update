@@ -1263,7 +1263,8 @@ def _rolling_window_active(e: dict, edate: date, final_cut: date,
     max-gain-rolling-fenster-abgeschnitten.)
 
     * Neue Regel — Eintrag trägt ``rolling_window_n``: aktiv, solange
-      ``D <= final_cut <= Tag 10 + ROLLING_WINDOW_GRACE_DAYS``. ``final_cut`` =
+      ``D <= final_cut <= Tag 10 + ROLLING_WINDOW_GRACE_DAYS`` und das Fenster
+      noch nicht vollständig (``rolling_window_n < 11``). ``final_cut`` =
       ``trading_date.last_final_close_date(jetzt)`` (ET, 16:20-Grenze) — also
       unabhängig vom UTC-Kalendertag des Laufs und von Feiertagen.
     * Altbestand ohne den Key: die frühere Regel ``0 < (heute UTC − D) ≤ 14``
@@ -1273,6 +1274,11 @@ def _rolling_window_active(e: dict, edate: date, final_cut: date,
       dann über die neue Regel."""
     if "rolling_window_n" in e:
         if edate > final_cut:
+            return False
+        # Fenster vollständig (D + 10 Handelstage) → fertig, wie im Export-Gate;
+        # spätere Kursanpassungen ändern backtest_history dann nicht mehr.
+        _n = e.get("rolling_window_n")
+        if isinstance(_n, int) and not isinstance(_n, bool) and _n >= ROLLING_WINDOW_TRADING_DAYS + 1:
             return False
         return final_cut <= _rolling_window_end(edate) + timedelta(days=ROLLING_WINDOW_GRACE_DAYS)
     days_old = (today_utc - edate).days

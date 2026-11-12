@@ -103,6 +103,8 @@ def test_old_red_new_green():
     late = bh._rolling_window_end(d) + timedelta(days=config.ROLLING_WINDOW_GRACE_DAYS + 1)
     check("nach Nachfrist inaktiv", bh._rolling_window_active(e, d, late, late) is False)
     check("vor D inaktiv", bh._rolling_window_active(e, d, d - timedelta(days=1), d) is False)
+    check("vollständiges Fenster (11) → inaktiv (wie Export-Gate)",
+          bh._rolling_window_active({"rolling_window_n": 11}, d, final_cut, run.date()) is False)
     # Altbestand ohne Key: alte Regel unverändert.
     check("Altbestand ohne Key: alte Regel (Tag 15 inaktiv)",
           bh._rolling_window_active({}, d, final_cut, date(2026, 11, 6)) is False)

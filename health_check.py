@@ -1048,7 +1048,7 @@ def evaluate_state_invariants(
     matured_export_path: str | None = None,
     outcome_path_path: str | None = None,
 ) -> list[dict]:
-    """Bewertet alle 8 State-Invariants. Returnt Liste von Fail-Dicts.
+    """Bewertet die State-Invariants S1–S17. Returnt Liste von Fail-Dicts.
 
     Jeder Fail-Eintrag: ``{"id": "S<n>", "severity": "crit"|"warn",
     "detail": "<string>"}``.
