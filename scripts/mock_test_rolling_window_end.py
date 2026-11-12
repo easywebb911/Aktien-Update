@@ -111,8 +111,10 @@ def test_old_red_new_green():
     late = bh._rolling_window_end(d) + timedelta(days=config.ROLLING_WINDOW_GRACE_DAYS + 1)
     check("nach Nachfrist inaktiv", bh._rolling_window_active(e, d, late, late) is False)
     check("vor D inaktiv", bh._rolling_window_active(e, d, d - timedelta(days=1), d) is False)
-    check("vollständiges Fenster (11) → inaktiv (wie Export-Gate)",
-          bh._rolling_window_active({"rolling_window_n": 11}, d, final_cut, run.date()) is False)
+    check("11 Zeilen, aber Tag 10 erst heute final → noch aktiv (Halbzeilen-Schutz)",
+          bh._rolling_window_active({"rolling_window_n": 11}, d, final_cut, run.date()) is True)
+    check("11 Zeilen und Tag 10 vor dem letzten finalen Schluss → inaktiv (wie Export-Gate)",
+          bh._rolling_window_active({"rolling_window_n": 11}, d, date(2026, 11, 6), run.date()) is False)
     # Altbestand ohne Key: alte Regel unverändert.
     check("Altbestand ohne Key: alte Regel (Tag 15 inaktiv)",
           bh._rolling_window_active({}, d, final_cut, date(2026, 11, 6)) is False)
@@ -136,6 +138,14 @@ def test_determinism_and_update():
     check("Determinismus: vor/nach Mitternacht UTC gleiche Werte", len(set(res)) == 1, res)
     check("volles Fenster = 11 Zeilen, Tag 11/12 nicht enthalten",
           res[0][2] == 11 and res[0][0] == round((13.3 / 9.0 - 1) * 100, 2), res[0])
+    # Halbzeile an Tag 10 (Close/High/Low NaN, Postclose ~20:28 ET) zählt nicht.
+    half = df.copy()
+    half.iloc[10, half.columns.get_loc("Close")] = float("nan")
+    half.iloc[10, half.columns.get_loc("High")] = float("nan")
+    e = {"max_drawdown_pct": None, "max_gain_pct": None, "rolling_window_n": None}
+    bh._apply_rolling_window(e, half, d, date(2026, 11, 5))
+    check("Halbzeile an Tag 10 → rolling_window_n = 10 (Fenster bleibt offen)",
+          e["rolling_window_n"] == 10, e)
     # Nie kürzer überschreiben.
     e = {"max_drawdown_pct": -5.0, "max_gain_pct": 47.78, "rolling_window_n": 11}
     out = bh._apply_rolling_window(e, df, d, date(2026, 11, 2))   # nur 8 Zeilen final
@@ -154,7 +164,10 @@ def test_export_gate():
         n = me.export_matured_records([dict(base, rolling_window_n=8)], export_path=ex, now=now_after_14)
         check("unvollständiges Fenster (8) nach 15 Kalendertagen NICHT exportiert", n == 0, n)
         n = me.export_matured_records([dict(base, rolling_window_n=11)], export_path=ex, now=now_after_14)
-        check("vollständiges Fenster (11) exportiert", n == 1, n)
+        check("11 Zeilen, Tag 10 erst seit diesem Abend final → noch NICHT exportiert", n == 0, n)
+        next_eve = datetime(2026, 11, 6, 22, 0, tzinfo=timezone.utc)
+        n = me.export_matured_records([dict(base, rolling_window_n=11)], export_path=ex, now=next_eve)
+        check("vollständiges Fenster (11), Folgetag final → exportiert", n == 1, n)
         late = datetime(2026, 11, 14, 22, 0, tzinfo=timezone.utc)
         n = me.export_matured_records([dict(base, ticker="BBB", rolling_window_n=8)], export_path=ex, now=late)
         check("nach Nachfrist auch unvollständig exportiert (S17 zählt es)", n == 1, n)

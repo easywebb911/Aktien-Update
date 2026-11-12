@@ -2748,8 +2748,13 @@ Daten-Persistierung — keine Frontend-Anzeige, keine Score-Konsequenzen.
   aus dem Handelskalender `trading_date.nth_trading_day_after`, „final“ über
   `last_final_close_date`) und das Fenster noch nicht vollständig ist —
   unabhängig von Kalendertagen und Laufzeitpunkt.
-  `rolling_window_n` hält die Zahl der finalen Zeilen (11 = vollständig); ein
-  kürzeres Fenster überschreibt nie ein längeres. Der Export
+  `rolling_window_n` hält die Zahl der **vollständigen** Zeilen (endliches
+  High/Low/Close; 11 = vollständig); ein kürzeres Fenster überschreibt nie ein
+  längeres. **Halbzeilen-Schutz (12.11.2026):** vollständig erst, wenn
+  zusätzlich der letzte finale Schluss **nach** Tag 10 liegt — ein Postclose um
+  ~20:28 ET lieferte am 10.11.2026 bei 74/78 Tickern eine halbe Tageszeile
+  (open_item `postclose-halbzeilen-2028et`); ohne diese Regel hätte der Export
+  das Fenster mit fehlendem Tag 10 eingefroren. Der Export
   (`matured_export`) übernimmt die Zeile erst bei vollständigem Fenster oder
   nach der Nachfrist. **Vorher** (bis 12.11.2026) endete das Update nach 14
   Kalendertagen (UTC-Datum) — Fenster blieben teils vor Tag 10 stehen
