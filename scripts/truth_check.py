@@ -7,7 +7,7 @@ nachgerechnet nach den Produktionsregeln:
 
 * ``return_3d/5d/10d`` (+ ``_t1``, ``_net``, ``_vs_spy``) —
   ``ki_agent.update_backtest_returns``: Close.dropna (eigene Handelstage des
-  Tickers), Entry-Index, Offsets, nur Zeilen ≤ ``last_final_close_date``;
+  Tickers), Entry-Index, Offsets, nur Zeilen ≤ ``last_settled_close_date`` (seit 12.11.2026);
   ``_net`` = Haircut-Formel ``backtest_history.apply_round_trip_haircut``;
   ``_vs_spy`` = Brutto minus SPY-Rendite über SPYs EIGENE Offsets.
 * ``max_gain_pct`` / ``max_drawdown_pct`` (nur Einträge > 14 Kalendertage) —
@@ -566,8 +566,14 @@ def run(now: datetime, root: pathlib.Path = ROOT, fetch_fn=None, *,
     fetch_fn = fetch_fn or yahoo_fetch
     tol = float(config.TRUTH_CHECK_TOLERANCE_PP)
     delisted = set(config.TRUTH_CHECK_DELISTED)
-    final_cut = trading_date.last_final_close_date(now)
-    today = now.astimezone(timezone.utc).date()
+    # Vergleichs-Referenz = ENDGÜLTIGER Schlusskurs (Fix 12.11.2026, open_item
+    # rendite-forward-abendzeile-nicht-final): Close von Tag X erst ab 07:00 ET
+    # des Folgetags (trading_date.last_settled_close_date, wie #680/#681). Vorher
+    # 16:20 ET — der Lauf 18:07 ET verglich dann teils gegen einen vorläufigen
+    # Abend-Close (Fehlalarm oder übersehener Fehler). ET-Datum statt UTC-Datum
+    # (Determinismus unabhängig vom UTC-Datum des Laufs).
+    final_cut = trading_date.last_settled_close_date(now)
+    today = now.astimezone(trading_date._NY).date()
 
     export_rows = _read_jsonl(root / config.MATURED_EXPORT_FILE)
     shadow_rows = _read_jsonl(root / "exit_shadow_log.jsonl")
