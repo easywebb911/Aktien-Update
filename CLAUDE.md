@@ -4429,6 +4429,11 @@ Preis-Felder, **keine** Bootstrap-Zeilen. Abweichung → Dividende/Split im
 Fenster (aus derselben Kursabfrage, ``actions=True``)? ja → ``neu_adjustiert``,
 sonst ``abweichung``.
 
+**Referenz-Grenze (seit 12.11.2026, #682):** verglichen wird nur gegen Tageszeilen
+``<= trading_date.last_settled_close_date`` (Close endgültig ab 07:00 ET des Folgetags),
+nicht mehr ``last_final_close_date`` (16:20 ET) — der Lauf 18:07 ET hätte sonst teils gegen
+einen vorläufigen Abend-Close verglichen. Datum für die 14-Tage-Regel: ET statt UTC.
+
 **Umfang je Lauf:** frisch gereifte Export-Zeilen (Zeilenzahl > State
 ``export_lines_seen``; der Erstlauf zählt den Bestand als gesehen), frisch
 vollständige Exit-Shadow-Records, Wiederholungen (Abweichung im Vorlauf,
@@ -4468,8 +4473,8 @@ Grenze aus Messwerten der Nacht-Probe (Kurse von D gleich der Tag-Referenz um
 `last_final_close_date` (16:20 ET) bleibt für Pfade, die später neu schreiben oder erst
 nach dem Fenster-Ende einfrieren (Rolling-Fenster `max_gain_pct`, Export-Reife). `scripts/outcome_path_update.py`
 (schreibt einmal) nutzt seit `#681` ebenfalls `last_settled_close_date`; der Cron 18:53 ET
-schreibt Tag-10-Zeilen damit am Folgeabend. **Offen:** `scripts/truth_check.py`
-(Vergleichs-Referenz) nutzt noch 16:20 ET.
+schreibt Tag-10-Zeilen damit am Folgeabend. `scripts/truth_check.py`
+(Vergleichs-Referenz) seit `#682` ebenfalls.
 Messlauf für den Bestand: `settled_close_measure.yml` (read-only, Hand-Start).
 
 ## Kursverlauf ab Einstieg (seit 12.11.2026, outcome_path.jsonl)

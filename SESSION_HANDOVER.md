@@ -3402,6 +3402,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#680` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — Wahrheits-Abgleich (S16) gegen endgültigen Schlusskurs (1 PR, Auto-Merge Wächter-Reparatur)
+
+- Easy-Auftrag B 12.11.2026 (abends): `#682` (Branch `claude/truthcheck-endgueltig-t5w2`,
+  Branch-Commit `58a18f3d`, kein Merge-Hash — Regel a). `scripts/truth_check.py` vergleicht nur
+  gegen Zeilen `<= trading_date.last_settled_close_date` (Folgetag 07:00 ET) statt 16:20 ET;
+  ET-Datum für die 14-Tage-Regel. Kein Score-/Freeze-Effekt. Test `mock_test_truth_check.py`
+  Gruppe i (Zieltag-Abend nicht vergleichbar, Folgetag 07:05 ET vergleichbar, Gegenprobe alte
+  Grenze, Exit-Shadow). Kein Cron geändert.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#681`,
+  höchste in Block 1 erwähnte PR = `#682` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 12.11.2026 — open_item Rendite-/Forward-Felder aus der Abendzeile (1 PR, Auto-Merge Doku)
 
 - Easy-Auftrag 12.11.2026 (S16-Nebenbefund, read-only): `#679` (Branch
