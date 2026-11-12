@@ -3359,6 +3359,19 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#676` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — Halbzeilen-Schutz für das Rolling-Fenster (1 PR, Manual-Merge, Folge #676)
+
+- `#677` (Branch `claude/rolling-halbzeile-fix-q8r2`, Branch-Commit `e7464ca6`, kein Merge-Hash —
+  Regel a). Befund bei der Mini-Stopp-Prüfung zur Export-Korrektur: #676 beendete Update und
+  erlaubte den Export, sobald 11 Tageszeilen im Fenster lagen — eine Postclose-Halbzeile um
+  ~20:28 ET (10.11.: 74/78 Ticker, open_item `postclose-halbzeilen-2028et`) hätte Tag 10 ohne
+  Hoch/Tief eingefroren. Fix: `rolling_window_n` zählt nur Zeilen mit endlichem High/Low/Close;
+  fertig erst, wenn der letzte finale Schluss nach Tag 10 liegt (`_rolling_window_is_complete`,
+  gleiche Regel im Export-Gate). Test erweitert (Halbzeile, Folgetag-Regel).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#676`,
+  höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 11.11.2026 — open_items aus der Nacht-Probe-Endauswertung (1 PR, Auto-Merge Doku)
 
 - Easy-Entscheid 11.11.2026: `#673` (Branch `claude/open-items-nachtprobe-x3q8`, Branch-Commit
