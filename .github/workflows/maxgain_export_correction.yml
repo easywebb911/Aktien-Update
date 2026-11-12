@@ -10,6 +10,10 @@ name: Einmal-Korrektur max_gain-Fenster im Export
 #
 # NUR Hand-Start, KEIN Cron (Lehre 8z8: kein bestehender Cron geändert).
 # mode=dry-run rechnet und zählt, schreibt nichts; mode=apply schreibt.
+# Nicht während eines Daily-Runs starten (Schritt 1 bricht dann ab); nach dem
+# Lauf zeigt die apply-Zeile s17_vorher/s17_nachher. Ein zweiter dry-run muss
+# 0 Korrekturen finden. Die Korrekturdatei (mit Werten) bleibt in RUNNER_TEMP —
+# KEIN Artifact-Upload (Blindheit Replikationsfenster).
 # Rückweg: die alte Exportfassung liegt in Git (Commit vor dem Korrektur-
 # Commit); Revert wird im Replikations-Freeze protokolliert.
 
@@ -24,6 +28,7 @@ on:
 
 permissions:
   contents: write   # NUR für matured_backtest_export.jsonl
+  actions: read     # Prüfung „läuft gerade ein Daily-Run?“
 
 concurrency:
   group: maxgain-export-correction
@@ -53,7 +58,19 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Kurse holen und Korrekturen berechnen (nur Zählungen im Log)
+      - name: Abbruch, wenn ein Daily-Run läuft (sein Commit könnte die Korrektur überschreiben)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          n=$(gh run list --workflow daily-squeeze-report.yml --limit 20 \
+                --json status --jq '[.[] | select(.status != "completed")] | length')
+          echo "Laufende/wartende Daily-Runs: $n"
+          if [ "$n" != "0" ]; then
+            echo "ERROR: Daily-Run aktiv — Korrektur später erneut starten."
+            exit 1
+          fi
+
+      - name: Kurse holen und Korrekturen berechnen (nur Zählungen im Log; Rate-Limit → Abbruch)
         run: python scripts/maxgain_export_correction.py --compute "$RUNNER_TEMP/maxgain_corr.json"
 
       - name: Dry-Run (nichts schreiben)

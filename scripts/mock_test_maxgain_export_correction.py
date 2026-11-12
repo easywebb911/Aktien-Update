@@ -179,8 +179,22 @@ def test_formula_equals_production():
           (mc.window_metrics(b), bh._compute_max_gain_pct(df), bh._compute_max_drawdown(df)))
 
 
+def test_workflow_guards():
+    wf = (ROOT / ".github" / "workflows" / "maxgain_export_correction.yml").read_text(encoding="utf-8")
+    check("Workflow: nur Hand-Start, kein Cron", "workflow_dispatch" in wf and "schedule" not in wf)
+    check("Workflow: kein upload-artifact (Korrekturdatei mit Werten bleibt lokal)",
+          "upload-artifact" not in wf)
+    check("Workflow: Abbruch bei laufendem Daily-Run", "daily-squeeze-report.yml" in wf)
+    src = (ROOT / "scripts" / "maxgain_export_correction.py").read_text(encoding="utf-8")
+    check("Rate-Limit → Exit 3 (kein halbes Apply)", 'return 3 if "rate_limit" in err_count' in src)
+    with tempfile.TemporaryDirectory() as tmp:
+        p = os.path.join(tmp, "x.jsonl")
+        open(p, "w", encoding="utf-8").write('{"a": "x\u2028y"}\n{"b": 1}\n')
+        check("Zeilen nur an \\n getrennt", mc._read_lines(p) == ['{"a": "x\u2028y"}', '{"b": 1}'])
+
+
 def run_all() -> int:
-    for t in (test_all, test_formula_equals_production):
+    for t in (test_all, test_formula_equals_production, test_workflow_guards):
         print(t.__name__)
         t()
     print()

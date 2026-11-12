@@ -6921,7 +6921,8 @@ Halbzeilen-Schutz:** Kriterien dieses Blocks unverändert.
   von der append-only-Garantie des Exports. Korrigiert werden NUR abgeschnittene
   `max_gain_pct`/`max_drawdown_pct` (S17-Regel), neu gerechnet aus yfinance
   (`auto_adjust=True`, Formel wie `backtest_history`), nur bei bestandener Gegenprobe
-  gegen `outcome_path.jsonl` (0,02 pp); `max_gain_pct_net` wird abgeleitet mitgeführt.
+  gegen `outcome_path.jsonl` (0,02 pp); `max_gain_pct_net` wird abgeleitet mitgeführt
+  (wie in der Produktion), `rolling_window_n` = 11, wo das Feld existiert.
   Alle anderen Zeilen und Felder byte-gleich. **Kandidaten vor dem Lauf (Zählung
   12.11.2026):** 24 Zeilen mit Einstieg < 24.10.2026, **17 Zeilen in diesem Fenster**
   (blind gezählt). Der Workflow läuft **nach** dem Merge; die tatsächliche Zahl

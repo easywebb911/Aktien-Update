@@ -121,7 +121,12 @@ def _load_outcome(path=None) -> dict:
 def _read_lines(path=None) -> list[str]:
     path = path or EXPORT_FILE
     with open(path, "r", encoding="utf-8") as fh:
-        return fh.read().splitlines()
+        text = fh.read()
+    # Nur an "\n" trennen (wie matured_export), nicht an \x85/\u2028 o. ä.
+    lines = text.split("\n")
+    if lines and lines[-1] == "":
+        lines.pop()
+    return lines
 
 
 def find_candidates(lines: list[str], outcome: dict) -> list[dict]:
@@ -286,7 +291,9 @@ def compute(out_path: str, *, now_utc: datetime | None = None) -> int:
         {**_counts(cands), "korrekturen": len(corr), "nicht_geschrieben": reasons,
          "abruf_fehler_nach_grund": err_count, "rate_limit_abbruch": "rate_limit" in err_count},
         ensure_ascii=False, sort_keys=True), flush=True)
-    return 0
+    # Rate-Limit → Lauf als fehlgeschlagen markieren, damit nichts halb
+    # angewendet wird (Workflow bricht vor dem Apply ab; neuer Hand-Start später).
+    return 3 if "rate_limit" in err_count else 0
 
 
 def apply(corr_path: str, *, dry_run: bool = False) -> int:
