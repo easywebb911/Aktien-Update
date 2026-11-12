@@ -1225,7 +1225,8 @@ def _apply_rolling_window(e: dict, df, edate: date, final_cut: date) -> tuple[bo
     Nie mit einem KÜRZEREN Fenster überschreiben als zuletzt (Datenlücke im
     Abruf darf ein schon längeres Fenster nicht zurückdrehen)."""
     df_since = _final_window(df, edate, final_cut)
-    n_win = len(df_since)
+    # Nur vollständige Zeilen zählen (Halbzeilen-Fix 12.11.2026).
+    n_win = _count_complete_rows(df_since)
     if n_win < (e.get("rolling_window_n") or 0):
         return False, False
     e["rolling_window_n"] = n_win
@@ -1256,6 +1257,31 @@ def _rolling_window_end(edate: date) -> date:
         edate, ROLLING_WINDOW_TRADING_DAYS, US_MARKET_HOLIDAYS)
 
 
+def _rolling_window_is_complete(n_win, edate: date, final_cut: date) -> bool:
+    """Fenster fertig = 11 VOLLSTÄNDIGE Tageszeilen (D..Tag 10, endliches
+    High/Low/Close) UND der letzte finale Schluss liegt NACH Tag 10.
+
+    Zweite Bedingung (Fix 12.11.2026, open_item postclose-halbzeilen-2028et):
+    ein Postclose um ~20:28 ET lieferte am 10.11.2026 bei 74/78 Tickern eine
+    halbe Tageszeile. Tag 10 gilt deshalb erst ab dem folgenden Handelstag
+    (16:20 ET) als endgültig — dann sind die Kurse nachweislich final
+    (Nacht-Probe 11.11.2026)."""
+    if not (isinstance(n_win, int) and not isinstance(n_win, bool)
+            and n_win >= ROLLING_WINDOW_TRADING_DAYS + 1):
+        return False
+    return final_cut > _rolling_window_end(edate)
+
+
+def _count_complete_rows(df_since) -> int:
+    """Zahl der Tageszeilen mit endlichem High, Low und Close (Halbzeilen mit
+    NaN zählen nicht — sie dürfen ein Fenster nicht als vollständig melden)."""
+    try:
+        sub = df_since[["High", "Low", "Close"]]
+        return int(sub.notna().all(axis=1).sum())
+    except Exception:
+        return 0
+
+
 def _rolling_window_active(e: dict, edate: date, final_cut: date,
                            today_utc: date) -> bool:
     """Soll das Rolling-Update (max_drawdown_pct/max_gain_pct) diesen Eintrag
@@ -1275,10 +1301,9 @@ def _rolling_window_active(e: dict, edate: date, final_cut: date,
     if "rolling_window_n" in e:
         if edate > final_cut:
             return False
-        # Fenster vollständig (D + 10 Handelstage) → fertig, wie im Export-Gate;
-        # spätere Kursanpassungen ändern backtest_history dann nicht mehr.
-        _n = e.get("rolling_window_n")
-        if isinstance(_n, int) and not isinstance(_n, bool) and _n >= ROLLING_WINDOW_TRADING_DAYS + 1:
+        # Fenster vollständig → fertig, wie im Export-Gate; spätere Kurs-
+        # anpassungen ändern backtest_history dann nicht mehr.
+        if _rolling_window_is_complete(e.get("rolling_window_n"), edate, final_cut):
             return False
         return final_cut <= _rolling_window_end(edate) + timedelta(days=ROLLING_WINDOW_GRACE_DAYS)
     days_old = (today_utc - edate).days

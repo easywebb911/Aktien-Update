@@ -86,19 +86,24 @@ def _calendar_days_old(ds: str, now: datetime):
 
 def _rolling_window_complete(e: dict, ds: str, now: datetime) -> bool:
     """True, wenn das max_gain-/max_drawdown-Fenster des Eintrags fertig ist:
-    ``rolling_window_n >= 11`` (D + 10 Handelstage) oder der letzte finale
-    Schlusstag liegt nach Tag 10 + Nachfrist. Unparsebares Datum → False."""
+    ``rolling_window_n >= 11`` (D + 10 vollständige Handelstage) UND der letzte
+    finale Schluss liegt nach Tag 10 — oder die Nachfrist nach Tag 10 ist
+    vorbei. Unparsebares Datum → False."""
     try:
         dd, mm, yy = ds.split(".")
         edate = datetime(int(yy), int(mm), int(dd)).date()
     except (ValueError, AttributeError, TypeError):
         return False
-    n = e.get("rolling_window_n")
-    if isinstance(n, int) and not isinstance(n, bool) and n >= ROLLING_WINDOW_TRADING_DAYS + 1:
-        return True
     end = trading_date.nth_trading_day_after(edate, ROLLING_WINDOW_TRADING_DAYS,
                                              US_MARKET_HOLIDAYS)
     final_cut = trading_date.last_final_close_date(now)
+    n = e.get("rolling_window_n")
+    # Vollständig = 11 vollständige Zeilen UND Tag 10 schon vor dem letzten
+    # finalen Schluss (Halbzeilen-Fix 12.11.2026, gleiche Regel wie
+    # backtest_history._rolling_window_is_complete).
+    if (isinstance(n, int) and not isinstance(n, bool)
+            and n >= ROLLING_WINDOW_TRADING_DAYS + 1 and final_cut > end):
+        return True
     return final_cut > end + timedelta(days=ROLLING_WINDOW_GRACE_DAYS)
 
 

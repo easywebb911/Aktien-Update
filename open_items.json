@@ -709,9 +709,9 @@
       "id": "postclose-halbzeilen-2028et",
       "title": "Postclose um ~20:28 ET liefert für fast alle Pool-Ticker eine halbe Tageszeile",
       "opened": "2026-11-11",
-      "description": "Beleg [halfrow_probe] (Easy-Entscheid 11.11.2026, Nacht-Probe-Endauswertung): Postclose D=10.11.2026 (Run 42939138350, 11.11. 01:28 UTC = 20:28 ET) hatte bei 74 von 78 Tickern eine halbe Tageszeile (letzter Close NaN); Postclose D=09.11.2026 (Run 42751625039, 10.11. 03:47 UTC = 22:47 ET) 0 von 77. Folge im Nacht-Probe-Abgleich F3: die Nachtwerte (07:09 ET des Folgetags) waren VOLLSTÄNDIGER als die Produktion (AMRC, TTEC: rvol aus der halben Zeile). Ein früher Postclose liefert damit heute schon schlechtere Daten als ein später. Zusammenhang: postclose-halbe-tageszeile-preis-score-pfad (Fix B), berichtsdatum-wurzelloesung-nacht-probe. Ob die Tageszeile um ~01:30 ET schon fertig ist, klärt die Nacht-Probe Variante (b) (Dispatch-Nächte 12./13.11.2026). Nichts geändert.",
+      "description": "Beleg [halfrow_probe] (Easy-Entscheid 11.11.2026, Nacht-Probe-Endauswertung): Postclose D=10.11.2026 (Run 42939138350, 11.11. 01:28 UTC = 20:28 ET) hatte bei 74 von 78 Tickern eine halbe Tageszeile (letzter Close NaN); Postclose D=09.11.2026 (Run 42751625039, 10.11. 03:47 UTC = 22:47 ET) 0 von 77. Folge im Nacht-Probe-Abgleich F3: die Nachtwerte (07:09 ET des Folgetags) waren VOLLSTÄNDIGER als die Produktion (AMRC, TTEC: rvol aus der halben Zeile). Ein früher Postclose liefert damit heute schon schlechtere Daten als ein später. Zusammenhang: postclose-halbe-tageszeile-preis-score-pfad (Fix B), berichtsdatum-wurzelloesung-nacht-probe. Ob die Tageszeile um ~01:30 ET schon fertig ist, klärt die Nacht-Probe Variante (b) (Dispatch-Nächte 12./13.11.2026). Nichts geändert. NACHTRAG 12.11.2026: Wirkung auf das neue Rolling-Fenster (#676) abgefangen — rolling_window_n zählt nur vollständige Zeilen, Fenster gilt erst als fertig, wenn der letzte finale Schluss nach Tag 10 liegt (PR Halbzeilen-Schutz). Die Ursache (Berichtsdatum/Postclose-Zeitpunkt) bleibt offen.",
       "status": "offen",
-      "status_date": "2026-11-11"
+      "status_date": "2026-11-12"
     },
     {
       "id": "options-oi-datierung-vortag",
