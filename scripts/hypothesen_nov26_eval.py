@@ -429,6 +429,21 @@ def wilcoxon_one_sided(rule: Sequence[float], hold: Sequence[float]) -> dict:
     return out
 
 
+def holm_adjusted(p_in: dict, order: Sequence[str]) -> tuple[dict, dict]:
+    """A.15 „Holm-korrigierter p“: Standard-Holm-Adjustierung
+    p_adj(i) = max_{j ≤ i} min(1, (k − j)·p_(j)) über die aufsteigend sortierten
+    p (j 0-basiert), dazu die Schwelle α/(k − j) je Rang. Entscheidung bleibt bei
+    ``multiple_testing_correction`` (Gegenprobe im Aufrufer)."""
+    k = len(order)
+    srt = sorted(order, key=lambda h: p_in[h])   # stabil wie stats_helpers
+    adj, thr, run = {}, {}, 0.0
+    for j, h in enumerate(srt):
+        run = max(run, min(1.0, (k - j) * p_in[h]))
+        adj[h] = run
+        thr[h] = ALPHA / (k - j)
+    return adj, thr
+
+
 def _side(v, base) -> int:
     if v is None or v == base:
         return 0
@@ -615,6 +630,9 @@ def evaluate(built: dict, hyps: Sequence[str], stage: int, *, hashes: dict, md5:
     p_in = {h: (res[h]["p"] if (res[h]["floor_ok"] and res[h]["p"] is not None) else 1.0) for h in order}
     holm = multiple_testing_correction([p_in[h] for h in order], labels=order, alpha=ALPHA)
     holm_by = {row["label"]: bool(row["holm_reject"]) for row in holm["results"]}
+    adj, thr = holm_adjusted(p_in, order)
+    if any((adj[h] < ALPHA) != holm_by[h] for h in order):
+        raise HypAbort("Holm-adjustierter p widerspricht multiple_testing_correction.")
     commit = freeze_eval._git_commit_hash()
     out = []
     for h in order:
@@ -644,7 +662,9 @@ def evaluate(built: dict, hyps: Sequence[str], stage: int, *, hashes: dict, md5:
             "statistic": r["body"]["statistic"],
             "p_raw": r["p"],
             "p_holm_input": p_in[h],
+            "p_holm_adjusted": adj[h],
             "holm": {"k": len(order), "alpha": ALPHA, "method": "holm", "labels": order,
+                     "schwelle_rang": thr[h],
                      "reject": holm_by[h]},
             "holm_reject": holm_by[h],
             "criteria": {"holm_significant": holm_by[h], "ci_kriterium": r["ci_ok"],

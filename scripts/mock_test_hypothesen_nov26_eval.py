@@ -224,6 +224,7 @@ def test_known_results():
         check("Regime: neutral prüfbar, bull nicht", rows["hi_s1"]["regime_split"]["detail"]["neutral"]["status"] == "plausibel"
               and rows["hi_s1"]["regime_split"]["detail"]["bull"]["status"] == "nicht_pruefbar")
         check("Holm k = 3, α = 0,05", rows["hg_s1"]["holm"]["k"] == 3 and rows["hg_s1"]["holm"]["alpha"] == 0.05)
+        check("Holm-adjustierter p in jeder Zeile", all("p_holm_adjusted" in rows[k] for k in rows))
         check("Pflichtangaben vorhanden", all(k in rows["hk_s1"] for k in (
             "excluded_a1", "excluded_hypothesis", "p_raw", "p_holm_input", "regime_split", "cluster_double_run",
             "data_hash_files", "script_commit_hash", "bootstrap_n", "bootstrap_seed", "n_split_im_fenster",
@@ -270,6 +271,16 @@ def test_wilcoxon():
     check("p einseitig = Formel B.4", abs(w["p_one_sided"] - p) < 1e-15, (w["p_one_sided"], p))
     w2 = hy.wilcoxon_one_sided([0.0, 0.0], [0.0, 0.0])
     check("keine Differenz ≠ 0 → p None", w2["p_one_sided"] is None)
+
+
+def test_holm_adjusted():
+    print("8b Holm-adjustierter p")
+    adj, thr = hy.holm_adjusted({"hg": 0.01, "hi": 0.04, "hk": 0.03}, ["hg", "hi", "hk"])
+    check("adj = 0,03 / 0,06 / 0,06", abs(adj["hg"] - 0.03) < 1e-12 and abs(adj["hk"] - 0.06) < 1e-12
+          and abs(adj["hi"] - 0.06) < 1e-12, adj)
+    check("Schwellen α/3, α/2, α", abs(thr["hg"] - 0.05 / 3) < 1e-12 and thr["hk"] == 0.025 and thr["hi"] == 0.05, thr)
+    adj2, _ = hy.holm_adjusted({"hg": 1.0, "hi": 0.5}, ["hg", "hi"])
+    check("Kappung auf 1", adj2["hg"] == 1.0 and adj2["hi"] == 1.0, adj2)
 
 
 def test_haircut():
@@ -365,7 +376,7 @@ def test_determinism_and_push():
 
 def main() -> int:
     for fn in (test_freeze, test_location, test_a1_and_predictors, test_known_results, test_wilcoxon,
-               test_haircut, test_lock_and_stage2, test_window_and_counts, test_determinism_and_push):
+               test_holm_adjusted, test_haircut, test_lock_and_stage2, test_window_and_counts, test_determinism_and_push):
         fn()
     print()
     if _fails:
