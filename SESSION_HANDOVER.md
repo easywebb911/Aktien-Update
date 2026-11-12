@@ -3372,6 +3372,20 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — Auswertungs-Skript Hypothesen-Runde November 2026 (1 PR, Manual-Merge)
+
+- Easy-Auftrag 13.11.2026: `#685` (Branch `claude/hypothesen-skript-nov26-r4k2`, Branch-Commit
+  `c61b7803`, kein Merge-Hash — Regel a). Neues Skript `scripts/hypothesen_nov26_eval.py`
+  (Stufe 1 + 2, einmalig je Stufe, MD5-Pin `dfc81229…` des Freeze-Blocks, Gegenprobe der Zahlen
+  im Blocktext, Sperre über `eval_results.jsonl` (`hyp_nov26_s1`/`_s2`), Zählung = Block E sonst
+  Abbruch, Stufe 2 nur nach Replikation + „Paper C handelbar“ und n ≥ 500). Neuer Workflow-Input
+  `hypothesen_nov26_s1` in `health_check_digest.yml` (wie `paper_c`). Tests nur synthetisch
+  (`scripts/mock_test_hypothesen_nov26_eval.py`, in der CI-Allowlist). Kein Lauf, keine Rechnung
+  auf echten Daten. Der einmalige Stufe-1-Lauf folgt nach Easys Merge.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#684`,
+  höchste in Block 1 erwähnte PR = `#685` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 12.11.2026 — Vorabregistrierung Hypothesen-Runde November 2026 (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Auftrag 12.11.2026: `#684` (Branch `claude/hypothesen-runde-nov-h7q2`, Branch-Commit

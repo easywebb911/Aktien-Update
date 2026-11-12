@@ -829,9 +829,9 @@
       "id": "hypothesen-runde-nov26-skript",
       "title": "Auswertungs-Skript Hypothesen-Runde November 2026 (H-G, H-I, H-K) bauen",
       "opened": "2026-11-12",
-      "description": "Freeze-Block in SESSION_HANDOVER §5 (#684). Skript noch nicht gebaut: einmaliger Stufe-1-Lauf (Einstiege 21.07.–23.10.2026, family hyp_nov26_s1, Test-IDs hg_s1/hi_s1/hk_s1) mit MD5-Pin des Blocks und Sperre über eval_results.jsonl; Stufe 2 (hyp_nov26_s2) erst nach Replikation + 'Paper C handelbar' und n >= 500 je weitergereichter Hypothese. Eigener PR, Manual-Merge. Ziel ab Eröffnung Tag 1 (Block A.1), aus bars gerechnet; 'ab Close D' nur berichtet. Gemeinsamer Rechenweg mit 'Paper C handelbar' (Protokolleintrag 12.11.2026 spät).",
+      "description": "Freeze-Block in SESSION_HANDOVER §5 (#684). Skript noch nicht gebaut: einmaliger Stufe-1-Lauf (Einstiege 21.07.–23.10.2026, family hyp_nov26_s1, Test-IDs hg_s1/hi_s1/hk_s1) mit MD5-Pin des Blocks und Sperre über eval_results.jsonl; Stufe 2 (hyp_nov26_s2) erst nach Replikation + 'Paper C handelbar' und n >= 500 je weitergereichter Hypothese. Eigener PR, Manual-Merge. Ziel ab Eröffnung Tag 1 (Block A.1), aus bars gerechnet; 'ab Close D' nur berichtet. Gemeinsamer Rechenweg mit 'Paper C handelbar' (Protokolleintrag 12.11.2026 spät). Stand 13.11.2026: Skript gebaut (#685, Manual-Merge); offen bleibt der einmalige Stufe-1-Lauf nach dem Merge (Workflow health_check_digest.yml, Input hypothesen_nov26_s1).",
       "status": "offen",
-      "status_date": "2026-11-12"
+      "status_date": "2026-11-13"
     }
   ]
 }
