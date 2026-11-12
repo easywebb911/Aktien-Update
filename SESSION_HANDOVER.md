@@ -3318,6 +3318,27 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   im Auftrag; frischer Push), (2) Auslöser-Zählung „nach Ausschlüssen“ und (3) Retry-Fenster
   7 Tage im Freeze ergänzt (vor Merge, kein Protokolleintrag nötig), (4) Workflow-Commit prüft
   jetzt, dass der origin-Stand Präfix der neuen Datei ist.
+- Nach Merge `#674` (Merge `c409fa56`): Backfill per Hand-Start `outcome_path.yml`
+  (Lauf 43246601428, Commit `2b2f8430`) — nur Zählungen: geschrieben 702 (davon null
+  „ticker_ohne_kursdaten“ 3), nicht reif 90, erneut versuchen 0, gesperrt ohne Freeze 0,
+  Abruf-Fehler 0, Rate-Limit nein.
+
+### 12.11.2026 — Paper C Anzeige grün → blau (1 PR, Manual-Merge)
+
+- Easy-Entscheid 11.11.2026: `#675` (Branch `claude/paper-c-blau-r5t8`, Branch-Commit
+  `3eb24d58`, kein Merge-Hash — Regel a). `SCORE_STATUS_LABELS["paper_c"]` → `pending`
+  (blau, „Test läuft · handelbare Variante (ab Einstiegskurs), Auswertung ~Dez.“); Karten-Zeile
+  Momentum 5T ohne Beleg-Behauptung („höher = größere Spanne inkl. Einstiegstag · ab Einstieg:
+  Test läuft, ~Dez.“, 2 Zeilen iPhone bei 15 px), kein Grün in keiner Phase; Konfidenz-Panel
+  nennt den formalen Beleg nur für die Spanne inkl. Einstiegstag (AUC 0,61 [0,56–0,66],
+  n=668); Label `max_gain_pct` → „Spanne Tief→Hoch, Tag 0–10“; Position-Tooltip ohne „Gipfel
+  belegt“. Wächter `test_15/17` angepasst, neu `test_18` (erzeugtes HTML Postclose + Intraday
+  ohne Grün). §5-Nachtrag 12.11.; open_items `label-hoechststand-nach-entry-falsch` +
+  `text-gipfel-definition` → erledigt. eval_results, Verdikte, Freeze-MD5 unverändert. Golden
+  aktualisiert.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#674`,
+  höchste in Block 1 erwähnte PR = `#675` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
 ### 11.11.2026 — open_items aus der Nacht-Probe-Endauswertung (1 PR, Auto-Merge Doku)
 
