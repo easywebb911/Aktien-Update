@@ -2073,8 +2073,9 @@ S10_LAG_FIELDS = {
 # wird dynamisch clientseitig aus _btData berechnet — NICHT hier.
 COLLECT_STATUS_FIELDS = [
     ("max_gain_pct",
-     "Höchststand nach Entry (max_gain_pct)",
-     "Ziel-/Ergebnisgröße, kein Prädiktor · unvalidiert"),
+     "Spanne Tief→Hoch, Tag 0–10 (max_gain_pct)",
+     "Ziel-/Ergebnisgröße inkl. Einstiegstag, nicht ab Einstiegskurs · "
+     "kein Prädiktor · unvalidiert"),
     ("conviction_score",
      "Conviction-Aggregat (conviction_score)",
      # #468-Single-Source: die Auswertbarkeits-/Validierungs-Aussage lebt NUR in
@@ -2201,9 +2202,10 @@ WIKI_ATTENTION_STATUS_ROW = (
 #                        aus der Panel-Palette, KEINE Warnung)
 #   heuristic → GRAU  — Heuristik, beansprucht keinen Edge
 #   validated → GRÜN  — Holm + Bootstrap-CI belegt (Erfolgs-Definition).
-#                        Seit 07.11.2026 genau EIN Eintrag ("paper_c"). Nur
-#                        erlaubt mit `eval_ref` auf eine eval_results.jsonl-
-#                        Zeile mit verdict "Beleg" (Wächter im Mock-Test).
+#                        Heute unvergeben (paper_c 07.–12.11.2026 grün, dann
+#                        zurück auf blau). Nur erlaubt mit `eval_ref` auf eine
+#                        eval_results.jsonl-Zeile mit verdict "Beleg" (Wächter
+#                        im Mock-Test).
 # PFLEGE-PFLICHT (unverändert Single-Source): ein Status-Wechsel nach einem
 # Re-Test ändert Text UND status_kind UND status_date UND review_by (bzw.
 # review_cond) in DEMSELBEN Eintrag — nie nur eins davon. Konkrete Termine
@@ -2262,20 +2264,30 @@ SCORE_STATUS_LABELS = {
         "status_date": "2026-11-07",
         "review_by":   "2026-09-30",
     },
-    # Paper C (Momentum 5T → Gipfel ≥ 30 % in 10 Handelstagen): ERSTER Eintrag
-    # mit status_kind "validated" (GRÜN), Easy-Entscheid 07.11.2026.
-    # GRÜN-REGEL: "validated" ist NUR erlaubt mit `eval_ref` auf eine Zeile in
-    # eval_results.jsonl, deren verdict "Beleg" ist (Wächter in
-    # scripts/mock_test_score_status_badges.py, test_15). Rein Anzeige — kein
-    # Score-/Filter-/Push-Effekt. Ändert die Replikation das Bild, hier
-    # status/status_kind/status_date/review_cond in einem Schritt anpassen.
+    # Paper C (Momentum 5T → Spanne Tief→Hoch ≥ 30 % in Tag 0–10). Verlauf:
+    # 07.11.2026 GRÜN ("validated", Easy-Entscheid nach dem formalen Beleg);
+    # 12.11.2026 zurück auf BLAU ("pending", Easy-Entscheid 11.11. nach dem
+    # Gipfel-Bericht): der Beleg misst max_gain_pct = Spanne laufendes Tief →
+    # Hoch INKLUSIVE Einstiegstag, nicht den Gewinn ab Einstiegskurs. Die
+    # handelbare Variante ist eingefroren (Freeze „Paper C handelbar“,
+    # 12.11.2026) und wird mit der Replikation ausgewertet. eval_results.jsonl
+    # und Verdikt bleiben unverändert — nur die Anzeige ändert sich.
+    # GRÜN-REGEL (unverändert): "validated" NUR mit `eval_ref` auf eine
+    # eval_results-Zeile mit verdict "Beleg" (Wächter test_15/test_17 in
+    # scripts/mock_test_score_status_badges.py). Heute ist GRÜN unvergeben.
+    # `eval_ref` bleibt als Verweis auf den formalen Befund stehen (färbt nicht).
+    # Rein Anzeige — kein Score-/Filter-/Push-Effekt.
     "paper_c": {
-        "status":      "belegt · Gipfel ≥ 30 % in 10 T (1 Fenster, Replikation läuft)",
-        "status_kind": "validated",
-        "status_date": "2026-11-07",
+        "status":      "Test läuft · handelbare Variante (ab Einstiegskurs), "
+                       "Auswertung ~Dez.",
+        "status_kind": "pending",
+        "status_date": "2026-11-12",
         "review_by":   None,
-        "review_cond": "Replikation eingefroren 07.11.2026 — Auswertung bei "
-                       "n ≥ 300 (Schätzung ~Dez. 2026)",
+        "review_cond": "formaler Beleg 07.11.2026 nur für die Spanne Tief→Hoch "
+                       "inkl. Einstiegstag (AUC 0,61 [0,56–0,66], n=668, "
+                       "1 Fenster) — kein Beleg für Gewinn ab Einstieg. "
+                       "Handelbare Variante eingefroren 12.11.2026, Auswertung "
+                       "mit der Replikation bei n ≥ 300 (Schätzung ~Dez. 2026)",
         "eval_ref":    {"file": "eval_results.jsonl", "test_id": "paper_c_gipfel"},
     },
 }
@@ -2288,22 +2300,26 @@ SCORE_STATUS_KINDS = ("falsified", "pending", "heuristic", "validated")
 # aus entry_past_return_5d in backtest_history/Export (Look-Ahead-Konvention).
 # `status_key` zeigt auf den SCORE_STATUS_LABELS-Eintrag (Farbe), `text` ist
 # der Befund-Zusatz. Rückweg: PAPER_C_BADGE = {} → die Zeile verschwindet.
+# 12.11.2026 (Easy-Entscheid 11.11.): Text ohne Beleg-Behauptung — „Spanne“
+# misst inkl. Einstiegstag, die handelbare Variante wird noch getestet.
 # Nach der Replikation NUR hier (und im Label-Eintrag "paper_c") anpassen.
 PAPER_C_BADGE = {
     "status_key": "paper_c",
-    # Geschützte Leerzeichen (\u00a0) in „30 %“ / „10 T“: kein Zeilenumbruch
-    # zwischen Zahl und Einheit (09.11.2026).
-    "text": "belegt für Gipfel ≥ 30\u00a0% in 10\u00a0T · AUC 0,61 · n=668 · "
-            "1 Fenster, Replikation ~Dez.",
+    # Kurz gehalten: 2 Zeilen auf dem iPhone bei Standardschrift (15 px,
+    # 375–390 px Breite, Playwright-gemessen 12.11.2026).
+    "text": "höher = größere Spanne inkl. Einstiegstag · "
+            "ab Einstieg: Test läuft, ~Dez.",
 }
 
 # Kopfzeile im Konfidenz-Panel (Produkt-Text, einfache Sprache). Zahlen nur
 # aus eval_results.jsonl bzw. den Freeze-Blöcken; Termine sind Schätzungen.
 VALIDATION_SUMMARY_TEXT = (
-    "Stand 07.11.2026: 4 Bestätigungstests, 1 Beleg (Paper C: Momentum 5T → "
-    "Gipfel ≥ 30 %). Exit-B.1 „Unklar“ — Nachfolger-Test läuft (n=500, "
-    "Schätzung ~Mitte 2027). Setup/Conviction und KI: Tests laufen, Auswertung "
-    "automatisch bei n ≥ 250. Replikation Paper C: Schätzung ~Dez. 2026."
+    "Stand 12.11.2026: 4 Bestätigungstests, 1 formaler Beleg (Paper C: Momentum "
+    "5T → Spanne Tief→Hoch ≥ 30 % inkl. Einstiegstag) — kein Beleg für Gewinn "
+    "ab Einstieg; die handelbare Variante läuft mit der Replikation (Schätzung "
+    "~Dez. 2026). Exit-B.1 „Unklar“ — Nachfolger-Test läuft (n=500, Schätzung "
+    "~Mitte 2027). Setup/Conviction und KI: Tests laufen, Auswertung "
+    "automatisch bei n ≥ 250."
 )
 
 # Status-Drift-Wecker (Teil 2): der TÄGLICHE Daily-Run (generate_report.main)

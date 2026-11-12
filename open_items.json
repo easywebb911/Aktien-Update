@@ -757,16 +757,16 @@
       "id": "label-hoechststand-nach-entry-falsch",
       "title": "Label 'Höchststand nach Entry (max_gain_pct)' ist falsch",
       "opened": "2026-11-12",
-      "description": "config.COLLECT_STATUS_FIELDS beschriftet max_gain_pct als 'Höchststand nach Entry'. Gemessen ist die Spanne laufendes Tief → Hoch ab dem Einstiegstag D (max-gain-ab-tief-nicht-ab-einstieg). Vorschlag: 'Spanne Tief→Hoch ab Einstiegstag (max_gain_pct)'. Reine Anzeige, Golden betroffen.",
-      "status": "offen",
+      "description": "config.COLLECT_STATUS_FIELDS beschriftet max_gain_pct als 'Höchststand nach Entry'. Gemessen ist die Spanne laufendes Tief → Hoch ab dem Einstiegstag D (max-gain-ab-tief-nicht-ab-einstieg). Vorschlag: 'Spanne Tief→Hoch ab Einstiegstag (max_gain_pct)'. Reine Anzeige, Golden betroffen. ERLEDIGT 12.11.2026 (Anzeige-PR Paper C grün → blau): Label jetzt 'Spanne Tief→Hoch, Tag 0–10 (max_gain_pct)', Status-Text 'Ziel-/Ergebnisgröße inkl. Einstiegstag, nicht ab Einstiegskurs · kein Prädiktor · unvalidiert'. Einzige Fundstelle laut Grep war config.COLLECT_STATUS_FIELDS (Sammel-Panel).",
+      "status": "erledigt",
       "status_date": "2026-11-12"
     },
     {
       "id": "text-gipfel-definition",
       "title": "Karten-/Status-Text 'Gipfel ≥ 30 % in 10 T' missverständlich",
       "opened": "2026-11-12",
-      "description": "PAPER_C_BADGE ('belegt für Gipfel ≥ 30 % in 10 T') und SCORE_STATUS_LABELS['paper_c'] sind formal registrierungsgetreu, werden aber als '+30 % nach meinem Kauf' gelesen. Vorschlag Karte: 'belegt für Spanne Tief→Hoch ≥ 30 % (Tag D bis +10, nicht ab Einstiegskurs) · AUC 0,61 · 1 Fenster'; Status: 'belegt · Spanne ≥ 30 % in 10 T (ab Tief, inkl. Einstiegstag)'. Easy-Entscheid offen, Golden betroffen.",
-      "status": "offen",
+      "description": "PAPER_C_BADGE ('belegt für Gipfel ≥ 30 % in 10 T') und SCORE_STATUS_LABELS['paper_c'] sind formal registrierungsgetreu, werden aber als '+30 % nach meinem Kauf' gelesen. Vorschlag Karte: 'belegt für Spanne Tief→Hoch ≥ 30 % (Tag D bis +10, nicht ab Einstiegskurs) · AUC 0,61 · 1 Fenster'; Status: 'belegt · Spanne ≥ 30 % in 10 T (ab Tief, inkl. Einstiegstag)'. Easy-Entscheid offen, Golden betroffen. ERLEDIGT 12.11.2026 (Easy-Entscheid 11.11., Anzeige-PR Paper C grün → blau): paper_c blau, Karte 'höher = größere Spanne inkl. Einstiegstag · ab Einstieg: Test läuft, ~Dez.', Panel nennt den formalen Beleg nur für die Spanne inkl. Einstiegstag; Position-Tooltip ohne 'Gipfel belegt'.",
+      "status": "erledigt",
       "status_date": "2026-11-12"
     },
     {

@@ -3318,6 +3318,27 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   im Auftrag; frischer Push), (2) Auslöser-Zählung „nach Ausschlüssen“ und (3) Retry-Fenster
   7 Tage im Freeze ergänzt (vor Merge, kein Protokolleintrag nötig), (4) Workflow-Commit prüft
   jetzt, dass der origin-Stand Präfix der neuen Datei ist.
+- Nach Merge `#674` (Merge `c409fa56`): Backfill per Hand-Start `outcome_path.yml`
+  (Lauf 43246601428, Commit `2b2f8430`) — nur Zählungen: geschrieben 702 (davon null
+  „ticker_ohne_kursdaten“ 3), nicht reif 90, erneut versuchen 0, gesperrt ohne Freeze 0,
+  Abruf-Fehler 0, Rate-Limit nein.
+
+### 12.11.2026 — Paper C Anzeige grün → blau (1 PR, Manual-Merge)
+
+- Easy-Entscheid 11.11.2026: `#675` (Branch `claude/paper-c-blau-r5t8`, Branch-Commit
+  `3eb24d58`, kein Merge-Hash — Regel a). `SCORE_STATUS_LABELS["paper_c"]` → `pending`
+  (blau, „Test läuft · handelbare Variante (ab Einstiegskurs), Auswertung ~Dez.“); Karten-Zeile
+  Momentum 5T ohne Beleg-Behauptung („höher = größere Spanne inkl. Einstiegstag · ab Einstieg:
+  Test läuft, ~Dez.“, 2 Zeilen iPhone bei 15 px), kein Grün in keiner Phase; Konfidenz-Panel
+  nennt den formalen Beleg nur für die Spanne inkl. Einstiegstag (AUC 0,61 [0,56–0,66],
+  n=668); Label `max_gain_pct` → „Spanne Tief→Hoch, Tag 0–10“; Position-Tooltip ohne „Gipfel
+  belegt“. Wächter `test_15/17` angepasst, neu `test_18` (erzeugtes HTML Postclose + Intraday
+  ohne Grün). §5-Nachtrag 12.11.; open_items `label-hoechststand-nach-entry-falsch` +
+  `text-gipfel-definition` → erledigt. eval_results, Verdikte, Freeze-MD5 unverändert. Golden
+  aktualisiert.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#674`,
+  höchste in Block 1 erwähnte PR = `#675` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
 ### 11.11.2026 — open_items aus der Nacht-Probe-Endauswertung (1 PR, Auto-Merge Doku)
 
@@ -6980,6 +7001,21 @@ Replikation („VORABREGISTRIERUNG — Paper C Replikation“). Die Lesart vom 1
 **„Gipfel als Ziel“** — ist damit **bestätigt (1 Fenster)**; belegt ist die
 Häufigkeit eines Gipfels, nicht der Ausstieg am Gipfel und keine Schwelle.
 
+**Nachtrag 12.11.2026 (Easy-Entscheid 11.11., Anzeige grün → blau):** Der
+Gipfel-Bericht vom 11.11.2026 (read-only; open_item
+`max-gain-ab-tief-nicht-ab-einstieg`) zeigt: das Zielfeld `max_gain_pct` misst
+die **Spanne laufendes Tief → Hoch inklusive Einstiegstag**, nicht den Gewinn
+ab Einstiegskurs (Einstieg = Schluss D). Explorativ (W1, nicht bindend) sind
+von 192 Treffern nur **≥ 37 sicher handelbar**. Deshalb zeigt die Seite Paper C
+seit 12.11.2026 **blau** („Test läuft“) statt grün; „Gipfel“-Texte sind durch
+„Spanne inkl. Einstiegstag“ ersetzt. **Unverändert:** `eval_results.jsonl`,
+das Verdikt „Beleg“ für das registrierte Ziel, alle Freeze-Blöcke. Die
+handelbare Variante (Gewinn ab Einstiegskurs, `max_gain_from_entry_pct`) ist
+registriert — „VORABREGISTRIERUNG — Paper C handelbar (Gipfel ab
+Einstiegskurs), eingefroren 12.11.2026“ in §4 — und wird direkt nach der
+Replikation ausgewertet. Die Lesart „belegt ist die Häufigkeit eines Gipfels“
+oben gilt damit nur für die Spanne inkl. Einstiegstag.
+
 ### REIFE-INVENTUR 07.11.2026 — Stand der Edge-Hypothesen (Easy-Entscheide)
 
 Read-only Inventur vom 07.11.2026, danach Easy-Entscheide. Nur Zeilen ab
@@ -6988,7 +7024,7 @@ werden nie gepoolt. Erfolgs-Definition unverändert (oben).
 
 | Hypothese | Stand / Entscheid |
 |---|---|
-| **Paper C** (Momentum → Gipfel) | **Belegt (1 Fenster), Replikation offen.** Ausgewertet 07.11.2026: Ziel 1 Gipfel ≥ 30 % **Beleg**, Ziel 2 `return_10d` **Unklar** (Protokolleintrag in §4). |
+| **Paper C** (Momentum → Gipfel) | **Belegt (1 Fenster), Replikation offen.** Ausgewertet 07.11.2026: Ziel 1 Gipfel ≥ 30 % **Beleg**, Ziel 2 `return_10d` **Unklar** (Protokolleintrag in §4). *Nachtrag 12.11.2026:* „Gipfel“ = Spanne Tief→Hoch inkl. Einstiegstag, nicht ab Einstiegskurs; Anzeige blau, handelbare Variante registriert (siehe Nachtrag 12.11. oben). |
 | **Paper C Replikation** (nur Gipfel) | **Eingefroren 07.11.2026**, Einstieg ≥ 24.10.2026, Auslöser n ≥ 300, eigene Familie α = 0,05 (Block in §4). Skript-Parametrisierung offen (open_item `paper-c-replikations-skript`). |
 | **Exit-B.1-Nachfolger** (gepaart) | **Eingefroren 07.11.2026** (Block in §4). Sammelt ab Einstieg 09.11.2026, n-Ziel 500 (open_item `exit-b1-nachfolger-sammelphase`). |
 | **H5** (Score × Katalysator × Momentum × SI) | **Unverändert** (Freeze 12.09.2026). Zählung 07.11. (nur Prädiktoren, keine Ergebnisse): 570 vollständige Zeilen, kleinste der 16 Zellen **5**, nur 6 Zellen ≥ 40. Realistisch reif **~2028**. Hinweis: „Fuel × Fuse“ (SI × Attention) ist **nicht** Teil des registrierten H5. |

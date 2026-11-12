@@ -197,7 +197,7 @@ def test_13_conf_class_reads_single_source() -> None:
 _EXPECTED_KIND = {
     "setup": "pending", "earliness": "falsified", "monster": "falsified",
     "ki": "heuristic", "conviction": "pending", "exit_pressure": "pending",
-    "paper_c": "validated",
+    "paper_c": "pending",   # 07.11. grün → 12.11.2026 blau (Easy-Entscheid 11.11.)
 }
 
 
@@ -250,17 +250,21 @@ def _green_violations(labels: dict, eval_rows: list[dict]) -> list[str]:
 
 
 def test_15_green_only_with_beleg_reference() -> None:
-    # WÄCHTER gegen Selbst-Grün (angepasst beim ersten echten Beleg, 07.11.2026,
-    # NICHT gelöscht): GRÜN nur mit Verweis auf eine eval_results-Zeile mit
-    # verdict "Beleg". Setup/Monster/KI/Conviction bleiben nicht-grün.
+    # WÄCHTER gegen Selbst-Grün (angepasst 07.11. und 12.11.2026, NICHT
+    # gelöscht): GRÜN nur bei ausdrücklichem status_kind "validated" UND
+    # Verweis auf eine eval_results-Zeile mit verdict "Beleg". Seit dem
+    # 12.11.2026 (Paper C grün → blau) ist GRÜN wieder unvergeben.
     rows = _eval_rows(ROOT / "eval_results.jsonl")
     bad = _green_violations(config.SCORE_STATUS_LABELS, rows)
     assert bad == [], f"GRÜN ohne Beleg-Verweis: {bad}"
     validated = sorted(k for k, v in config.SCORE_STATUS_LABELS.items()
                        if v.get("status_kind") == "validated")
-    assert validated == ["paper_c"], f"Nur paper_c darf heute grün sein: {validated}"
-    for k in ("setup", "monster", "ki", "conviction"):
-        assert config.SCORE_STATUS_LABELS[k]["status_kind"] != "validated", k
+    assert validated == [], f"GRÜN ist heute unvergeben: {validated}"
+    assert config.SCORE_STATUS_LABELS["paper_c"]["status_kind"] == "pending"
+    # Gegenprobe 0: ein Beleg-Verweis allein macht NICHT grün (Farbe nur aus
+    # dem ausdrücklichen status_kind) — paper_c trägt den Verweis weiter.
+    assert config.SCORE_STATUS_LABELS["paper_c"].get("eval_ref", {}).get("test_id") \
+        == "paper_c_gipfel"
     # Gegenprobe 1: grüner Eintrag OHNE Verweis → Verletzung.
     assert _green_violations({"x": {"status_kind": "validated"}}, rows) == ["x"]
     # Gegenprobe 2: Verweis auf eine Zeile, die KEIN "Beleg" ist → Verletzung.
@@ -273,6 +277,10 @@ def test_15_green_only_with_beleg_reference() -> None:
         rows) == ["x"]
     # Gegenprobe 4: nicht-grüne Einträge brauchen keinen Verweis.
     assert _green_violations({"x": {"status_kind": "pending"}}, rows) == []
+    # Gegenprobe 5: ausdrücklich validated + gültiger Beleg-Verweis → erlaubt.
+    assert _green_violations(
+        {"x": {"status_kind": "validated", "eval_ref": {"test_id": "paper_c_gipfel"}}},
+        rows) == []
 
 
 def test_16_color_only_from_status_kind() -> None:
@@ -307,15 +315,18 @@ def _green_row_violation(row_html: str, phase, labels: dict, eval_rows: list[dic
     return not (phase == "postclose" and beleg_ok)
 
 
-def test_17_momentum_row_green_only_postclose_and_beleg() -> None:
-    # WÄCHTER-Erweiterung (09.11.2026): Grün in der Karten-Zeile nur bei
-    # Postclose-Phase UND Beleg-Verweis. Rendert die echte Zeile (Golden-
-    # Harness-Stubs, kein Netz).
+def _golden():
     hs = importlib.util.spec_from_file_location(
         "golden_harness_17", ROOT / "scripts" / "mock_test_outer_page_golden.py")
     golden = importlib.util.module_from_spec(hs)
     hs.loader.exec_module(golden)
-    gr = golden.gr
+    return golden
+
+
+def test_17_momentum_row_green_only_postclose_and_beleg() -> None:
+    # WÄCHTER-Erweiterung (09.11.2026, angepasst 12.11.2026): heute in KEINER
+    # Phase grün; ein künftiges Grün nur bei Postclose UND Beleg-Verweis.
+    gr = _golden().gr
     rows = _eval_rows(ROOT / "eval_results.jsonl")
     stock = {"price": 110.0, "close_5td_before_entry": 100.0}
 
@@ -333,20 +344,63 @@ def test_17_momentum_row_green_only_postclose_and_beleg() -> None:
     for phase in ("postclose", "premarket", None, "", "intraday", "Postclose"):
         row = render(phase)
         assert not _green_row_violation(row, phase, labels, rows), (phase, row)
-        if phase != "postclose":
-            assert "conf-kind-validated" not in row, f"Grün außerhalb Postclose: {phase!r}"
-    assert "conf-kind-validated" in render("postclose"), "Postclose mit Beleg soll grün sein"
+        assert "conf-kind-validated" not in row, f"heute kein Grün: {phase!r}"
+        assert "conf-kind-pending" in row, f"blauer Punkt fehlt: {phase!r}"
     # Gegenprobe 1: Grün außerhalb Postclose → Verletzung.
     fake = '<span class="conf-status-dot conf-kind-validated"></span>'
     assert _green_row_violation(fake, "premarket", labels, rows)
     assert _green_row_violation(fake, None, labels, rows)
-    # Gegenprobe 2: Postclose, aber paper_c grün OHNE Beleg-Verweis → Verletzung.
-    no_ref = dict(labels, paper_c={k: v for k, v in labels["paper_c"].items()
+    # Gegenprobe 2: künftiges Grün (validated + Beleg-Verweis): Postclose grün,
+    # sonst KEIN grüner Punkt (Renderer lässt ihn weg).
+    green = dict(labels, paper_c=dict(labels["paper_c"], status_kind="validated"))
+    assert "conf-kind-validated" in render("postclose", green)
+    assert not _green_row_violation(render("postclose", green), "postclose", green, rows)
+    for phase in ("premarket", None, "intraday"):
+        assert "conf-kind-validated" not in render(phase, green), phase
+    # Gegenprobe 3: validated OHNE Verweis → Verletzung.
+    no_ref = dict(labels, paper_c={k: v for k, v in green["paper_c"].items()
                                    if k != "eval_ref"})
     assert _green_row_violation(render("postclose", no_ref), "postclose", no_ref, rows)
-    # Gegenprobe 3: Verweis auf eine Nicht-Beleg-Zeile → Verletzung.
-    bad_ref = dict(labels, paper_c=dict(labels["paper_c"], eval_ref={"test_id": "exit_b1_a"}))
+    # Gegenprobe 4: Verweis auf eine Nicht-Beleg-Zeile → Verletzung.
+    bad_ref = dict(labels, paper_c=dict(green["paper_c"], eval_ref={"test_id": "exit_b1_a"}))
     assert _green_row_violation(render("postclose", bad_ref), "postclose", bad_ref, rows)
+
+
+def test_18_rendered_page_has_no_green_status() -> None:
+    # Ziel-Mechanik (12.11.2026): im erzeugten HTML (Postclose UND Intraday)
+    # trägt KEIN Status-Element Grün (Punkt mit aria-hidden = Karte/Panel,
+    # Cockpit-Badge). Erlaubt bleiben nur die Legenden-Erklärung „grün =
+    # belegt (heute unvergeben)“ und die CSS-Definition.
+    golden = _golden()
+    gr = golden.gr
+    orig = {"datetime": gr.datetime, "lbh": gr._load_backtest_history,
+            "lsh": gr._load_score_history, "pl": gr.health_check.provider_liveness,
+            "ph": gr._REPORT_RUN_PHASE, "sc": gr._SCORE_CONFIDENCE}
+    try:
+        gr.datetime = golden._FixedDateTime
+        gr._load_backtest_history = golden._fixture_backtest_history
+        gr._load_score_history = golden._fixture_score_history
+        gr.health_check.provider_liveness = golden._stub_provider_liveness
+        gr._SCORE_CONFIDENCE = {"setup": {"n": 500, "data_tier": "groß"},
+                                "computed_at": "x"}
+        for phase in ("postclose", "intraday"):
+            gr._REPORT_RUN_PHASE = phase
+            st = golden._fixture_stocks()
+            st[0]["close_5td_before_entry"] = 4.25
+            html = gr.generate_html_v1(st, golden._FIXED_REPORT_DATE)
+            assert 'conf-kind-validated" aria-hidden' not in html, phase
+            assert "cockpit-status-badge conf-kind-validated" not in html, phase
+            assert "Momentum 5T (Paper C)" in html, f"Panel-Zeile fehlt: {phase}"
+            for bad in ("belegt für Gipfel", "häufiger Gipfel", "Höchststand nach Entry",
+                        "Gipfel ist das belegte"):
+                assert bad not in html, (phase, bad)
+    finally:
+        gr.datetime = orig["datetime"]
+        gr._load_backtest_history = orig["lbh"]
+        gr._load_score_history = orig["lsh"]
+        gr.health_check.provider_liveness = orig["pl"]
+        gr._REPORT_RUN_PHASE = orig["ph"]
+        gr._SCORE_CONFIDENCE = orig["sc"]
 
 
 def main() -> None:
@@ -368,6 +422,7 @@ def main() -> None:
         ("15 GRÜN nur mit Beleg-Verweis (Wächter + Gegenproben)",   test_15_green_only_with_beleg_reference),
         ("16 Färbung nur aus status_kind",              test_16_color_only_from_status_kind),
         ("17 Momentum-Zeile grün nur Postclose+Beleg",  test_17_momentum_row_green_only_postclose_and_beleg),
+        ("18 erzeugtes HTML ohne grünen Status",        test_18_rendered_page_has_no_green_status),
     ]
     failed = 0
     for name, fn in tests:
