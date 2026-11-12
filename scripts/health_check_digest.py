@@ -394,6 +394,14 @@ def main(*, now_ts: datetime | None = None,
         log.warning("options_oi_liveness_line unerwartet: %r", _oi_exc)
         options_oi_line = None
 
+    # Kursverlauf ab Einstieg (outcome_path.jsonl, 12.11.2026): nur Zählungen.
+    try:
+        outcome_path_line = hc.outcome_path_liveness_line(
+            ROOT / hc.OUTCOME_PATH_FILE, ROOT / hc.OUTCOME_PATH_STATE_FILE, now_ts=now_ts)
+    except Exception as _op_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("outcome_path_liveness_line unerwartet: %r", _op_exc)
+        outcome_path_line = None
+
     # options_chain_raw-Liveness (17.10.2026): analog options_oi, eigene Datei
     # (JSONL). raise-frei; try/except ist reine Absicherung.
     try:
@@ -651,6 +659,7 @@ def main(*, now_ts: datetime | None = None,
         inst_own_line=inst_own_line,
         options_oi_line=options_oi_line,
         chain_raw_line=chain_raw_line,
+        outcome_path_line=outcome_path_line,
         ftd_line=ftd_line,
         reg_sho_line=reg_sho_line,
         news_coverage_line=news_coverage_line,

@@ -6784,6 +6784,117 @@ Top-10-Auswahl während der Sammlung braucht hier einen datierten Eintrag.
 **Änderungs-Protokoll (bindend ab 07.11.2026):** Keine Änderung an diesem Block
 ohne datierten Protokolleintrag, der die Änderung und ihren Grund festhält.
 
+### VORABREGISTRIERUNG — Paper C handelbar (Gipfel ab Einstiegskurs), eingefroren 12.11.2026
+
+**Easy-Entscheid 12.11.2026** nach dem Gipfel-Bericht vom 11.11.2026: `max_gain_pct`
+misst vom laufenden Tief ab dem Einstiegstag D (`backtest_history._compute_max_gain_pct`,
+Fenster `_final_window` mit `d >= edate`). Hoch und Tief von D liegen zum Teil **vor**
+dem Einstieg zum Schlusskurs D; die registrierte Zielgröße der Paper-C-Blöcke ist
+deshalb nicht der handelbare Gewinn. Dieser Block registriert **zusätzlich** das
+handelbare Ziel. **Zum Freeze-Zeitpunkt wurde für Einstiege ≥ 24.10.2026 weder das
+neue Zielfeld noch irgendein anderes Ergebnisfeld angesehen, gezählt oder berechnet;
+das neue Feld existiert beim Freeze noch nicht** (es wird mit demselben PR gebaut;
+der Sammler schreibt Zeilen ≥ 24.10.2026 nur, wenn dieser Block im Handover steht).
+
+**Verhältnis zur Replikation:** Der Block „VORABREGISTRIERUNG — Paper C Replikation
+(Gipfel), eingefroren 07.11.2026“ bleibt **byte-unverändert** und wird **zuerst**
+ausgewertet. Beide Ergebnisse werden **getrennt** berichtet; keines ersetzt oder
+korrigiert das andere. Die erste Stichprobe (21.07.–23.10.2026) ist für diesen Block
+**nicht** bindend (sie wurde am 11.11.2026 explorativ mit Schranken angesehen).
+
+**EINGEFRORENE VORGABEN**
+
+1. **Frage:** Erreichen Aktien mit höherem 5-Tage-Momentum vor dem Einstieg
+   (`entry_past_return_5d`, unverändert) häufiger einen **handelbaren** Gipfel von
+   mindestens +30 % ab dem Einstiegs-Schlusskurs? Richtung fixiert: höheres
+   Momentum → häufiger Treffer. Kein nachträgliches Umdrehen.
+2. **Zielgröße:** `max_gain_from_entry_pct` in `outcome_path.jsonl`
+   (`scripts/outcome_path_update.py`) = max(High Tag 1–10) / Close D − 1, in %.
+   **Tag D zählt nicht.** Gemessen ab dem Schlusskurs von D aus derselben Kursreihe.
+   Ein Gap über das Ziel zählt als Treffer, weil das Hoch des Gap-Tags es abbildet.
+   Kurse: yfinance `auto_adjust=True`, **ein Abruf je Ticker**, alle Kennzahlen einer
+   Zeile innerhalb dieses Abrufs; Split/Dividende im Fenster werden nur
+   gekennzeichnet (Easy-Entscheid 12.11.2026). Nur finale Tageszeilen; Tag 1–10 sind
+   die nächsten zehn US-Handelstage nach D (Kalender `config.US_MARKET_HOLIDAYS`).
+   Fehlt ein Tag oder hat er kein endliches OHLC, ist das Feld `null` mit Grund
+   (unbekannt ≠ 0).
+3. **Treffer** = `max_gain_from_entry_pct ≥ 30,0`; **Nicht-Treffer** =
+   `max_gain_from_entry_pct < 30,0`. Schwelle aus dem Paper (Svoboda et al. 2026)
+   bzw. §5, nicht aus unseren Daten.
+4. **Stichprobe (identisch zur Replikation):** ausschließlich
+   `matured_backtest_export.jsonl`; Zeilen mit `provenance == "forward"` **UND**
+   Einstiegsdatum (`date`, Format `DD.MM.YYYY`, ET-Handelstag) **≥ 24.10.2026**.
+   Alle Scores. Dedup nach `(ticker, date)`, erste Zeile gewinnt — **vor** jeder
+   Zählung. Das Zielfeld wird über `(ticker, date)` aus `outcome_path.jsonl` dazu
+   gelesen. Prädiktor und `market_regime` kommen aus dem Export.
+5. **Ausschluss:** Zeilen mit fehlendem oder nicht endlichem
+   `entry_past_return_5d` (gezählt, berichtet). Ist das Zielfeld einer Zeile nicht
+   endlich oder fehlt die Zeile in `outcome_path.jsonl`, fällt sie für dieses Ziel
+   heraus und wird **gezählt und je Grund berichtet** — keine Obergrenze
+   (Easy-Entscheid 12.11.2026).
+6. **Auslöser / Zeitpunkt:** **direkt nach** dem Replikationslauf, im selben
+   Auswertungsdurchgang, mit allen Zeilen nach Punkt 4–5, deren Zielfeld zu diesem
+   Zeitpunkt reif ist. Sind das **weniger als 300**, wartet der Lauf, bis 300
+   erreicht sind — nie vor dem Replikationslauf (Easy-Entscheid 12.11.2026).
+   **Einmaliger** Lauf, kein Zwischenblick, kein zweiter Lauf mit mehr Daten;
+   Zählung und Datenhash werden mitgeschrieben. **Sperre:** Ergebniszeilen tragen
+   `family = "paper_c_handelbar"`; steht eine solche Zeile in `eval_results.jsonl`,
+   ist kein weiterer Lauf erlaubt (nur mit datiertem Protokolleintrag hier).
+7. **Verfahren (wie Paper-C-Block / Replikation, hier ausgeschrieben):**
+   - AUC = `mann_whitney_u_auc(A, B)` (`scripts/stats_helpers.py`) mit A =
+     `entry_past_return_5d` der Treffer, B = der Nicht-Treffer. AUC > 0,5 heißt:
+     Treffer hatten höheres Momentum.
+   - Test-p = `p_two_sided` aus `mann_whitney_u_auc` auf den Originalgruppen.
+   - **Bootstrap-CI:** Resampling mit Zurücklegen **je Gruppe getrennt** (wie
+     `freeze_eval.bootstrap_auc_ci`), **N = 2000**, **Seed = 42**, **95 %
+     zweiseitig, Perzentil 2,5 / 97,5**.
+   - **Cluster-Doppellauf:** Lauf mit allen Zeilen und ohne Cluster-Folgeeinträge
+     (`freeze_eval.cluster_double_run`), Cluster über **alle verwendeten Zeilen**
+     bestimmt. Bindend sind die Zahlen **mit allen Zeilen**; der zweite Lauf wird
+     mit „gleiche Richtung ja/nein“ **nur berichtet** und ändert das Verdikt nicht.
+   - **Regime-Split** nach `market_regime` (bull/bear/neutral): ein Regime ist
+     prüfbar, wenn **beide Gruppen** darin **mindestens 30 Zeilen** haben, sonst
+     „nicht prüfbar“ (nie Widerlegung). „Plausibel“ = kein prüfbares Regime liegt
+     mit seiner AUC auf der anderen Seite von 0,5 als die Gesamt-AUC (AUC genau 0,5
+     ist keine Gegenrichtung).
+8. **Floor:** mindestens **40** Treffer; sonst „nicht auswertbar“, p = 1.
+9. **Eigene Familie „Paper C handelbar“** mit **einer** Hypothese, **α = 0,05**,
+   k = 1 (kein Holm-Schritt). Nicht Teil der Familien „Runde November 2026“ und
+   „Runde Replikation“.
+10. **Erfolgskriterium — alle drei:** (a) **p < 0,05**; (b) **2,5.-Perzentil der
+    Bootstrap-AUC > 0,5**; (c) Regime-Split „plausibel“. Verdikte: „Beleg“ =
+    (a)+(b)+(c); „bedingt“ = (a)+(b), aber kein Regime prüfbar; „Unklar“ = (a) oder
+    (b) verfehlt oder ein prüfbares Regime widerspricht; „nicht auswertbar“ = Floor
+    verfehlt. Weder „bedingt“ noch „Unklar“ ist eine Widerlegung. Eine
+    Punktschätzung allein ist nie Beleg.
+11. **Netto (nachrangig, nicht bindend; Easy-Entscheid 12.11.2026):** dieselbe
+    Rechnung mit Treffer = `max_gain_from_entry_pct_net ≥ 30,0`
+    (`backtest_history.apply_round_trip_haircut`, Round-Trip −4 %) nur zur
+    Einordnung — kein Erfolgskriterium.
+12. **Altzahlen sind Referenz, nie Schwelle:** Die explorativen Schranken vom
+    11.11.2026 (erste Stichprobe: 37 bis 192 handelbare Treffer, Ersatz-Ziel AUC
+    0,616) sind **keine** Erwartung und **keine** Schwelle.
+13. **Pflichtangaben im Ergebnisbericht:** n je Gruppe, Ausschlüsse je Grund
+    (Prädiktor fehlt / Zielfeld null mit Grund / Zeile fehlt in
+    `outcome_path.jsonl`), AUC, CI, roher p, Regime-Tabelle, Cluster-Doppellauf,
+    Netto-Zusatz, Datenhash, Skript-Commit, Seed, N, Zahl der Zeilen mit
+    Split/Dividende im Fenster — und die Gesamtzahl bisher gelaufener
+    Bestätigungstests (Zählung über `eval_results.jsonl`).
+14. **Skript:** Auswertung über `scripts/paper_c_eval.py`-Wiederverwendung oder ein
+    eigenes Skript — **noch nicht gebaut** (open_item `paper-c-handelbar-zusatzfamilie`);
+    der erste Paper-C-Lauf und der Replikations-Freeze dürfen sich dadurch nicht
+    ändern.
+
+**Grenzen:** Der Prädiktor floss nie in Score oder Top-10-Auswahl (CLAUDE.md
+„Look-Ahead-Konvention“). Treffer nach diesem Block sind eine **Teilmenge** der
+Treffer nach `max_gain_pct` (das laufende Tief liegt immer höchstens beim Schluss D),
+die beiden Tests sind also nicht unabhängig. Die Zielgröße nimmt den Schlusskurs D
+als Einstieg an; der tatsächliche Kaufkurs (Nachbörse/Folgetag) ist nicht modelliert.
+
+**Änderungs-Protokoll (bindend ab 12.11.2026):** Keine Änderung an diesem Block ohne
+datierten Protokolleintrag, der die Änderung und ihren Grund festhält. Ein Revert
+dieses Blocks wird ebenfalls als Protokolleintrag festgehalten.
+
 ### ✅ STATUS-PANEL — 6. Eintrag `si_position_history` — ERLEDIGT (PR #430, 14.07.)
 
 Vorarbeit 13.07. (Read-only-Diagnose) → Bau 14.07. **nach** dem ersten Postclose-

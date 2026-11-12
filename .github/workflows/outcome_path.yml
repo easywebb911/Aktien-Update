@@ -1,0 +1,109 @@
+name: Kursverlauf ab Einstieg
+
+# Sammler + Backfill (Easy-Auftrag 12.11.2026): je Forward-Einstieg die
+# täglichen OHLC von Tag 0 bis Tag 10 (nur finale Tageszeilen, auto_adjust=True,
+# ein Abruf je Ticker) und daraus max_gain_from_entry_pct (Zielfeld der
+# Vorabregistrierung „Paper C handelbar“), Netto-Variante und
+# max_drawdown_from_entry_pct — scripts/outcome_path_update.py.
+# Schreibt AUSSCHLIESSLICH outcome_path.jsonl (append-only, kein Prune) und
+# outcome_path_state.json (Heartbeat). Wertet nichts aus (Blindheit), schreibt
+# nie in matured_backtest_export.jsonl. Zeilen ab Einstieg 24.10.2026 nur, wenn
+# der Freeze-Block im Handover steht.
+#
+# Backfill: der ERSTE Lauf (workflow_dispatch nach dem Merge) holt alle reifen
+# Forward-Einstiege ab 21.07.2026 nach; danach füllt der tägliche Lauf neu
+# reife Zeilen. Rate-Limit → kein Retry; offene Zeilen kommen im nächsten Lauf.
+#
+# Zeitplan: NEUER Cron (kein bestehender geändert, Lesson 8z8) werktags
+# 23:53 UTC — nach Postclose-Termin und Wahrheits-Abgleich (23:07). Eigene
+# concurrency-Gruppe, BEWUSST keine gemeinsame mit dem Daily-Run (GitHub
+# verwirft in einer Gruppe einen wartenden Lauf).
+#
+# Rückweg: diese Datei löschen oder den Workflow deaktivieren; die Daten-Datei
+# kann gelöscht werden (keine Bestandsdatei berührt, kein Konsument im Tool).
+
+on:
+  schedule:
+    - cron: '53 23 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # NUR für outcome_path.jsonl + outcome_path_state.json
+
+concurrency:
+  group: outcome-path
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  outcome-path:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Kursverlauf sammeln
+        run: python scripts/outcome_path_update.py --run
+
+      - name: Commit outcome_path + state
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          # Muster wie truth_check.yml: frische Versionen sichern, in einer
+          # Retry-Schleife auf den NEUESTEN origin/main-Stand aufsetzen und NUR
+          # die zwei eigenen Dateien wieder einspielen (verlustfrei, weil dieser
+          # Workflow keine anderen Dateien schreibt).
+          FRESH_DATA="${RUNNER_TEMP:-/tmp}/outcome_path_fresh.jsonl"
+          FRESH_STATE="${RUNNER_TEMP:-/tmp}/outcome_path_state_fresh.json"
+          if [ ! -f outcome_path_state.json ]; then
+            echo "Kein State geschrieben — nichts zu committen."
+            exit 0
+          fi
+          cp outcome_path_state.json "$FRESH_STATE"
+          if [ -f outcome_path.jsonl ]; then cp outcome_path.jsonl "$FRESH_DATA"; fi
+          pushed=0
+          for attempt in 1 2 3 4 5; do
+            if ! git fetch origin main; then
+              echo "fetch fehlgeschlagen (Versuch $attempt) — retry."
+              sleep 2
+              continue
+            fi
+            git reset --hard origin/main
+            cp "$FRESH_STATE" outcome_path_state.json
+            if [ -f "$FRESH_DATA" ]; then cp "$FRESH_DATA" outcome_path.jsonl; fi
+            git add outcome_path_state.json
+            if [ -f outcome_path.jsonl ]; then git add outcome_path.jsonl; fi
+            if git diff --staged --quiet; then
+              echo "Keine Aenderung gegenueber origin/main."
+              pushed=1
+              break
+            fi
+            git commit -m "Kursverlauf ab Einstieg $(date -u '+%Y-%m-%d')"
+            if git push origin main; then
+              echo "outcome_path gepusht (Versuch $attempt)."
+              pushed=1
+              break
+            fi
+            echo "push rejected (Versuch $attempt) — neu fetchen und retry."
+            sleep 2
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "ERROR: outcome_path konnte nach 5 Versuchen nicht gepusht werden."
+            exit 1
+          fi
