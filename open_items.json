@@ -741,7 +741,7 @@
       "id": "paper-c-handelbar-zusatzfamilie",
       "title": "Vorabregistrierung Paper C handelbar: Auswertungsskript bauen",
       "opened": "2026-11-12",
-      "description": "Freeze 12.11.2026: SESSION_HANDOVER.md 'VORABREGISTRIERUNG — Paper C handelbar (Gipfel ab Einstiegskurs), eingefroren 12.11.2026' (MD5-Pin in scripts/mock_test_outcome_path.py). Eigene Familie α = 0,05, k = 1; Lauf direkt nach der Replikation mit allen reifen Zeilen (≥ 300, sonst warten); Netto nachrangig. Offen: Auswertungsskript (Wiederverwendung paper_c_eval.py oder eigen, zusammen mit paper-c-replikations-skript), Sperre family = paper_c_handelbar. Keine Sichtung der Daten ≥ 24.10.2026 vor dem Lauf.",
+      "description": "Freeze 12.11.2026: SESSION_HANDOVER.md 'VORABREGISTRIERUNG — Paper C handelbar (Gipfel ab Einstiegskurs), eingefroren 12.11.2026' (MD5-Pin in scripts/mock_test_outcome_path.py). Eigene Familie α = 0,05, k = 1; Lauf direkt nach der Replikation mit allen reifen Zeilen (≥ 500 seit Protokolleintrag 13.11.2026, sonst warten); Netto nachrangig. Offen: Auswertungsskript (Wiederverwendung paper_c_eval.py oder eigen, zusammen mit paper-c-replikations-skript), Sperre family = paper_c_handelbar. Keine Sichtung der Daten ≥ 24.10.2026 vor dem Lauf. Nachtrag 12.11.2026 (#684, Protokolleintrag im Block): bindendes Ziel jetzt ab Eröffnung Tag 1 (g = max High Tag 1–10 / bars[1].o − 1, im Skript aus outcome_path-bars gerechnet, Datei unverändert); 'ab Close D' (max_gain_from_entry_pct) nur berichtet. Auslöser n ≥ 500 bleibt (Planung 73/669, Risiko < 40 Treffer ≈ 1,3 %).",
       "status": "offen",
       "status_date": "2026-11-12"
     },
@@ -822,6 +822,14 @@
       "title": "Nach Lösch-Vorfall: Einstellungen, die nur Easy setzen kann",
       "opened": "2026-11-12",
       "description": "Lesson 8z9 / #683. Offen bei Easy (Claude kann/darf das nicht): (1) Ruleset main-branch-protection: Bypass-Ausnahmen entfernen (Repository-Rolle Admin und Integration 1236702 = Claude-App von anthropics, belegt über Check-Suite auf dee55a69); Regeln sind nur 'deletion' + 'non_fast_forward' auf dem Default-Branch, normale Pushes/Merges/Workflow-Commits bleiben unberührt — https://github.com/easywebb911/Aktien-Update/settings/rules/16478429. (2) Claude-GitHub-App: einzelne Rechte (z. B. Administration) kann der Installierende laut GitHub-Doku nicht abschalten, nur Repo-Auswahl ändern, pausieren (Suspend) oder deinstallieren — https://github.com/settings/installations. Der Sitzungs-Zugang handelt im Namen von Easy (Admin) — Repo-Löschen ist per Ruleset nicht verhinderbar; Restschutz = Sperren in .claude/settings.json + 90-Tage-Wiederherstellung. (3) Sicherungskopie (Vorschlag, nicht gebaut): privates Backup-Repo mit wöchentlichem Workflow, der das öffentliche Repo als git-bundle als Artifact sichert (kein Token nötig) — Easy entscheidet.",
+      "status": "offen",
+      "status_date": "2026-11-12"
+    },
+    {
+      "id": "hypothesen-runde-nov26-skript",
+      "title": "Auswertungs-Skript Hypothesen-Runde November 2026 (H-G, H-I, H-K) bauen",
+      "opened": "2026-11-12",
+      "description": "Freeze-Block in SESSION_HANDOVER §5 (#684). Skript noch nicht gebaut: einmaliger Stufe-1-Lauf (Einstiege 21.07.–23.10.2026, family hyp_nov26_s1, Test-IDs hg_s1/hi_s1/hk_s1) mit MD5-Pin des Blocks und Sperre über eval_results.jsonl; Stufe 2 (hyp_nov26_s2) erst nach Replikation + 'Paper C handelbar' und n >= 500 je weitergereichter Hypothese. Eigener PR, Manual-Merge. Ziel ab Eröffnung Tag 1 (Block A.1), aus bars gerechnet; 'ab Close D' nur berichtet. Gemeinsamer Rechenweg mit 'Paper C handelbar' (Protokolleintrag 12.11.2026 spät).",
       "status": "offen",
       "status_date": "2026-11-12"
     }
