@@ -4,11 +4,12 @@
    (``price`` gegen ``close_5td_before_entry``), fehlt ein Feld → „—“ (nie 0).
    Liest NIE ``entry_past_return_5d`` (Look-Ahead-Konvention).
 2. ``PAPER_C_BADGE`` leer → keine Zeile (Rückweg).
-3. Status-Farbe aus ``SCORE_STATUS_LABELS["paper_c"]`` (GRÜN = validated) —
-   seit 09.11.2026 NUR im Postclose-Bericht; sonst grau + „unfertiger Tag“.
+3. Status-Farbe aus ``SCORE_STATUS_LABELS["paper_c"]`` — seit 12.11.2026
+   BLAU (pending, Paper C grün → blau) in jeder Phase, derselbe Text ohne
+   Beleg-Behauptung; außerhalb Postclose nur der WERT grau (Tooltip).
 4. v1 == v2 (``_render_test``) mit Fixture-Stocks inkl. Momentum-Wert.
 5. Konfidenz-Panel: Kopfzeile + Zeile „Momentum 5T (Paper C)“.
-6. Position-Status: Gipfel-Zeile (JS) vorhanden, null-tolerant, Tooltip.
+6. Position-Status: Hoch-seit-Einstieg-Zeile (JS), null-tolerant, Tooltip ohne Beleg.
 7. Kein Score-/Filter-/Push-Pfad liest die neuen Helfer.
 
 Kategorie A: deterministisch, keine Netzzugriffe (Stubs wie im Golden-Test).
@@ -81,32 +82,34 @@ def _row(stock, phase):
         gr._REPORT_RUN_PHASE = orig
 
 
+TEXT = "höher = größere Spanne inkl. Einstiegstag · ab Einstieg: Test läuft, ~Dez."
+
+
 def test_row_rendering():
     full = {"price": 110.0, "close_5td_before_entry": 100.0}
     row = _row(full, "postclose")
     check("Postclose: Wert +10,0 % (Komma, geschütztes Leerzeichen)",
           f'<span class="m5t-val">+10,0{NB}%</span>' in row, row)
-    check("Postclose: Befund-Text", f"belegt für Gipfel ≥ 30{NB}% in 10{NB}T" in row, row)
-    check("Postclose: AUC mit Komma", "AUC 0,61" in row)
-    check("Postclose: Status-Farbe GRÜN (validated)", "conf-kind-validated" in row)
-    check("Postclose: Richtung sichtbar", "höher = häufiger Gipfel" in row)
-    check("kein Umbruch „10 T“ / „30 %“", "10 T" not in row and "30 %" not in row)
+    check("Postclose: Text ohne Beleg-Behauptung", TEXT in row, row)
+    check("Postclose: Status-Farbe BLAU (pending)", "conf-kind-pending" in row)
+    check("Postclose: kein Grün", "conf-kind-validated" not in row)
+    for bad in ("belegt", "Gipfel", "AUC", "häufiger"):
+        check(f"Postclose: kein „{bad}“", bad not in row, row)
     miss = _row({"price": 5.0}, "postclose")
     check("fehlender Wert → „—“", '<span class="m5t-val">—</span>' in miss, miss)
     check("fehlender Wert nie 0", "+0,0" not in miss and "0.0%" not in miss)
     check("keine Schwelle im Text", not re.search(r"ab \d|≥ \d+ ?% Momentum|Schwelle", row))
-    # Easy-Entscheid 09.11.2026: außerhalb Postclose grau, kein Beleg.
+    # Phasen-Gate (09.11.2026) bleibt für den WERT: außerhalb Postclose grau.
     for phase in ("premarket", None, "", "intraday", "POSTCLOSE"):
         r = _row(full, phase)
-        check(f"Phase {phase!r}: grau + Zusatz",
-              f'<span class="m5t-val m5t-unfinal">+10,0{NB}%</span>' in r
-              and "unfertiger Tag — belegt ist der Schlusskurs-Wert" in r, r)
-        check(f"Phase {phase!r}: kein Status-Punkt / kein Grün",
-              "conf-status-dot" not in r and "conf-kind-" not in r, r)
-        check(f"Phase {phase!r}: keine AUC/Beleg-Angabe",
-              "AUC" not in r and "belegt für" not in r and "höher = häufiger" not in r, r)
+        check(f"Phase {phase!r}: Wert grau + Tooltip",
+              f'<span class="m5t-val m5t-unfinal" title="unfertiger Tag — gezählt wird '
+              f'der Schlusskurs-Wert">+10,0{NB}%</span>' in r, r)
+        check(f"Phase {phase!r}: derselbe Text + blauer Punkt, kein Grün",
+              TEXT in r and "conf-kind-pending" in r and "conf-kind-validated" not in r, r)
     check("Premarket fehlender Wert → „—“ grau",
-          '<span class="m5t-val m5t-unfinal">—</span>' in _row({"price": 5.0}, "premarket"))
+          '<span class="m5t-val m5t-unfinal" title=' in _row({"price": 5.0}, "premarket")
+          and '>—</span>' in _row({"price": 5.0}, "premarket"))
     check("Default-Phase (nicht gesetzt) = unbekannt → grau",
           gr._REPORT_RUN_PHASE is None
           and "m5t-unfinal" in gr._momentum_5t_row_html(full))
@@ -119,8 +122,8 @@ def test_row_rendering():
         gr.PAPER_C_BADGE = orig
     orig_l = gr.SCORE_STATUS_LABELS
     try:
-        gr.SCORE_STATUS_LABELS = dict(orig_l, paper_c=dict(orig_l["paper_c"], status_kind="pending"))
-        check("Farbe folgt status_kind", "conf-kind-pending" in _row(full, "postclose"))
+        gr.SCORE_STATUS_LABELS = dict(orig_l, paper_c=dict(orig_l["paper_c"], status_kind="falsified"))
+        check("Farbe folgt status_kind", "conf-kind-falsified" in _row(full, "postclose"))
     finally:
         gr.SCORE_STATUS_LABELS = orig_l
     body = _fn_body("_momentum_5t_row_html")
@@ -158,27 +161,35 @@ def test_v1_equals_v2_and_cards():
         gr._load_score_history = orig["lsh"]
         gr.health_check.provider_liveness = orig["pl"]
     expect = f"{(5.10 / 4.25 - 1) * 100:+.1f}".replace(".", ",") + NB + "%"
+    unf = '<span class="m5t-val m5t-unfinal" title="unfertiger Tag — gezählt wird der Schlusskurs-Wert">'
     check(f"Top-10-Karte AAAA zeigt {expect} (grau, Phase unbekannt)",
-          f'<span class="m5t-val m5t-unfinal">{expect}</span>' in html_out)
-    check("Top-10-Karte BBBB zeigt „—“", '<span class="m5t-val m5t-unfinal">—</span>' in html_out)
+          f'{unf}{expect}</span>' in html_out)
+    check("Top-10-Karte BBBB zeigt „—“", f'{unf}—</span>' in html_out)
     wl = gr._wl_full_card_html(stocks[0])
-    check("Watchlist-Drawer-Karte enthält die Zeile",
-          f'<span class="m5t-val m5t-unfinal">{expect}</span>' in wl)
+    check("Watchlist-Drawer-Karte enthält die Zeile", f'{unf}{expect}</span>' in wl)
     orig_p = gr._REPORT_RUN_PHASE
     try:
         gr._REPORT_RUN_PHASE = "postclose"
         wl_pc = gr._wl_full_card_html(stocks[0])
     finally:
         gr._REPORT_RUN_PHASE = orig_p
-    check("Watchlist-Drawer postclose: grün + Beleg",
-          f'<span class="m5t-val">{expect}</span>' in wl_pc and "conf-kind-validated" in wl_pc)
+    check("Watchlist-Drawer postclose: blau, kein Grün",
+          f'<span class="m5t-val">{expect}</span>' in wl_pc and "conf-kind-pending" in wl_pc
+          and "conf-kind-validated" not in wl_pc)
 
 
 def test_panel_rows():
     rows, _ = gr._score_confidence_rows_html({"setup": {"n": 5, "data_tier": "klein"}})
-    check("Panel-Kopfzeile Stand 07.11.2026", "Stand 07.11.2026: 4 Bestätigungstests, 1 Beleg" in rows)
+    check("Panel-Kopfzeile Stand 12.11.2026",
+          "Stand 12.11.2026: 4 Bestätigungstests, 1 formaler Beleg" in rows
+          and "kein Beleg für Gewinn ab Einstieg" in rows)
     check("Panel-Zeile Momentum 5T (Paper C)", "Momentum 5T (Paper C)" in rows)
-    check("Panel-Zeile grün", re.search(r"Momentum 5T \(Paper C\).*conf-kind-validated", rows) is not None)
+    check("Panel-Zeile blau", re.search(r"Momentum 5T \(Paper C\).*conf-kind-pending", rows) is not None)
+    check("Panel: kein Grün", "conf-kind-validated" not in rows)
+    check("Panel: Zahlen aus eval_results (AUC 0,61 [0,56–0,66], n=668)",
+          "AUC 0,61 [0,56–0,66], n=668" in rows)
+    check("Panel: Spanne inkl. Einstiegstag + kein Beleg ab Einstieg",
+          "Spanne Tief→Hoch inkl. Einstiegstag" in rows and "kein Beleg für Gewinn ab Einstieg" in rows)
     check("Setup bleibt nicht grün",
           re.search(r"Setup-Score</span><span class=\"sb-pts\"></span><span class=\"sb-note\">"
                     r"<span class=\"conf-status-dot conf-kind-validated", rows) is None)
@@ -190,8 +201,10 @@ def test_position_peak_line_js():
           "ex.peak_pnl_pct_since_entry" in GR_SRC and "ex.current_pnl_pct" in GR_SRC)
     check("Handelstage über _isNonTradingDay", "_isNonTradingDay(cur)" in GR_SRC)
     check("null-tolerant „—“", ": '—';" in GR_SRC)
-    check("Tooltip-Text", "Der Gipfel ist das belegte Ereignis — Ausstiegsregel unbelegt "
-                          "(Exit-Nachfolger läuft)." in GR_SRC)
+    check("Tooltip-Text ohne Beleg-Behauptung",
+          "Bester gemessener Stand ab deinem Einstiegskurs. Kein belegter Vorteil — "
+          "handelbare Variante: Test läuft (~Dez.); Ausstiegsregel unbelegt." in GR_SRC
+          and "Gipfel ist das belegte" not in GR_SRC)
     check("in buildPositionStatus eingebaut", "const peakLine = _psPeakLine(pos);" in GR_SRC
           and "${{peakLine}}" in GR_SRC)
 

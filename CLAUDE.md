@@ -546,7 +546,7 @@ sind **wiederverwendbar** auf `.cockpit-pillar-value` und
 Unterstreichung). `_conf_class("setup" | "monster" | "ki" | "conviction")`
 ist Single-Source-of-Truth für Tier-Bestimmung.
 
-### Karten-Zeile „Momentum 5T“ (Paper-C-Befund, seit 07.11.2026)
+### Karten-Zeile „Momentum 5T“ (Paper C, seit 07.11.2026; blau seit 12.11.2026)
 
 Detail-Zeile im Momentum-Block jeder Top-10- und Watchlist-Drawer-Karte
 (`_momentum_5t_row_html`, in v1 `_card` und v2 `_build_card_ctx` an
@@ -559,26 +559,36 @@ kein Sortieren.
   `entry_past_return_5d` aus `backtest_history.json`/Export lesen
   (Look-Ahead-Konvention, Test E in `mock_test_entry_past_return_5d.py`
   + `mock_test_paper_c_marker.py`). Fehlt ein Feld → „—“, nie 0.
-- **Befund-Text** aus `config.PAPER_C_BADGE["text"]`, Farbe über
+- **Text** aus `config.PAPER_C_BADGE["text"]`, Farbe über
   `_status_kind_of(PAPER_C_BADGE["status_key"])` = `SCORE_STATUS_LABELS
-  ["paper_c"]`. Nach der Replikation **nur** diese zwei config-Stellen
-  ändern. Rückweg: `PAPER_C_BADGE = {}` → Zeile verschwindet.
+  ["paper_c"]` (eine Quelle für Karte, Panel, Badges). Nach der Replikation
+  **nur** diese zwei config-Stellen ändern. Rückweg: `PAPER_C_BADGE = {}` →
+  Zeile verschwindet. Text kurz halten: 2 Zeilen auf dem iPhone bei
+  Standardschrift (15 px, 375–390 px Breite).
+- **Grün → blau (Easy-Entscheid 11.11., umgesetzt 12.11.2026):** der formale
+  Beleg (eval_results `paper_c_gipfel`, Verdikt unverändert) misst
+  `max_gain_pct` = Spanne laufendes Tief → Hoch **inkl. Einstiegstag**, nicht
+  den Gewinn ab Einstiegskurs. `paper_c` ist `pending` (blau); die handelbare
+  Variante (Freeze „Paper C handelbar“, `outcome_path.jsonl`) wird mit der
+  Replikation ausgewertet. Kein Text darf „Gipfel nach Einstieg“ / „belegt“
+  für Paper C behaupten.
 - **GRÜN-Regel:** `status_kind = "validated"` (grün) ist **nur** erlaubt mit
-  `eval_ref.test_id` auf eine Zeile in `eval_results.jsonl` mit verdict
-  „Beleg“ (Wächter `test_15` in `mock_test_score_status_badges.py`, mit
-  Gegenproben). Heute trägt nur `paper_c` Grün; Setup/Monster/KI/Conviction
-  nicht.
-- **Nur im Postclose grün (Easy-Entscheid 09.11.2026):** belegt ist die Größe
-  auf dem finalen Schlusskurs. Phase = ``_REPORT_RUN_PHASE`` (in ``main()`` aus
-  ``_resolve_run_phase()`` — dieselbe Quelle wie die Kopfzeilen-Kennung via
-  ``app_data["run_phase"]``). Nur ``"postclose"`` zeigt Wert + Status-Punkt +
-  Befund-Text; sonst (premarket/intraday/unbekannt) grauer Wert mit „unfertiger
-  Tag — belegt ist der Schlusskurs-Wert“, kein Punkt, keine AUC. Wächter
-  ``test_17`` (Grün nur bei Postclose UND Beleg-Verweis). Format „+10,8 %“
-  (Komma, geschütztes Leerzeichen).
+  ausdrücklichem Status UND `eval_ref.test_id` auf eine Zeile in
+  `eval_results.jsonl` mit verdict „Beleg“ (Wächter `test_15` in
+  `mock_test_score_status_badges.py`, mit Gegenproben). **Heute ist Grün
+  unvergeben** (`test_15`, `test_18` prüft das erzeugte HTML Postclose +
+  Intraday).
+- **Phasen-Gate (Easy-Entscheid 09.11.2026):** Phase = ``_REPORT_RUN_PHASE``
+  (in ``main()`` aus ``_resolve_run_phase()`` — dieselbe Quelle wie die
+  Kopfzeilen-Kennung via ``app_data["run_phase"]``). Außerhalb ``"postclose"``
+  ist der **Wert** grau (Tooltip „unfertiger Tag — gezählt wird der
+  Schlusskurs-Wert“); Text und blauer Punkt stehen in jeder Phase. Ein
+  künftiger **grüner** Punkt erscheint nur im Postclose (Wächter ``test_17``).
+  Format „+10,8 %“ (Komma, geschütztes Leerzeichen).
 - **Position-Status** zeigt dazu „Hoch seit Einstieg · aktuell · Handelstag
   N“ (`_psPeakLine`, JS, Handelstage über den Feiertagsspiegel
-  `_isNonTradingDay`), Tooltip: Gipfel belegt, Ausstiegsregel unbelegt.
+  `_isNonTradingDay`), Tooltip: bester gemessener Stand ab Einstiegskurs,
+  kein belegter Vorteil, Ausstiegsregel unbelegt.
 
 ### Pflege
 

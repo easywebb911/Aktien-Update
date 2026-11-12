@@ -3570,7 +3570,7 @@ def _momentum_5t_live(stock: dict):
 _REPORT_RUN_PHASE: "str | None" = None
 
 # Zusatz bei unfertigem Tag (Easy-Entscheid 09.11.2026).
-_M5T_UNFINAL_NOTE = "unfertiger Tag — belegt ist der Schlusskurs-Wert"
+_M5T_UNFINAL_NOTE = "unfertiger Tag — gezählt wird der Schlusskurs-Wert"
 
 
 def _de_pct(val: float) -> str:
@@ -3579,39 +3579,42 @@ def _de_pct(val: float) -> str:
 
 
 def _momentum_5t_row_html(stock: dict) -> str:
-    """Detail-Zeile „Momentum 5T“ (Paper-C-Befund, Easy-Entscheid 07.11.2026).
+    """Detail-Zeile „Momentum 5T“ (Paper C, Easy-Entscheid 07.11.2026).
 
     Wert aus ``_momentum_5t_live`` (fehlt er → „—“, nie 0). Keine Schwelle,
     keine Färbung des Werts, kein Sortieren. ``PAPER_C_BADGE`` leer → keine
     Zeile.
 
-    Phasen-Gate (Easy-Entscheid 09.11.2026): belegt ist die Größe auf dem
-    finalen Schlusskurs. NUR im Postclose-Bericht (``_REPORT_RUN_PHASE ==
-    "postclose"``; ``resolve_run_phase`` vergibt das erst ab 16:20 ET) steht
-    der Befund-Text aus ``config.PAPER_C_BADGE`` mit Status-Farbe aus
-    ``SCORE_STATUS_LABELS`` (``_status_kind_of``). In jedem anderen Bericht
-    (premarket, intraday, unbekannt) wird der Wert grau gezeigt mit dem Zusatz
-    ``_M5T_UNFINAL_NOTE`` — kein Status-Punkt, kein AUC-/Beleg-Text."""
+    Seit 12.11.2026 (Easy-Entscheid 11.11., Paper C grün → blau): in JEDER
+    Phase derselbe Text aus ``config.PAPER_C_BADGE`` (keine Beleg-Behauptung)
+    mit Status-Punkt aus ``SCORE_STATUS_LABELS`` (``_status_kind_of``) — eine
+    Quelle für Karte, Panel und Badges. Phasen-Gate (09.11.2026) bleibt nur für
+    den WERT: außerhalb des Postclose-Berichts (``_REPORT_RUN_PHASE !=
+    "postclose"``) ist er grau (``m5t-unfinal``) mit Hinweis
+    ``_M5T_UNFINAL_NOTE`` als Tooltip. Ein künftiger GRÜNER Punkt erscheint nur
+    im Postclose-Bericht (Regel 09.11.2026)."""
     badge = PAPER_C_BADGE if isinstance(PAPER_C_BADGE, dict) else {}
     text = str(badge.get("text") or "").strip()
     if not text:
         return ""
     val = _momentum_5t_live(stock)
     val_str = _de_pct(val) if val is not None else "—"
-    if _REPORT_RUN_PHASE != "postclose":
-        return (
-            f'<tr><td>Momentum 5T</td>'
-            f'<td><span class="m5t-val m5t-unfinal">{val_str}</span>'
-            f'<span class="m5t-note m5t-unfinal">{_M5T_UNFINAL_NOTE}</span></td></tr>'
-        )
     kind = _status_kind_of(str(badge.get("status_key") or ""))
     safe = (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+    postclose = _REPORT_RUN_PHASE == "postclose"
+    if postclose:
+        val_html = f'<span class="m5t-val">{val_str}</span>'
+    else:
+        val_html = (f'<span class="m5t-val m5t-unfinal" '
+                    f'title="{_M5T_UNFINAL_NOTE}">{val_str}</span>')
+    # Grün-Regel 09.11.2026 bleibt für die Zukunft: ein grüner Punkt nur im
+    # Postclose-Bericht — außerhalb entfällt er (kein Ersatz-Farbton).
+    dot = ("" if (kind == "validated" and not postclose) else
+           f'<span class="conf-status-dot conf-kind-{kind}" aria-hidden="true"></span> ')
     return (
         f'<tr><td>Momentum 5T</td>'
-        f'<td><span class="m5t-val">{val_str}</span> '
-        f'<span class="m5t-dir">(höher = häufiger Gipfel)</span>'
-        f'<span class="m5t-note"><span class="conf-status-dot conf-kind-{kind}" '
-        f'aria-hidden="true"></span> {safe}</span></td></tr>'
+        f'<td>{val_html} '
+        f'<span class="m5t-note">{dot}{safe}</span></td></tr>'
     )
 
 
@@ -8757,7 +8760,7 @@ def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
             f'<span class="sb-pts"></span>'
             f'<span class="sb-note">{dot}<strong>{safe_status}</strong> · {daten_note}</span></li>'
         )
-    # Paper C (Momentum 5T → Gipfel): eigener Status-Eintrag ohne Daten-
+    # Paper C (Momentum 5T → Spanne inkl. Einstiegstag): eigener Status-Eintrag ohne Daten-
     # Dimension aus compute_score_confidence — Datenbasis aus dem Befund-Text.
     _pc = (SCORE_STATUS_LABELS.get("paper_c") or {})
     if _pc.get("status"):
@@ -11214,7 +11217,8 @@ function _psAsofLabel() {{
     return `<span class="ps-asof">Stand ${{txt}}</span>`;
   }} catch (e) {{ return ''; }}
 }}
-// Gipfel-Zeile im Position-Status (Paper-C-Befund 07.11.2026, rein Anzeige):
+// Hoch-seit-Einstieg-Zeile im Position-Status (07.11.2026, rein Anzeige; seit
+// 12.11.2026 ohne Beleg-Behauptung — Paper C ist blau, Test läuft):
 // Hoch seit Einstieg, aktuell, Handelstag seit Einstieg. Handelstage über den
 // JS-Feiertagsspiegel (_isNonTradingDay = Spiegel von config/trading_date).
 // Null-tolerant: fehlende Werte → „—“. Kein neues app_data-Feld.
@@ -11250,7 +11254,7 @@ function _psPeakLine(pos) {{
   const cur = _psFmtFrac(ex.current_pnl_pct);
   const n = _psTradingDaysSince(pos.entry_date);
   const nStr = (n == null) ? '—' : String(n);
-  const tip = 'Der Gipfel ist das belegte Ereignis — Ausstiegsregel unbelegt (Exit-Nachfolger läuft).';
+  const tip = 'Bester gemessener Stand ab deinem Einstiegskurs. Kein belegter Vorteil — handelbare Variante: Test läuft (~Dez.); Ausstiegsregel unbelegt.';
   return `<div class="ps-peak" title="${{tip}}">Hoch seit Einstieg ${{peak}} · aktuell ${{cur}} · Handelstag ${{nStr}}</div>`;
 }}
 function buildPositionStatus(ticker) {{
