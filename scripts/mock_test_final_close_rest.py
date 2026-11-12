@@ -12,7 +12,7 @@ oder ab 16:20 ET). Synthetische Kurse, fester Zeitpunkt, kein Netz.
      A5 _append_backtest_entries nutzt _final_window mit now_et (Quelle)
   B  ki_agent.update_exit_shadow_forwards
      B1 Horizont am laufenden Tag (Sitzung) → leer
-     B2 16:25 ET → leer (seit 13.11.2026); Folgetag 07:05 ET → gefüllt
+     B2 16:25 ET → leer (seit 12.11.2026); Folgetag 07:05 ET → gefüllt
      B3 Sommer Folgetag 07:05 EDT gefüllt, Winter 20:25 UTC = 15:25 EST leer
      B4 Feiertag (Thanksgiving) + Wochenende dazwischen
      B5 Signal-Tag selbst nicht final → nichts gefüllt
@@ -221,7 +221,7 @@ def test_b_exit_shadow():
     r = _es_run("02.11.2026", pairs, _at(2026, 11, 5, 18, 0))
     _check("B1 Winter 13:00 ET am Zieltag → forward_3d leer", r["forward_3d"] is None, str(r))
     r = _es_run("02.11.2026", pairs, _at(2026, 11, 5, 21, 25))
-    _check("B2 16:25 ET am Zieltag → leer (seit 13.11.2026)", r["forward_3d"] is None, str(r))
+    _check("B2 16:25 ET am Zieltag → leer (seit 12.11.2026)", r["forward_3d"] is None, str(r))
     r = _es_run("02.11.2026", pairs, _at(2026, 11, 6, 12, 5))
     _check("B2 Folgetag 07:05 ET → forward_3d = Schluss T+3", r["forward_3d"] == fwd, str(r))
     r = _es_run("02.11.2026", pairs, _at(2026, 11, 6, 13, 0), inject=True)

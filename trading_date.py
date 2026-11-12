@@ -124,7 +124,7 @@ def last_final_close_date(now_utc: datetime | None = None) -> date:
     return et.date() - timedelta(days=1)
 
 
-# ── Endgültiger Schlusskurs für EINMAL-Felder (Fix 13.11.2026) ─────────────
+# ── Endgültiger Schlusskurs für EINMAL-Felder (Fix 12.11.2026) ─────────────
 # Befund (S16, open_item rendite-forward-abendzeile-nicht-final): ab 16:20 ET
 # liefert Yahoo für den laufenden Tag teils noch einen vorläufigen Close; ein
 # daraus gefülltes Einmal-Feld (return_*, forward_*) wird nie überschrieben.

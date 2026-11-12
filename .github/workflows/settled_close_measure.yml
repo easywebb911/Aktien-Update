@@ -1,6 +1,6 @@
 name: Messlauf Rendite-/Forward-Felder (endgültiger Schlusskurs)
 
-# Easy-Entscheid 13.11.2026 (open_item rendite-forward-abendzeile-nicht-final):
+# Easy-Entscheid 12.11.2026 (open_item rendite-forward-abendzeile-nicht-final):
 # READ-ONLY-Messlauf. Rechnet seit den Bestandskorrekturen 03./04.11.2026
 # gefüllte return_*/_t1/_net und forward_* gegen ENDGÜLTIGE Schlusskurse nach
 # (scripts/settled_close_measure.py). Kein Commit, kein Push, keine

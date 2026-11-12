@@ -467,7 +467,7 @@ def _trading_days_elapsed(entry_date_str: str, today: datetime.date = None) -> i
 def update_backtest_returns(now_utc: datetime | None = None) -> None:
     """Füllt T+0 und T+1 Return-Felder sobald genug Handelstage vergangen sind.
 
-    NUR ENDGÜLTIGE SCHLUSSKURSE (Fix 03.11.2026, verschärft 13.11.2026): eine
+    NUR ENDGÜLTIGE SCHLUSSKURSE (Fix 03.11.2026, verschärft 12.11.2026): eine
     Tageszeile wird nur gelesen, wenn ihr Datum ``<=``
     ``trading_date.last_settled_close_date(now)`` ist — Folgetag ab 07:00 ET
     (vorher 16:20 ET am Zieltag; dort stand teils noch ein vorläufiger Close,
@@ -511,7 +511,7 @@ def update_backtest_returns(now_utc: datetime | None = None) -> None:
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     today = now.astimezone(timezone.utc).date()
-    # Letzter Tag mit ENDGÜLTIGEM Schlusskurs (Fix 13.11.2026: Folgetag ab
+    # Letzter Tag mit ENDGÜLTIGEM Schlusskurs (Fix 12.11.2026: Folgetag ab
     # 07:00 ET, trading_date.last_settled_close_date). Vorher 16:20 ET am
     # Zieltag (last_final_close_date) — dann stand teils noch ein vorläufiger
     # Close in der Tageszeile, und das Feld wird nie überschrieben.
@@ -707,12 +707,12 @@ def update_exit_shadow_forwards(now_utc: datetime | None = None) -> None:
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     today = now.astimezone(timezone.utc).date()
-    # NUR ENDGÜLTIGE SCHLUSSKURSE (Fix 03.11.2026, verschärft 13.11.2026,
+    # NUR ENDGÜLTIGE SCHLUSSKURSE (Fix 03.11.2026, verschärft 12.11.2026,
     # gleiche Regel wie update_backtest_returns): eine Tageszeile zählt erst,
     # wenn ihr Datum <= last_settled_close_date(jetzt) ist; sonst bleibt der Horizont leer und
     # der nächste Lauf versucht es erneut (gefüllte Werte werden nie
     # überschrieben — deshalb darf kein Intraday-Kurs hineinrutschen).
-    # Fix 13.11.2026: ENDGÜLTIGER Schlusskurs (Folgetag ab 07:00 ET,
+    # Fix 12.11.2026: ENDGÜLTIGER Schlusskurs (Folgetag ab 07:00 ET,
     # trading_date.last_settled_close_date) statt 16:20 ET am Zieltag.
     final_cut = trading_date.last_settled_close_date(now)
 

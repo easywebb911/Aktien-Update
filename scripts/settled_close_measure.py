@@ -2,7 +2,7 @@
 """Messlauf (read-only): wie viele seit den Bestandskorrekturen gefüllte
 Einmal-Felder stimmen mit dem ENDGÜLTIGEN Schlusskurs?
 
-Easy-Entscheid 13.11.2026 (open_item rendite-forward-abendzeile-nicht-final):
+Easy-Entscheid 12.11.2026 (open_item rendite-forward-abendzeile-nicht-final):
 Vorwärts-Fix + Messlauf im selben PR; Korrektur alter Werte erst nach der
 Messung und nur auf Easys Entscheid. Dieses Skript KORRIGIERT NICHTS.
 

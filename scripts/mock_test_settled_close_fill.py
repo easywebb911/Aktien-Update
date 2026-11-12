@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Mock-Test: Einmal-Felder (return_*/_t1/_net, Exit-Shadow forward_*) erst
-aus ENDGÜLTIGEM Schlusskurs (Fix 13.11.2026, open_item
+aus ENDGÜLTIGEM Schlusskurs (Fix 12.11.2026, open_item
 rendite-forward-abendzeile-nicht-final).
 
 Grenze: der Close von Tag X gilt ab 07:00 ET des folgenden Kalendertags als

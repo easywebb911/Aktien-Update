@@ -12,7 +12,7 @@ auf ``origin/main`` vor dem Fix scheitern 01/02/05/07/08/09/10/11).
 
   01 Winter (EST): T+3 während der Sitzung (13:00 ET)      → leer
   02 Winter: T+3 um 16:15 ET (vor dem Puffer)             → leer
-  03 Winter: Folgetag 07:05 ET (seit 13.11.2026)           → gefüllt = Schluss T+3
+  03 Winter: Folgetag 07:05 ET (seit 12.11.2026)           → gefüllt = Schluss T+3
   04 Winter: Folgetag T+4 morgens                          → gefüllt
   05 Winter: 20:25 UTC = 15:25 EST (Sommer-UTC-Grenze wäre schon vorbei) → leer
   06 Sommer (EDT): Folgetag 07:05 EDT                      → gefüllt
@@ -187,7 +187,7 @@ def test_winter():
     e = _run([_entry("02.11.2026")], W_DATES[:4], W_VALS[:4], _at(2026, 11, 5, 21, 15))
     _check("02 Winter 16:15 ET → return_3d leer", e["return_3d"] is None, str(e["return_3d"]))
     e = _run([_entry("02.11.2026")], W_DATES[:4], W_VALS[:4], _at(2026, 11, 6, 12, 5))
-    _check("03 Winter Folgetag 07:05 ET → gefüllt mit Schluss T+3 (seit 13.11.2026)",
+    _check("03 Winter Folgetag 07:05 ET → gefüllt mit Schluss T+3 (seit 12.11.2026)",
            e["return_3d"] == _ret(12.0, 10.0), str(e["return_3d"]))
     e = _run([_entry("02.11.2026")], W_DATES, W_VALS, _at(2026, 11, 6, 13, 0))
     _check("04 Winter Folgetag morgens → gefüllt mit Schluss T+3",
