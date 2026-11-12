@@ -4288,6 +4288,76 @@ def _fit_ok_warn_lines(body_lines: list[str], pos: int, n_warn: int) -> list[str
                                if len(warns) > 1 else []) + tail
 
 
+# ── Kursverlauf ab Einstieg (outcome_path.jsonl, 12.11.2026) ─────────────────
+# Liveness für den Digest: NUR Zählungen (Zeilen, jüngster Einstieg, letzter
+# Lauf) — nie eine Kennzahl (Blindheit, Freeze „Paper C handelbar“). Frische
+# aus dem Heartbeat ``last_run_utc`` in ``outcome_path_state.json``.
+OUTCOME_PATH_FILE = config.OUTCOME_PATH_FILE
+OUTCOME_PATH_STATE_FILE = config.OUTCOME_PATH_STATE_FILE
+
+
+def outcome_path_liveness_line(data_path=None, state_path=None, *, now_ts=None) -> str:
+    """Eine Zeile, drei Zustände (fail-soft, nie Exception):
+      a) **läuft** — State frisch → „läuft · N Zeilen · jüngster Einstieg D ·
+         letzter Lauf …“ (Zusatz „Rate-Limit-Abbruch“, falls der Lauf abbrach).
+      b) **noch nie gelaufen** — State fehlt → „sammelt ab dem ersten Lauf“.
+      c) **kaputt** — State/Datei unlesbar oder letzter Lauf überfällig."""
+    try:
+        dp = data_path if data_path is not None else OUTCOME_PATH_FILE
+        sp = state_path if state_path is not None else OUTCOME_PATH_STATE_FILE
+        try:
+            with open(sp, "r", encoding="utf-8") as fh:
+                st = json.load(fh)
+        except FileNotFoundError:
+            return "📈 Kursverlauf: sammelt ab dem ersten Lauf (noch kein State)"
+        except (json.JSONDecodeError, OSError, UnicodeDecodeError, ValueError):
+            return "📈 Kursverlauf: State unlesbar/kaputt"
+        if not isinstance(st, dict) or not st.get("last_run_utc"):
+            return "📈 Kursverlauf: State unlesbar/kaputt"
+        n_rows = 0
+        newest = None
+        try:
+            with open(dp, "r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        rec = json.loads(line)
+                    except json.JSONDecodeError:
+                        return "📈 Kursverlauf: Datei unlesbar/kaputt"
+                    n_rows += 1
+                    try:
+                        dd = datetime.strptime(str(rec.get("date")), "%d.%m.%Y").date()
+                    except (ValueError, TypeError):
+                        continue
+                    if newest is None or dd > newest:
+                        newest = dd
+        except FileNotFoundError:
+            n_rows = 0
+        except (OSError, UnicodeDecodeError):
+            return "📈 Kursverlauf: Datei unlesbar/kaputt"
+        last = str(st["last_run_utc"])
+        try:
+            last_dt = datetime.fromisoformat(last.replace("Z", "+00:00"))
+            if last_dt.tzinfo is None:
+                last_dt = last_dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            return "📈 Kursverlauf: State unlesbar/kaputt"
+        now = now_ts or datetime.now(timezone.utc)
+        age_days = (now - last_dt).total_seconds() / 86400.0
+        newest_txt = newest.strftime("%d.%m.%Y") if newest else "—"
+        if age_days > config.OUTCOME_PATH_STALE_DAYS:
+            return (f"📈 Kursverlauf: Sammler-Lauf überfällig (letzter Lauf "
+                    f"{last_dt.strftime('%d.%m.%Y')}, >{config.OUTCOME_PATH_STALE_DAYS}d) · "
+                    f"{n_rows} Zeilen")
+        extra = " · Rate-Limit-Abbruch" if st.get("rate_limit_abbruch") else ""
+        return (f"📈 Kursverlauf: läuft · {n_rows} Zeilen · jüngster Einstieg "
+                f"{newest_txt} · letzter Lauf {last_dt.strftime('%d.%m.%Y')}{extra}")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "📈 Kursverlauf: Status nicht ermittelbar"
+
+
 def format_digest_body(state_fails: list[dict],
                        provider_fails: list[dict],
                        *,
@@ -4299,6 +4369,7 @@ def format_digest_body(state_fails: list[dict],
                        inst_own_line: str | None = None,
                        options_oi_line: str | None = None,
                        chain_raw_line: str | None = None,
+                       outcome_path_line: str | None = None,
                        ftd_line: str | None = None,
                        reg_sho_line: str | None = None,
                        news_coverage_line: str | None = None,
@@ -4347,6 +4418,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{options_oi_line}"
         if chain_raw_line:
             body += f"\n{chain_raw_line}"
+        if outcome_path_line:
+            body += f"\n{outcome_path_line}"
         if ftd_line:
             body += f"\n{ftd_line}"
         if reg_sho_line:
@@ -4423,6 +4496,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(options_oi_line)
         if chain_raw_line:
             body_lines.append(chain_raw_line)
+        if outcome_path_line:
+            body_lines.append(outcome_path_line)
         if ftd_line:
             body_lines.append(ftd_line)
         if reg_sho_line:
@@ -4496,6 +4571,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(options_oi_line)
     if chain_raw_line:
         lines.append(chain_raw_line)
+    if outcome_path_line:
+        lines.append(outcome_path_line)
     if ftd_line:
         lines.append(ftd_line)
     if reg_sho_line:

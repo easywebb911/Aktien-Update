@@ -4415,6 +4415,37 @@ meldet dann nach 2 Handelstagen „läuft nicht“. Test:
 ``scripts/mock_test_truth_check.py``. Einlaufphase: open_items
 ``wahrheits-abgleich-einlaufphase``.
 
+## Kursverlauf ab Einstieg (seit 12.11.2026, outcome_path.jsonl)
+
+**Zweck:** handelbares Ergebnisfeld, weil `max_gain_pct`/`max_drawdown_pct` ab dem
+Einstiegstag D messen (laufendes Tief/Hoch inkl. D, also teils VOR dem Einstieg zum
+Schluss D; Gipfel-Bericht 11.11.2026). Zielfeld der Vorabregistrierung
+„Paper C handelbar“ (SESSION_HANDOVER.md, eingefroren 12.11.2026).
+
+- **Skript** `scripts/outcome_path_update.py`, Workflow `.github/workflows/outcome_path.yml`
+  (neuer Cron `53 23 * * 1-5` + Hand-Start; der erste Hand-Start nach dem Merge ist der
+  Backfill ab 21.07.2026). Eigene concurrency-Gruppe.
+- **Je Forward-Einstieg** (`(ticker, date)`, Export `provenance == forward` ∪
+  `backtest_history.json` ohne Bootstrap, ab 21.07.2026) EINE Zeile, geschrieben erst,
+  wenn Tag 10 final ist (`trading_date.last_final_close_date`), danach nie neu:
+  OHLC Tag 0–10 (`bars`), `close_d`, `max_gain_from_entry_pct` = max(High 1–10)/Close D − 1,
+  `max_gain_from_entry_pct_net` (`apply_round_trip_haircut`), `max_drawdown_from_entry_pct`
+  = min(Low 1–10)/Close D − 1, Kennzeichen `split_im_fenster`/`dividende_im_fenster`.
+- **Kurse:** `auto_adjust=True`, EIN Abruf je Ticker, Kennzahlen innerhalb dieses Abrufs
+  (Easy-Entscheid 12.11.2026). Tag 1–10 = nächste 10 US-Handelstage (`US_MARKET_HOLIDAYS`).
+- **Unbekannt ≠ 0:** fehlender Tag / Halbzeile / leerer Ticker / Kalender-Abweichung →
+  Kennzahlen `null` + `grund`; vorher `OUTCOME_PATH_RETRY_DAYS` (7) Tage erneut abrufen.
+  Abruf-Fehler/Rate-Limit → nichts geschrieben, nächster Lauf (kein Retry im Lauf).
+- **Datei** append-only, kein Prune, atomar (tmp + replace); ~12 600 Zeilen / ~15 MB in
+  5 Jahren. Schreibt NIE in `matured_backtest_export.jsonl`. State `outcome_path_state.json`
+  (nur Zählungen), Digest-Zeile „📈 Kursverlauf“ (läuft / noch nie / kaputt-überfällig).
+- **BLINDHEIT:** Einstiege ≥ 24.10.2026 werden nur geschrieben (und nur, wenn der
+  Freeze-Block im Handover steht), nie ausgewertet, gezählt nach Ergebnis oder angezeigt.
+  Log/State/Digest enthalten keine Kennzahl. Kein Score-/Filter-/Push-/Anzeige-Effekt.
+- Test `scripts/mock_test_outcome_path.py` (inkl. MD5-Pin des Freeze-Blocks).
+  **Rückweg:** Merge revertieren (Freeze-Revert wird im Block protokolliert); Datei und
+  State können gelöscht werden, keine Bestandsdatei berührt.
+
 ## Totmann-Signal an healthchecks.io (seit 02.11.2026)
 
 **Zweck:** Ein Wächter, der selbst per GitHub-Zeitplan läuft (Health-Digest,

@@ -8,6 +8,7 @@ Werte via ``from config import *``.
 import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
+from datetime import date as _date  # für Datums-Konstanten vor Zeile ~1600 (OUTCOME_PATH_*)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -137,6 +138,24 @@ TRUTH_CHECK_MAX_WORKERS   = 2      # max. parallele Yahoo-Abrufe
 # Bekannt delistete Ticker (Yahoo liefert nichts mehr) → Zähler
 # "nicht_pruefbar", kein Abruf. Pflege: neuen Ticker nur mit Beleg ergänzen.
 TRUTH_CHECK_DELISTED      = frozenset({"BNRG", "PRA", "SNBR", "SNSE", "YYGH"})
+
+# Kursverlauf ab Einstieg (scripts/outcome_path_update.py, Easy-Auftrag
+# 12.11.2026): je Forward-Einstieg OHLC Tag 0–10 (nur finale Tageszeilen,
+# auto_adjust=True, ein Abruf je Ticker) + max_gain_from_entry_pct (Hoch Tag
+# 1–10 / Schluss D − 1; Zielfeld „Paper C handelbar“), Netto-Variante und
+# max_drawdown_from_entry_pct. Eigene Datei, append-only, kein Prune; schreibt
+# NIE in matured_backtest_export.jsonl. Kein Score-/Filter-/Push-Effekt.
+OUTCOME_PATH_FILE              = "outcome_path.jsonl"
+OUTCOME_PATH_STATE_FILE        = "outcome_path_state.json"
+OUTCOME_PATH_WINDOW_DAYS       = 10    # Tag 1..10 nach dem Einstiegstag D
+OUTCOME_PATH_START_DATE        = _date(2026, 7, 21)   # erster Forward-Einstieg (Paper C)
+OUTCOME_PATH_RETRY_DAYS        = 7     # Kalendertage nach Tag 10: so lange erneut abrufen, dann null + Grund
+OUTCOME_PATH_STALE_DAYS        = 5     # Digest: letzter Lauf älter → „überfällig“
+# Ab diesem Einstieg (Replikationsfenster) wird nur geschrieben, wenn der
+# Freeze-Block unten im Handover steht (Reihenfolge: Freeze vor Befüllung).
+OUTCOME_PATH_REPLICATION_FROM  = _date(2026, 10, 24)
+OUTCOME_PATH_FREEZE_HEADING    = ("### VORABREGISTRIERUNG — Paper C handelbar "
+                                  "(Gipfel ab Einstiegskurs), eingefroren 12.11.2026")
 
 # Open-Items-Tracker (siehe CLAUDE.md "scripts/lint_open_items_consistency.py")
 # — Dateiname zentralisiert, damit health_check.py (Wochen-Digest-Block) und

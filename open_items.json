@@ -720,6 +720,70 @@
       "description": "Beleg Nacht-Probe-Endauswertung 11.11.2026 (F2, 2 Paare D=09.11./10.11.): bei 18 Ticker-Paaren war der Nachtwert (07–08 ET des Folgetags, nächster gemeinsamer Verfall, gemeinsame Strikes) ≠ dem Postclose-Wert von D (options_chain_raw) — das OI wird über Nacht aktualisiert; bei 4 Paaren (AKTS, AMRC, PCT; SPY mit Verfall am selben Tag) änderte es sich bis 15:09 ET noch einmal. Ein OI-Punkt mit Datum D in options_oi_history/options_chain_raw (Postclose) bedeutet damit faktisch den Stand Ende D−1; kein Look-ahead, aber ein Tag Verzug. Bei einer Wurzellösung Berichtsdatum (Lauf nach Mitternacht schreibt D) würde ein Punkt je nach Laufzeit D−1 oder D bedeuten → Abrufzeit + Kennzeichen vor/nach dem nächtlichen Update mitschreiben. Relevant für Gamma-Kandidat (Baig) der Hypothesen-Runde. Nichts geändert.",
       "status": "offen",
       "status_date": "2026-11-11"
+    },
+    {
+      "id": "max-gain-ab-tief-nicht-ab-einstieg",
+      "title": "max_gain_pct/max_drawdown_pct messen ab dem Einstiegstag D, nicht ab dem Einstiegskurs",
+      "opened": "2026-11-12",
+      "description": "Gipfel-Bericht 11.11.2026 (read-only, im Code belegt): _compute_max_gain_pct (backtest_history.py:337) = max(High − cummin(Low))/cummin(Low) über _final_window (:1211, d >= edate) — Hoch und Tief von D zählen, obwohl der Einstieg zum Schluss D erfolgt (alle 668 Zeilen des ersten Paper-C-Laufs nach 16:00 ET am selben ET-Tag geschrieben; 10 am 10.08. um 16:09 ET). max_drawdown_pct spiegelbildlich vom laufenden Hoch inkl. Hoch D. Explorative Schranken erste Stichprobe (W1, nicht bindend): von 192 registrierten Treffern sicher handelbar ≥ 37 (Schluss T3/T5/T10 ≥ +30 % ab Schluss D), bis zu 155 fallen evtl. weg; Ersatz-Ziel AUC 0,616 [0,505–0,722] (37 Treffer, unter Floor), registriert 0,607 [0,556–0,658]. Paper-C-Verdikt bleibt (gilt für das registrierte Ziel). Handelbares Feld seit 12.11.2026: outcome_path.jsonl (outcome-handelbar-ab-schluss-d). Bestehende Felder werden NICHT geändert.",
+      "status": "offen",
+      "status_date": "2026-11-12"
+    },
+    {
+      "id": "outcome-handelbar-ab-schluss-d",
+      "title": "Ergebnisfeld ab Einstiegs-Schlusskurs (outcome_path.jsonl)",
+      "opened": "2026-11-12",
+      "description": "Gebaut 12.11.2026 (Easy-Auftrag): scripts/outcome_path_update.py + Workflow outcome_path.yml (neuer Cron 53 23 * * 1-5, Hand-Start = Backfill ab 21.07.2026). Je Forward-Einstieg OHLC Tag 0–10 (auto_adjust=True, ein Abruf je Ticker), max_gain_from_entry_pct (Hoch Tag 1–10 / Schluss D − 1), Netto, max_drawdown_from_entry_pct; unbekannt → null + Grund; append-only, kein Prune; Export unberührt. Status beobachtet bis der Backfill-Lauf nach dem Merge durchgelaufen ist (nur Zählungen prüfen: Zeilen, Gründe, Rate-Limit — KEINE Auswertung) und der tägliche Lauf 2× sauber lief.",
+      "status": "beobachtet",
+      "status_date": "2026-11-12"
+    },
+    {
+      "id": "paper-c-handelbar-zusatzfamilie",
+      "title": "Vorabregistrierung Paper C handelbar: Auswertungsskript bauen",
+      "opened": "2026-11-12",
+      "description": "Freeze 12.11.2026: SESSION_HANDOVER.md 'VORABREGISTRIERUNG — Paper C handelbar (Gipfel ab Einstiegskurs), eingefroren 12.11.2026' (MD5-Pin in scripts/mock_test_outcome_path.py). Eigene Familie α = 0,05, k = 1; Lauf direkt nach der Replikation mit allen reifen Zeilen (≥ 300, sonst warten); Netto nachrangig. Offen: Auswertungsskript (Wiederverwendung paper_c_eval.py oder eigen, zusammen mit paper-c-replikations-skript), Sperre family = paper_c_handelbar. Keine Sichtung der Daten ≥ 24.10.2026 vor dem Lauf.",
+      "status": "offen",
+      "status_date": "2026-11-12"
+    },
+    {
+      "id": "b2-stops-max-drawdown-tag-d",
+      "title": "B.2-Befund 'feste Stops schaden' vermutlich überzeichnet",
+      "opened": "2026-11-12",
+      "description": "Gipfel-Bericht 11.11.2026: B.2 (01.07.2026, #395, 4 Holm-Rejects, Auslöserquote 87–95 % bei Stop −10 %) simulierte Stops über max_drawdown_pct — gemessen vom laufenden Hoch inkl. Hoch des Einstiegstags D und als Verlust ab Einstieg gelesen. Beides überzeichnet die Stop-Auslösung. Bis zur Neuprüfung mit max_drawdown_from_entry_pct (outcome_path.jsonl, Tief Tag 1–10 ab Schluss D) gilt der B.2-Befund als NICHT belegt. Neuprüfung braucht eigene Registrierung.",
+      "status": "offen",
+      "status_date": "2026-11-12"
+    },
+    {
+      "id": "label-hoechststand-nach-entry-falsch",
+      "title": "Label 'Höchststand nach Entry (max_gain_pct)' ist falsch",
+      "opened": "2026-11-12",
+      "description": "config.COLLECT_STATUS_FIELDS beschriftet max_gain_pct als 'Höchststand nach Entry'. Gemessen ist die Spanne laufendes Tief → Hoch ab dem Einstiegstag D (max-gain-ab-tief-nicht-ab-einstieg). Vorschlag: 'Spanne Tief→Hoch ab Einstiegstag (max_gain_pct)'. Reine Anzeige, Golden betroffen.",
+      "status": "offen",
+      "status_date": "2026-11-12"
+    },
+    {
+      "id": "text-gipfel-definition",
+      "title": "Karten-/Status-Text 'Gipfel ≥ 30 % in 10 T' missverständlich",
+      "opened": "2026-11-12",
+      "description": "PAPER_C_BADGE ('belegt für Gipfel ≥ 30 % in 10 T') und SCORE_STATUS_LABELS['paper_c'] sind formal registrierungsgetreu, werden aber als '+30 % nach meinem Kauf' gelesen. Vorschlag Karte: 'belegt für Spanne Tief→Hoch ≥ 30 % (Tag D bis +10, nicht ab Einstiegskurs) · AUC 0,61 · 1 Fenster'; Status: 'belegt · Spanne ≥ 30 % in 10 T (ab Tief, inkl. Einstiegstag)'. Easy-Entscheid offen, Golden betroffen.",
+      "status": "offen",
+      "status_date": "2026-11-12"
+    },
+    {
+      "id": "squeeze-event-zieldefinition",
+      "title": "squeeze_event (Plan A): Peak ab Schluss D statt ab Tief festlegen",
+      "opened": "2026-11-12",
+      "description": "Falls squeeze_event (Svoboda, Peak ≥ +30 % in 1 Handelswoche + SI-Rückgang ≥ 20 %) gebaut wird: Peak aus outcome_path.jsonl (Hoch Tag 1–5 ab Schluss D) statt aus max_gain_pct, vor dem Bau festlegen.",
+      "status": "offen",
+      "status_date": "2026-11-12"
+    },
+    {
+      "id": "postclose-10-08-1609-et",
+      "title": "Postclose 10.08.2026 schrieb 10 Zeilen um 16:09 ET",
+      "opened": "2026-11-12",
+      "description": "Gipfel-Bericht 11.11.2026: die 10 Forward-Zeilen vom 10.08.2026 wurden um 16:09 ET committet (Vintage-Grenze damals 16:00 ET) — Schlusskurs evtl. noch nicht endgültig. Nur kennzeichnen, nicht umschreiben.",
+      "status": "offen",
+      "status_date": "2026-11-12"
     }
   ]
 }
