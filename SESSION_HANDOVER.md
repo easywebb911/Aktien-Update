@@ -3372,6 +3372,22 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — Vorabregistrierung Hypothesen-Runde November 2026 (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Auftrag 12.11.2026: `#684` (Branch `claude/hypothesen-runde-nov-h7q2`, Branch-Commit
+  `45dfd148`, kein Merge-Hash — Regel a). Neuer Freeze-Block „VORABREGISTRIERUNG —
+  Hypothesen-Runde November 2026 (H-G, H-I, H-K), eingefroren mit dem Merge“ in §5: H-G
+  Gewinnziel +30 % gegen Halten (gepaart, Wilcoxon einseitig + Bootstrap Mittelwert-Δ),
+  H-I institutionelle Beteiligung (AUC, erwartet < 0,5), H-K materielle 8-K bis D 16:00 ET
+  (AUC, erwartet > 0,5). Ziel überall `outcome_path.jsonl` (Treffer ≥ 30 %). Stufe 1 auf
+  Einstiegen 21.07.–23.10.2026 (Familie `hyp_nov26_s1`, Holm k = 3), Stufe 2 blind ab
+  24.10.2026 (n ≥ 500, nach Replikation und „Paper C handelbar“). Nur Text, kein Code, kein
+  Ergebnis berechnet; alle bestehenden Freeze-Abschnitte MD5-unverändert.
+- `open_items` neu: `hypothesen-runde-nov26-skript` (offen).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#683`,
+  höchste in Block 1 erwähnte PR = `#684` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 12.11.2026 — Sperren gegen zerstörerische Befehle (1 PR, Manual-Merge)
 
 - Easy-Entscheid nach dem Lösch-Vorfall (Lesson 8z9): `#683` (Branch

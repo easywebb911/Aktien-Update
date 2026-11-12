@@ -824,6 +824,14 @@
       "description": "Lesson 8z9 / #683. Offen bei Easy (Claude kann/darf das nicht): (1) Ruleset main-branch-protection: Bypass-Ausnahmen entfernen (Repository-Rolle Admin und Integration 1236702 = Claude-App von anthropics, belegt über Check-Suite auf dee55a69); Regeln sind nur 'deletion' + 'non_fast_forward' auf dem Default-Branch, normale Pushes/Merges/Workflow-Commits bleiben unberührt — https://github.com/easywebb911/Aktien-Update/settings/rules/16478429. (2) Claude-GitHub-App: einzelne Rechte (z. B. Administration) kann der Installierende laut GitHub-Doku nicht abschalten, nur Repo-Auswahl ändern, pausieren (Suspend) oder deinstallieren — https://github.com/settings/installations. Der Sitzungs-Zugang handelt im Namen von Easy (Admin) — Repo-Löschen ist per Ruleset nicht verhinderbar; Restschutz = Sperren in .claude/settings.json + 90-Tage-Wiederherstellung. (3) Sicherungskopie (Vorschlag, nicht gebaut): privates Backup-Repo mit wöchentlichem Workflow, der das öffentliche Repo als git-bundle als Artifact sichert (kein Token nötig) — Easy entscheidet.",
       "status": "offen",
       "status_date": "2026-11-12"
+    },
+    {
+      "id": "hypothesen-runde-nov26-skript",
+      "title": "Auswertungs-Skript Hypothesen-Runde November 2026 (H-G, H-I, H-K) bauen",
+      "opened": "2026-11-12",
+      "description": "Freeze-Block in SESSION_HANDOVER §5 (#684). Skript noch nicht gebaut: einmaliger Stufe-1-Lauf (Einstiege 21.07.–23.10.2026, family hyp_nov26_s1, Test-IDs hg_s1/hi_s1/hk_s1) mit MD5-Pin des Blocks und Sperre über eval_results.jsonl; Stufe 2 (hyp_nov26_s2) erst nach Replikation + 'Paper C handelbar' und n >= 500 je weitergereichter Hypothese. Eigener PR, Manual-Merge.",
+      "status": "offen",
+      "status_date": "2026-11-12"
     }
   ]
 }
