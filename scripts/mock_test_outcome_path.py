@@ -18,6 +18,10 @@ Geprüft:
  10. Blindheit: Log/State enthalten keine Kennzahl; Export wird nie geschrieben.
  11. Freeze-Block: vorhanden, MD5-Pin, Überschrift = config.
  12. Digest-Zeile: drei Zustände.
+ 13. Endgültiger Kurs (12.11.2026): Lauf am Abend von Tag 10 (16:30/18:53/
+     20:30 ET) schreibt nichts, Folgetag 06:59 ET nichts, 07:05 ET schreibt;
+     Gegenprobe alte Grenze (16:20 ET) hätte geschrieben; Digest meldet
+     „wartet“ nicht als kaputt/überfällig; Determinismus über UTC-Mitternacht.
 """
 from __future__ import annotations
 
@@ -279,9 +283,60 @@ def test_digest():
         check("Digest-Zeile ohne Kennzahl", "max_gain" not in line)
 
 
+def test_settled_boundary():
+    import trading_date
+    ny = trading_date._NY
+    day10 = op.expected_window(D)[-1]
+
+    def et(d, hh, mm):
+        return datetime(d.year, d.month, d.day, hh, mm, tzinfo=ny).astimezone(timezone.utc)
+
+    def one(now, patch_old=False):
+        with tempfile.TemporaryDirectory() as td:
+            tmp = pathlib.Path(td)
+            ho = tmp / "ho.md"
+            ho.write_text(config.OUTCOME_PATH_FREEZE_HEADING + "\n", encoding="utf-8")
+            _write_inputs(tmp, [{"ticker": "AAA", "date": D.strftime("%d.%m.%Y")}])
+            orig = trading_date.last_settled_close_date
+            if patch_old:
+                trading_date.last_settled_close_date = trading_date.last_final_close_date
+            try:
+                st = op.run(now_utc=now, fetch_fn=lambda t, s, e: bars(),
+                            out_path=tmp / "op.jsonl", state_path=tmp / "st.json",
+                            backtest_path=tmp / "bh.json", export_path=tmp / "ex.jsonl",
+                            handover_path=ho, log=lambda *_: None)
+            finally:
+                trading_date.last_settled_close_date = orig
+            line = hc.outcome_path_liveness_line(tmp / "op.jsonl", tmp / "st.json",
+                                                 now_ts=now.timestamp())
+            return st, line
+
+    for hh, mm in ((16, 30), (18, 53), (20, 30)):
+        st, line = one(et(day10, hh, mm))
+        check(f"Tag-10-Abend {hh:02d}:{mm:02d} ET → nichts geschrieben",
+              st["geschrieben"] == 0 and st["nicht_reif"] == 1, st)
+        check(f"Digest {hh:02d}:{mm:02d} ET: wartet ≠ kaputt/überfällig",
+              "kaputt" not in line and "unlesbar" not in line and "überfällig" not in line, line)
+        st_old, _ = one(et(day10, hh, mm), patch_old=True)
+        check(f"Gegenprobe alte Grenze {hh:02d}:{mm:02d} ET hätte geschrieben (rot)",
+              st_old["geschrieben"] == 1, st_old)
+    nxt = day10 + timedelta(days=1)
+    st, _ = one(et(nxt, 6, 59))
+    check("Folgetag 06:59 ET → nichts geschrieben", st["geschrieben"] == 0, st)
+    st, _ = one(et(nxt, 7, 5))
+    check("Folgetag 07:05 ET → geschrieben", st["geschrieben"] == 1, st)
+    a = trading_date.last_settled_close_date(et(day10, 18, 53))   # UTC = Tag 10
+    b = trading_date.last_settled_close_date(et(day10, 20, 30))   # UTC = Folgetag
+    check("Determinismus: gleiche Grenze über UTC-Mitternacht", a == b, (a, b))
+    src = (ROOT / "scripts" / "outcome_path_update.py").read_text(encoding="utf-8")
+    check("Quelle: last_settled_close_date, kein last_final_close_date-Aufruf",
+          "last_settled_close_date(now_utc)" in src and "last_final_close_date(" not in src)
+
+
 def run_all() -> int:
     for t in (test_window, test_core, test_unknown, test_split, test_determinism,
-              test_run_flow, test_retry_and_ratelimit, test_freeze_block, test_digest):
+              test_run_flow, test_retry_and_ratelimit, test_freeze_block, test_digest,
+              test_settled_boundary):
         print(t.__name__)
         t()
     print()

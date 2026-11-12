@@ -18,7 +18,8 @@ eingefroren 12.11.2026). Easy-Entscheide (Mini-Stopp 12.11.2026):
    Tage einer Zeile stammen aus EINEM Abruf (``Ticker.history`` je Ticker),
    alle Kennzahlen werden innerhalb dieses Abrufs gerechnet. Split/Dividende im
    Fenster werden nur gekennzeichnet (wie S16). Eine Zeile wird EINMAL
-   geschrieben, wenn Tag 10 final ist — danach nie neu.
+   geschrieben, wenn der Close von Tag 10 ENDGÜLTIG ist (Folgetag ab 07:00 ET,
+   ``trading_date.last_settled_close_date``, seit 12.11.2026) — danach nie neu.
 2. **Unbekannt ≠ 0:** fehlt ein Handelstag (US-Kalender) oder hat er kein
    endliches OHLC (Halbzeile), bleiben die Kennzahlen ``null`` mit Grund.
    Vorher wird bis ``RETRY_DAYS`` Kalendertage nach Tag 10 erneut abgerufen.
@@ -368,7 +369,16 @@ def run(*, now_utc: datetime | None = None, fetch_fn=yahoo_fetch,
         out_path=OUT_FILE, state_path=STATE_FILE, backtest_path=BACKTEST_FILE,
         export_path=EXPORT_FILE, handover_path=HANDOVER_FILE, log=print) -> dict:
     now_utc = now_utc or datetime.now(timezone.utc)
-    final_cut = trading_date.last_final_close_date(now_utc)
+    if now_utc.tzinfo is None:
+        now_utc = now_utc.replace(tzinfo=timezone.utc)
+    # ENDGÜLTIGER Schlusskurs (Fix 12.11.2026, open_item
+    # rendite-forward-abendzeile-nicht-final): eine Zeile wird EINMAL geschrieben
+    # und nie neu — deshalb erst, wenn der Close von Tag 10 endgültig ist
+    # (Folgetag ab 07:00 ET, trading_date.last_settled_close_date). Tag 0–9 liegen
+    # davor und sind damit ebenfalls endgültig. Vorher 16:20 ET am Tag 10
+    # (last_final_close_date) — der Lauf 18:53 ET hätte einen vorläufigen Close
+    # eingefroren.
+    final_cut = trading_date.last_settled_close_date(now_utc)
     cands = load_candidates(backtest_path, export_path)
     done = existing_keys(out_path)
     freeze_ok = freeze_present(handover_path)
@@ -379,7 +389,7 @@ def run(*, now_utc: datetime | None = None, fetch_fn=yahoo_fetch,
     data, errors = fetch_all(by_ticker, fetch_fn)
     fetched_utc = now_utc.replace(microsecond=0).isoformat()
     records, grund_count, retry_later = [], {}, 0
-    today = now_utc.date()
+    today = now_utc.astimezone(trading_date._NY).date()   # ET, unabhängig vom UTC-Datum
     for t, d in p["reif"]:
         if t in errors:
             continue                                   # Abruf-Fehler → nächster Lauf
