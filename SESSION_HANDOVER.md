@@ -3372,6 +3372,23 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — Rendite-/Forward-Felder erst aus endgültigem Schlusskurs + Messlauf (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Entscheid 12.11.2026 (abends): `#680` (Branch `claude/rendite-fuellzeit-endgueltig-r7k3`,
+  Branch-Commit `28d30b67`, kein Merge-Hash — Regel a). Neu `trading_date.last_settled_close_date`
+  / `close_is_settled` (Close von X endgültig ab 07:00 ET des folgenden Kalendertags; Grenze aus
+  Nacht-Probe-Messwerten). `ki_agent.update_backtest_returns` + `update_exit_shadow_forwards` nutzen
+  sie statt `last_final_close_date`; gefüllte Werte unverändert; Log „N Felder zurückgestellt bis
+  endgültig“. Messlauf `scripts/settled_close_measure.py` + Hand-Start-Workflow
+  `settled_close_measure.yml` (read-only, Artifact, Replikationsfenster nur Anzahlen). Datierte
+  Protokolleinträge 12.11.2026 (abends): Setup-Edge (8c), KI-Score (8c-e), H5, Exit-B.1-Nachfolger
+  (Punkt 11), §4 + Paper C Ziel 2 (nur Vermerk). Gemeldet, nicht umgestellt: `outcome_path_update.py`
+  und `truth_check.py` (gleiche 16:20-Grenze). Tests `mock_test_settled_close_fill.py`,
+  `mock_test_settled_close_measure.py`; zwei Alt-Tests auf die neue Grenze angepasst. Kein Cron geändert.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#679`,
+  höchste in Block 1 erwähnte PR = `#680` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 12.11.2026 — open_item Rendite-/Forward-Felder aus der Abendzeile (1 PR, Auto-Merge Doku)
 
 - Easy-Auftrag 12.11.2026 (S16-Nebenbefund, read-only): `#679` (Branch
@@ -5319,6 +5336,8 @@ beim Eintrag n=60/250, kein Ergebnis erzeugt oder gelesen. Details:
 
 **Protokolleintrag 10.11.2026 (Berichtigung zu Punkt 8c vom 09.11.2026).** Der Eintrag oben bleibt unverändert stehen; er nennt noch die erste Schätzung. **Belegte Zahl:** in der bestätigenden Population (Einstieg > 10.10.2026, Stand n=100/250) weichen **7 von 100** gespeicherten Scores ab (|Δ| bis **4,0** Pkt), nicht 8 von 100 mit |Δ| bis 4,6. **Grund der Differenz:** die Schätzung nahm für alle Zeilen ein 14-Tage-Fenster an; der Load-Prune (`generate_report.py:3768`) rechnet vom UTC-Datum des Laufs, Postclose-Läufe nach UTC-Mitternacht sehen dadurch nur 13 Tage. Exakte Nachrechnung je Zeile wie im „§4-Protokolleintrag 09.11.2026 — Glättungs-Fehler“ (`#668`). Keine Zeile umgeschrieben, kein Ergebnis erzeugt oder gelesen. Easy-Entscheid 09.11.2026.
 
+**Protokolleintrag 12.11.2026 (abends) — Punkt 8c — Zielgröße aus vorläufigem Abend-Schlusskurs.** **Fehler:** Seit `#647` (03.11.2026) füllten `update_backtest_returns` (`return_3d/5d/10d`, `_t1`, `_net`, `_vs_spy`) und `update_exit_shadow_forwards` (`forward_3d/5d/10d`) ab 16:20 ET am Zieltag. Yahoo liefert dort teils noch einen vorläufigen Schlusskurs; das Feld wird danach nie überschrieben (Beleg Wahrheits-Abgleich S16: 3 Abweichungen, alle am Zieltag 17:40 bzw. 18:23 ET gefüllt; open_item `rendite-forward-abendzeile-nicht-final`). **Fix:** `#680` — Füllung erst ab 07:00 ET des folgenden Kalendertags (`trading_date.last_settled_close_date`; Grenze aus den Nacht-Probe-Messwerten 10.–12.11.2026). Bereits gefüllte Werte bleiben unverändert. **Naht:** Merge-Datum von `#680` — Werte davor nach alter Regel, danach nach neuer. **Bestandskorrektur: Entscheid offen bis Messlauf** (`settled_close_measure.yml`, read-only). **Umfang (Git-Historie, nur Zählung, Obergrenze ohne Score-/Herkunfts-Filter):** Einstieg > 10.10.2026, am Zieltag-Abend gefüllt: `return_10d` 20 (Einstieg < 24.10.) + 30 (Replikationsfenster, blind), `return_5d` 0 + 40 (blind). Population und Score unberührt, kein Neustart. Kein Ergebnis erzeugt oder gelesen.
+
 ### VORABREGISTRIERUNG — KI-Score-Edge-Test (ki_signal_score), eingefroren 13.10.2026
 
 **Verhältnis zum Setup-Edge-Re-Test oben.** Dieser Block prüft eine **andere
@@ -5569,6 +5588,8 @@ kein Neustart — Population und Score sind unberührt; die Zielgröße wird in
 Schritt 2 aus echten Schlusskursen neu berechnet (Originale archiviert,
 nicht korrigierbare Felder leer), ausgewertet wird erst danach. Stand beim
 Eintrag n=60/250, kein Ergebnis erzeugt oder gelesen.
+
+**Protokolleintrag 12.11.2026 (abends) — Regel 8c-Erweiterung (e) — Zielgröße aus vorläufigem Abend-Schlusskurs.** **Fehler:** Seit `#647` (03.11.2026) füllten `update_backtest_returns` (`return_3d/5d/10d`, `_t1`, `_net`, `_vs_spy`) und `update_exit_shadow_forwards` (`forward_3d/5d/10d`) ab 16:20 ET am Zieltag. Yahoo liefert dort teils noch einen vorläufigen Schlusskurs; das Feld wird danach nie überschrieben (Beleg Wahrheits-Abgleich S16: 3 Abweichungen, alle am Zieltag 17:40 bzw. 18:23 ET gefüllt; open_item `rendite-forward-abendzeile-nicht-final`). **Fix:** `#680` — Füllung erst ab 07:00 ET des folgenden Kalendertags (`trading_date.last_settled_close_date`; Grenze aus den Nacht-Probe-Messwerten 10.–12.11.2026). Bereits gefüllte Werte bleiben unverändert. **Naht:** Merge-Datum von `#680` — Werte davor nach alter Regel, danach nach neuer. **Bestandskorrektur: Entscheid offen bis Messlauf** (`settled_close_measure.yml`, read-only). `ki_signal_score` und die in (e) genannten Stellen bleiben unverändert. **Umfang:** wie im Setup-Edge-Eintrag vom selben Tag (gleiche Zeilen, Obergrenze). Population unberührt, kein Neustart. Kein Ergebnis erzeugt oder gelesen.
 
 ### ERRATUM 22.10.2026 — Bootstrap-Verfahrensdetails für beide Edge-Test-Freezes (Setup-Edge/Conviction UND KI-Score)
 
@@ -6317,6 +6338,10 @@ Entscheidung über früh-raus vs. 10 Tage halten fällt im **Exit-B.1-Nachfolger
 („VORABREGISTRIERUNG — Exit-B.1-Nachfolger“, Einstieg ab 09.11.2026; `#667` wurde
 vor dem ersten Nachfolger-Postclose gemergt).
 
+#### §4-Protokolleintrag 12.11.2026 (abends) — Renditen aus vorläufigem Abend-Schlusskurs: nur Vermerk, keine Neuauswertung
+
+**Protokolleintrag 12.11.2026 (abends) — §4 (abgeschlossen 07.11.2026), nur Vermerk.** **Fehler:** Seit `#647` (03.11.2026) füllten `update_backtest_returns` (`return_3d/5d/10d`, `_t1`, `_net`, `_vs_spy`) und `update_exit_shadow_forwards` (`forward_3d/5d/10d`) ab 16:20 ET am Zieltag. Yahoo liefert dort teils noch einen vorläufigen Schlusskurs; das Feld wird danach nie überschrieben (Beleg Wahrheits-Abgleich S16: 3 Abweichungen, alle am Zieltag 17:40 bzw. 18:23 ET gefüllt; open_item `rendite-forward-abendzeile-nicht-final`). **Fix:** `#680` — Füllung erst ab 07:00 ET des folgenden Kalendertags (`trading_date.last_settled_close_date`; Grenze aus den Nacht-Probe-Messwerten 10.–12.11.2026). Bereits gefüllte Werte bleiben unverändert. **Naht:** Merge-Datum von `#680` — Werte davor nach alter Regel, danach nach neuer. **Bestandskorrektur: Entscheid offen bis Messlauf** (`settled_close_measure.yml`, read-only). **Umfang:** in der Score-≥70-Population höchstens **2** `return_10d` (+ 2 `_net`) am Zieltag-Abend gefüllt (Git-Historie, Obergrenze). **Keine Neuauswertung;** das Ergebnis vom 07.11.2026 („Unklar“) bleibt bindend. Kein Ergebnis erzeugt oder gelesen.
+
 #### ⚠ Datenherkunft des vorabregistrierten Exit-B.1-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
 
 **Gilt für den vorabregistrierten Exit-B.1-Re-Test oben (Score≥70-Bucket): bei der
@@ -6626,6 +6651,8 @@ festhält.
 
 **Protokolleintrag 09.11.2026 (Punkt 11 — Glättung während der Sammlung, `#667`).** **Grund:** `generate_report.apply_score_smoothing` wählte die „letzten 3 Läufe“ für den 3-Tage-Schnitt (70/30) und den Trend-Bonus/-Malus (±3) per Text-Sortierung des Datums `TT.MM.JJJJ`. Am Monats- und Jahreswechsel (etwa die ersten 14 Tage jedes Monats) kamen dadurch alte Monatsend-Tage statt der jüngsten Läufe in die Rechnung (Beleg 09.11.2026: ULCC 71,3 statt 62,2, Trendbonus +3 statt Malus −3; open_item `score-smoothing-textsortierung-monatswechsel`). Fix `#667`: chronologische Sortierung über das geparste Datum, unparsbare Einträge werden nicht verwendet. **Naht** = Merge von `#667` (ET-Datum des Merge-Commits); erster korrekt geglätteter Lauf = erster Daily-Run nach dem Merge. **Top-10-Auswahl unverändert:** die Glättung läuft erst NACH der Auswahl (`generate_report.py`, Zone `filter-top10-selection`, `apply_score_smoothing(top10, …)`), die Zusammensetzung der Top-10 hing nie an diesem Fehler. **Gespeicherte Werte werden nicht umgeschrieben** (`score_history`, `backtest_history`, Export, `eval_results` bleiben, wie sie sind). **Was sich ändert:** welche Zeilen `score ≥ 70` erreichen. **Stand beim Eintrag (09.11.2026, vor dem Postclose):** 0 Zeilen mit Einstieg ≥ 09.11.2026 im Backtest. Läuft vor dem Merge noch ein Postclose, entstehen bis zu 10 Zeilen mit altem Score; deren Zahl und die Wechsel über/unter 70 werden in einem Nachtrag festgehalten. **Umgang mit Zeilen vor der Naht: Entscheidung Easy (offen).** Kein Ergebnis erzeugt oder gelesen.
 
+**Protokolleintrag 12.11.2026 (abends) — Punkt 11 — Zielgrößen `return_3d`/`return_10d` aus vorläufigem Abend-Schlusskurs.** **Fehler:** Seit `#647` (03.11.2026) füllten `update_backtest_returns` (`return_3d/5d/10d`, `_t1`, `_net`, `_vs_spy`) und `update_exit_shadow_forwards` (`forward_3d/5d/10d`) ab 16:20 ET am Zieltag. Yahoo liefert dort teils noch einen vorläufigen Schlusskurs; das Feld wird danach nie überschrieben (Beleg Wahrheits-Abgleich S16: 3 Abweichungen, alle am Zieltag 17:40 bzw. 18:23 ET gefüllt; open_item `rendite-forward-abendzeile-nicht-final`). **Fix:** `#680` — Füllung erst ab 07:00 ET des folgenden Kalendertags (`trading_date.last_settled_close_date`; Grenze aus den Nacht-Probe-Messwerten 10.–12.11.2026). Bereits gefüllte Werte bleiben unverändert. **Naht:** Merge-Datum von `#680` — Werte davor nach alter Regel, danach nach neuer. **Bestandskorrektur: Entscheid offen bis Messlauf** (`settled_close_measure.yml`, read-only). **Umfang:** Einstieg ≥ 09.11.2026 mit Score ≥ 70: bisher **0** Felder am Zieltag-Abend gefüllt (noch nichts gereift) — die Sammlung läuft ab der Naht nach der neuen Regel. Kriterien unverändert. Kein Ergebnis erzeugt oder gelesen.
+
 ### VORABREGISTRIERUNG — Holm-Familie Runde November 2026 (Paper C + Exit-B.1-Nachfolger, k = 3), eingefroren 07.11.2026
 
 **Easy-Entscheid 07.11.2026.** Gegen die Mehrfachtest-Inflation über mehrere
@@ -6820,6 +6847,8 @@ auch in diesem Fenster abgeschnittene Werte. Danach ist der Datenhash `8ddf857d�
 Laufs aus dem aktuellen Export **nicht mehr** reproduzierbar; die Fassung vor der Korrektur
 bleibt in Git (Commit vor dem Korrektur-Commit). Verdikt unverändert, keine Neuauswertung;
 Zahl und Treffer-Wechsel werden nach dem Workflow-Lauf nachgetragen.
+
+**Protokolleintrag 12.11.2026 (abends) — Ziel 2 (`return_10d`) — vorläufiger Abend-Schlusskurs, nur Vermerk.** **Fehler:** Seit `#647` (03.11.2026) füllten `update_backtest_returns` (`return_3d/5d/10d`, `_t1`, `_net`, `_vs_spy`) und `update_exit_shadow_forwards` (`forward_3d/5d/10d`) ab 16:20 ET am Zieltag. Yahoo liefert dort teils noch einen vorläufigen Schlusskurs; das Feld wird danach nie überschrieben (Beleg Wahrheits-Abgleich S16: 3 Abweichungen, alle am Zieltag 17:40 bzw. 18:23 ET gefüllt; open_item `rendite-forward-abendzeile-nicht-final`). **Fix:** `#680` — Füllung erst ab 07:00 ET des folgenden Kalendertags (`trading_date.last_settled_close_date`; Grenze aus den Nacht-Probe-Messwerten 10.–12.11.2026). Bereits gefüllte Werte bleiben unverändert. **Naht:** Merge-Datum von `#680` — Werte davor nach alter Regel, danach nach neuer. **Bestandskorrektur: Entscheid offen bis Messlauf** (`settled_close_measure.yml`, read-only). **Umfang:** in der Stichprobe (21.07.–23.10.2026) höchstens **20** `return_10d` am Zieltag-Abend gefüllt (Einstiege 19.–23.10.). **Keine Neuauswertung;** Verdikt Ziel 2 „Unklar“ bleibt. Ziel 1 (`max_gain_pct`) ist von diesem Fehler nicht betroffen. Kein Ergebnis erzeugt oder gelesen.
 
 ### VORABREGISTRIERUNG — Paper C Replikation (Gipfel), eingefroren 07.11.2026
 
@@ -7410,6 +7439,8 @@ der die Änderung und ihren Grund festhält.
 **Protokolleintrag 09.11.2026 (Glättung, `#667`).** **Grund:** `generate_report.apply_score_smoothing` wählte die „letzten 3 Läufe“ für den 3-Tage-Schnitt (70/30) und den Trend-Bonus/-Malus (±3) per Text-Sortierung des Datums `TT.MM.JJJJ`. Am Monats- und Jahreswechsel (etwa die ersten 14 Tage jedes Monats) kamen dadurch alte Monatsend-Tage statt der jüngsten Läufe in die Rechnung (Beleg 09.11.2026: ULCC 71,3 statt 62,2, Trendbonus +3 statt Malus −3; open_item `score-smoothing-textsortierung-monatswechsel`). Fix `#667`: chronologische Sortierung über das geparste Datum, unparsbare Einträge werden nicht verwendet. **Naht** = Merge von `#667` (ET-Datum des Merge-Commits); erster korrekt geglätteter Lauf = erster Daily-Run nach dem Merge. **Top-10-Auswahl unverändert:** die Glättung läuft erst NACH der Auswahl (`generate_report.py`, Zone `filter-top10-selection`, `apply_score_smoothing(top10, …)`), die Zusammensetzung der Top-10 hing nie an diesem Fehler. **Gespeicherte Werte werden nicht umgeschrieben** (`score_history`, `backtest_history`, Export, `eval_results` bleiben, wie sie sind). **Was sich ändert:** die Score-Stufe (≥ 70 / < 70) einer Zeile hängt am gespeicherten `score`. Nachgerechnet über alle Forward-Zeilen im Export (672, Stand 09.11.2026, nur Prädiktor, keine Outcomes): **65** Scores weichen ab, **7** wechseln die Stufe. Die Zellen-Zuordnung nutzt weiter den gespeicherten `score`; im Bericht auszuweisen (Naht + Zahl der Stufen-Wechsel). Kein Ergebnis erzeugt oder gelesen.
 
 **Protokolleintrag 10.11.2026 (Berichtigung zum Glättungs-Eintrag vom 09.11.2026).** Der Eintrag oben bleibt unverändert stehen; er nennt noch die erste Schätzung. **Belegte Zahlen:** über die 672 Forward-Zeilen weichen **62** gespeicherte Scores ab, **6** wechseln die Stufe (≥ 70 / < 70), nicht 65 und 7. **Grund der Differenz:** die Schätzung nahm für alle Zeilen ein 14-Tage-Fenster an; der Load-Prune (`generate_report.py:3768`) rechnet vom UTC-Datum des Laufs, Postclose-Läufe nach UTC-Mitternacht sehen dadurch nur 13 Tage. Exakte Nachrechnung je Zeile wie im „§4-Protokolleintrag 09.11.2026 — Glättungs-Fehler“ (`#668`). Im Bericht auszuweisen sind die berichtigten Zahlen. Keine Zeile umgeschrieben, kein Ergebnis erzeugt oder gelesen. Easy-Entscheid 09.11.2026.
+
+**Protokolleintrag 12.11.2026 (abends) — Zielgröße `return_10d` aus vorläufigem Abend-Schlusskurs.** **Fehler:** Seit `#647` (03.11.2026) füllten `update_backtest_returns` (`return_3d/5d/10d`, `_t1`, `_net`, `_vs_spy`) und `update_exit_shadow_forwards` (`forward_3d/5d/10d`) ab 16:20 ET am Zieltag. Yahoo liefert dort teils noch einen vorläufigen Schlusskurs; das Feld wird danach nie überschrieben (Beleg Wahrheits-Abgleich S16: 3 Abweichungen, alle am Zieltag 17:40 bzw. 18:23 ET gefüllt; open_item `rendite-forward-abendzeile-nicht-final`). **Fix:** `#680` — Füllung erst ab 07:00 ET des folgenden Kalendertags (`trading_date.last_settled_close_date`; Grenze aus den Nacht-Probe-Messwerten 10.–12.11.2026). Bereits gefüllte Werte bleiben unverändert. **Naht:** Merge-Datum von `#680` — Werte davor nach alter Regel, danach nach neuer. **Bestandskorrektur: Entscheid offen bis Messlauf** (`settled_close_measure.yml`, read-only). **Umfang (Git-Historie, nur Zählung, Obergrenze):** `return_10d` am Zieltag-Abend gefüllt: 20 (Einstieg < 24.10.) + 30 (Replikationsfenster, blind). Feld-Kombis und Kriterien unverändert. Kein Ergebnis erzeugt oder gelesen.
 
 ### PAPER-BEFUND (Svoboda/Kapounek/Albrecht 2026, ausgewertet 12.07.)
 

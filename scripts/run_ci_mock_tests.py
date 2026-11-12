@@ -43,6 +43,8 @@ ALLOWLIST = [
     "score_delta_t1_chrono",
     "outcome_path",
     "rolling_window_end",
+    "settled_close_fill",
+    "settled_close_measure",
     "maxgain_export_correction",
     "score_smoothing_chrono",
     "diagnose_night_probe",

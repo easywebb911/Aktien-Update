@@ -4452,6 +4452,25 @@ meldet dann nach 2 Handelstagen „läuft nicht“. Test:
 ``scripts/mock_test_truth_check.py``. Einlaufphase: open_items
 ``wahrheits-abgleich-einlaufphase``.
 
+## Endgültiger Schlusskurs für Einmal-Felder (seit 12.11.2026)
+
+`return_*`/`_t1`/`_net`/`_vs_spy` (`ki_agent.update_backtest_returns`) und Exit-Shadow
+`forward_*` (`ki_agent.update_exit_shadow_forwards`) werden einmal gefüllt und nie
+überschrieben. Sie lesen eine Tageszeile deshalb erst, wenn ihr Datum
+`<= trading_date.last_settled_close_date(now)` ist: der Close von Tag X gilt ab
+**07:00 ET des folgenden Kalendertags** als endgültig (`US_CLOSE_SETTLED_NEXT_DAY_ET`).
+Vorher galt 16:20 ET am Zieltag (`last_final_close_date`); dort stand teils noch ein
+vorläufiger Close (S16-Befund, open_item `rendite-forward-abendzeile-nicht-final`).
+Grenze aus Messwerten der Nacht-Probe (Kurse von D gleich der Tag-Referenz um
+01:31/07:09/07:58/08:15 ET des Folgetags, D = 09.–11.11.2026). Log-Zeile
+„N Felder zurückgestellt bis endgültig“. Test `scripts/mock_test_settled_close_fill.py`.
+
+`last_final_close_date` (16:20 ET) bleibt für Pfade, die später neu schreiben oder erst
+nach dem Fenster-Ende einfrieren (Rolling-Fenster `max_gain_pct`, Export-Reife). **Offen
+(gemeldet, nicht umgestellt):** `scripts/outcome_path_update.py` (schreibt einmal, Cron
+18:53 ET) und `scripts/truth_check.py` (Vergleichs-Referenz) nutzen noch 16:20 ET.
+Messlauf für den Bestand: `settled_close_measure.yml` (read-only, Hand-Start).
+
 ## Kursverlauf ab Einstieg (seit 12.11.2026, outcome_path.jsonl)
 
 **Zweck:** handelbares Ergebnisfeld, weil `max_gain_pct`/`max_drawdown_pct` ab dem
