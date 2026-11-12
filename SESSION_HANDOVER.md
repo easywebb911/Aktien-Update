@@ -3300,6 +3300,22 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste in Block 1 erwähnte PR = `#645`.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — Freeze „Paper C handelbar“ + Kursverlauf ab Einstieg (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Auftrag 12.11.2026 (nach Gipfel-Bericht 11.11.): `#674` (Branch `claude/paper-c-handelbar-k7m2`,
+  Branch-Commit `171c4f40`, kein Merge-Hash — Regel a). Teil 1: neuer Freeze-Block „Paper C
+  handelbar (Gipfel ab Einstiegskurs), eingefroren 12.11.2026“ (Ziel Hoch Tag 1–10 / Schluss D − 1
+  ≥ 30 %, Stichprobe wie Replikation, eigene Familie α = 0,05, Lauf direkt nach der Replikation,
+  Netto nachrangig; Mini-Stopp-Entscheide 12.11.). Teil 2: `scripts/outcome_path_update.py` +
+  neuer Workflow `outcome_path.yml` (neuer Cron `53 23 * * 1-5`, kein bestehender geändert):
+  OHLC Tag 0–10 je Forward-Einstieg, `max_gain_from_entry_pct` (+ netto),
+  `max_drawdown_from_entry_pct`; unbekannt → null + Grund; append-only; Export unberührt;
+  ≥ 24.10. nur mit Freeze; Digest „📈 Kursverlauf“. 8 neue open_items. MD5: 16 bestehende
+  Freeze-Blöcke unverändert, neuer Block `ad814491…` im Test gepinnt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#673`,
+  höchste in Block 1 erwähnte PR = `#674` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 11.11.2026 — open_items aus der Nacht-Probe-Endauswertung (1 PR, Auto-Merge Doku)
 
 - Easy-Entscheid 11.11.2026: `#673` (Branch `claude/open-items-nachtprobe-x3q8`, Branch-Commit
