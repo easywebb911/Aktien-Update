@@ -412,6 +412,140 @@ def _postclose_missing_last_trading_day(now_utc: datetime,
     return ltd.strftime("%d.%m.%Y")
 
 
+# ── S17 — Rolling-Fenster max_gain_pct/max_drawdown_pct abgeschnitten (13.11.2026)
+# Befund (Nachtrag Gipfel-Bericht 12.11.2026, open_item
+# max-gain-rolling-fenster-abgeschnitten): das Rolling-Update endete früher nach
+# 14 Kalendertagen (UTC-Datum) — bei Feiertagen, fehlenden Postclose-Läufen oder
+# Läufen nach Mitternacht UTC blieb das Fenster vor Tag 10 stehen, und der
+# append-only-Export fror den Wert ein (12/665 Zeilen im ersten Paper-C-Fenster).
+# S17 vergleicht gereifte Export-Zeilen mit der Neuberechnung aus den OHLC-Zeilen
+# in ``outcome_path.jsonl`` (Tag 0–10). „Abgeschnitten“ = gespeicherter Wert
+# kleiner (max_gain) bzw. weniger negativ (max_drawdown) als das volle Fenster
+# um > _S17_TOL_FULL pp UND passt (± _S17_TOL_PREFIX pp) zu einem kürzeren
+# Fenster D..Tag k (k < 10). So stören unterschiedliche Kursanpassungen der
+# beiden Abrufe nicht. Zusätzlich zählt S17 Export-Zeilen mit
+# ``rolling_window_n`` < 11 (neue Regel, Fenster bei Export unvollständig).
+# BLIND: Ausgabe nur Zählungen — keine Werte, keine Ticker, keine Treffer-Zählung.
+# warn nur für Zeilen mit Einstieg ≥ ROLLING_WINDOW_FIX_FROM (Rückfall nach dem
+# Fix); ältere abgeschnittene Zeilen stehen als „Altbestand“ im Detail (bekannt,
+# Korrektur ist eine eigene Entscheidung).
+_S17_TOL_FULL = 0.5
+_S17_TOL_PREFIX = 0.3
+
+
+def _s17_prefix_metrics(bars: list, k: int):
+    """(max_gain, max_drawdown) in % über bars[0..k] — gleiche Formel wie
+    backtest_history._compute_max_gain_pct/_compute_max_drawdown (laufendes
+    Tief bzw. Hoch ab D). None bei < 2 Zeilen."""
+    if k < 1 or len(bars) <= k:
+        return None
+    lo = hi = None
+    mg = dd = None
+    for b in bars[:k + 1]:
+        h, l = float(b["h"]), float(b["l"])
+        lo = l if lo is None else min(lo, l)
+        hi = h if hi is None else max(hi, h)
+        g = (h / lo - 1.0) * 100.0
+        d = (l / hi - 1.0) * 100.0
+        mg = g if mg is None else max(mg, g)
+        dd = d if dd is None else min(dd, d)
+    return mg, dd
+
+
+def _s17_is_truncated(stored, full, prefixes, sign: int) -> bool:
+    """sign=+1 für max_gain (abgeschnitten = kleiner), −1 für max_drawdown
+    (abgeschnitten = größer, also weniger negativ)."""
+    if not _finite_num(stored) or full is None:
+        return False
+    if sign * (full - stored) <= _S17_TOL_FULL:
+        return False
+    return any(p is not None and abs(p - stored) <= _S17_TOL_PREFIX for p in prefixes)
+
+
+def _finite_num(x) -> bool:
+    return (isinstance(x, (int, float)) and not isinstance(x, bool)
+            and math.isfinite(float(x)))
+
+
+def s17_rolling_window_counts(export_path: str, outcome_path: str,
+                              fix_from: date | None = None) -> dict | None:
+    """Zählt abgeschnittene Rolling-Fenster. Returnt ``{"geprueft", "neu",
+    "alt", "unvollstaendig"}`` oder None, wenn eine Datei fehlt/unlesbar ist.
+    Pure Lesepfad; Ausgabe nur Zählungen."""
+    fix_from = fix_from or getattr(config, "ROLLING_WINDOW_FIX_FROM", None)
+    full_n = int(getattr(config, "ROLLING_WINDOW_TRADING_DAYS", 10)) + 1
+    try:
+        bars_by = {}
+        with open(outcome_path, "r", encoding="utf-8") as fh:
+            for ln in fh:
+                try:
+                    r = json.loads(ln)
+                except (ValueError, TypeError):
+                    continue
+                bars = r.get("bars") if isinstance(r, dict) else None
+                if (isinstance(bars, list) and len(bars) >= full_n
+                        and all(isinstance(b, dict) and _finite_num(b.get("h"))
+                                and _finite_num(b.get("l")) and float(b["l"]) > 0
+                                for b in bars[:full_n])):
+                    bars_by[(r.get("ticker"), r.get("date"))] = bars[:full_n]
+        rows = []
+        with open(export_path, "r", encoding="utf-8") as fh:
+            for ln in fh:
+                try:
+                    r = json.loads(ln)
+                except (ValueError, TypeError):
+                    continue
+                if isinstance(r, dict):
+                    rows.append(r)
+    except OSError:
+        return None
+    seen = set()
+    out = {"geprueft": 0, "neu": 0, "alt": 0, "unvollstaendig": 0}
+    for r in rows:
+        key = (r.get("ticker"), r.get("date"))
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            d = datetime.strptime(str(r.get("date")), "%d.%m.%Y").date()
+        except (ValueError, TypeError):
+            continue
+        is_new = fix_from is not None and d >= fix_from
+        n_win = r.get("rolling_window_n")
+        if "rolling_window_n" in r and not (isinstance(n_win, int) and n_win >= full_n):
+            out["unvollstaendig"] += 1
+        bars = bars_by.get(key)
+        if bars is None:
+            continue
+        out["geprueft"] += 1
+        full = _s17_prefix_metrics(bars, full_n - 1)
+        pref = [_s17_prefix_metrics(bars, k) for k in range(1, full_n - 1)]
+        trunc = (_s17_is_truncated(r.get("max_gain_pct"), full[0], [p[0] for p in pref if p], +1)
+                 or _s17_is_truncated(r.get("max_drawdown_pct"), full[1], [p[1] for p in pref if p], -1))
+        if trunc:
+            out["neu" if is_new else "alt"] += 1
+    return out
+
+
+def evaluate_s17_rolling_window(export_path: str, outcome_path: str,
+                                fix_from: date | None = None) -> list[dict]:
+    """S17 — höchstens EIN warn. Fehlende Dateien → SKIP (kein Fail)."""
+    try:
+        c = s17_rolling_window_counts(export_path, outcome_path, fix_from)
+    except Exception:  # pragma: no cover — fail-soft
+        return []
+    if not c:
+        return []
+    if c["neu"] == 0 and c["unvollstaendig"] == 0:
+        return []
+    return [{"id": "S17", "severity": "warn",
+             "detail": (f"Rolling-Fenster max_gain/max_drawdown vor Tag 10 "
+                        f"eingefroren: {c['neu']} Zeile(n) ab Fix-Naht abgeschnitten, "
+                        f"{c['unvollstaendig']} mit unvollständigem Fenster markiert "
+                        f"(geprüft {c['geprueft']}, Altbestand {c['alt']}) — nur "
+                        f"Zählung, keine Werte")}]
+
+
 # ── S16 — Wahrheits-Abgleich (08.11.2026) ─────────────────────────────────
 # Liest NUR ``truth_check_log.jsonl`` (geschrieben von scripts/truth_check.py,
 # eigener Workflow truth_check.yml) — kein Netz. Bewertet den LETZTEN Lauf:
@@ -911,6 +1045,8 @@ def evaluate_state_invariants(
     html_path: str | None = None,
     backtest_path: str | None = None,
     truth_check_log_path: str | None = None,
+    matured_export_path: str | None = None,
+    outcome_path_path: str | None = None,
 ) -> list[dict]:
     """Bewertet alle 8 State-Invariants. Returnt Liste von Fail-Dicts.
 
@@ -1324,6 +1460,12 @@ def evaluate_state_invariants(
     # unverändert. Liest nur das Log, kein Netz.
     if not ki_agent_only and truth_check_log_path:
         fails.extend(evaluate_s16_truth_check(truth_check_log_path, now_utc=now_for_s8))
+
+    # === S17 (warn) — Rolling-Fenster abgeschnitten (13.11.2026) ============
+    # Nur Daily-Run-Pfad und nur mit beiden Pfaden (Hook in generate_report.py);
+    # ohne Pfade SKIP. Liest nur Dateien, kein Netz, Ausgabe nur Zählungen.
+    if not ki_agent_only and matured_export_path and outcome_path_path:
+        fails.extend(evaluate_s17_rolling_window(matured_export_path, outcome_path_path))
 
     return fails
 

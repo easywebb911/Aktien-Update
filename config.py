@@ -150,6 +150,19 @@ OUTCOME_PATH_STATE_FILE        = "outcome_path_state.json"
 OUTCOME_PATH_WINDOW_DAYS       = 10    # Tag 1..10 nach dem Einstiegstag D
 OUTCOME_PATH_START_DATE        = _date(2026, 7, 21)   # erster Forward-Einstieg (Paper C)
 OUTCOME_PATH_RETRY_DAYS        = 7     # Kalendertage nach Tag 10: so lange erneut abrufen, dann null + Grund
+# Rolling-Fenster max_gain_pct/max_drawdown_pct (Fix 13.11.2026, open_item
+# max-gain-rolling-fenster-abgeschnitten): die Aktualisierung endet erst, wenn
+# Tag 10 (US-Handelstage nach D) final ist — plus diese Nachfrist in
+# Kalendertagen für fehlende Läufe/Datenlücken. Vorher endete sie nach 14
+# Kalendertagen (``days_old > 14``, ``date.today()`` UTC): bei Feiertagen,
+# ausgefallenen Postclose-Läufen oder Läufen nach Mitternacht UTC blieb das
+# Fenster vor Tag 10 stehen (12/665 Zeilen im ersten Paper-C-Fenster).
+ROLLING_WINDOW_TRADING_DAYS    = 10
+ROLLING_WINDOW_GRACE_DAYS      = 7
+# Naht: Zeilen mit Einstieg ab diesem Tag laufen über die neue Regel; der
+# Wächter S17 meldet abgeschnittene Fenster ab hier als warn, ältere nur als
+# Altbestand-Zahl (bekannt, Korrektur offen).
+ROLLING_WINDOW_FIX_FROM        = _date(2026, 11, 13)
 OUTCOME_PATH_STALE_DAYS        = 5     # Digest: letzter Lauf älter → „überfällig“
 # Ab diesem Einstieg (Replikationsfenster) wird nur geschrieben, wenn der
 # Freeze-Block unten im Handover steht (Reihenfolge: Freeze vor Befüllung).
@@ -2279,15 +2292,17 @@ SCORE_STATUS_LABELS = {
     # Rein Anzeige — kein Score-/Filter-/Push-Effekt.
     "paper_c": {
         "status":      "Test läuft · handelbare Variante (ab Einstiegskurs), "
-                       "Auswertung ~Dez.",
+                       "Auswertung ~Ende Jan. 2027",
         "status_kind": "pending",
-        "status_date": "2026-11-12",
+        "status_date": "2026-11-13",
         "review_by":   None,
         "review_cond": "formaler Beleg 07.11.2026 nur für die Spanne Tief→Hoch "
                        "inkl. Einstiegstag (AUC 0,61 [0,56–0,66], n=668, "
                        "1 Fenster) — kein Beleg für Gewinn ab Einstieg. "
-                       "Handelbare Variante eingefroren 12.11.2026, Auswertung "
-                       "mit der Replikation bei n ≥ 300 (Schätzung ~Dez. 2026)",
+                       "Handelbare Variante eingefroren 12.11.2026, Auslöser seit "
+                       "13.11. n ≥ 500 (Schätzung ~Ende Jan. 2027, nicht "
+                       "bindend); Replikation der Spanne bei n ≥ 300 (Schätzung "
+                       "~Dez. 2026)",
         "eval_ref":    {"file": "eval_results.jsonl", "test_id": "paper_c_gipfel"},
     },
 }
@@ -2308,16 +2323,16 @@ PAPER_C_BADGE = {
     # Kurz gehalten: 2 Zeilen auf dem iPhone bei Standardschrift (15 px,
     # 375–390 px Breite, Playwright-gemessen 12.11.2026).
     "text": "höher = größere Spanne inkl. Einstiegstag · "
-            "ab Einstieg: Test läuft, ~Dez.",
+            "ab Einstieg: Test läuft, ~Jan.",
 }
 
 # Kopfzeile im Konfidenz-Panel (Produkt-Text, einfache Sprache). Zahlen nur
 # aus eval_results.jsonl bzw. den Freeze-Blöcken; Termine sind Schätzungen.
 VALIDATION_SUMMARY_TEXT = (
-    "Stand 12.11.2026: 4 Bestätigungstests, 1 formaler Beleg (Paper C: Momentum "
+    "Stand 13.11.2026: 4 Bestätigungstests, 1 formaler Beleg (Paper C: Momentum "
     "5T → Spanne Tief→Hoch ≥ 30 % inkl. Einstiegstag) — kein Beleg für Gewinn "
-    "ab Einstieg; die handelbare Variante läuft mit der Replikation (Schätzung "
-    "~Dez. 2026). Exit-B.1 „Unklar“ — Nachfolger-Test läuft (n=500, Schätzung "
+    "ab Einstieg; Replikation der Spanne Schätzung ~Dez. 2026, handelbare "
+    "Variante (ab Einstiegskurs) Schätzung ~Ende Jan. 2027. Exit-B.1 „Unklar“ — Nachfolger-Test läuft (n=500, Schätzung "
     "~Mitte 2027). Setup/Conviction und KI: Tests laufen, Auswertung "
     "automatisch bei n ≥ 250."
 )
@@ -2429,6 +2444,10 @@ S10_OBSERVED_FIELDS = frozenset({
     # Schema bleibt v4 (additiv). Pflicht laut Lehre #388, sonst feuert
     # _s10_check_unknown_fields am ersten Record ein WARN.
     "max_gain_pct",
+    # Fix 13.11.2026 (open_item max-gain-rolling-fenster-abgeschnitten): Zahl
+    # der finalen Tageszeilen, aus denen max_gain_pct/max_drawdown_pct zuletzt
+    # gerechnet wurden (≤ 11). None bis zum ersten Rolling-Update → nur OBSERVED.
+    "rolling_window_n",
     # Hypothese-A-Vorbau (05.07.2026, Stufe A — Live-Vorwärts-Erhebung):
     # 5-Trading-Day-Past-Return VOR Entry, aus yfinance-Adj-Close beidseitig
     # (Split-Konsistenz, Reverse-Splits bei Squeeze-Small-Caps häufig).

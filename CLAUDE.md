@@ -2738,13 +2738,23 @@ Daten-Persistierung — keine Frontend-Anzeige, keine Score-Konsequenzen.
   zum Entry-Zeitpunkt fest persistiert (immutable). `max_drawdown_pct`
   + `max_gain_pct` + `max_gain_pct_net` starten bei `None` (Key vorhanden,
   damit die Rolling-Guards `"<feld>" in e` greifen).
-- **Rolling Update** (< 14 Kalendertage alt, ≈ 10 Handelstage): pro
+- **Rolling Update** (bis Tag 10 final, seit 13.11.2026): pro
   Daily-Run werden `max_drawdown_pct` UND `max_gain_pct` über
   `_compute_max_drawdown()` / `_compute_max_gain_pct()` neu berechnet
   via **gemeinsamem** Batch-yfinance-Download aller aktiven Ticker
-  (dieselbe `df_since`-Slice, kein zusätzlicher Roundtrip).
-  Idempotent — Ergebnisse sind immer der bisher schlechteste Drawdown
-  bzw. beste Gain im Fenster. Nach 14 Tagen finalisiert.
+  (dieselbe `df_since`-Slice, kein zusätzlicher Roundtrip;
+  `_apply_rolling_window`). Aktiv solange `D ≤ letzter finaler Schluss ≤
+  Tag 10 + ROLLING_WINDOW_GRACE_DAYS (7)` (`_rolling_window_active`; Tag 10
+  aus dem Handelskalender `trading_date.nth_trading_day_after`, „final“ über
+  `last_final_close_date`) — unabhängig von Kalendertagen und Laufzeitpunkt.
+  `rolling_window_n` hält die Zahl der finalen Zeilen (11 = vollständig); ein
+  kürzeres Fenster überschreibt nie ein längeres. Der Export
+  (`matured_export`) übernimmt die Zeile erst bei vollständigem Fenster oder
+  nach der Nachfrist. **Vorher** (bis 12.11.2026) endete das Update nach 14
+  Kalendertagen (UTC-Datum) — Fenster blieben teils vor Tag 10 stehen
+  (open_item `max-gain-rolling-fenster-abgeschnitten`, Wächter S17).
+  Altbestand ohne `rolling_window_n` läuft bis zum Herausfallen nach der alten
+  Regel; bereits herausgefallene Zeilen werden nicht wieder aufgenommen.
 - **Legacy-Einträge** ohne `max_drawdown_pct`/`max_gain_pct`-Feld
   bleiben unangetastet (Backwards-Compat, per-Feld-Guard
   `if "<feld>" in e`); nur neue Einträge ab jeweiligem Deploy bekommen
@@ -4006,7 +4016,7 @@ Sektion ist nur ein CLAUDE.md-Anker auf das Doku-File.
   (nach ``save_state``). Fail-soft via ``run_and_record`` —
   Daily-Run/KI-Agent crashen nie wegen Health-Check.
 
-### 16 State-Invariants (Phase 1 S1–S7 + S8 ab 16.05. + S9–S13 + S14 + S15 ab 06.11. + S16 ab 08.11.)
+### 17 State-Invariants (Phase 1 S1–S7 + S8 ab 16.05. + S9–S13 + S14 + S15 ab 06.11. + S16 ab 08.11. + S17 ab 13.11.)
 
 Voller Detailtext + Schwellen-Tabelle in
 ``docs/health_check_spec.md``. Hier nur Kurz-Übersicht. **Lauf-Kontext:**
@@ -4031,6 +4041,7 @@ S2/S3/S6/S8/S14 laufen in BEIDEN Pfaden (Daily-Run + ki_agent-Tick), alle
 | S14 | warn | beide | ``last_successful_gist_pull`` in ``gist_pull_state.json`` ≤ ``HEALTH_CHECK_S14_MAX_AGE_HOURS`` (26) Stunden alt. **COMPOSITE-Liveness** — Detail-Text sagt „Gist-Pull seit N h nicht erfolgreich", NICHT „Token tot": altert sowohl bei totem ``GIST_TOKEN`` (Gist-Read scheitert über Zeit, Stille-Tod 02.06.) ALS AUCH bei mehrtägigem ki_agent-/daily-Cron-Drop. Marker NUR im HTTP-Gist-Erfolgszweig von ``pull_gist_data.py`` geschrieben (#310). Fehlende Datei / null → SKIP (analog S8). Beide Pfade: im ki_agent-Tick liest der Hook den nicht-aktualisierten alten Working-Tree-Marker → ~1 h Detektionslatenz statt ~1 Tag. **Body-Korruption** (HTTP-200 + kaputtes/leeres/truncated ``squeeze_data.json``) seit dem ``pull_gist_data._extract_data``-Body-Sanity-Gating (``body_ok``, positions-Key-Präsenz vor der ``or "{}"``-Maskierung) MIT erkannt → Marker NICHT gesetzt → S14 fängt es. Restkante (Folge-PR): Recovery-Umleitung bei Korruption (Schadens-Vermeidung statt nur Detektion). |
 | S15 | warn | Daily | Postclose des **letzten US-Handelstags vor dem heutigen ET-Tag** fehlt: keine Nicht-Bootstrap-Einträge mit dessen Datum in ``backtest_history.json`` (Feiertage über ``config.US_MARKET_HOLIDAYS``, wie S4). Nur wenn der Hook ``backtest_path`` übergibt (Daily-Run); Tag älter als der älteste Eintrag (90-Tage-Prune, alte Test-Daten) / Datei fehlt / kaputt → SKIP. Bewusst **warn**, nicht crit: zum Meldezeitpunkt ist der Tag nicht mehr sauber nachholbar (Berichtsdatum = heutiger ET-Tag) — es geht um ehrliche Sichtbarkeit; S12 bleibt der crit-Alarm für mehrtägige Ausfälle. Im OK-Digest als Hinweis-Zeile „🟡 S15: …“ (allgemeine Regel für aktive warns seit 07.11.2026, Titel bleibt OK). Anlass: Postclose 04.11.2026 (Cron-Wechsel #656) und 27.08.2026 (Lauf nach 00:00 ET). |
 | S16 | warn/crit | Daily | **Wahrheits-Abgleich** (08.11.2026): liest nur ``truth_check_log.jsonl`` (kein Netz). warn ab 1 Abweichungs-Zeile; crit ab ``HEALTH_CHECK_S16_CRIT_ROWS`` (3) in einem Lauf oder dieselbe Abweichung in 2 Läufen hintereinander; warn bei > 30 % unbekannt oder derselbe Ticker 5 geprüfte Läufe in Folge unbekannt; warn „läuft nicht“ ohne Log oder Lauf > 2 US-Handelstage alt. ``neu_adjustiert`` ist kein Fail. Details: Abschnitt „Wahrheits-Abgleich“ unten. |
+| S17 | warn | Daily | **Rolling-Fenster abgeschnitten** (13.11.2026): vergleicht gereifte Zeilen in ``matured_backtest_export.jsonl`` mit der Neuberechnung aus ``outcome_path.jsonl`` (OHLC Tag 0–10). Abgeschnitten = ``max_gain_pct`` kleiner bzw. ``max_drawdown_pct`` weniger negativ als das volle Fenster (> 0,5 pp) UND passend (± 0,3 pp) zu einem kürzeren Fenster D..Tag k. warn nur ab ``ROLLING_WINDOW_FIX_FROM`` (Rückfall) oder bei Export-Zeilen mit ``rolling_window_n`` < 11; ältere Fälle nur als „Altbestand“-Zahl. **Nur Zählungen** (Blindheit Replikation), kein Netz. Nur mit Hook-Pfaden, sonst SKIP. |
 
 
 **S8** (16.05.2026) erkennt silent Digest-Push-Fails (gestern 15.05.:

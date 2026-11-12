@@ -82,7 +82,7 @@ def _row(stock, phase):
         gr._REPORT_RUN_PHASE = orig
 
 
-TEXT = "höher = größere Spanne inkl. Einstiegstag · ab Einstieg: Test läuft, ~Dez."
+TEXT = "höher = größere Spanne inkl. Einstiegstag · ab Einstieg: Test läuft, ~Jan."
 
 
 def test_row_rendering():
@@ -181,7 +181,7 @@ def test_v1_equals_v2_and_cards():
 def test_panel_rows():
     rows, _ = gr._score_confidence_rows_html({"setup": {"n": 5, "data_tier": "klein"}})
     check("Panel-Kopfzeile Stand 12.11.2026",
-          "Stand 12.11.2026: 4 Bestätigungstests, 1 formaler Beleg" in rows
+          "Stand 13.11.2026: 4 Bestätigungstests, 1 formaler Beleg" in rows
           and "kein Beleg für Gewinn ab Einstieg" in rows)
     check("Panel-Zeile Momentum 5T (Paper C)", "Momentum 5T (Paper C)" in rows)
     check("Panel-Zeile blau", re.search(r"Momentum 5T \(Paper C\).*conf-kind-pending", rows) is not None)

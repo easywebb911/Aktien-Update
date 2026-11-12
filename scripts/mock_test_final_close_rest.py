@@ -158,7 +158,9 @@ def test_a_window():
            len(w) == 11 and w.index.date == hol[:11], str(w.index.date))
     src = (ROOT / "backtest_history.py").read_text(encoding="utf-8")
     _check("A5 Rolling-Block nutzt _final_window mit last_final_close_date(now_et)",
-           "df_since = _final_window(df, edate, _final_cut)" in src
+           # seit 13.11.2026 in _apply_rolling_window ausgelagert
+           "_apply_rolling_window(e, df, edate, _final_cut)" in src
+           and "df_since = _final_window(df, edate, final_cut)" in src
            and "_final_cut = trading_date.last_final_close_date(now_et)" in src)
 
 

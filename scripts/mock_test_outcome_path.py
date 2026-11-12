@@ -43,7 +43,9 @@ import health_check as hc  # noqa: E402
 import outcome_path_update as op  # noqa: E402
 from backtest_history import apply_round_trip_haircut  # noqa: E402
 
-FREEZE_MD5 = "6d7e3d02ebde12c5b3edd5b3ecf38e94"
+# 13.11.2026: neu gepinnt nach zwei datierten Protokolleinträgen (Auslöser 500,
+# Zielfeld nicht vom max_gain-Fehler betroffen) — vorher 6d7e3d02…
+FREEZE_MD5 = "d4dbe7e77b75aa267feabc0e6cabeccb"
 _fails: list[str] = []
 
 

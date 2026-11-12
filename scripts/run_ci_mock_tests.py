@@ -42,6 +42,7 @@ ALLOWLIST = [
     "sparkline_view",
     "score_delta_t1_chrono",
     "outcome_path",
+    "rolling_window_end",
     "score_smoothing_chrono",
     "diagnose_night_probe",
     "paper_c_marker",
