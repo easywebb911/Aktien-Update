@@ -158,7 +158,7 @@ def _run(workdir, report_day, utc_now, yahoo_dates):
     orig_date, orig_dl = bh.date, bh.yf.download
 
     def _dl(*a, **kw):
-        return _frame(yahoo_dates) if kw.get("period") == "1mo" else None
+        return _frame(yahoo_dates) if kw.get("period") in ("1mo", "2mo") else None  # 2mo seit 13.11.2026
     cwd = os.getcwd()
     try:
         bh.date, bh.yf.download = _FixedDate, _dl

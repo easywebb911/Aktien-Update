@@ -725,9 +725,9 @@
       "id": "max-gain-ab-tief-nicht-ab-einstieg",
       "title": "max_gain_pct/max_drawdown_pct messen ab dem Einstiegstag D, nicht ab dem Einstiegskurs",
       "opened": "2026-11-12",
-      "description": "Gipfel-Bericht 11.11.2026 (read-only, im Code belegt): _compute_max_gain_pct (backtest_history.py:337) = max(High − cummin(Low))/cummin(Low) über _final_window (:1211, d >= edate) — Hoch und Tief von D zählen, obwohl der Einstieg zum Schluss D erfolgt (alle 668 Zeilen des ersten Paper-C-Laufs nach 16:00 ET am selben ET-Tag geschrieben; 10 am 10.08. um 16:09 ET). max_drawdown_pct spiegelbildlich vom laufenden Hoch inkl. Hoch D. Explorative Schranken erste Stichprobe (W1, nicht bindend): von 192 registrierten Treffern sicher handelbar ≥ 37 (Schluss T3/T5/T10 ≥ +30 % ab Schluss D), bis zu 155 fallen evtl. weg; Ersatz-Ziel AUC 0,616 [0,505–0,722] (37 Treffer, unter Floor), registriert 0,607 [0,556–0,658]. Paper-C-Verdikt bleibt (gilt für das registrierte Ziel). Handelbares Feld seit 12.11.2026: outcome_path.jsonl (outcome-handelbar-ab-schluss-d). Bestehende Felder werden NICHT geändert.",
+      "description": "Gipfel-Bericht 11.11.2026 (read-only, im Code belegt): _compute_max_gain_pct (backtest_history.py:337) = max(High − cummin(Low))/cummin(Low) über _final_window (:1211, d >= edate) — Hoch und Tief von D zählen, obwohl der Einstieg zum Schluss D erfolgt (alle 668 Zeilen des ersten Paper-C-Laufs nach 16:00 ET am selben ET-Tag geschrieben; 10 am 10.08. um 16:09 ET). max_drawdown_pct spiegelbildlich vom laufenden Hoch inkl. Hoch D. Explorative Schranken erste Stichprobe (W1, nicht bindend): von 192 registrierten Treffern sicher handelbar ≥ 37 (Schluss T3/T5/T10 ≥ +30 % ab Schluss D), bis zu 155 fallen evtl. weg; Ersatz-Ziel AUC 0,616 [0,505–0,722] (37 Treffer, unter Floor), registriert 0,607 [0,556–0,658]. Paper-C-Verdikt bleibt (gilt für das registrierte Ziel). Handelbares Feld seit 12.11.2026: outcome_path.jsonl (outcome-handelbar-ab-schluss-d). Bestehende Felder werden NICHT geändert. NACHTRAG 13.11.2026: getrennter Fehler gefunden — Fenster teils vor Tag 10 eingefroren, siehe max-gain-rolling-fenster-abgeschnitten.",
       "status": "offen",
-      "status_date": "2026-11-12"
+      "status_date": "2026-11-13"
     },
     {
       "id": "outcome-handelbar-ab-schluss-d",
@@ -784,6 +784,30 @@
       "description": "Gipfel-Bericht 11.11.2026: die 10 Forward-Zeilen vom 10.08.2026 wurden um 16:09 ET committet (Vintage-Grenze damals 16:00 ET) — Schlusskurs evtl. noch nicht endgültig. Nur kennzeichnen, nicht umschreiben.",
       "status": "offen",
       "status_date": "2026-11-12"
+    },
+    {
+      "id": "max-gain-rolling-fenster-abgeschnitten",
+      "title": "max_gain_pct/max_drawdown_pct: Rolling-Fenster vor Tag 10 eingefroren (auch im Export)",
+      "opened": "2026-11-13",
+      "description": "Befund Nachtrag Gipfel-Bericht 12.11.2026: _append_backtest_entries beendete das Rolling-Update nach 14 Kalendertagen (days_old > 14, date.today() UTC); matured_export.py exportierte nach derselben Schranke einmalig in den append-only-Export. Bei ausgefallenem Postclose, Lauf nach Mitternacht UTC oder Feiertag im Fenster blieb das Fenster vor Tag 10 stehen (DFH 22.10.: Tag 7). Zählung 13.11.2026 gegen outcome_path.jsonl: Export < 24.10.: 24 von 669 Zeilen (12 max_gain, 12 nur max_drawdown), im ersten Paper-C-Lauf 12/665 bei max_gain, 2 Treffer-Wechsel; Replikationsfenster ≥ 24.10.: 17 von 30 exportierten Zeilen (blind gezählt). FIX vorwärts (PR 13.11.2026): Aktualisierung bis Tag 10 final + 7 Tage Nachfrist (backtest_history._rolling_window_active, Feld rolling_window_n), Export erst bei vollständigem Fenster (matured_export._rolling_window_complete), Wächter S17. OFFEN: Korrektur der bereits exportierten Zeilen — würde den append-only-Export ändern (Mini-Stopp, Easy-Entscheid); bis dahin 0 korrigiert. Protokolleinträge 13.11.2026 im Replikations-Block und im Paper-C-Protokoll.",
+      "status": "offen",
+      "status_date": "2026-11-13"
+    },
+    {
+      "id": "paper-c-handelbar-floor-risiko",
+      "title": "Paper C handelbar: Auslöser 300 hätte den Floor 40 wahrscheinlich verfehlt",
+      "opened": "2026-11-13",
+      "description": "Erste Stichprobe (explorativ 12.11.2026): handelbare Trefferquote 71/665 ≈ 10,7 %. n = 300 → Erwartung 32,0 Treffer, P(< 40) ≈ 91,6 %; n = 500 → 53,4, P(< 40) ≈ 1,9 % (Binomial exakt). ENTSCHEID Easy 12.11.2026: Auslöser auf n ≥ 500 (nach Ausschlüssen) angehoben, Protokolleintrag 13.11.2026 im Freeze-Block 'Paper C handelbar'; kein ergebnisabhängiger Auslöser, kein Blick auf Zeilen ≥ 24.10.2026. Schätzung Lauf ~Ende Januar 2027 (nicht bindend); Anzeige angepasst.",
+      "status": "erledigt",
+      "status_date": "2026-11-13"
+    },
+    {
+      "id": "kpti-ohne-kursdaten",
+      "title": "KPTI: Yahoo liefert keine Kursdaten (outcome_path null)",
+      "opened": "2026-11-13",
+      "description": "outcome_path-Backfill 12.11.2026: alle drei Forward-Einstiege von KPTI (11.08., 31.08., 16.09.2026) null mit Grund ticker_ohne_kursdaten; letzter Top-10-Auftritt 16.09.2026, seit Anfang Oktober nicht mehr in score_history. Technische Entscheidung 13.11.2026: NICHT auf TRUTH_CHECK_DELISTED gesetzt — einziger Beleg ist ein leerer Yahoo-Abruf (Sandbox ohne Yahoo, kein zweiter Beleg wie Delisting-Meldung oder Ticker-Wechsel). Prüfen beim nächsten Wahrheits-Abgleich/Abruf; bei erneut leerer Antwort plus Beleg (Börsen-/SEC-Meldung) eintragen. Wirkung auf Paper C: 3 von 668 Zeilen fehlen, Momentum 0,6/7,1/10,8 %, keine Verzerrung zu einer Momentum-Gruppe.",
+      "status": "offen",
+      "status_date": "2026-11-13"
     }
   ]
 }

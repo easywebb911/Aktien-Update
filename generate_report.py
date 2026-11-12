@@ -20469,6 +20469,8 @@ def main():
             html_path="app.html",   # Phase 0: S9 prüft den kanonischen Content-Pfad
             backtest_path=BACKTEST_FILE,   # S15: Postclose des letzten Handelstags
             truth_check_log_path=TRUTH_CHECK_LOG_FILE,   # S16: Wahrheits-Abgleich (nur Log lesen)
+            matured_export_path=MATURED_EXPORT_FILE,     # S17: Rolling-Fenster abgeschnitten
+            outcome_path_path=OUTCOME_PATH_FILE,         # S17: nur Zählungen
         )
     except Exception as exc:
         log.warning("health_check (Daily-Run) fehlgeschlagen: %s", exc)

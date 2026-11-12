@@ -41,13 +41,20 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+
+import trading_date
 
 try:  # zentrale Konstanten; Fallback macht das Modul standalone-testbar
-    from config import BACKTEST_FILE, MATURED_EXPORT_FILE
+    from config import (BACKTEST_FILE, MATURED_EXPORT_FILE,
+                        ROLLING_WINDOW_GRACE_DAYS, ROLLING_WINDOW_TRADING_DAYS,
+                        US_MARKET_HOLIDAYS)
 except Exception:  # pragma: no cover
     BACKTEST_FILE = "backtest_history.json"
     MATURED_EXPORT_FILE = "matured_backtest_export.jsonl"
+    ROLLING_WINDOW_GRACE_DAYS = 7
+    ROLLING_WINDOW_TRADING_DAYS = 10
+    US_MARKET_HOLIDAYS = frozenset()
 
 log = logging.getLogger(__name__)
 
@@ -75,6 +82,24 @@ def _calendar_days_old(ds: str, now: datetime):
         return (now.date() - entry).days
     except (ValueError, AttributeError, TypeError):
         return None
+
+
+def _rolling_window_complete(e: dict, ds: str, now: datetime) -> bool:
+    """True, wenn das max_gain-/max_drawdown-Fenster des Eintrags fertig ist:
+    ``rolling_window_n >= 11`` (D + 10 Handelstage) oder der letzte finale
+    Schlusstag liegt nach Tag 10 + Nachfrist. Unparsebares Datum → False."""
+    try:
+        dd, mm, yy = ds.split(".")
+        edate = datetime(int(yy), int(mm), int(dd)).date()
+    except (ValueError, AttributeError, TypeError):
+        return False
+    n = e.get("rolling_window_n")
+    if isinstance(n, int) and not isinstance(n, bool) and n >= ROLLING_WINDOW_TRADING_DAYS + 1:
+        return True
+    end = trading_date.nth_trading_day_after(edate, ROLLING_WINDOW_TRADING_DAYS,
+                                             US_MARKET_HOLIDAYS)
+    final_cut = trading_date.last_final_close_date(now)
+    return final_cut > end + timedelta(days=ROLLING_WINDOW_GRACE_DAYS)
 
 
 def _load_existing(export_path: str):
@@ -169,9 +194,20 @@ def export_matured_records(history: list | None = None, *,
         # nach return_10d-Fill noch, bis 133 pp, gerichtet auf die Top-Mover —
         # genau die Zielgruppe der Auswertung). Erst ab Kalendertag 15 ist beides
         # ausgereizt und der Snapshot endgültig.
-        _days_old = _calendar_days_old(d, now)
-        if _days_old is None or _days_old <= 14:
-            continue
+        if "rolling_window_n" in e:
+            # Neue Regel (Fix 13.11.2026, open_item max-gain-rolling-fenster-
+            # abgeschnitten): erst exportieren, wenn das Rolling-Fenster
+            # vollständig ist (11 finale Tageszeilen D..Tag 10) ODER die
+            # Nachfrist nach Tag 10 vorbei ist (dann bleibt es, wie es ist —
+            # der Wächter S17 zählt solche Zeilen). Uhrzeit-/Kalendertag-
+            # unabhängig: Tag 10 aus dem Handelskalender, „final“ über
+            # trading_date.last_final_close_date (ET, 16:20).
+            if not _rolling_window_complete(e, d, now):
+                continue
+        else:
+            _days_old = _calendar_days_old(d, now)
+            if _days_old is None or _days_old <= 14:
+                continue
         if (t, d) in seen:                       # idempotent (Datei + Batch)
             continue
         seen.add((t, d))

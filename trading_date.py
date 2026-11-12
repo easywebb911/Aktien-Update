@@ -122,3 +122,24 @@ def last_final_close_date(now_utc: datetime | None = None) -> date:
     if et.time() >= US_CLOSE_FINAL_ET:
         return et.date()
     return et.date() - timedelta(days=1)
+
+
+# ── Handelstag-Fenster (Fix 13.11.2026, open_item max-gain-rolling-fenster-abgeschnitten)
+def is_us_trading_day(d: date, holidays) -> bool:
+    """Mo–Fr und nicht in ``holidays`` (Menge ISO-Strings, z. B.
+    ``config.US_MARKET_HOLIDAYS``). Pure; ``holidays`` wird übergeben, damit
+    dieses Modul ohne Projekt-Import bleibt."""
+    return d.weekday() < 5 and d.isoformat() not in holidays
+
+
+def nth_trading_day_after(d: date, n: int, holidays) -> date:
+    """Der ``n``-te US-Handelstag NACH ``d`` (``n = 0`` → ``d`` selbst).
+    Tag 10 des max_gain-/max_drawdown-Fensters = ``nth_trading_day_after(D, 10)``.
+    Hängt nur vom Kalender ab — nicht von Uhrzeit oder Laufzeitpunkt."""
+    out = d
+    k = 0
+    while k < n:
+        out += timedelta(days=1)
+        if is_us_trading_day(out, holidays):
+            k += 1
+    return out

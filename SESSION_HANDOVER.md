@@ -3340,6 +3340,25 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#675` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — Paper C handelbar Auslöser 500 + max_gain-Fenster bis Tag 10 + Wächter S17 (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Entscheide 12.11.2026 nach dem Nachtrag zum Gipfel-Bericht: `#676` (Branch
+  `claude/paper-c-handelbar-trigger-maxgain-w4k9`, Branch-Commit `feedc62a`, kein Merge-Hash —
+  Regel a). Teil 1: Protokolleintrag im Freeze „Paper C handelbar“ — Auslöser n ≥ 500 statt 300
+  (71/665 ≈ 10,7 %; n=300 → P(<40 Treffer) ≈ 91,6 %, n=500 → ≈ 1,9 %, Binomial exakt); Anzeige
+  handelbare Variante ~Ende Jan. 2027 (Karte „~Jan.“), Replikation bleibt ~Dez. Teil 2: Ursache
+  `backtest_history._append_backtest_entries` (14-Kalendertage-Ende, `date.today()` UTC) +
+  `matured_export` (gleiche Schranke) → Fenster vor Tag 10 eingefroren (Export < 24.10.: 24/669,
+  Replikationsfenster 17/30, blind gezählt). Fix vorwärts: bis Tag 10 final + 7 Tage Nachfrist,
+  `rolling_window_n`, Export erst bei vollständigem Fenster, Wächter S17 (nur Zählungen).
+  Korrektur bereits exportierter Zeilen NICHT gebaut (append-only — Mini-Stopp, Easy-Entscheid).
+  Protokolleinträge im Replikations-Block und im Paper-C-Protokoll. Teil 3: open_items
+  `max-gain-rolling-fenster-abgeschnitten`, `paper-c-handelbar-floor-risiko` (erledigt),
+  `kpti-ohne-kursdaten` (KPTI NICHT auf TRUTH_CHECK_DELISTED — nur ein leerer Yahoo-Abruf als Beleg).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#675`,
+  höchste in Block 1 erwähnte PR = `#676` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 11.11.2026 — open_items aus der Nacht-Probe-Endauswertung (1 PR, Auto-Merge Doku)
 
 - Easy-Entscheid 11.11.2026: `#673` (Branch `claude/open-items-nachtprobe-x3q8`, Branch-Commit
@@ -6742,6 +6761,13 @@ Live-Nutzung — auch eine reine Anzeige — liest das Momentum aus dem Enrichme
 `entry_past_return_5d` aus `backtest_history.json` oder dem Export. Eine Nutzung im
 Score, Filter oder Push bleibt ausgeschlossen.
 
+**Nachtrag 13.11.2026 (keine Neuauswertung):** Im Zielfeld `max_gain_pct` dieses Laufs
+endet das Rolling-Fenster bei **12 von 665** ausgewerteten Zeilen vor Tag 10 (Fehler und
+Fix: Protokolleintrag 13.11.2026 im Replikations-Block unten). Mit vollem Fenster
+wechselten **2** Zeilen von Nicht-Treffer zu Treffer (explorativ gezählt gegen
+`outcome_path.jsonl`). Das Verdikt dieses Laufs bleibt, wie es ist; es wird **nicht**
+neu ausgewertet.
+
 ### VORABREGISTRIERUNG — Paper C Replikation (Gipfel), eingefroren 07.11.2026
 
 **Easy-Entscheid 07.11.2026**, nach dem Ergebnis des Paper-C-Laufs (Protokolleintrag
@@ -6823,6 +6849,33 @@ Top-10-Auswahl während der Sammlung braucht hier einen datierten Eintrag.
 
 **Änderungs-Protokoll (bindend ab 07.11.2026):** Keine Änderung an diesem Block
 ohne datierten Protokolleintrag, der die Änderung und ihren Grund festhält.
+
+**Protokolleintrag 13.11.2026 — Fehler im Zielfeld `max_gain_pct` (Rolling-Fenster
+vor Tag 10 eingefroren):** Kriterien dieses Blocks **unverändert**; dokumentiert
+werden Fehler, Fix und Naht.
+- **Fehler:** `backtest_history._append_backtest_entries` beendete das Rolling-Update
+  von `max_gain_pct`/`max_drawdown_pct` nach **14 Kalendertagen** (`days_old > 14`,
+  `date.today()` = UTC-Datum des Laufs). Fiel ein Postclose-Lauf aus, lief er nach
+  Mitternacht UTC oder lag ein Feiertag im Fenster, blieb das Fenster **vor Tag 10**
+  stehen. `matured_export.py` exportiert nach derselben 14-Tage-Schranke **einmalig**
+  in den append-only-Export, aus dem dieser Block liest — der abgeschnittene Wert ist
+  dort eingefroren. Beispiel DFH 22.10.2026: Fenster endet an Tag 7.
+- **Umfang (Zählung 13.11.2026 gegen `outcome_path.jsonl`, nur Zählung):** Export-
+  Zeilen mit Einstieg < 24.10.2026: **24 von 669** geprüften (12 bei `max_gain_pct`,
+  12 nur bei `max_drawdown_pct`). Dieses Replikationsfenster (Einstieg ≥ 24.10.2026):
+  **17 von 30** bisher exportierten Zeilen — **blind gezählt**, ohne Werte, ohne
+  Treffer-Zählung.
+- **Fix (vorwärts, PR „max_gain-Fenster bis Tag 10“):** Aktualisierung bis Tag 10
+  final (Handelskalender, `trading_date.last_final_close_date`) + 7 Tage Nachfrist,
+  unabhängig von Kalendertagen und Laufzeit; Export erst, wenn das Fenster vollständig
+  ist (`rolling_window_n` = 11) oder die Nachfrist vorbei ist. **Naht:** Einträge, die
+  beim ersten Lauf nach dem Merge noch im alten 14-Tage-Fenster sind, wechseln auf die
+  neue Regel; Einstiege ab 13.11.2026 laufen nur über die neue Regel. Wächter S17 zählt
+  abgeschnittene Fenster.
+- **Korrektur bereits exportierter Zeilen:** **offen** (würde den append-only-Export
+  ändern — Easy-Entscheid ausstehend). Anzahl korrigierter Zeilen bis dahin: **0**.
+  Jede Korrektur wird hier mit Datum, Anzahl und Quelle nachgetragen, **bevor** dieser
+  Block ausgewertet wird.
 
 ### VORABREGISTRIERUNG — Paper C handelbar (Gipfel ab Einstiegskurs), eingefroren 12.11.2026
 
@@ -6940,6 +6993,28 @@ als Einstieg an; der tatsächliche Kaufkurs (Nachbörse/Folgetag) ist nicht mode
 **Änderungs-Protokoll (bindend ab 12.11.2026):** Keine Änderung an diesem Block ohne
 datierten Protokolleintrag, der die Änderung und ihren Grund festhält. Ein Revert
 dieses Blocks wird ebenfalls als Protokolleintrag festgehalten.
+
+**Protokolleintrag 13.11.2026 — Auslöser von n ≥ 300 auf n ≥ 500 angehoben (Easy-Entscheid
+12.11.2026):** Punkt 6 gilt ab jetzt mit **n ≥ 500** statt 300; gezählt wird unverändert
+**nach** den Ausschlüssen (endlicher Prädiktor **und** endliches Zielfeld). Alles andere
+in diesem Block bleibt. **Begründung nur aus der ersten Stichprobe (21.07.–23.10.2026,
+explorativ angesehen am 12.11.2026):** handelbare Trefferquote 71/665 ≈ 10,7 %. Bei 300
+Zeilen wären ≈ 32,0 Treffer zu erwarten — **unter** dem Floor 40 (Wahrscheinlichkeit
+< 40 Treffer ≈ 91,6 %, Binomial mit p = 71/665); der einmalige Lauf würde dann „nicht
+auswertbar“ und wäre verbraucht. Bei 500 Zeilen ≈ 53,4 Treffer, Wahrscheinlichkeit
+< 40 Treffer **≈ 1,9 %** (Binomial exakt, nachgerechnet 13.11.2026; Easys Näherung
+„≈ 3 %“ war die grobe Schranke). **Kein Blick auf Zeilen ≥ 24.10.2026**, keine
+Zählung nach Ergebnis, **kein ergebnisabhängiger Auslöser** (ein Auslöser „≥ 40
+Treffer“ wäre ein Blick aufs Ergebnis und ist ausdrücklich verworfen). Die Folge ist
+ein späterer Lauf: Schätzung **~Ende Januar 2027** (≈ 10 Zeilen je Handelstag ab
+26.10.2026, 500 Zeilen ≈ 50 Handelstage, dazu Reifung bis Tag 10 + Nachfrist) — nur
+Schätzung, nicht bindend. Reihenfolge bleibt: nie vor dem Replikationslauf.
+
+**Protokolleintrag 13.11.2026 — Zielfeld nicht vom max_gain-Fehler betroffen:** Der am
+12./13.11.2026 gefundene Fehler „Rolling-Fenster von `max_gain_pct`/`max_drawdown_pct`
+vor Tag 10 eingefroren“ (Protokolleintrag im Replikations-Block oben) betrifft dieses
+Ziel **nicht**: `max_gain_from_entry_pct` kommt aus `outcome_path.jsonl` und wird erst
+geschrieben, wenn Tag 10 final ist.
 
 ### ✅ STATUS-PANEL — 6. Eintrag `si_position_history` — ERLEDIGT (PR #430, 14.07.)
 

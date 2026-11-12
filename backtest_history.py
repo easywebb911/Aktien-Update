@@ -19,7 +19,7 @@ from __future__ import annotations
 import json
 import logging
 import math
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import yfinance as yf
@@ -35,9 +35,12 @@ from config import (
     EARLINESS_TREND_VOL_STAB_CAP,
     HAIRCUT_ROUND_TRIP_PCT,
     MATERIAL_8K_ENABLED,
+    ROLLING_WINDOW_GRACE_DAYS,
+    ROLLING_WINDOW_TRADING_DAYS,
     SCORE_NORMALIZATION_VERSION,
     SI_VELOCITY_PUB_N_REPORTS,
     SSR_RESTRICTION_ENABLED,
+    US_MARKET_HOLIDAYS,
     WIKI_ATTENTION_BACKFILL_WINDOW_DAYS,
     WIKI_ATTENTION_ENABLED,
     WIKI_ATTENTION_MAP_FILE,
@@ -1212,6 +1215,76 @@ def _final_window(df, edate, final_cut, n: int = 11):
     return df[mask].iloc[:n]
 
 
+def _apply_rolling_window(e: dict, df, edate: date, final_cut: date) -> tuple[bool, bool]:
+    """Rechnet max_drawdown_pct/max_gain_pct(+_net) eines Eintrags aus den
+    finalen Tageszeilen D..Tag 10 neu (``_final_window``) und setzt
+    ``rolling_window_n``. Pure bis auf das Schreiben in ``e``; keine Uhrzeit,
+    kein Netz — gleiche Kursdaten + gleicher ``final_cut`` → gleiche Werte.
+    Returnt ``(drawdown_gesetzt, max_gain_gesetzt)``.
+
+    Nie mit einem KÜRZEREN Fenster überschreiben als zuletzt (Datenlücke im
+    Abruf darf ein schon längeres Fenster nicht zurückdrehen)."""
+    df_since = _final_window(df, edate, final_cut)
+    n_win = len(df_since)
+    if n_win < (e.get("rolling_window_n") or 0):
+        return False, False
+    e["rolling_window_n"] = n_win
+    dd_set = mg_set = False
+    dd = _compute_max_drawdown(df_since)
+    if dd is not None:
+        e["max_drawdown_pct"] = dd
+        dd_set = True
+    # Spiegel-Update max_gain_pct (Hypothese-C-Vorbau, 02.07.2026). Guard „in e"
+    # hält Alt-Records ohne das Feld unangetastet (Backwards-Compat).
+    if "max_gain_pct" in e:
+        mg = _compute_max_gain_pct(df_since)
+        if mg is not None:
+            e["max_gain_pct"] = mg
+            # Netto-Geschwisterfeld (12.09.2026) — nur gesetzt, wenn
+            # max_gain_pct selbst JETZT aus ≥ 2 finalen Tageszeilen berechnet
+            # wurde; bei None bleiben beide, wie sie sind (open_item
+            # daily-maxgain-null-statt-0).
+            e["max_gain_pct_net"] = apply_round_trip_haircut(mg)
+            mg_set = True
+    return dd_set, mg_set
+
+
+def _rolling_window_end(edate: date) -> date:
+    """Tag 10 des max_gain-/max_drawdown-Fensters (der 10. US-Handelstag nach
+    D, Kalender ``config.US_MARKET_HOLIDAYS``). Pure, uhrzeit-unabhängig."""
+    return trading_date.nth_trading_day_after(
+        edate, ROLLING_WINDOW_TRADING_DAYS, US_MARKET_HOLIDAYS)
+
+
+def _rolling_window_active(e: dict, edate: date, final_cut: date,
+                           today_utc: date) -> bool:
+    """Soll das Rolling-Update (max_drawdown_pct/max_gain_pct) diesen Eintrag
+    in diesem Lauf neu rechnen? (Fix 13.11.2026, open_item
+    max-gain-rolling-fenster-abgeschnitten.)
+
+    * Neue Regel — Eintrag trägt ``rolling_window_n``: aktiv, solange
+      ``D <= final_cut <= Tag 10 + ROLLING_WINDOW_GRACE_DAYS`` und das Fenster
+      noch nicht vollständig (``rolling_window_n < 11``). ``final_cut`` =
+      ``trading_date.last_final_close_date(jetzt)`` (ET, 16:20-Grenze) — also
+      unabhängig vom UTC-Kalendertag des Laufs und von Feiertagen.
+    * Altbestand ohne den Key: die frühere Regel ``0 < (heute UTC − D) ≤ 14``
+      unverändert (Einträge, die schon herausgefallen sind, werden NICHT
+      wieder aufgenommen — ihre Korrektur ist eine eigene Entscheidung). Wird
+      ein solcher Eintrag noch aktualisiert, bekommt er den Key und läuft ab
+      dann über die neue Regel."""
+    if "rolling_window_n" in e:
+        if edate > final_cut:
+            return False
+        # Fenster vollständig (D + 10 Handelstage) → fertig, wie im Export-Gate;
+        # spätere Kursanpassungen ändern backtest_history dann nicht mehr.
+        _n = e.get("rolling_window_n")
+        if isinstance(_n, int) and not isinstance(_n, bool) and _n >= ROLLING_WINDOW_TRADING_DAYS + 1:
+            return False
+        return final_cut <= _rolling_window_end(edate) + timedelta(days=ROLLING_WINDOW_GRACE_DAYS)
+    days_old = (today_utc - edate).days
+    return 0 < days_old <= 14
+
+
 def _append_backtest_entries(top10: list[dict], report_date: str,
                              pool_size: int = 0, *,
                              compute_sub_scores_fn, safe_float_fn,
@@ -1461,6 +1534,11 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             # max_gain_pct. None bis max_gain_pct im Rolling-Update (unten)
             # aus ≥ 2 finalen Tageszeilen berechnet wurde.
             "max_gain_pct_net": None,
+            # Fix 13.11.2026: Zahl der finalen Tageszeilen (D..Tag 10, max 11),
+            # aus denen max_drawdown_pct/max_gain_pct zuletzt gerechnet wurden.
+            # Key-Existenz schaltet die neue Ende-Regel (_rolling_window_active)
+            # und das Export-Gate (matured_export) ein; 11 = Fenster vollständig.
+            "rolling_window_n": None,
             "market_regime":    market_regime,
             "vix_level":        vix_level,
             # PR-γ-1 Marker: 1 = pre-γ (raw-RVOL), 2 = post-γ (normalized).
@@ -1501,11 +1579,15 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         history.append(entry)
         n_added += 1
 
-    # Rolling Drawdown-Aktualisierung: pro Eintrag < 14 Kalendertage (≈10
-    # Handelstage) alt die Ticker-History seit Entry holen und max_drawdown
-    # neu berechnen. Ein Batch-Download für alle aktiven Ticker spart
-    # Round-Trips; pro Entry wird die Datums-Slice ausgewertet.
+    # Rolling Drawdown-Aktualisierung: die Ticker-History seit Entry holen und
+    # max_drawdown/max_gain neu berechnen, bis Tag 10 final ist (+ Nachfrist,
+    # _rolling_window_active; Fix 13.11.2026 — vorher feste 14 Kalendertage
+    # nach UTC-Datum, dadurch blieben Fenster vor Tag 10 stehen). Ein Batch-
+    # Download für alle aktiven Ticker spart Round-Trips; pro Entry wird die
+    # Datums-Slice ausgewertet.
     today_d = date.today()
+    # Nur finale Tageszeilen ins Fenster (Fix 03.11.2026, Regel wie #647).
+    _final_cut = trading_date.last_final_close_date(now_et)
     active_dd: list[tuple[dict, "datetime"]] = []
     for e in history:
         try:
@@ -1516,18 +1598,17 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         # ohne max_drawdown_pct bleiben unangetastet (Backwards-Compat).
         if "max_drawdown_pct" not in e:
             continue
-        days_old = (today_d - edate).days
-        if days_old <= 0 or days_old > 14:
+        if not _rolling_window_active(e, edate, _final_cut, today_d):
             continue
         active_dd.append((e, edate))
 
     if active_dd:
-        # Nur finale Tageszeilen ins Fenster (Fix 03.11.2026, Regel wie #647).
-        _final_cut = trading_date.last_final_close_date(now_et)
         unique_tickers = sorted({e["ticker"] for e, _ in active_dd})
         try:
+            # 2mo statt 1mo: Tag 10 + Nachfrist kann bei Feiertagen > 1 Monat
+            # nach D liegen.
             dd_batch = yf.download(
-                " ".join(unique_tickers), period="1mo",
+                " ".join(unique_tickers), period="2mo",
                 progress=False, threads=False,
                 group_by="ticker" if len(unique_tickers) > 1 else "column",
             )
@@ -1545,28 +1626,9 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
                       else dd_batch)
                 if df is None or df.empty:
                     continue
-                df_since = _final_window(df, edate, _final_cut)
-                dd = _compute_max_drawdown(df_since)
-                if dd is not None:
-                    e["max_drawdown_pct"] = dd
-                    n_dd += 1
-                # Spiegel-Update max_gain_pct (Hypothese-C-Vorbau, 02.07.2026).
-                # Guard „in e" hält Alt-Records ohne das Feld unangetastet
-                # (Backwards-Compat analog Drawdown-Backfill-Semantik).
-                if "max_gain_pct" in e:
-                    mg = _compute_max_gain_pct(df_since)
-                    if mg is not None:
-                        e["max_gain_pct"] = mg
-                        # Netto-Geschwisterfeld (12.09.2026, Ausführungskosten-
-                        # Haircut) — nur gesetzt, wenn max_gain_pct selbst JETZT
-                        # aus ≥ 2 finalen Tageszeilen berechnet wurde. Seit
-                        # 05.11.2026 liefert _compute_max_gain_pct bei < 2
-                        # Zeilen None (vorher 0.0 → Netto −3,92 erfunden, Fix
-                        # open_item daily-maxgain-null-statt-0); bei None
-                        # bleiben max_gain_pct UND max_gain_pct_net, wie sie
-                        # sind (ein früherer echter Wert wird nicht gelöscht).
-                        e["max_gain_pct_net"] = apply_round_trip_haircut(mg)
-                        n_mg += 1
+                _dd_set, _mg_set = _apply_rolling_window(e, df, edate, _final_cut)
+                n_dd += int(_dd_set)
+                n_mg += int(_mg_set)
             except Exception:
                 continue
         log.info("Backtest-Schema (Stufe 1): max_drawdown aktualisiert für %d/%d, max_gain für %d/%d aktive Einträge",
