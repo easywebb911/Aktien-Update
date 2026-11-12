@@ -1,11 +1,11 @@
 {
-  "updated": "2026-11-12T03:59:53.626552+01:00",
+  "updated": "2026-11-12T12:11:46.009144+01:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 0,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 13.2,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 12.5,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -28,7 +28,7 @@
       "uoa_drivers": [
         "UOA Call/Put 5.0×"
       ],
-      "uoa_atm_ratio": 0.39619867312175006,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 4.961123110151188
     },
     "ANRO": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 0.7272727272727273
     },
     "BGS": {
-      "score": 60,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 6.7× + 🚀 Massives Volumen 6.7×+ + Spanne 21.3% + UOA Call/Put 4.8×",
+      "drivers": "Volumen 6.7× + 🚀 Massives Volumen 6.7×+ + Spanne 21.3% + News: revenue beat + UOA Call/Put 4.8×",
       "price": 3.67,
       "chg_pct": 0.0,
       "rvol_4d": 6.7,
@@ -65,14 +65,14 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.8×"
       ],
-      "uoa_atm_ratio": 0.12013348164627363,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 4.8441558441558445
     },
     "CAPR": {
@@ -95,13 +95,13 @@
       "uoa_drivers": [
         "UOA Call/Put 4.5×"
       ],
-      "uoa_atm_ratio": 0.8663324979114453,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 4.509829619921363
     },
     "CMCO": {
-      "score": 45,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Spanne 7.8% + FINRA Short-Vol 59% + SEC Form 4 + UOA Call/Put 41.5×",
+      "drivers": "Spanne 7.8% + FINRA Short-Vol 59% + SEC Form 4 + UOA Call-Vol/OI 150.0× ATM + UOA Call/Put 41.5×",
       "price": 21.81,
       "chg_pct": -0.0,
       "rvol_4d": 0.93,
@@ -114,11 +114,12 @@
       "combo_mult": 1.0,
       "active_triggers": 0,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 10,
+      "uoa_score": 30,
       "uoa_drivers": [
+        "UOA Call-Vol/OI 150.0× ATM",
         "UOA Call/Put 41.5×"
       ],
-      "uoa_atm_ratio": 0.36764705882352944,
+      "uoa_atm_ratio": 150.0,
       "uoa_cp_ratio": 41.5
     },
     "EMPD": {
@@ -143,9 +144,9 @@
       "uoa_cp_ratio": 1.0578842315369261
     },
     "METC": {
-      "score": 53,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 12.4% + News-KI 8/30: Negative earnings guidance and mine delays suggest weak fundamentals unfavorable for a short squeeze, despite one bullis + FINRA Short-Vol 84% + UOA Call/Put 10.5×",
+      "drivers": "Spanne 12.4% + FINRA Short-Vol 84% + UOA Call/Put 10.5×",
       "price": 7.24,
       "chg_pct": -0.0,
       "rvol_4d": 1.12,
@@ -157,12 +158,12 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.5×"
       ],
-      "uoa_atm_ratio": 0.061898211829436035,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 10.521739130434783
     },
     "MNRO": {
@@ -173,7 +174,7 @@
       "chg_pct": -0.0,
       "rvol_4d": 1.02,
       "rvol_20d": 1.02,
-      "earnings": "in 77 Tagen (27.01.2027)",
+      "earnings": "in 76 Tagen (27.01.2027)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -185,7 +186,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.9×"
       ],
-      "uoa_atm_ratio": 0.6951219512195121,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 6.928571428571429
     },
     "NRGV": {
@@ -208,7 +209,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.6×"
       ],
-      "uoa_atm_ratio": 0.06420079260237781,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.606060606060606
     },
     "TTEC": {
@@ -229,7 +230,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 1.3355629877369009,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "VEEA": {
@@ -261,7 +262,7 @@
       "chg_pct": 0.0,
       "rvol_4d": 0.65,
       "rvol_20d": 0.69,
-      "earnings": "in 84 Tagen (03.02.2027)",
+      "earnings": "in 83 Tagen (03.02.2027)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -273,7 +274,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
       ],
-      "uoa_atm_ratio": 0.5056603773584906,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 3.508637236084453
     }
   }
