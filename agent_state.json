@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-11-12T16:18:08.267607+01:00",
+  "last_run": "2026-11-12T19:56:52.573507+01:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,18 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-10-29T15:20:45.854988+01:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock",
-      "body": "🔻 Exit-Signale WOLF: profit_lock crit · Warnung pressure 56/100",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-10-29T15:20:45.855004+01:00",
       "ticker": "GRPN",
@@ -1311,6 +1299,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-11-12T19:56:52.573595+01:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signale WOLF: profit_lock crit · Warnung pressure 66/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1382,7 +1382,7 @@
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-11-12T16:18:08.267801+01:00"
+      "updated": "2026-11-12T19:56:52.573607+01:00"
     },
     "GRPN": {
       "last_active": [],
