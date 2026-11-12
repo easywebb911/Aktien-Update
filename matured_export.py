@@ -17,6 +17,10 @@ Harte Invarianten:
   späterer Felder. Fehlt ein Feld zum Exportzeitpunkt, bleibt es fehlend
   (ehrliche Information). Bestehende Zeilen werden byte-verbatim übernommen;
   nur neue Zeilen kommen hinzu.
+  **Einzige Ausnahme (Easy-Entscheid 12.11.2026, Variante A):** die einmalige
+  Korrektur abgeschnittener ``max_gain_pct``/``max_drawdown_pct``-Fenster durch
+  ``scripts/maxgain_export_correction.py`` (dokumentiert in CLAUDE.md und den
+  Freeze-Protokolleinträgen). Dieses Modul selbst überschreibt nie.
 - **IDEMPOTENZ:** Schlüssel ``(ticker, date)`` — ein Record landet nie zweimal.
 - **UMFANG:** ALLE gereiften echten daily-Records (``source != "bootstrap"``),
   KEIN score-Filter (Filterung gehört in die Auswertung, nicht die Persistenz).

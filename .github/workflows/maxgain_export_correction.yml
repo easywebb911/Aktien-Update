@@ -1,0 +1,111 @@
+name: Einmal-Korrektur max_gain-Fenster im Export
+
+# Easy-Entscheid 12.11.2026 (Variante A, open_item
+# max-gain-rolling-fenster-abgeschnitten): einmalige, dokumentierte Ausnahme
+# von der append-only-Garantie von matured_backtest_export.jsonl. Korrigiert
+# NUR abgeschnittene max_gain_pct/max_drawdown_pct (S17-Regel) nach
+# Neuberechnung aus yfinance (auto_adjust=True) mit Gegenprobe gegen
+# outcome_path.jsonl (Toleranz 0,02 pp). Ausgabe nur Zählungen (Blindheit
+# Replikationsfenster). scripts/maxgain_export_correction.py.
+#
+# NUR Hand-Start, KEIN Cron (Lehre 8z8: kein bestehender Cron geändert).
+# mode=dry-run rechnet und zählt, schreibt nichts; mode=apply schreibt.
+# Nicht während eines Daily-Runs starten (Schritt 1 bricht dann ab); nach dem
+# Lauf zeigt die apply-Zeile s17_vorher/s17_nachher. Ein zweiter dry-run muss
+# 0 Korrekturen finden. Die Korrekturdatei (mit Werten) bleibt in RUNNER_TEMP —
+# KEIN Artifact-Upload (Blindheit Replikationsfenster).
+# Rückweg: die alte Exportfassung liegt in Git (Commit vor dem Korrektur-
+# Commit); Revert wird im Replikations-Freeze protokolliert.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry-run (nur zählen) oder apply (schreiben)"
+        required: true
+        type: choice
+        options: [dry-run, apply]
+
+permissions:
+  contents: write   # NUR für matured_backtest_export.jsonl
+  actions: read     # Prüfung „läuft gerade ein Daily-Run?“
+
+concurrency:
+  group: maxgain-export-correction
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  correction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Abbruch, wenn ein Daily-Run läuft (sein Commit könnte die Korrektur überschreiben)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          n=$(gh run list --workflow daily-squeeze-report.yml --limit 20 \
+                --json status --jq '[.[] | select(.status != "completed")] | length')
+          echo "Laufende/wartende Daily-Runs: $n"
+          if [ "$n" != "0" ]; then
+            echo "ERROR: Daily-Run aktiv — Korrektur später erneut starten."
+            exit 1
+          fi
+
+      - name: Kurse holen und Korrekturen berechnen (nur Zählungen im Log; Rate-Limit → Abbruch)
+        run: python scripts/maxgain_export_correction.py --compute "$RUNNER_TEMP/maxgain_corr.json"
+
+      - name: Dry-Run (nichts schreiben)
+        if: ${{ inputs.mode == 'dry-run' }}
+        run: python scripts/maxgain_export_correction.py --apply "$RUNNER_TEMP/maxgain_corr.json" --dry-run
+
+      - name: Anwenden und committen
+        if: ${{ inputs.mode == 'apply' }}
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          # Auf dem NEUESTEN origin/main-Stand anwenden (Daily-Run kann
+          # inzwischen Zeilen angehängt haben); --apply ist idempotent und
+          # fasst nur noch abgeschnittene Zeilen an.
+          pushed=0
+          for attempt in 1 2 3 4 5; do
+            if ! git fetch origin main; then sleep 2; continue; fi
+            git reset --hard origin/main
+            python scripts/maxgain_export_correction.py --apply "$RUNNER_TEMP/maxgain_corr.json"
+            git add matured_backtest_export.jsonl
+            if git diff --staged --quiet; then
+              echo "Keine Aenderung gegenueber origin/main."
+              pushed=1
+              break
+            fi
+            git commit -m "Einmal-Korrektur max_gain-Fenster im Export $(date -u '+%Y-%m-%d')"
+            if git push origin main; then
+              echo "Korrektur gepusht (Versuch $attempt)."
+              pushed=1
+              break
+            fi
+            echo "push rejected (Versuch $attempt) — neu fetchen und retry."
+            sleep 2
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "ERROR: Korrektur konnte nach 5 Versuchen nicht gepusht werden."
+            exit 1
+          fi

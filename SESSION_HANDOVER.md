@@ -3372,6 +3372,22 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — Einmal-Korrektur abgeschnittener max_gain-Fenster im Export (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Entscheid Variante A: `#678` (Branch `claude/maxgain-export-korrektur-p3x7`, Branch-Commit
+  `ccf8645b`, kein Merge-Hash — Regel a). `scripts/maxgain_export_correction.py` + Hand-Start-
+  Workflow `maxgain_export_correction.yml` (dry-run/apply, kein Cron): ersetzt im Export NUR
+  abgeschnittene `max_gain_pct`/`max_drawdown_pct` (S17-Regel) nach Neuberechnung aus yfinance mit
+  Gegenprobe gegen `outcome_path.jsonl` (0,02 pp); `max_gain_pct_net` abgeleitet; alles andere
+  byte-gleich (Zeilen-Hash); idempotent. Kandidaten 12.11.: 24 (< 24.10.) + 17 (Replikations-
+  fenster, blind). Mini-Stopp-Prüfung: `return_*`/Exit-Shadow-Forwards ohne Ende-Grenze → nicht
+  betroffen. Protokolleinträge Replikation / „Paper C handelbar“ / Paper-C-Protokoll; dokumentierte
+  append-only-Ausnahme (CLAUDE.md, matured_export-Docstring). Workflow-Lauf erst nach dem Merge,
+  Zählbericht + Run-ID per Nachtrag.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#676` (#677 offen),
+  höchste in Block 1 erwähnte PR = `#678` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 11.11.2026 — open_items aus der Nacht-Probe-Endauswertung (1 PR, Auto-Merge Doku)
 
 - Easy-Entscheid 11.11.2026: `#673` (Branch `claude/open-items-nachtprobe-x3q8`, Branch-Commit
@@ -6781,6 +6797,12 @@ wechselten **2** Zeilen von Nicht-Treffer zu Treffer (explorativ gezählt gegen
 `outcome_path.jsonl`). Das Verdikt dieses Laufs bleibt, wie es ist; es wird **nicht**
 neu ausgewertet.
 
+**Nachtrag 12.11.2026 (abends):** Die Einmal-Korrektur im Export (Easy, Variante A) ersetzt
+auch in diesem Fenster abgeschnittene Werte. Danach ist der Datenhash `8ddf857d…` dieses
+Laufs aus dem aktuellen Export **nicht mehr** reproduzierbar; die Fassung vor der Korrektur
+bleibt in Git (Commit vor dem Korrektur-Commit). Verdikt unverändert, keine Neuauswertung;
+Zahl und Treffer-Wechsel werden nach dem Workflow-Lauf nachgetragen.
+
 ### VORABREGISTRIERUNG — Paper C Replikation (Gipfel), eingefroren 07.11.2026
 
 **Easy-Entscheid 07.11.2026**, nach dem Ergebnis des Paper-C-Laufs (Protokolleintrag
@@ -6889,6 +6911,24 @@ werden Fehler, Fix und Naht.
   ändern — Easy-Entscheid ausstehend). Anzahl korrigierter Zeilen bis dahin: **0**.
   Jede Korrektur wird hier mit Datum, Anzahl und Quelle nachgetragen, **bevor** dieser
   Block ausgewertet wird.
+
+**Protokolleintrag 12.11.2026 (abends) — Korrektur entschieden (Easy, Variante A) +
+Halbzeilen-Schutz:** Kriterien dieses Blocks unverändert.
+- **Halbzeilen-Schutz (`#677`):** das Rolling-Fenster zählt nur vollständige Tageszeilen
+  und gilt erst als fertig, wenn der letzte finale Schluss **nach** Tag 10 liegt — ein
+  Postclose um ~20:28 ET liefert Halbzeilen (open_item `postclose-halbzeilen-2028et`).
+- **Einmal-Korrektur (PR „max_gain-Export-Korrektur“):** ausdrückliche, einmalige Ausnahme
+  von der append-only-Garantie des Exports. Korrigiert werden NUR abgeschnittene
+  `max_gain_pct`/`max_drawdown_pct` (S17-Regel), neu gerechnet aus yfinance
+  (`auto_adjust=True`, Formel wie `backtest_history`), nur bei bestandener Gegenprobe
+  gegen `outcome_path.jsonl` (0,02 pp); `max_gain_pct_net` wird abgeleitet mitgeführt
+  (wie in der Produktion), `rolling_window_n` = 11, wo das Feld existiert.
+  Alle anderen Zeilen und Felder byte-gleich. **Kandidaten vor dem Lauf (Zählung
+  12.11.2026):** 24 Zeilen mit Einstieg < 24.10.2026, **17 Zeilen in diesem Fenster**
+  (blind gezählt). Der Workflow läuft **nach** dem Merge; die tatsächliche Zahl
+  korrigierter / nicht korrigierter Zeilen (je Grund) und die Run-ID werden hier per
+  Nachtrag eingetragen, **bevor** dieser Block ausgewertet wird. **Naht:** Zeilen, deren
+  Gegenprobe scheitert, bleiben unverändert und zählen bei der Auswertung wie bisher.
 
 ### VORABREGISTRIERUNG — Paper C handelbar (Gipfel ab Einstiegskurs), eingefroren 12.11.2026
 
@@ -7028,6 +7068,12 @@ Schätzung, nicht bindend. Reihenfolge bleibt: nie vor dem Replikationslauf.
 vor Tag 10 eingefroren“ (Protokolleintrag im Replikations-Block oben) betrifft dieses
 Ziel **nicht**: `max_gain_from_entry_pct` kommt aus `outcome_path.jsonl` und wird erst
 geschrieben, wenn Tag 10 final ist.
+
+**Protokolleintrag 12.11.2026 (abends) — Export-Korrektur ohne Einfluss auf dieses Ziel:**
+Die Einmal-Korrektur abgeschnittener `max_gain_pct`/`max_drawdown_pct` im Export (Easy,
+Variante A; Protokolleintrag im Replikations-Block) ändert weder `outcome_path.jsonl` noch
+den Prädiktor oder `market_regime` dieses Blocks; sie liest `outcome_path.jsonl` nur zur
+Gegenprobe.
 
 ### ✅ STATUS-PANEL — 6. Eintrag `si_position_history` — ERLEDIGT (PR #430, 14.07.)
 
