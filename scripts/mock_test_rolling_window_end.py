@@ -32,7 +32,10 @@ sys.path.insert(0, str(ROOT))
 import importlib  # noqa: E402
 import types  # noqa: E402
 
-import pandas as pd  # noqa: E402
+try:  # CI-Slot hat kein pandas (stdlib+jinja2+pyyaml) → DataFrame-Teil dort übersprungen
+    import pandas as pd  # noqa: E402
+except ImportError:  # pragma: no cover
+    pd = None
 
 # Netzfreie Stubs nur, wenn die Pakete lokal fehlen (CI installiert sie).
 for _m in ("yfinance", "bs4", "deep_translator"):
@@ -63,12 +66,17 @@ def _old_rule(edate: date, run_utc: datetime) -> bool:
     return 0 < days_old <= 14
 
 
-def _bars(edate: date, n: int, highs=None):
+def _days(edate: date, n: int) -> list:
     days, d = [edate], edate
     while len(days) < n:
         d += timedelta(days=1)
         if td.is_us_trading_day(d, H):
             days.append(d)
+    return days
+
+
+def _bars(edate: date, n: int, highs=None):
+    days = _days(edate, n)
     highs = highs or [10.0 + i for i in range(n)]
     return pd.DataFrame({"High": highs[:n], "Low": [9.0] * n, "Close": [9.5] * n,
                          "Open": [9.5] * n},
@@ -113,6 +121,9 @@ def test_old_red_new_green():
 
 
 def test_determinism_and_update():
+    if pd is None:
+        print("  (übersprungen: pandas nicht verfügbar — CI-Slot; läuft lokal/im Daily-Run-Environment)")
+        return
     d = date(2026, 10, 22)
     df = _bars(d, 13, highs=[10, 10.4, 10.7, 10.3, 10.3, 10.3, 10.7, 11.0, 10.9, 12.9, 13.3, 20, 20])
     res = []
@@ -155,9 +166,9 @@ def test_export_gate():
 def test_s17_watchdog():
     d_old, d_new = date(2026, 10, 22), date(2026, 11, 13)
     def bars_rows(edate):
-        df = _bars(edate, 11, highs=[10, 10.4, 10.7, 10.3, 10.3, 10.3, 10.7, 11.0, 10.9, 12.9, 13.3])
-        return [{"d": str(i.date()), "o": 9.5, "h": float(r.High), "l": float(r.Low), "c": 9.5}
-                for i, r in df.iterrows()]
+        highs = [10, 10.4, 10.7, 10.3, 10.3, 10.3, 10.7, 11.0, 10.9, 12.9, 13.3]
+        return [{"d": str(x), "o": 9.5, "h": float(h), "l": 9.0, "c": 9.5}
+                for x, h in zip(_days(edate, 11), highs)]
     full = round((13.3 / 9 - 1) * 100, 2)
     cut7 = round((11.0 / 9 - 1) * 100, 2)
     with tempfile.TemporaryDirectory() as tmp:
