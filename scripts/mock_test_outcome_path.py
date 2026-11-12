@@ -43,7 +43,7 @@ import health_check as hc  # noqa: E402
 import outcome_path_update as op  # noqa: E402
 from backtest_history import apply_round_trip_haircut  # noqa: E402
 
-FREEZE_MD5 = "ad814491d4be33cc34e81fca6d15c248"
+FREEZE_MD5 = "6d7e3d02ebde12c5b3edd5b3ecf38e94"
 _fails: list[str] = []
 
 

@@ -85,6 +85,15 @@ jobs:
               continue
             fi
             git reset --hard origin/main
+            # Append-only-Härtung: der origin-Stand muss byte-genau Anfang der
+            # frischen Datei sein (sonst würde eine Zeile überschrieben) → Abbruch.
+            if [ -f outcome_path.jsonl ] && [ -f "$FRESH_DATA" ]; then
+              ORIG_SIZE=$(stat -c %s outcome_path.jsonl)
+              if ! cmp -s -n "$ORIG_SIZE" outcome_path.jsonl "$FRESH_DATA"; then
+                echo "ERROR: outcome_path.jsonl auf origin ist kein Präfix der neuen Datei — kein Push."
+                exit 1
+              fi
+            fi
             cp "$FRESH_STATE" outcome_path_state.json
             if [ -f "$FRESH_DATA" ]; then cp "$FRESH_DATA" outcome_path.jsonl; fi
             git add outcome_path_state.json

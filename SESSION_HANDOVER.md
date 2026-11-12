@@ -3311,10 +3311,13 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   OHLC Tag 0–10 je Forward-Einstieg, `max_gain_from_entry_pct` (+ netto),
   `max_drawdown_from_entry_pct`; unbekannt → null + Grund; append-only; Export unberührt;
   ≥ 24.10. nur mit Freeze; Digest „📈 Kursverlauf“. 8 neue open_items. MD5: 16 bestehende
-  Freeze-Blöcke unverändert, neuer Block `ad814491…` im Test gepinnt.
+  Freeze-Blöcke unverändert, neuer Block `6d7e3d02…` im Test gepinnt.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#673`,
   höchste in Block 1 erwähnte PR = `#674` (eigene) — kein Rückstand.
-- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Guardian-Lauf vor Ready:** 4 Findings — (1) protected-ok nötig (Regel b, Easy-Freigabe
+  im Auftrag; frischer Push), (2) Auslöser-Zählung „nach Ausschlüssen“ und (3) Retry-Fenster
+  7 Tage im Freeze ergänzt (vor Merge, kein Protokolleintrag nötig), (4) Workflow-Commit prüft
+  jetzt, dass der origin-Stand Präfix der neuen Datei ist.
 
 ### 11.11.2026 — open_items aus der Nacht-Probe-Endauswertung (1 PR, Auto-Merge Doku)
 
@@ -6833,7 +6836,10 @@ korrigiert das andere. Die erste Stichprobe (21.07.–23.10.2026) ist für diese
    gekennzeichnet (Easy-Entscheid 12.11.2026). Nur finale Tageszeilen; Tag 1–10 sind
    die nächsten zehn US-Handelstage nach D (Kalender `config.US_MARKET_HOLIDAYS`).
    Fehlt ein Tag oder hat er kein endliches OHLC, ist das Feld `null` mit Grund
-   (unbekannt ≠ 0).
+   (unbekannt ≠ 0). Eine Zeile wird erst geschrieben, wenn Tag 10 final ist; ist sie
+   dann unvollständig, ruft der Sammler bis **7 Kalendertage** nach Tag 10 erneut ab
+   (`config.OUTCOME_PATH_RETRY_DAYS`) und schreibt sie danach endgültig mit `null` +
+   Grund. Eine geschriebene Zeile wird nie geändert.
 3. **Treffer** = `max_gain_from_entry_pct ≥ 30,0`; **Nicht-Treffer** =
    `max_gain_from_entry_pct < 30,0`. Schwelle aus dem Paper (Svoboda et al. 2026)
    bzw. §5, nicht aus unseren Daten.
@@ -6850,8 +6856,11 @@ korrigiert das andere. Die erste Stichprobe (21.07.–23.10.2026) ist für diese
    (Easy-Entscheid 12.11.2026).
 6. **Auslöser / Zeitpunkt:** **direkt nach** dem Replikationslauf, im selben
    Auswertungsdurchgang, mit allen Zeilen nach Punkt 4–5, deren Zielfeld zu diesem
-   Zeitpunkt reif ist. Sind das **weniger als 300**, wartet der Lauf, bis 300
-   erreicht sind — nie vor dem Replikationslauf (Easy-Entscheid 12.11.2026).
+   Zeitpunkt reif ist. Gezählt wird wie bei der Replikation (dort Punkt 4: „gereifte
+   Zeilen nach Punkt 2–3“) **nach** den Ausschlüssen, also nur Zeilen mit endlichem
+   Prädiktor **und** endlichem Zielfeld. Sind das **weniger als 300**, wartet der
+   Lauf, bis 300 erreicht sind — nie vor dem Replikationslauf (Easy-Entscheid
+   12.11.2026).
    **Einmaliger** Lauf, kein Zwischenblick, kein zweiter Lauf mit mehr Daten;
    Zählung und Datenhash werden mitgeschrieben. **Sperre:** Ergebniszeilen tragen
    `family = "paper_c_handelbar"`; steht eine solche Zeile in `eval_results.jsonl`,
