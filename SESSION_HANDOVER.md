@@ -7206,7 +7206,8 @@ Stichprobe und Auslöser unverändert. Kein Ergebnis erzeugt oder gelesen.
 16:00 ET, keiner nach 09:30 ET des nächsten Handelstags (git-Historie `main`). Ein Kauf zum
 Schlusskurs D war nie möglich; ein Overnight-Gap D → Tag 1 zählte bisher als Gewinn, den
 niemand bekommt. Frühester realistischer Einstieg ist die Eröffnung von Tag 1.
-**Änderung (Punkte 2, 3, 5, 11):** Bindend ist ab jetzt — mit `bars[0]` = D und `bars[k]` =
+**Änderung (Punkte 1, 2, 3, 5, 11, 13 und letzter Satz unter „Grenzen“; überall gilt sinngemäß
+„Eröffnung Tag 1“ statt „Schlusskurs D“ als Einstieg):** Bindend ist ab jetzt — mit `bars[0]` = D und `bars[k]` =
 Handelstag k nach D aus derselben Zeile in `outcome_path.jsonl`:
 `o1 = bars[1].o`; `g = (max(bars[1].h, …, bars[10].h) / o1 − 1) × 100`; **Treffer** =
 `g ≥ 30,0`, **Nicht-Treffer** = `g < 30,0`. Verwertbar nur, wenn die Zeile vorhanden ist,
@@ -7424,7 +7425,9 @@ gezählt, kein Ergebnisfeld gelesen. Alle bestehenden Freeze-Blöcke bleiben byt
 - **Zeitpunkt des Berichts (Beleg für A.1):** Im Stufe-1-Fenster gibt es 71 Postclose-
   Commits des Daily-Runs, die `backtest_history.json` schreiben (git-Historie `main`). Alle
   liegen zwischen **16:09 und 23:12 ET** am Tag D (16–18 Uhr: 13, 18–20: 38, 20–22: 18,
-  22–24: 2) — **keiner vor Börsenschluss, keiner nach Eröffnung Tag 1**. Der Schlusskurs D
+  22–24: 2) — **keiner vor Börsenschluss, keiner nach Eröffnung Tag 1**. Nachprüfbar mit
+  `git log origin/main --since=2026-07-21T12:00:00-04:00 --until=2026-10-24T12:00:00-04:00
+  --format='%cI|%s' -- backtest_history.json`, gefiltert auf „Daily squeeze report“. Der Schlusskurs D
   war damit nie handelbar; die Eröffnung von Tag 1 immer.
 - **Einzige für diesen Block neu bestimmte Ergebniszahl:** Treffer nach A.1 im
   Stufe-1-Fenster = **73 von 669** (12.11.2026, nur Gesamtzahl, keine Aufteilung nach
