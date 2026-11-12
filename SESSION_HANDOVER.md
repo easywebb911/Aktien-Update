@@ -3372,6 +3372,22 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — Einmal-Korrektur abgeschnittener max_gain-Fenster im Export (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Entscheid Variante A: `#678` (Branch `claude/maxgain-export-korrektur-p3x7`, Branch-Commit
+  `ccf8645b`, kein Merge-Hash — Regel a). `scripts/maxgain_export_correction.py` + Hand-Start-
+  Workflow `maxgain_export_correction.yml` (dry-run/apply, kein Cron): ersetzt im Export NUR
+  abgeschnittene `max_gain_pct`/`max_drawdown_pct` (S17-Regel) nach Neuberechnung aus yfinance mit
+  Gegenprobe gegen `outcome_path.jsonl` (0,02 pp); `max_gain_pct_net` abgeleitet; alles andere
+  byte-gleich (Zeilen-Hash); idempotent. Kandidaten 12.11.: 24 (< 24.10.) + 17 (Replikations-
+  fenster, blind). Mini-Stopp-Prüfung: `return_*`/Exit-Shadow-Forwards ohne Ende-Grenze → nicht
+  betroffen. Protokolleinträge Replikation / „Paper C handelbar“ / Paper-C-Protokoll; dokumentierte
+  append-only-Ausnahme (CLAUDE.md, matured_export-Docstring). Workflow-Lauf erst nach dem Merge,
+  Zählbericht + Run-ID per Nachtrag.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#676` (#677 offen),
+  höchste in Block 1 erwähnte PR = `#678` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 11.11.2026 — open_items aus der Nacht-Probe-Endauswertung (1 PR, Auto-Merge Doku)
 
 - Easy-Entscheid 11.11.2026: `#673` (Branch `claude/open-items-nachtprobe-x3q8`, Branch-Commit
