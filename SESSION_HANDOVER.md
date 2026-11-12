@@ -3372,6 +3372,22 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — Vorabregistrierung H-I Rendite (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Auftrag 12.11.2026 nach H-I Stufe 1 = Beleg (Treffer): `#686` (Branch
+  `claude/hi-rendite-freeze-p3w8`, Branch-Commit `2ba6c8f3`, kein Merge-Hash — Regel a). Neuer
+  Freeze-Block „VORABREGISTRIERUNG — H-I Rendite (Inst-Beteiligung → Netto-Rendite), eingefroren
+  mit dem Merge“ in §5: blinde Stichprobe wie H-I Stufe 2, Kauf zur Eröffnung Tag 1, bindend
+  Netto-Halten bis Close Tag 10 (N1); F1 untere vs. obere Inst-Hälfte (Mann-Whitney + Bootstrap
+  Mittelwert-Differenz), F2 Mittel der unteren Hälfte > 0 (einseitiger Wilcoxon + Bootstrap);
+  Familie `hi_rendite`, Holm k = 2; Lauf nach Replikation, „Paper C handelbar“ und H-I Stufe 2,
+  n ≥ 500. Nur Text, keine Rendite nach Inst gerechnet; alle bestehenden Freeze-Abschnitte
+  MD5-unverändert. Explorativer Nachlauf auf dem Stufe-1-Fenster erst nach dem Merge.
+- `open_items` neu: `hi-rendite-skript` (offen).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#685`,
+  höchste in Block 1 erwähnte PR = `#686` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 12.11.2026 — Auswertungs-Skript Hypothesen-Runde November 2026 (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Auftrag 12.11.2026: `#685` (Branch `claude/hypothesen-skript-nov26-r4k2`, Branch-Commit
