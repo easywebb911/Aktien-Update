@@ -536,11 +536,49 @@ def test_h_regime_runtime():
           and tc._regimes_between(-6.0, 6.0) == {"bear", "neutral", "bull"})
 
 
+def test_i_settled_reference():
+    """Fix 12.11.2026: Vergleichs-Referenz = endgültiger Schlusskurs (Folgetag
+    07:00 ET). Am Abend des Zieltags darf die Zieltag-Zeile nicht zählen."""
+    import trading_date
+    ny = trading_date._NY
+    e = ENTRY
+    tgt = DAYS[DAYS.index(e) + 3]
+    row = expected_row("AAA", e)
+    s = tc.Series([dict(r) for r in WORLD["AAA"] if r["d"] <= tgt])
+
+    def et(d, hh, mm):
+        return datetime(d.year, d.month, d.day, hh, mm, tzinfo=ny).astimezone(timezone.utc)
+
+    for hh, mm in ((16, 30), (18, 7), (20, 30)):
+        now = et(tgt, hh, mm)
+        rec = tc.recompute_backtest(row, s, None, None,
+                                    trading_date.last_settled_close_date(now), tgt)
+        check(f"i: Zieltag {hh:02d}:{mm:02d} ET → return_3d nicht vergleichbar",
+              "return_3d" not in rec, sorted(rec))
+        old = tc.recompute_backtest(row, s, None, None,
+                                    trading_date.last_final_close_date(now), tgt)
+        check(f"i: Gegenprobe alte Grenze {hh:02d}:{mm:02d} ET hätte verglichen (rot)",
+              "return_3d" in old)
+    nxt = tgt + timedelta(days=1)
+    rec = tc.recompute_backtest(row, s, None, None,
+                                trading_date.last_settled_close_date(et(nxt, 7, 5)), nxt)
+    check("i: Folgetag 07:05 ET → return_3d vergleichbar und stimmt",
+          "return_3d" in rec and abs(rec["return_3d"][0] - row["return_3d"]) < 0.011)
+    sh = shadow_row("AAA", e)
+    out = tc.recompute_shadow(sh, s, trading_date.last_settled_close_date(et(tgt, 18, 7)))
+    check("i: Exit-Shadow forward_3d am Zieltag-Abend nicht vergleichbar", "forward_3d" not in out)
+    src = (ROOT / "scripts" / "truth_check.py").read_text(encoding="utf-8")
+    check("i: run() nutzt last_settled_close_date + ET-Datum",
+          "final_cut = trading_date.last_settled_close_date(now)" in src
+          and "last_final_close_date(" not in src
+          and "today = now.astimezone(trading_date._NY).date()" in src)
+
+
 def run_all() -> int:
     for t in (test_a_correct, test_b_manipulated, test_c_split, test_d_rate_limit,
               test_e_delisted, test_f_bootstrap, test_first_run_and_rotation,
               test_read_only, test_mirror_vs_production, test_s16, test_digest_budget,
-              test_g_runtime_rule, test_h_regime_runtime):
+              test_g_runtime_rule, test_h_regime_runtime, test_i_settled_reference):
         print(t.__name__)
         t()
     print()
