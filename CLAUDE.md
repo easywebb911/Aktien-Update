@@ -2761,6 +2761,16 @@ Daten-Persistierung — keine Frontend-Anzeige, keine Score-Konsequenzen.
   (open_item `max-gain-rolling-fenster-abgeschnitten`, Wächter S17).
   Altbestand ohne `rolling_window_n` läuft bis zum Herausfallen nach der alten
   Regel; bereits herausgefallene Zeilen werden nicht wieder aufgenommen.
+  **Einmalige Ausnahme von der append-only-Garantie des Exports (Easy-Entscheid
+  12.11.2026, Variante A):** `scripts/maxgain_export_correction.py` + Workflow
+  `maxgain_export_correction.yml` (nur Hand-Start, `dry-run`/`apply`) ersetzen in
+  `matured_backtest_export.jsonl` einmalig NUR abgeschnittene
+  `max_gain_pct`/`max_drawdown_pct` (S17-Regel; `max_gain_pct_net` abgeleitet,
+  `rolling_window_n` falls vorhanden) nach Neuberechnung aus yfinance mit
+  Gegenprobe gegen `outcome_path.jsonl` (0,02 pp). Alle anderen Zeilen/Felder
+  byte-gleich; Ausgabe nur Zählungen; idempotent. Protokolliert in den
+  Freeze-Blöcken Replikation / „Paper C handelbar“ und im Paper-C-Protokoll. Jede
+  WEITERE Änderung am Export bleibt ausgeschlossen.
 - **Legacy-Einträge** ohne `max_drawdown_pct`/`max_gain_pct`-Feld
   bleiben unangetastet (Backwards-Compat, per-Feld-Guard
   `if "<feld>" in e`); nur neue Einträge ab jeweiligem Deploy bekommen
