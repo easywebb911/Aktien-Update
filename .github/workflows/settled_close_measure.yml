@@ -1,0 +1,66 @@
+name: Messlauf Rendite-/Forward-Felder (endgültiger Schlusskurs)
+
+# Easy-Entscheid 13.11.2026 (open_item rendite-forward-abendzeile-nicht-final):
+# READ-ONLY-Messlauf. Rechnet seit den Bestandskorrekturen 03./04.11.2026
+# gefüllte return_*/_t1/_net und forward_* gegen ENDGÜLTIGE Schlusskurse nach
+# (scripts/settled_close_measure.py). Kein Commit, kein Push, keine
+# Datendatei wird geschrieben. Ergebnis: Job-Log + Artifact (Replikations-
+# fenster nur Anzahlen). Nur Hand-Start, kein Cron.
+# Rückweg: Datei löschen (Cleanup nach Easys Korrektur-Entscheid).
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read     # Prüfung „läuft gerade ein Daily-Run?“
+
+concurrency:
+  group: settled-close-measure
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout main (volle Historie für Füll-Zeitpunkte)
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Abbruch, wenn ein Daily-Run läuft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          n=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow daily-squeeze-report.yml --limit 20 \
+                --json status --jq '[.[] | select(.status != "completed")] | length')
+          echo "Laufende/wartende Daily-Runs: $n"
+          if [ "$n" != "0" ]; then
+            echo "ERROR: Daily-Run aktiv — Messlauf später erneut starten."
+            exit 1
+          fi
+
+      - name: Messen (Rate-Limit → Abbruch ohne Ergebnis)
+        run: python scripts/settled_close_measure.py --out "$RUNNER_TEMP/settled_close_measure.json"
+
+      - name: Ergebnis als Artifact (nur Zählungen; Werte-Statistik nur vor 24.10.)
+        uses: actions/upload-artifact@v4
+        with:
+          name: settled-close-measure
+          path: ${{ runner.temp }}/settled_close_measure.json
+          retention-days: 30

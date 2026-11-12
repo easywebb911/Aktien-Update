@@ -124,6 +124,43 @@ def last_final_close_date(now_utc: datetime | None = None) -> date:
     return et.date() - timedelta(days=1)
 
 
+# ── Endgültiger Schlusskurs für EINMAL-Felder (Fix 13.11.2026) ─────────────
+# Befund (S16, open_item rendite-forward-abendzeile-nicht-final): ab 16:20 ET
+# liefert Yahoo für den laufenden Tag teils noch einen vorläufigen Close; ein
+# daraus gefülltes Einmal-Feld (return_*, forward_*) wird nie überschrieben.
+# Grenze aus Messwerten der Nacht-Probe (diagnose_night_probe): Kurse des
+# Tages D gleich der Tag-Referenz um 07:09/07:58/08:15 ET des Folgetags
+# (D = 09./10./11.11.2026) und einmal schon um 01:31 ET (D = 11.11.).
+# Konservativ: der Close von D gilt ab 07:00 ET des FOLGENDEN KALENDERTAGS
+# als endgültig. ``last_final_close_date`` (16:20 ET) bleibt unverändert für
+# Pfade, die ihre Werte später ohnehin neu schreiben oder erst nach dem
+# Fenster-Ende einfrieren (Rolling-Fenster, Export-Reife).
+US_CLOSE_SETTLED_NEXT_DAY_ET = time(7, 0)
+
+
+def last_settled_close_date(now_utc: datetime | None = None) -> date:
+    """Letztes US-Kalenderdatum (ET), dessen Schlusskurs zum Zeitpunkt
+    ``now_utc`` ENDGÜLTIG ist: ab ``US_CLOSE_SETTLED_NEXT_DAY_ET`` (07:00 ET)
+    der Vortag, davor der Vor-Vortag. Nur ET-Uhrzeit zählt (unabhängig vom
+    UTC-Datum des Laufs). Wochenenden/Feiertage brauchen keine Sonderregel:
+    an solchen Tagen gibt es keine Tageszeile. ``now_utc`` injizierbar;
+    naiv = UTC."""
+    if now_utc is None:
+        now_utc = datetime.now(timezone.utc)
+    elif now_utc.tzinfo is None:
+        now_utc = now_utc.replace(tzinfo=timezone.utc)
+    et = now_utc.astimezone(_NY)
+    if et.time() >= US_CLOSE_SETTLED_NEXT_DAY_ET:
+        return et.date() - timedelta(days=1)
+    return et.date() - timedelta(days=2)
+
+
+def close_is_settled(day: date, now_utc: datetime | None = None) -> bool:
+    """True, wenn der Schlusskurs von ``day`` zum Zeitpunkt ``now_utc``
+    endgültig ist (``day <= last_settled_close_date(now_utc)``)."""
+    return day <= last_settled_close_date(now_utc)
+
+
 # ── Handelstag-Fenster (Fix 13.11.2026, open_item max-gain-rolling-fenster-abgeschnitten)
 def is_us_trading_day(d: date, holidays) -> bool:
     """Mo–Fr und nicht in ``holidays`` (Menge ISO-Strings, z. B.

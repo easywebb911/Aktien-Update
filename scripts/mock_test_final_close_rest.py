@@ -12,8 +12,8 @@ oder ab 16:20 ET). Synthetische Kurse, fester Zeitpunkt, kein Netz.
      A5 _append_backtest_entries nutzt _final_window mit now_et (Quelle)
   B  ki_agent.update_exit_shadow_forwards
      B1 Horizont am laufenden Tag (Sitzung) → leer
-     B2 16:25 ET → gefüllt mit Schluss; Folgetag → gefüllt
-     B3 Sommer 20:25 UTC = 16:25 EDT gefüllt, Winter 20:25 UTC = 15:25 EST leer
+     B2 16:25 ET → leer (seit 13.11.2026); Folgetag 07:05 ET → gefüllt
+     B3 Sommer Folgetag 07:05 EDT gefüllt, Winter 20:25 UTC = 15:25 EST leer
      B4 Feiertag (Thanksgiving) + Wochenende dazwischen
      B5 Signal-Tag selbst nicht final → nichts gefüllt
   C  backtest_bootstrap
@@ -221,14 +221,16 @@ def test_b_exit_shadow():
     r = _es_run("02.11.2026", pairs, _at(2026, 11, 5, 18, 0))
     _check("B1 Winter 13:00 ET am Zieltag → forward_3d leer", r["forward_3d"] is None, str(r))
     r = _es_run("02.11.2026", pairs, _at(2026, 11, 5, 21, 25))
-    _check("B2 16:25 ET → forward_3d = Schluss T+3", r["forward_3d"] == fwd, str(r))
+    _check("B2 16:25 ET am Zieltag → leer (seit 13.11.2026)", r["forward_3d"] is None, str(r))
+    r = _es_run("02.11.2026", pairs, _at(2026, 11, 6, 12, 5))
+    _check("B2 Folgetag 07:05 ET → forward_3d = Schluss T+3", r["forward_3d"] == fwd, str(r))
     r = _es_run("02.11.2026", pairs, _at(2026, 11, 6, 13, 0), inject=True)
     _check("B2 Folgetag (now_utc injiziert) → gefüllt", r["forward_3d"] == fwd, str(r))
     r = _es_run("02.11.2026", pairs, _at(2026, 11, 5, 20, 25))
     _check("B3 Winter 20:25 UTC = 15:25 EST → leer", r["forward_3d"] is None, str(r))
     sd = _days(_dt.date(2026, 7, 6), 4)
-    r = _es_run("06.07.2026", list(zip(sd, [10.0, 10.5, 11.0, 12.0])), _at(2026, 7, 9, 20, 25))
-    _check("B3 Sommer 20:25 UTC = 16:25 EDT → gefüllt", r["forward_3d"] == fwd, str(r))
+    r = _es_run("06.07.2026", list(zip(sd, [10.0, 10.5, 11.0, 12.0])), _at(2026, 7, 10, 11, 5))
+    _check("B3 Sommer Folgetag 07:05 EDT → gefüllt", r["forward_3d"] == fwd, str(r))
     hd = [_dt.date(2026, 11, 25), _dt.date(2026, 11, 27), _dt.date(2026, 11, 30), _dt.date(2026, 12, 1)]
     hp = list(zip(hd, [10.0, 10.2, 10.4, 13.0]))
     r = _es_run("25.11.2026", hp, _at(2026, 12, 1, 15, 0))

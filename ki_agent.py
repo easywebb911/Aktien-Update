@@ -467,10 +467,11 @@ def _trading_days_elapsed(entry_date_str: str, today: datetime.date = None) -> i
 def update_backtest_returns(now_utc: datetime | None = None) -> None:
     """Füllt T+0 und T+1 Return-Felder sobald genug Handelstage vergangen sind.
 
-    NUR FINALE SCHLUSSKURSE (Fix 03.11.2026, Rendite-Diagnose #645): eine
+    NUR ENDGÜLTIGE SCHLUSSKURSE (Fix 03.11.2026, verschärft 13.11.2026): eine
     Tageszeile wird nur gelesen, wenn ihr Datum ``<=``
-    ``trading_date.last_final_close_date(now)`` ist — also der Tag vorbei ist
-    (Folgetag) oder es am selben Tag nach 16:20 ET ist. Fehlt die Zeile oder
+    ``trading_date.last_settled_close_date(now)`` ist — Folgetag ab 07:00 ET
+    (vorher 16:20 ET am Zieltag; dort stand teils noch ein vorläufiger Close,
+    open_item rendite-forward-abendzeile-nicht-final). Fehlt die Zeile oder
     ist sie noch nicht final, bleibt das Feld leer (None) und der nächste
     Lauf versucht es erneut. Vorher wurde der laufende Intraday-Kurs von T+N
     als „Schlusskurs" gespeichert und nie überschrieben. Unvollständige
@@ -510,8 +511,12 @@ def update_backtest_returns(now_utc: datetime | None = None) -> None:
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     today = now.astimezone(timezone.utc).date()
-    # Letzter Tag mit FINALEM Schlusskurs (ET, 16:20-Grenze aus trading_date).
-    final_cut = trading_date.last_final_close_date(now)
+    # Letzter Tag mit ENDGÜLTIGEM Schlusskurs (Fix 13.11.2026: Folgetag ab
+    # 07:00 ET, trading_date.last_settled_close_date). Vorher 16:20 ET am
+    # Zieltag (last_final_close_date) — dann stand teils noch ein vorläufiger
+    # Close in der Tageszeile, und das Feld wird nie überschrieben.
+    final_cut = trading_date.last_settled_close_date(now)
+    deferred: set = set()   # (ticker, date, offset) zurückgestellt bis endgültig
 
     def _needs_update(e: dict) -> bool:
         elapsed = _trading_days_elapsed(e.get("date", ""), today)
@@ -601,10 +606,12 @@ def update_backtest_returns(now_utc: datetime | None = None) -> None:
 
         def _close_at(offset: int) -> float | None:
             pos = ei + offset
-            # Nur finale Tageszeilen (siehe Docstring): eine noch laufende
-            # Zeile (heute vor 16:20 ET) zählt als „noch nicht da".
+            # Nur endgültige Tageszeilen (siehe Docstring): eine Zeile nach
+            # final_cut (laufend oder Abend-vorläufig) zählt als „noch nicht da".
             if 0 <= pos < len(closes) and idx_dates[pos] <= final_cut:
                 return float(closes.iloc[pos])
+            if 0 <= pos < len(closes):
+                deferred.add((e["ticker"], e.get("date"), offset))
             return None
 
         # Split-konsistente Return-Basis (Diagnose 01.06.2026): die T+0-
@@ -661,6 +668,10 @@ def update_backtest_returns(now_utc: datetime | None = None) -> None:
                     log.info("  %s [%s] T+1 %dd-Return: %+.2f%%",
                              e["ticker"], e.get("date"), win, e[k1])
 
+    if deferred:
+        print(f"Backtest-Returns: {len(deferred)} Felder zurückgestellt bis "
+              f"endgültig (Close bis {final_cut.isoformat()} endgültig)",
+              flush=True)
     if n_filled > 0:
         path.write_text(json.dumps(entries, indent=2, ensure_ascii=False),
                         encoding="utf-8")
@@ -696,12 +707,14 @@ def update_exit_shadow_forwards(now_utc: datetime | None = None) -> None:
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     today = now.astimezone(timezone.utc).date()
-    # NUR FINALE SCHLUSSKURSE (Fix 03.11.2026, gleiche Regel wie #647 in
-    # update_backtest_returns): eine Tageszeile zählt erst, wenn ihr Datum
-    # <= last_final_close_date(jetzt) ist; sonst bleibt der Horizont leer und
+    # NUR ENDGÜLTIGE SCHLUSSKURSE (Fix 03.11.2026, verschärft 13.11.2026,
+    # gleiche Regel wie update_backtest_returns): eine Tageszeile zählt erst,
+    # wenn ihr Datum <= last_settled_close_date(jetzt) ist; sonst bleibt der Horizont leer und
     # der nächste Lauf versucht es erneut (gefüllte Werte werden nie
     # überschrieben — deshalb darf kein Intraday-Kurs hineinrutschen).
-    final_cut = trading_date.last_final_close_date(now)
+    # Fix 13.11.2026: ENDGÜLTIGER Schlusskurs (Folgetag ab 07:00 ET,
+    # trading_date.last_settled_close_date) statt 16:20 ET am Zieltag.
+    final_cut = trading_date.last_settled_close_date(now)
 
     def _needs_es_update(r: dict) -> bool:
         if exit_shadow.is_record_complete(r):
@@ -729,6 +742,7 @@ def update_exit_shadow_forwards(now_utc: datetime | None = None) -> None:
             return None
 
     n_filled = 0
+    n_deferred = 0
     for r in pending:
         closes = _closes_for(r["ticker"])
         if closes is None or len(closes) == 0:
@@ -745,6 +759,8 @@ def update_exit_shadow_forwards(now_utc: datetime | None = None) -> None:
         if sig_idx >= n_final:
             continue
         to_fill = exit_shadow.forward_fields_to_fill(r, sig_idx, n_final)
+        # Zurückgestellt: Horizont-Zeile schon da, aber noch nicht endgültig.
+        n_deferred += len(exit_shadow.forward_fields_to_fill(r, sig_idx, len(idx_dates))) - len(to_fill)
         if not to_fill:
             continue
         sig_close = float(closes.iloc[sig_idx])
@@ -755,6 +771,10 @@ def update_exit_shadow_forwards(now_utc: datetime | None = None) -> None:
                 r[field] = val
                 n_filled += 1
 
+    if n_deferred:
+        print(f"Exit-Shadow-Forwards: {n_deferred} Felder zurückgestellt bis "
+              f"endgültig (Close bis {final_cut.isoformat()} endgültig)",
+              flush=True)
     if n_filled > 0:
         try:
             with open(path, "w", encoding="utf-8") as fh:

@@ -12,10 +12,10 @@ auf ``origin/main`` vor dem Fix scheitern 01/02/05/07/08/09/10/11).
 
   01 Winter (EST): T+3 während der Sitzung (13:00 ET)      → leer
   02 Winter: T+3 um 16:15 ET (vor dem Puffer)             → leer
-  03 Winter: T+3 um 16:25 ET                               → gefüllt = Schluss T+3
+  03 Winter: Folgetag 07:05 ET (seit 13.11.2026)           → gefüllt = Schluss T+3
   04 Winter: Folgetag T+4 morgens                          → gefüllt
   05 Winter: 20:25 UTC = 15:25 EST (Sommer-UTC-Grenze wäre schon vorbei) → leer
-  06 Sommer (EDT): 20:25 UTC = 16:25 EDT                   → gefüllt
+  06 Sommer (EDT): Folgetag 07:05 EDT                      → gefüllt
   07 Sommer: 20:15 UTC = 16:15 EDT                         → leer
   08 Feiertag (Thanksgiving) + Wochenende dazwischen: T+3 am Di
      während der Sitzung → leer; am Mi danach → Schluss des Di (nicht Mo)
@@ -186,8 +186,8 @@ def test_winter():
     _check("01 Winter 13:00 ET am Zieltag → return_3d leer", e["return_3d"] is None, str(e["return_3d"]))
     e = _run([_entry("02.11.2026")], W_DATES[:4], W_VALS[:4], _at(2026, 11, 5, 21, 15))
     _check("02 Winter 16:15 ET → return_3d leer", e["return_3d"] is None, str(e["return_3d"]))
-    e = _run([_entry("02.11.2026")], W_DATES[:4], W_VALS[:4], _at(2026, 11, 5, 21, 25))
-    _check("03 Winter 16:25 ET → gefüllt mit Schluss T+3",
+    e = _run([_entry("02.11.2026")], W_DATES[:4], W_VALS[:4], _at(2026, 11, 6, 12, 5))
+    _check("03 Winter Folgetag 07:05 ET → gefüllt mit Schluss T+3 (seit 13.11.2026)",
            e["return_3d"] == _ret(12.0, 10.0), str(e["return_3d"]))
     e = _run([_entry("02.11.2026")], W_DATES, W_VALS, _at(2026, 11, 6, 13, 0))
     _check("04 Winter Folgetag morgens → gefüllt mit Schluss T+3",
@@ -198,8 +198,8 @@ def test_winter():
 
 
 def test_summer():
-    e = _run([_entry("06.07.2026")], S_DATES, S_VALS, _at(2026, 7, 9, 20, 25))
-    _check("06 Sommer 20:25 UTC = 16:25 EDT → gefüllt",
+    e = _run([_entry("06.07.2026")], S_DATES, S_VALS, _at(2026, 7, 10, 11, 5))
+    _check("06 Sommer Folgetag 11:05 UTC = 07:05 EDT → gefüllt",
            e["return_3d"] == _ret(23.0, 20.0), str(e["return_3d"]))
     e = _run([_entry("06.07.2026")], S_DATES, S_VALS, _at(2026, 7, 9, 20, 15))
     _check("07 Sommer 20:15 UTC = 16:15 EDT → leer", e["return_3d"] is None, str(e["return_3d"]))
@@ -236,8 +236,8 @@ def test_t1_fields():
 
 def test_spy():
     spy = [100.0, 100.0, 100.0, 101.0]
-    e = _run([_entry("02.11.2026")], W_DATES[:4], W_VALS[:4], _at(2026, 11, 5, 21, 25), spy_vals=spy)
-    _check("10 _vs_spy mit finalem SPY-Schluss gefüllt",
+    e = _run([_entry("02.11.2026")], W_DATES[:4], W_VALS[:4], _at(2026, 11, 6, 12, 5), spy_vals=spy)
+    _check("10 _vs_spy mit endgültigem SPY-Schluss gefüllt",
            e.get("return_3d_vs_spy") == round(_ret(12.0, 10.0) - 1.0, 2), str(e.get("return_3d_vs_spy")))
     # Ticker-Zeile 05.11 final, SPY-Zeile aber nicht final → kann nicht vorkommen
     # (gleiches Datum, gleiche Grenze); stattdessen: während der Sitzung beides leer.
@@ -249,8 +249,8 @@ def test_spy():
 def test_inject():
     e = _run([_entry("02.11.2026")], W_DATES[:4], W_VALS[:4], _at(2026, 11, 5, 18, 0), inject=True)
     _check("11 now_utc injiziert: Sitzung → leer", e["return_3d"] is None)
-    e = _run([_entry("02.11.2026")], W_DATES[:4], W_VALS[:4], _at(2026, 11, 5, 21, 25), inject=True)
-    _check("11 now_utc injiziert: 16:25 ET → gefüllt", e["return_3d"] == _ret(12.0, 10.0))
+    e = _run([_entry("02.11.2026")], W_DATES[:4], W_VALS[:4], _at(2026, 11, 6, 12, 5), inject=True)
+    _check("11 now_utc injiziert: Folgetag 07:05 ET → gefüllt", e["return_3d"] == _ret(12.0, 10.0))
 
 
 def test_helper():
