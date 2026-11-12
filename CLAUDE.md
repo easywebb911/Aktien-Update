@@ -4466,9 +4466,10 @@ Grenze aus Messwerten der Nacht-Probe (Kurse von D gleich der Tag-Referenz um
 „N Felder zurückgestellt bis endgültig“. Test `scripts/mock_test_settled_close_fill.py`.
 
 `last_final_close_date` (16:20 ET) bleibt für Pfade, die später neu schreiben oder erst
-nach dem Fenster-Ende einfrieren (Rolling-Fenster `max_gain_pct`, Export-Reife). **Offen
-(gemeldet, nicht umgestellt):** `scripts/outcome_path_update.py` (schreibt einmal, Cron
-18:53 ET) und `scripts/truth_check.py` (Vergleichs-Referenz) nutzen noch 16:20 ET.
+nach dem Fenster-Ende einfrieren (Rolling-Fenster `max_gain_pct`, Export-Reife). `scripts/outcome_path_update.py`
+(schreibt einmal) nutzt seit `#681` ebenfalls `last_settled_close_date`; der Cron 18:53 ET
+schreibt Tag-10-Zeilen damit am Folgeabend. **Offen:** `scripts/truth_check.py`
+(Vergleichs-Referenz) nutzt noch 16:20 ET.
 Messlauf für den Bestand: `settled_close_measure.yml` (read-only, Hand-Start).
 
 ## Kursverlauf ab Einstieg (seit 12.11.2026, outcome_path.jsonl)
@@ -4483,7 +4484,8 @@ Schluss D; Gipfel-Bericht 11.11.2026). Zielfeld der Vorabregistrierung
   Backfill ab 21.07.2026). Eigene concurrency-Gruppe.
 - **Je Forward-Einstieg** (`(ticker, date)`, Export `provenance == forward` ∪
   `backtest_history.json` ohne Bootstrap, ab 21.07.2026) EINE Zeile, geschrieben erst,
-  wenn Tag 10 final ist (`trading_date.last_final_close_date`), danach nie neu:
+  wenn der Close von Tag 10 endgültig ist (Folgetag ab 07:00 ET,
+  `trading_date.last_settled_close_date`, seit 12.11.2026 / #681), danach nie neu:
   OHLC Tag 0–10 (`bars`), `close_d`, `max_gain_from_entry_pct` = max(High 1–10)/Close D − 1,
   `max_gain_from_entry_pct_net` (`apply_round_trip_haircut`), `max_drawdown_from_entry_pct`
   = min(Low 1–10)/Close D − 1, Kennzeichen `split_im_fenster`/`dividende_im_fenster`.

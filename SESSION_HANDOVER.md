@@ -3372,6 +3372,19 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — outcome_path erst aus endgültigem Schlusskurs (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Auftrag A 12.11.2026 (abends, vor dem Lauf 23:53 UTC): `#681` (Branch
+  `claude/outcome-path-endgueltig-m4q8`, Branch-Commit `9a55829d`, kein Merge-Hash — Regel a).
+  `scripts/outcome_path_update.py` schreibt eine Zeile erst, wenn der Close von Tag 10 endgültig
+  ist (`trading_date.last_settled_close_date`, Folgetag 07:00 ET); Retry-Fenster rechnet mit dem
+  ET-Datum. 0 Bestandszeilen betroffen (702 aus dem Backfill 12.11. 10:20 ET). Datierter
+  Protokolleintrag im Freeze „Paper C handelbar“ (MD5-Pin `26011b80…`), übrige Blöcke
+  MD5-gleich. Test `mock_test_outcome_path.py` Gruppe 13. Kein Cron geändert.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#680`,
+  höchste in Block 1 erwähnte PR = `#681` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 12.11.2026 — Rendite-/Forward-Felder erst aus endgültigem Schlusskurs + Messlauf (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Entscheid 12.11.2026 (abends): `#680` (Branch `claude/rendite-fuellzeit-endgueltig-r7k3`,
@@ -7121,6 +7134,18 @@ Die Einmal-Korrektur abgeschnittener `max_gain_pct`/`max_drawdown_pct` im Export
 Variante A; Protokolleintrag im Replikations-Block) ändert weder `outcome_path.jsonl` noch
 den Prädiktor oder `market_regime` dieses Blocks; sie liest `outcome_path.jsonl` nur zur
 Gegenprobe.
+
+**Protokolleintrag 12.11.2026 (abends) — Zielfeld erst aus endgültigem Schlusskurs:**
+**Fehlerklasse:** `scripts/outcome_path_update.py` schrieb eine Zeile, sobald Tag 10 nach
+`last_final_close_date` (16:20 ET am Tag 10) als final galt, und danach nie neu. Der Cron
+läuft 18:53 ET — dort liefert Yahoo teils noch einen vorläufigen Schlusskurs (S16-Befund,
+open_item `rendite-forward-abendzeile-nicht-final`). **Fix:** `#681` — eine Zeile wird erst
+geschrieben, wenn der Close von Tag 10 endgültig ist (07:00 ET des folgenden Kalendertags,
+`trading_date.last_settled_close_date`, wie `#680`); Tag 0–9 liegen davor und sind damit
+ebenfalls endgültig. **Naht:** Merge-Datum von `#681`. **Bestand:** **0** Zeilen betroffen —
+alle 702 Zeilen stammen aus dem Backfill 12.11.2026 10:20 ET (Commit `2b2f8430`), keine am
+Abend von Tag 10 geschrieben (Git-Historie, nur Zählung). Kriterien, Zielfeld-Definition,
+Stichprobe und Auslöser unverändert. Kein Ergebnis erzeugt oder gelesen.
 
 ### ✅ STATUS-PANEL — 6. Eintrag `si_position_history` — ERLEDIGT (PR #430, 14.07.)
 
