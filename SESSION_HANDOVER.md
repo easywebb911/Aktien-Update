@@ -7491,6 +7491,161 @@ nichts festlegt, gilt (`scripts/hypothesen_nov26_eval.py`):
 Klarstellung (keine Änderung): „bedingt“ heißt nach A.8 „kein Regime prüfbar“; ist genau ein
 Regime prüfbar und plausibel, lautet das Verdikt „Beleg“. Alle übrigen Vorgaben unverändert.
 
+### VORABREGISTRIERUNG — H-I Rendite (Inst-Beteiligung → Netto-Rendite), eingefroren mit dem Merge
+
+**Easy-Auftrag 12.11.2026.** Anlass: H-I Stufe 1 = „Beleg, 1 Fenster“ für Treffer ≥ 30 % im
+Hoch (`eval_results.jsonl`, `hi_s1`). Offen ist die Geldfrage: **Rendite**, nicht Gipfel.
+Eingefroren mit Easys Merge (Freeze-Datum = ET-Datum des Merge-Commits). **Beim Schreiben
+wurde keine Rendite nach Inst-Beteiligung gerechnet** — weder im blinden Fenster noch im
+Stufe-1-Fenster (Nachweis in G). Für Einstiege ≥ 24.10.2026 wurden nur Export-Zeilen gezählt.
+Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
+
+#### A. Stichprobe, Prädiktor, Rendite
+
+1. **Stichprobe:** wie H-I Stufe 2 (Block „Hypothesen-Runde November 2026“, A.4):
+   `matured_backtest_export.jsonl`, `provenance == "forward"`, Einstieg D **≥ 24.10.2026**,
+   alle Scores, Dedup nach `(ticker, date)` (erste Zeile gewinnt) **vor** jeder Zählung.
+   Join zu `outcome_path.jsonl` über `(ticker, date)`, beide `DD.MM.YYYY`.
+2. **Verwertbar nach A.1 jenes Blocks** (wörtlich): Zeile in `outcome_path.jsonl` vorhanden,
+   `grund` `null`, `bars` genau 11 Einträge (`bars[0]` = D, `bars[k]` = Handelstag k), `o1 =
+   bars[1].o` endlich und > 0, `bars[1..10].h` endlich; zusätzlich `bars[10].c` endlich und > 0.
+   Ausschlussgründe in dieser Reihenfolge: `zeile_fehlt` → `grund:<Wert>` →
+   `bars_unvollstaendig` → `open_tag1_fehlt` → `close_tag10_fehlt` → `kein_punkt`. Doppelte Zeile
+   in `outcome_path.jsonl`: die erste zählt.
+3. **Prädiktor:** exakt wie H-I (C.2 + Auslegung 3 jenes Blocks): in
+   `inst_ownership_history.json[ticker]` der Punkt mit dem größten `date` ≤ D (ISO-Datum gegen
+   D), Feld `inst_ownership`, Rohwert, nie gedeckelt. Ist dieser Punkt nicht endlich oder fehlt
+   er → `kein_punkt`, kein Ausweichen auf ältere Punkte; unlesbare Punkt-Daten werden gezählt
+   und übersprungen.
+4. **Rendite je Zeile (brutto, in %):**
+   - **R1 (Halten):** `R1 = (bars[10].c / o1 − 1) × 100`.
+   - **R2 (Ziel +30 %):** `g = (max(bars[1].h, …, bars[10].h) / o1 − 1) × 100`; `R2 = 30,0`,
+     wenn `g ≥ 30,0`, sonst `R2 = R1`. Ein Gap über das Ziel zählt nur +30 %.
+   - **Netto:** `N1 = apply_round_trip_haircut(R1)`, `N2 = apply_round_trip_haircut(R2)`
+     (`backtest_history.py`, `HAIRCUT_ROUND_TRIP_PCT` = −4,0, multiplikativ, Rundung auf 2
+     Nachkommastellen wie die Funktion). **Bindend ist N1.** N2, R1, R2 und die Netto-Werte mit
+     `haircut_pct = −8,0` werden nur berichtet.
+5. **Hälften:** `m` = Median von `inst_ownership` über **alle verwendeten Zeilen** (nach allen
+   Ausschlüssen; bei gerader Zahl Mittel der beiden mittleren Werte). **Untere Hälfte U** =
+   `inst_ownership ≤ m`; **obere Hälfte O** = `inst_ownership > m`. Keine Schwelle aus
+   Stufe-1-Daten. Größen von U und O werden berichtet (bei gleichen Werten am Median kann U
+   größer sein).
+
+#### B. Fragen, Tests, Kriterien
+
+1. **F1:** Ist die Netto-Rendite (N1) von U höher als die von O?
+   - Test-p = `p_two_sided` aus `stats_helpers.mann_whitney_u_auc(A, B)`, A = N1 der Zeilen in
+     U, B = N1 der Zeilen in O (rangbasiert, robust gegen schiefe Renditen).
+   - Effekt = Mittel(N1 in U) − Mittel(N1 in O). **Bootstrap-CI:** `rng =
+     random.Random(42)`; 2000-mal: `a = [U[rng.randrange(nU)] for _ in range(nU)]`, danach
+     `b = [O[rng.randrange(nO)] for _ in range(nO)]`, `δ = mean(a) − mean(b)`; δ aufsteigend
+     sortiert, Perzentile 2,5 / 97,5 mit `freeze_eval._percentile` (lineare Interpolation).
+     Reihenfolge der Zeilen in U und O = Reihenfolge im Export nach Dedup.
+   - **Erfolgskriterium:** (a) Holm-signifikant (C.1); (b) AUC aus Test-p-Aufruf **> 0,5**
+     **und** 2,5.-Perzentil von δ **> 0**; (c) Regime-Split plausibel (C.3).
+2. **F2:** Ist die mittlere Netto-Rendite (N1) von U größer als 0?
+   - Test-p = einseitiger Wilcoxon-Vorzeichen-Rang-Test auf `d = N1` (U-Zeilen) gegen 0,
+     Alternative „d nach oben verschoben“, Formel wie Block „Hypothesen-Runde November 2026“
+     B.4 (Nullen entfernt und gezählt, Tie- und Stetigkeitskorrektur 0,5, W⁺ und Var(W⁺) wie
+     `stats_helpers.wilcoxon_signed_rank_paired(N1_U, Z)` mit Z = Liste aus nU Nullen).
+   - Effekt = Mittel(N1 in U). **Bootstrap-CI:** `freeze_eval.paired_bootstrap_mean_delta(
+     N1_U, Z, n_iter = 2000, seed = 42, lo_pct = 2,5, hi_pct = 97,5)`.
+   - **Erfolgskriterium:** (a) Holm-signifikant (C.1); (b) 2,5.-Perzentil des Mittelwerts > 0;
+     (c) Regime-Split plausibel (C.3).
+3. **Floor:** U und O je mindestens **40** Zeilen; sonst „nicht auswertbar“, p = 1 im
+   Holm-Schritt (für F1 und F2).
+
+#### C. Familie, Regime, Verdikte, Auslöser
+
+1. **Familie:** `family = "hi_rendite"`, **k = 2** (F1, F2), **α = 0,05, Holm**
+   (`stats_helpers.multiple_testing_correction`, Labels `f1`, `f2`). Eigene Familie, nicht
+   Teil von `hyp_nov26_s1`/`_s2`, Paper C, Replikation oder „Paper C handelbar“. Berichtet
+   wird zusätzlich der Holm-adjustierte p (max über (k − j)·p der aufsteigend sortierten p,
+   auf 1 gekappt).
+2. **Test-IDs:** `hi_r_f1`, `hi_r_f2`.
+3. **Regime-Split** nach `market_regime` (bull/bear/neutral; anderer oder fehlender Wert →
+   Gruppe „unbekannt“, nie prüfbar). F1: je Regime δ-Punkt (Mittel U − Mittel O); prüfbar, wenn
+   U **und** O im Regime je mindestens **30** Zeilen haben. F2: je Regime Mittel(N1 in U);
+   prüfbar ab **30** U-Zeilen im Regime. „Plausibel“ = kein prüfbares Regime liegt auf der
+   anderen Seite von 0 als der Gesamtwert (genau 0 ist keine Gegenrichtung). Die Hälften
+   werden **einmal** über alle Zeilen gebildet (A.5), nicht je Regime neu.
+4. **Verdikte (wie in den bestehenden Blöcken):** „Beleg“ = (a)+(b)+(c); „bedingt“ = (a)+(b),
+   aber kein Regime prüfbar; „Unklar“ = (a) oder (b) verfehlt oder ein prüfbares Regime
+   widerspricht; „nicht auswertbar“ = Floor verfehlt. Weder „bedingt“ noch „Unklar“ ist eine
+   Widerlegung. Eine Punktschätzung allein ist nie Beleg.
+5. **Cluster-Doppellauf:** `freeze_eval.cluster_double_run` über alle verwendeten Zeilen
+   (`ticker`, `date`, `entry_price` aus dem Export); Hälften im zweiten Lauf mit demselben `m`
+   wie im ersten; `point_key`/`baseline`: F1 δ gegen 0, F2 Mittel gegen 0. Nur berichtet.
+6. **Auslöser:** **einmaliger** Lauf, sobald (1) in `eval_results.jsonl` Zeilen der Familien
+   `paper_c_replikation`, `paper_c_handelbar` **und** `hyp_nov26_s2` stehen und (2) **n ≥ 500**
+   verwertbare Zeilen nach A.2–A.3 vorliegen. Unabhängig vom Verdikt von H-I Stufe 2 (H-I ist
+   nach Stufe 1 weitergereicht, ein Stufe-2-Lauf findet also statt). Kein ergebnisabhängiger
+   Auslöser.
+7. **Sperre:** steht eine Zeile mit `family = "hi_rendite"` in `eval_results.jsonl`, ist kein
+   weiterer Lauf erlaubt (nur mit datiertem Protokolleintrag hier). Das Auswertungs-Skript
+   prüft vor dem Lauf die MD5 dieses Blocks (Überschrift bis vor die nächste Überschrift der
+   Ebene ≤ 3) und bricht bei Abweichung ab. Seed 42 und N = 2000 gelten für jeden
+   Bootstrap-Aufruf.
+8. **Status:** Ein „Beleg“ hier ist eine Bestätigung auf blinden Daten; über eine Anzeige
+   (blau/grün) entscheidet Easy gesondert nach der CLAUDE.md-GRÜN-Regel.
+
+#### D. Pflichtangaben im Bericht
+
+n gesamt, U, O; Median `m`; Ausschlüsse je Grund; je Hälfte für N1, N2, R1, R2 und Netto bei
+−8 %: Mittel, Median, Anteil Verlierer (Wert < 0), 10. Perzentil (`freeze_eval._percentile`,
+p = 10); F1/F2: Teststatistik, roher und Holm-adjustierter p, AUC (F1), δ bzw. Mittel mit CI,
+Kriterien, Regime-Tabelle, Cluster-Doppellauf; Zahl der Zeilen mit Split/Dividende im Fenster;
+Datenhash (SHA-256 je Datei: Export, `outcome_path.jsonl`, `inst_ownership_history.json`, plus
+`freeze_eval._data_hash` der verwendeten Zeilen); Skript-Commit; N; Seed; Gesamtzahl bisher
+gelaufener Bestätigungstests (`eval_results.jsonl`).
+
+#### E. Zählungen beim Freeze (nur Zeilen)
+
+- Export, forward, Einstieg ≥ 24.10.2026, nach Dedup: **30** Zeilen (Einstiege 26.–28.10.2026).
+  Kein Ergebnis-, Renditen- oder Prädiktorfeld gelesen.
+- Zum Vergleich (Stufe-1-Fenster, bereits bekannt): 508 verwertbare H-I-Zeilen von 672. Bei
+  ≈ 10 Zeilen je Handelstag ist n ≥ 500 voraussichtlich ab Ende Januar 2027 an Einstiegen
+  erreicht, plus Reifung bis Tag 10 (Schätzung, nicht bindend) — etwa gleichzeitig mit „Paper C
+  handelbar“ und H-I Stufe 2.
+
+#### F. Vorwissen (offen benannt)
+
+- **Stufe 1 der Hypothesen-Runde** (Fenster 21.07.–23.10.2026, `eval_results.jsonl`):
+  H-I AUC **0,33** [0,25–0,41], Beleg (Treffer, nicht Rendite); Vergleich ab Close D 0,37;
+  Netto-Treffer 0,27. H-G Mittelwert-Δ (Regel +30 % gegen Halten) **+0,28 pp**
+  [−0,74; +1,27], Unklar; **28 von 73** Treffern liefen über +30 % weiter. H-K Trefferquote
+  **14,6 % vs. 9,7 %**, Unklar.
+- Sonst nichts: keine Rendite (R1/R2, brutto oder netto) wurde je nach Inst-Beteiligung
+  aufgeteilt, weder im Stufe-1-Fenster noch danach.
+- **Explorativer Nachlauf** (Easy-Auftrag Teil 2, erst **nach** dem Merge dieses Blocks): die
+  gleiche Rechnung auf dem Stufe-1-Fenster, als explorativ gekennzeichnet. Er beeinflusst
+  diesen Block nicht.
+
+#### G. Nachweis „nie gerechnet“ (Stand 12.11.2026)
+
+- Sitzungsprotokoll: alle Werkzeug-Aufrufe mit `inst_ownership` geprüft — Abdeckung, Nenner,
+  Punkt-Alter (07. und 09.11.2026), Zählungen für die Hypothesen-Runde (12.11.2026) und das
+  Auswertungs-Skript (nur Treffer, keine Rendite je Inst).
+- Repo: `inst_ownership` wird nur gesammelt (`generate_report.py`, `backtest_history.py`),
+  angezeigt/gezählt (`health_check.py`, `health_check_digest.py`) und in
+  `scripts/hypothesen_nov26_eval.py` gegen Treffer ausgewertet. `eval_results.jsonl`: keine
+  Zeile mit Rendite nach Inst-Beteiligung.
+
+#### H. Überschneidungen und Grenzen (offen benannt)
+
+- Dieselben Zeilen und dieselbe Treffer-Definition wie H-I Stufe 2 und „Paper C handelbar“;
+  R2 ist die Regel von H-G. Die Tests sind nicht unabhängig.
+- Exit-B.1-Nachfolger nutzt `return_3d`/`return_10d` aus dem Export (Basis Schlusskurs D,
+  Score ≥ 70, Einstieg ≥ 09.11.2026) — andere Basis, teils dieselben Zeilen.
+- Kosten: −4 % Round-Trip ist für liquide Small Caps konservativ, für sehr illiquide
+  Micro-Caps eher knapp; deshalb −8 % als berichtete Empfindlichkeit. Nicht modelliert:
+  Slippage an der Eröffnung von Tag 1, Leerverkaufs-/Leihkosten, Steuern.
+- Die Rendite nimmt Kauf genau zum Eröffnungskurs Tag 1 und (R2) Verkauf genau bei +30 % an.
+
+**Änderungs-Protokoll (bindend ab Merge):** Keine Änderung an diesem Block ohne datierten
+Protokolleintrag, der Änderung und Grund festhält. Ein Revert wird ebenfalls als
+Protokolleintrag festgehalten.
+
 ### ✅ STATUS-PANEL — 6. Eintrag `si_position_history` — ERLEDIGT (PR #430, 14.07.)
 
 Vorarbeit 13.07. (Read-only-Diagnose) → Bau 14.07. **nach** dem ersten Postclose-
