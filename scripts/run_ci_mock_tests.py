@@ -45,6 +45,7 @@ ALLOWLIST = [
     "rolling_window_end",
     "settled_close_fill",
     "settled_close_measure",
+    "destructive_guard",
     "maxgain_export_correction",
     "score_smoothing_chrono",
     "diagnose_night_probe",

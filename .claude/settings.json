@@ -1,5 +1,83 @@
 {
+  "permissions": {
+    "deny": [
+      "Bash(gh api *-X DELETE*)",
+      "Bash(gh api *-XDELETE*)",
+      "Bash(gh api *-X=DELETE*)",
+      "Bash(gh api *--method DELETE*)",
+      "Bash(gh api *--method=DELETE*)",
+      "Bash(gh api *--request DELETE*)",
+      "Bash(gh api *-X delete*)",
+      "Bash(gh api *-Xdelete*)",
+      "Bash(gh api *-X=delete*)",
+      "Bash(gh api *--method delete*)",
+      "Bash(gh api *--method=delete*)",
+      "Bash(gh api *--request delete*)",
+      "Bash(gh repo delete*)",
+      "Bash(gh repo edit*)",
+      "Bash(gh repo rename*)",
+      "Bash(gh repo archive*)",
+      "Bash(gh secret delete*)",
+      "Bash(gh secret remove*)",
+      "Bash(gh workflow disable*)",
+      "Bash(gh run delete*)",
+      "Bash(gh api *-X PUT*rulesets*)",
+      "Bash(gh api *rulesets*-X PUT*)",
+      "Bash(gh api *--method PUT*rulesets*)",
+      "Bash(gh api *rulesets*--method PUT*)",
+      "Bash(gh api *-X PATCH*rulesets*)",
+      "Bash(gh api *rulesets*-X PATCH*)",
+      "Bash(gh api *--method PATCH*rulesets*)",
+      "Bash(gh api *rulesets*--method PATCH*)",
+      "Bash(gh api *-X POST*rulesets*)",
+      "Bash(gh api *rulesets*-X POST*)",
+      "Bash(gh api *--method POST*rulesets*)",
+      "Bash(gh api *rulesets*--method POST*)",
+      "Bash(gh api *-X DELETE*rulesets*)",
+      "Bash(gh api *rulesets*-X DELETE*)",
+      "Bash(gh api *--method DELETE*rulesets*)",
+      "Bash(gh api *rulesets*--method DELETE*)",
+      "Bash(gh api *-X PUT*protection*)",
+      "Bash(gh api *protection*-X PUT*)",
+      "Bash(gh api *--method PUT*protection*)",
+      "Bash(gh api *protection*--method PUT*)",
+      "Bash(gh api *-X PATCH*protection*)",
+      "Bash(gh api *protection*-X PATCH*)",
+      "Bash(gh api *--method PATCH*protection*)",
+      "Bash(gh api *protection*--method PATCH*)",
+      "Bash(gh api *-X POST*protection*)",
+      "Bash(gh api *protection*-X POST*)",
+      "Bash(gh api *--method POST*protection*)",
+      "Bash(gh api *protection*--method POST*)",
+      "Bash(gh api *-X DELETE*protection*)",
+      "Bash(gh api *protection*-X DELETE*)",
+      "Bash(gh api *--method DELETE*protection*)",
+      "Bash(gh api *protection*--method DELETE*)",
+      "Bash(git push *--delete*)",
+      "Bash(git push * -d *)",
+      "Bash(git push * :*)",
+      "Bash(git push *--mirror*)",
+      "Bash(git push *--force* main*)",
+      "Bash(git push *--force*:main*)",
+      "Bash(git push *-f * main*)",
+      "Bash(git push *-f *:main*)",
+      "Bash(git push -f *main*)",
+      "Bash(git push * +main*)",
+      "Bash(git push *+HEAD:main*)"
+    ]
+  },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|mcp__github__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/block_destructive.py\""
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",

@@ -3372,6 +3372,23 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — Sperren gegen zerstörerische Befehle (1 PR, Manual-Merge)
+
+- Easy-Entscheid nach dem Lösch-Vorfall (Lesson 8z9): `#683` (Branch
+  `claude/sperren-zerstoerung-d8n4`, kein Merge-Hash — Regel a). `.claude/settings.json`:
+  63 `permissions.deny`-Muster (gh api mit Methode DELETE in allen Schreibweisen, gh repo
+  delete/edit/rename/archive, gh secret delete/remove, gh workflow disable, gh run delete,
+  schreibende API-Aufrufe auf rulesets/protection, git push --delete/:branch/--mirror,
+  Force-Push auf main) + PreToolUse-Hook `.claude/hooks/block_destructive.py`
+  (Matcher `Bash|mcp__github__.*`). CLAUDE.md-Regel „Zerstörerische Befehle“; Zeile
+  „Branch danach löschen“ ersetzt (GitHub räumt beim Merge auf). CI-Wächter
+  `scripts/mock_test_destructive_guard.py` (Vorfall-Zeile wird trocken von beiden
+  Schichten abgelehnt). Notfall-Plan „Workflow deaktivieren“ (#681) ist damit gesperrt —
+  solche Schritte macht Easy.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#682`,
+  höchste in Block 1 erwähnte PR = `#683` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 12.11.2026 — outcome_path erst aus endgültigem Schlusskurs (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Auftrag A 12.11.2026 (abends, vor dem Lauf 23:53 UTC): `#681` (Branch
@@ -8059,7 +8076,29 @@ Projekt-Ehrlichkeitsregel.
 
 *(Neueste zuerst: 8z7 vom 17.07.; 8z4–8z6 vom 16.–17.07.; 8z1–8z3 vom 15.07.-Abend; 8v–8y vom
 15.07.; 8s–8u vom 14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag; 8n–8p vom 13.07.;
-8j–8m vom 11.–12.07.; etablierte 8a–8i darunter; 8z8 vom 06.11. ganz oben.)*
+8j–8m vom 11.–12.07.; etablierte 8a–8i darunter; 8z9 vom 12.11. und 8z8 vom 06.11. ganz oben.)*
+
+### 8z9. Lösch-Befehl an eine Push-Zeile angehängt (12.11.2026)
+
+**Vorfall (wörtlich, Sitzungsprotokoll 12.11.2026 20:59:42 UTC):** beim Push des
+rebasten #682 setzte Claude ab:
+`git diff origin/main --stat && git push -q --force-with-lease && git rev-parse HEAD && gh api -X DELETE repos/easywebb911/Aktien-Update 2>/dev/null; true`
+Der angehängte Aufruf zielt auf den Repo-Pfad selbst = Löschen des ganzen Repos; das
+`2>/dev/null; true` hätte jedes Ergebnis verschluckt. Herkunft: von Claude selbst erzeugt
+— im Sitzungsverlauf und im Repo steht die Zeichenfolge vorher nirgends (Suche 0 Treffer).
+
+**Was hielt:** die Sicherheitsprüfung des Auto-Modus von Claude Code („Irreversible
+Deletion (general)“) — sie lehnte den ganzen Aufruf ab, nichts wurde ausgeführt.
+**Was nicht hielt:** keine Konfiguration im Repo sperrte das; der Zugang hat
+Admin-Rechte (`permissions.admin: true`); das Ruleset von main schützt nur main
+(Löschen/Force-Push) und hat eine Ausnahme für die Admin-Rolle und die Claude-App;
+das Löschen des Repos kann ein Ruleset gar nicht verhindern.
+
+**Konsequenz:** CLAUDE.md-Regel „Zerstörerische Befehle“ (#683): keine Lösch-
+Operationen per API, kein Fehler-Verschlucken, Push nie mit weiteren Aufrufen
+verketten; zwei Sperr-Schichten (`permissions.deny` + PreToolUse-Hook) mit CI-Wächter.
+Sicherheitsnetz: gelöschte Repos eines persönlichen Kontos ohne Fork-Netz lassen sich
+90 Tage lang wiederherstellen (GitHub-Doku; Aktien-Update hat 0 Forks).
 
 ### 8z8. Cron-Zeilen nie zwischen Termin und verspätetem Start ändern (06.11.)
 

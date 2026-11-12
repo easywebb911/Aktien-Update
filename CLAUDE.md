@@ -11,8 +11,9 @@
 
 ### Auto-Merge-Regel (ab 15.05.2026, finalisiert 16.05.2026)
 
-Claude Code mergt PRs **selbst** sobald Tests grün sind, Branch danach
-löschen.
+Claude Code mergt PRs **selbst** sobald Tests grün sind. Den Branch räumt
+GitHub beim Merge selbst auf (`delete_branch_on_merge`); Claude löscht keine
+Branches (seit 12.11.2026, Regel „Zerstörerische Befehle“).
 
 **Wichtig (Verfeinerung 16.05.2026, angeglichen 04.08.2026):** Subagent
 (`squeeze-guardian`) ist im **Urteil Bonus, kein Gatekeeper** — sein Ergebnis
@@ -165,7 +166,7 @@ PR-Klassifikation:
 
 | Klassifikation | Lokale Validierung | Standard-Abschluss-Meldung |
 |---|---|---|
-| **Auto-Merge erlaubt** | Mock-Tests grün + AST-Compile grün + Linter grün + `pr-checks.yml` fertig gelaufen (seit 01.11.2026) | Direkt mergen, „PR #N gemerged, branch gelöscht" |
+| **Auto-Merge erlaubt** | Mock-Tests grün + AST-Compile grün + Linter grün + `pr-checks.yml` fertig gelaufen (seit 01.11.2026) | Direkt mergen, „PR #N gemerged“ (Branch räumt GitHub auf) |
 | **Manuell-Merge-Pflicht** (Score-Logik, neue Schemas, neue Workflows) | dito | „PR #N **ready for merge** — wartet auf Easy-Freigabe (Klassifikation: \<grund\>)" |
 | **Lokale Tests rot** | irgendein Check fehlgeschlagen | „PR #N **gepusht aber blockiert** — \<konkrete Fehlermeldung\>" |
 
@@ -4663,6 +4664,43 @@ liegt noch darunter → Rückstand negativ) noch nach dem Merge (höchste
 gemergte PR = die eigene Nummer, Rückstand 0) als Fund — der Check
 bleibt unverändert korrekt, keine Anpassung an `check_handover_
 staleness.py` nötig oder vorgenommen.
+
+### Zerstörerische Befehle (Entscheidung Easy 12.11.2026, nach dem Lösch-Vorfall)
+
+**Anlass:** Am 12.11.2026 um 20:59:42 UTC hing an einer Push-Zeile hinter `&&` ein
+API-Aufruf mit Methode DELETE auf den Repo-Pfad selbst (er hätte das ganze Repo
+gelöscht), dazu `2>/dev/null; true`. Abgelehnt hat ihn nur die Sicherheitsprüfung des
+Auto-Modus. Herkunft: von Claude selbst erzeugt, keine Quelle im Sitzungsverlauf.
+
+**Regeln:**
+- **Keine Lösch-Operationen per API oder CLI** — weder Repo, Branch, Ref, Tag,
+  Release, Secret, Variable, Workflow-Lauf noch Ruleset/Branch-Schutz. Branches räumt
+  GitHub beim Merge selbst auf (`delete_branch_on_merge: true`). Workflows
+  deaktivieren, Secrets/Rulesets ändern und Repo-Einstellungen macht **Easy** selbst.
+  Dateien per Commit löschen (`git rm` im PR) bleibt erlaubt.
+- **Kein Fehler-Verschlucken** hinter gh-/git-Schreibbefehlen: kein
+  `2>/dev/null; true`, `|| true`, `; true` o. ä. — ein Fehlschlag muss sichtbar sein.
+- **Push-Befehle nie mit weiteren API-/gh-Aufrufen verketten** (`&&`, `;`, `|`):
+  ein Push ist ein eigener Aufruf; danach Ergebnis lesen, dann weiter.
+- **Kein Force-Push / Löschen / `--mirror` auf main.** `--force-with-lease` nur auf
+  eigenen Feature-Branches (Rebase).
+
+**Mechanik (zwei Schichten):**
+1. `permissions.deny` in `.claude/settings.json` (Bash-Muster). Laut Claude-Code-Doku
+   (permissions) wird **jeder Teilbefehl** einer Verkettung (`&&`, `||`, `;`, `|`, `&`,
+   Zeilenumbruch, `$(…)`, Subshell) einzeln geprüft; Deny gilt in **jedem** Modus und
+   auch für Subagents. Grenze laut Doku: Muster erfassen keine Varianten wie
+   `/usr/bin/gh …` oder `sh -c '…'` („isn't a security boundary“).
+2. PreToolUse-Hook `.claude/hooks/block_destructive.py` (Matcher `Bash|mcp__github__.*`):
+   prüft die **ganze** Befehlszeile per regulärem Ausdruck ohne Groß-/Kleinschreibung,
+   auch Text in Anführungszeichen; Exit 2 blockt vor den Permission-Regeln. Er blockt
+   auch reinen Text mit diesen Mustern (z. B. in `echo` oder Commit-Messages) —
+   bewusst konservativ; solche Texte umformulieren. Startet der Hook gar nicht,
+   läuft der Aufruf laut Doku weiter (dann bleibt Schicht 1).
+
+Wächter: `scripts/mock_test_destructive_guard.py` (CI) — Pflicht-Einträge vorhanden,
+Hook registriert, die wörtliche Vorfall-Zeile wird von beiden Schichten abgelehnt
+(Trockentest, kein Befehl wird abgesetzt). Rückbau einer Sperre fällt damit auf.
 
 ### protected-ok-Label-Regel (Entscheidung Easy 01.11.2026)
 
