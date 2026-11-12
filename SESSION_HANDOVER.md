@@ -3372,6 +3372,16 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — open_item Rendite-/Forward-Felder aus der Abendzeile (1 PR, Auto-Merge Doku)
+
+- Easy-Auftrag 12.11.2026 (S16-Nebenbefund, read-only): neues open_item
+  `rendite-forward-abendzeile-nicht-final` — `return_*`/`_t1`/`_net` und Exit-Shadow-`forward_*`
+  werden ab 16:20 ET aus der noch vorläufigen Tageszeile gefüllt und nie überschrieben; #677 deckt
+  diese Pfade nicht ab. Zählungen + berührte Freezes im Item. Nichts gebaut. Nachtrag Zählbericht
+  #678 im Eintrag unten.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#678`, dieser PR ist der nächste — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 12.11.2026 — Einmal-Korrektur abgeschnittener max_gain-Fenster im Export (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Entscheid Variante A: `#678` (Branch `claude/maxgain-export-korrektur-p3x7`, Branch-Commit
@@ -3384,6 +3394,12 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   betroffen. Protokolleinträge Replikation / „Paper C handelbar“ / Paper-C-Protokoll; dokumentierte
   append-only-Ausnahme (CLAUDE.md, matured_export-Docstring). Workflow-Lauf erst nach dem Merge,
   Zählbericht + Run-ID per Nachtrag.
+- **NACHTRAG 12.11.2026 (Lauf):** Probelauf Run `43295063078`, scharf Run `43295408979` →
+  Commit `2c8b17b` (nur `matured_backtest_export.jsonl`, 36 Zeilen). Korrigiert 24 (< 24.10.) +
+  12 (Replikationsfenster, blind); Felder max_gain 18 / max_drawdown 22; nicht geschrieben:
+  5 noch nicht final (Tag 10 = 12.11.), 0 Gegenprobe-Abweichung, 0 Abruf-Fehler; 1 361 Zeilen
+  hash-gleich; Paper-C-Fenster 2 Treffer-Wechsel (nicht neu ausgewertet). S17 alt 41 → 5 (die 5
+  nicht finalen; erneuter Lauf ab 13.11. nach 16:20 ET).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#676` (#677 offen),
   höchste in Block 1 erwähnte PR = `#678` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
