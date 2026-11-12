@@ -74,8 +74,8 @@ INST_FILE = "inst_ownership_history.json"
 FREEZE_HEADING = ("### VORABREGISTRIERUNG — Hypothesen-Runde November 2026 "
                   "(H-G, H-I, H-K), eingefroren mit dem Merge")
 # MD5 des Blocks (Überschrift bis vor die nächste Überschrift der Ebene ≤ 3,
-# Zeilen mit "\n" verbunden) auf main nach dem Merge von PR #684.
-FREEZE_BLOCK_MD5 = "dfc81229ef38d0e9b34c9ef0428a76a4"
+# Zeilen mit "\n" verbunden) nach dem Protokolleintrag 12.11.2026 abends (PR #685).
+FREEZE_BLOCK_MD5 = "358d23a3af656d380fc39bc93f6be499"
 FREEZE_DATE = "12.11.2026"
 PROTOCOL_REF = ("SESSION_HANDOVER.md, VORABREGISTRIERUNG — Hypothesen-Runde November 2026 "
                 "(H-G, H-I, H-K), eingefroren mit dem Merge (PR #684, 12.11.2026)")
