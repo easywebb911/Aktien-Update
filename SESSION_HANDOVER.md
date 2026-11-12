@@ -3372,6 +3372,24 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 12.11.2026 — Auswertungs-Skript Hypothesen-Runde November 2026 (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Auftrag 12.11.2026: `#685` (Branch `claude/hypothesen-skript-nov26-r4k2`, Branch-Commit
+  `c61b7803`, kein Merge-Hash — Regel a). Neues Skript `scripts/hypothesen_nov26_eval.py`
+  (Stufe 1 + 2, einmalig je Stufe, MD5-Pin `dfc81229…` des Freeze-Blocks, Gegenprobe der Zahlen
+  im Blocktext, Sperre über `eval_results.jsonl` (`hyp_nov26_s1`/`_s2`), Zählung = Block E sonst
+  Abbruch, Stufe 2 nur nach Replikation + „Paper C handelbar“ und n ≥ 500). Neuer Workflow-Input
+  `hypothesen_nov26_s1` in `health_check_digest.yml` (wie `paper_c`). Tests nur synthetisch
+  (`scripts/mock_test_hypothesen_nov26_eval.py`, in der CI-Allowlist). Kein Lauf, keine Rechnung
+  auf echten Daten. Der einmalige Stufe-1-Lauf folgt nach Easys Merge.
+- Nachtrag vor dem Merge (Easy-Entscheid 12.11.2026): datierter Protokolleintrag im Freeze-Block
+  „Hypothesen-Runde November 2026“ mit den Auslegungen 1–7 (festgelegt vor dem Stufe-1-Lauf,
+  ohne Ergebnisblick, Sperre leer); MD5-Pin in Skript und Test auf `358d23a3…` nachgezogen;
+  alle anderen Freeze-Blöcke byte-unverändert; `protected-ok` nach Regel b.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#684`,
+  höchste in Block 1 erwähnte PR = `#685` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 12.11.2026 — Vorabregistrierung Hypothesen-Runde November 2026 (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Auftrag 12.11.2026: `#684` (Branch `claude/hypothesen-runde-nov-h7q2`, Branch-Commit
@@ -7452,6 +7470,26 @@ gezählt, kein Ergebnisfeld gelesen. Alle bestehenden Freeze-Blöcke bleiben byt
 **Änderungs-Protokoll (bindend ab Merge):** Keine Änderung an diesem Block ohne datierten
 Protokolleintrag, der Änderung und Grund festhält. Ein Revert wird ebenfalls als
 Protokolleintrag festgehalten.
+
+**Protokolleintrag 12.11.2026 (abends) — Auslegungen für das Auswertungs-Skript (Easy-Entscheid
+12.11.2026, `#685`):** Festgelegt vor dem Stufe-1-Lauf, ohne Ergebnisblick; Sperre in
+`eval_results.jsonl` zu diesem Zeitpunkt leer (keine Zeile `hyp_nov26_s1`/`_s2`). Wo der Block
+nichts festlegt, gilt (`scripts/hypothesen_nov26_eval.py`):
+1. **Mehrere Mängel an einer Zeile:** Der Ausschlussgrund wird in der Reihenfolge `zeile_fehlt` →
+   `grund:<Wert>` → `bars_unvollstaendig` → `open_tag1_fehlt` vergeben.
+2. **Doppelte Zeile in `outcome_path.jsonl`** zum selben (Ticker, Datum): die erste zählt.
+3. **H-I:** Ist der jüngste Punkt mit Datum ≤ D nicht endlich, fällt die Zeile als `kein_punkt`
+   heraus; es wird nicht auf einen älteren Punkt ausgewichen. Unlesbare Punkt-Daten werden
+   gezählt und übersprungen.
+4. **Momentum-Hälften** (nur beschreibend): niedrig = ≤ Median, hoch = > Median. Zeilen ohne
+   Momentum-Wert werden gezählt.
+5. **Datenhash:** SHA-256 je Datei (Export, `outcome_path.jsonl`, `inst_ownership_history.json`)
+   und zusätzlich der Hash der verwendeten Schlüssel (`freeze_eval._data_hash`).
+6. **Seed 42** gilt für jeden einzelnen Bootstrap-Aufruf.
+7. **Zusatzschutz, strenger als der Block:** Abbruch, wenn die Stufe-1-Zählung von E abweicht
+   (672 / 669 / 508 / 669 / 164), und Laufort nur GitHub-Workflow auf main.
+Klarstellung (keine Änderung): „bedingt“ heißt nach A.8 „kein Regime prüfbar“; ist genau ein
+Regime prüfbar und plausibel, lautet das Verdikt „Beleg“. Alle übrigen Vorgaben unverändert.
 
 ### ✅ STATUS-PANEL — 6. Eintrag `si_position_history` — ERLEDIGT (PR #430, 14.07.)
 

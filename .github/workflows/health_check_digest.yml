@@ -27,6 +27,14 @@ on:
         description: 'Paper C einmalig auswerten (nur einmal setzen)'
         type: boolean
         default: false
+      hypothesen_nov26_s1:
+        # Hypothesen-Runde November 2026 (SESSION_HANDOVER.md, eingefroren
+        # 12.11.2026, PR #684): EINMALIGER Stufe-1-Lauf. Das Skript bricht
+        # selbst ab bei vorhandener hyp_nov26_s1-Zeile, abweichendem
+        # Freeze-Block (MD5), Zählung ≠ Block E oder Start nicht von main.
+        description: 'Hypothesen-Runde Nov 2026, Stufe 1 einmalig auswerten (nur einmal setzen)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # Für Commit von health_check_digest_state.json
@@ -65,6 +73,12 @@ jobs:
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: python scripts/paper_c_eval.py --run
+
+      - name: Hypothesen-Runde Nov 2026 — einmalige Stufe-1-Auswertung (nur bei Input hypothesen_nov26_s1)
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.hypothesen_nov26_s1 }}
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python scripts/hypothesen_nov26_eval.py --run --stage 1
 
       - name: Commit digest state
         if: always()   # state immer persistieren, auch wenn Skript exit 1

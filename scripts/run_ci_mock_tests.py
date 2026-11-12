@@ -51,6 +51,7 @@ ALLOWLIST = [
     "diagnose_night_probe",
     "paper_c_marker",
     "paper_c_eval",
+    "hypothesen_nov26_eval",
     "maxgain_none_not_zero",
     "postclose_gap_s15",
     "digest_warn_visible",
