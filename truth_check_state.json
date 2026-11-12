@@ -1,6 +1,6 @@
 {
- "export_lines_seen": 1387,
- "last_run_ts": "2026-11-11T02:39:50Z",
+ "export_lines_seen": 1397,
+ "last_run_ts": "2026-11-12T03:42:53Z",
  "recheck": [
   "export|GRPN|26.10.2026",
   "export|FRGT|27.10.2026",
@@ -9,7 +9,7 @@
   "export|ARCT|01.09.2026"
  ],
  "retry": [],
- "rotation_pos": 30,
+ "rotation_pos": 40,
  "schema_v": 1,
  "shadow_checked": [
   "exit_shadow|AI|01.07.2026",
@@ -139,6 +139,7 @@
   "exit_shadow|AMC|28.07.2026",
   "exit_shadow|AMC|28.08.2026",
   "exit_shadow|AMC|28.09.2026",
+  "exit_shadow|AMC|28.10.2026",
   "exit_shadow|AMC|29.06.2026",
   "exit_shadow|AMC|29.07.2026",
   "exit_shadow|AMC|29.09.2026",
@@ -204,6 +205,7 @@
   "exit_shadow|GRPN|26.10.2026",
   "exit_shadow|GRPN|27.10.2026",
   "exit_shadow|GRPN|28.09.2026",
+  "exit_shadow|GRPN|28.10.2026",
   "exit_shadow|GRPN|29.09.2026",
   "exit_shadow|GRPN|30.09.2026",
   "exit_shadow|IONQ|01.07.2026",
@@ -293,6 +295,7 @@
   "exit_shadow|IONQ|28.07.2026",
   "exit_shadow|IONQ|28.08.2026",
   "exit_shadow|IONQ|28.09.2026",
+  "exit_shadow|IONQ|28.10.2026",
   "exit_shadow|IONQ|29.06.2026",
   "exit_shadow|IONQ|29.07.2026",
   "exit_shadow|IONQ|29.09.2026",
@@ -417,6 +420,7 @@
   "exit_shadow|PDYN|28.07.2026",
   "exit_shadow|PDYN|28.08.2026",
   "exit_shadow|PDYN|28.09.2026",
+  "exit_shadow|PDYN|28.10.2026",
   "exit_shadow|PDYN|29.06.2026",
   "exit_shadow|PDYN|29.07.2026",
   "exit_shadow|PDYN|29.09.2026",
@@ -513,6 +517,7 @@
   "exit_shadow|WOLF|28.07.2026",
   "exit_shadow|WOLF|28.08.2026",
   "exit_shadow|WOLF|28.09.2026",
+  "exit_shadow|WOLF|28.10.2026",
   "exit_shadow|WOLF|29.07.2026",
   "exit_shadow|WOLF|29.09.2026",
   "exit_shadow|WOLF|30.07.2026",
