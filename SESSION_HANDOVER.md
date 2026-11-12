@@ -7209,7 +7209,9 @@ gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
    Nie `max_gain_pct`.
 2. **Join:** Export-Zeile ↔ `outcome_path.jsonl` über `(ticker, date)`; `date` in beiden
    Dateien als `DD.MM.YYYY` (ET-Handelstag D). Prädiktoren und `market_regime` kommen aus
-   dem Export bzw. (H-I) aus `inst_ownership_history.json`.
+   dem Export bzw. (H-I) aus `inst_ownership_history.json`. Zeilen mit `market_regime` außer
+   bull/neutral/bear (oder fehlend) bleiben in der Gesamtrechnung und bilden im
+   Regime-Split eine eigene Gruppe „unbekannt“, die nie prüfbar ist.
 3. **Stichprobe Stufe 1 (Regel ii):** `matured_backtest_export.jsonl`, `provenance ==
    "forward"`, Einstieg D **von 21.07.2026 bis einschließlich 23.10.2026**, alle Scores,
    Dedup nach `(ticker, date)` (erste Zeile gewinnt) **vor** jeder Zählung.
@@ -7225,7 +7227,7 @@ gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
 7. **Cluster-Doppellauf:** `freeze_eval.cluster_double_run` (Zeilen mit `ticker`, `date`,
    `entry_price` aus dem Export), Cluster über alle verwendeten Zeilen. Bindend sind die
    Zahlen **mit allen Zeilen**; der zweite Lauf wird mit „gleiche Richtung ja/nein“ nur
-   berichtet.
+   berichtet. `point_key`/`baseline`: H-G Mittelwert-Δ gegen 0; H-I und H-K AUC gegen 0,5.
 8. **Verdikte:** „Beleg“ = (a)+(b)+(c) der jeweiligen Hypothese; „bedingt“ = (a)+(b), aber
    kein Regime prüfbar; „Unklar“ = (a) oder (b) verfehlt oder ein prüfbares Regime
    widerspricht; „nicht auswertbar“ = Floor verfehlt (dann p = 1 im Holm-Schritt). Weder
@@ -7271,7 +7273,9 @@ gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
    **einseitig**, Alternative „d nach oben verschoben“ (Regel besser). Mechanik wie
    `stats_helpers.wilcoxon_signed_rank_paired` (Normal-Approximation, Tie-Korrektur,
    Stetigkeitskorrektur 0,5, Differenzen exakt 0 vor der Rangbildung entfernt und gezählt):
-   p = 1 − Φ((W⁺ − n(n+1)/4 − 0,5) / √Var(W⁺)), n = Zahl der Differenzen ≠ 0.
+   p = 1 − Φ((W⁺ − n(n+1)/4 − 0,5) / √Var(W⁺)), n = Zahl der Differenzen ≠ 0; W⁺ und
+   die tie-korrigierte Var(W⁺) genau wie in `wilcoxon_signed_rank_paired` (die Funktion
+   liefert nur den zweiseitigen p; der einseitige wird im Skript nach dieser Formel gebildet).
 5. **Effekt:** Mittelwert-Δ = Mittel(`rule`) − Mittel(`hold`) über **alle** Paare (Nullen
    eingeschlossen), CI über `paired_bootstrap_mean_delta(rule, hold)` (A.6). Kein Median-Δ
    (bei ~89 % Nullen wäre er 0).
@@ -7325,7 +7329,8 @@ gelesen. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
    unverändert: `material_8k.select_windowed_8k`, Items `MATERIAL_8K_QUALIFYING_ITEMS` =
    1.01/2.02/5.02/7.01/8.01, Fenster `MATERIAL_8K_LOOKBACK_DAYS` = 5 Kalendertage vor dem
    Report-Zeitpunkt): **ja** = mindestens ein Eintrag in `events` mit
-   `acceptance_datetime` **≤ D 16:00 America/New_York**; sonst **nein**. `matched_terms`
+   `acceptance_datetime` (EDGAR-Zeit in UTC, `…Z`) **≤ D 16:00 America/New_York**, in UTC
+   umgerechnet mit Sommer-/Winterzeit des Tages D; sonst **nein**. `matched_terms`
    wird nicht verwendet. Die 16:00-Grenze ist die einzige neue Regel: Filings nach
    Börsenschluss D lagen beim Einstieg zum Close D noch nicht vor.
 3. **Ausschluss:** Feld fehlt / kein Dict / `collected` ≠ `true` → „nicht_gesammelt“.
