@@ -170,6 +170,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "ANRO": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-12T02:29:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Alto Neuroscience, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "ARCT": {
     "qid": "Q98713358",
     "title": "Arcturus_Therapeutics",
@@ -275,6 +284,15 @@
     "resolved_at": "2026-08-29T03:12:10Z",
     "issuer_verified": true,
     "company_name_at_resolve": "Build-A-Bear Workshop, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "BGS": {
+    "qid": "Q54953653",
+    "title": "B&G_Foods",
+    "resolved_at": "2026-11-12T02:29:42Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "B&G Foods, Inc.",
     "substrate": "en",
     "reason": null
   },

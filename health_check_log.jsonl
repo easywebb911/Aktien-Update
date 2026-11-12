@@ -1,4 +1,3 @@
-{"run_ts": "2026-10-13T00:41:05Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-10-13T02:37:07Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-10-13T02:37:54Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-10-13T07:43:05Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
@@ -224,3 +223,4 @@
 {"run_ts": "2026-11-11T14:25:39Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-11-11T15:12:52Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-11-11T21:58:22Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-11-12T02:30:18Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S16", "severity": "crit", "detail": "Wahrheits-Abgleich: dieselbe Abweichung in 2 Läufen hintereinander (1×, z. B. AMCX 15.07.2026 entry_past_return_5d 5.11→5.16); 5 Zeilen weichen ab (GRPN 26.10.2026 return_10d_t1 -24.3→-24.27, FRGT 27.10.2026 return_5d_t1 -1.47→-1.5, GRPN 27.10.2026 forward_10d -24.3→-24.27)"}], "provider_fails": []}
