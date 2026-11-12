@@ -516,7 +516,7 @@ def update_backtest_returns(now_utc: datetime | None = None) -> None:
     # Zieltag (last_final_close_date) — dann stand teils noch ein vorläufiger
     # Close in der Tageszeile, und das Feld wird nie überschrieben.
     final_cut = trading_date.last_settled_close_date(now)
-    deferred: set = set()   # (ticker, date, offset) zurückgestellt bis endgültig
+    deferred: set = set()   # (ticker, date, feld) zurückgestellt bis endgültig
 
     def _needs_update(e: dict) -> bool:
         elapsed = _trading_days_elapsed(e.get("date", ""), today)
@@ -604,14 +604,14 @@ def update_backtest_returns(now_utc: datetime | None = None) -> None:
         if ei < 0:
             continue
 
-        def _close_at(offset: int) -> float | None:
+        def _close_at(offset: int, field: str | None = None) -> float | None:
             pos = ei + offset
             # Nur endgültige Tageszeilen (siehe Docstring): eine Zeile nach
             # final_cut (laufend oder Abend-vorläufig) zählt als „noch nicht da".
             if 0 <= pos < len(closes) and idx_dates[pos] <= final_cut:
                 return float(closes.iloc[pos])
-            if 0 <= pos < len(closes):
-                deferred.add((e["ticker"], e.get("date"), offset))
+            if field is not None and 0 <= pos < len(closes):
+                deferred.add((e["ticker"], e.get("date"), field))
             return None
 
         # Split-konsistente Return-Basis (Diagnose 01.06.2026): die T+0-
@@ -625,7 +625,7 @@ def update_backtest_returns(now_utc: datetime | None = None) -> None:
         # entry_price bleibt als Feld erhalten (Position-/Display-Konsumenten),
         # wird aber NICHT mehr als Return-Basis genutzt.
         entry_basis = _close_at(0) or 0.0
-        close_t1    = _close_at(1)
+        close_t1    = _close_at(1, "entry_price_t1" if e.get("entry_price_t1") is None else None)
 
         if e.get("entry_price_t1") is None and close_t1 is not None:
             e["entry_price_t1"] = round(close_t1, 4)
@@ -634,7 +634,7 @@ def update_backtest_returns(now_utc: datetime | None = None) -> None:
         for win in BACKTEST_RETURN_WINDOWS:
             k0 = f"return_{win}d"
             if e.get(k0) is None and entry_basis > 0:
-                c = _close_at(win)
+                c = _close_at(win, k0)
                 if c is not None:
                     e[k0] = round((c / entry_basis - 1) * 100, 2)
                     n_filled += 1
@@ -661,7 +661,7 @@ def update_backtest_returns(now_utc: datetime | None = None) -> None:
                                  e["ticker"], e.get("date"), win, e[kvs], spy_ret)
             k1 = f"return_{win}d_t1"
             if (e.get(k1) is None and close_t1 is not None and close_t1 > 0):
-                c = _close_at(1 + win)
+                c = _close_at(1 + win, k1)
                 if c is not None:
                     e[k1] = round((c / close_t1 - 1) * 100, 2)
                     n_filled += 1
