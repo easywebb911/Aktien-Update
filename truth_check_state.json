@@ -1,15 +1,18 @@
 {
  "export_lines_seen": 1397,
- "last_run_ts": "2026-11-12T03:42:53Z",
+ "last_run_ts": "2026-11-13T03:20:51Z",
  "recheck": [
   "export|GRPN|26.10.2026",
   "export|FRGT|27.10.2026",
   "exit_shadow|GRPN|27.10.2026",
   "export|AMCX|15.07.2026",
-  "export|ARCT|01.09.2026"
+  "export|ARCT|01.09.2026",
+  "export|BJDX|14.07.2026",
+  "export|BJDX|15.07.2026",
+  "export|BJDX|05.08.2026"
  ],
  "retry": [],
- "rotation_pos": 40,
+ "rotation_pos": 50,
  "schema_v": 1,
  "shadow_checked": [
   "exit_shadow|AI|01.07.2026",
