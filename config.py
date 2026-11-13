@@ -2320,6 +2320,74 @@ SCORE_STATUS_LABELS = {
                        "~Dez. 2026)",
         "eval_ref":    {"file": "eval_results.jsonl", "test_id": "paper_c_gipfel"},
     },
+    # Hypothesen-Runde November 2026, Stufe 1 (Einstiege 21.07.–23.10.2026,
+    # Familie hyp_nov26_s1, Freeze PR #684). Anzeige-PR Teil B (Easy-Auftrag
+    # 13.11.2026): H-I BLAU (Beleg nur für das Gipfel-Ziel, 1 Fenster — Rendite-
+    # Test läuft); H-G/H-K „Unklar“ (keine Widerlegung, laut Block kein Stufe-2-
+    # Lauf) → GRAU (beansprucht nichts). Die Zahlen im Panel kommen zur Render-
+    # Zeit aus eval_results.jsonl (`eval_ref`), nicht aus diesem Text. GRÜN
+    # bleibt unvergeben (eval_ref färbt nicht). Rein Anzeige.
+    "h_i": {
+        "status":      "Beleg (Gipfel), 1 Fenster — Rendite-Test läuft",
+        "status_kind": "pending",
+        "status_date": "2026-11-12",
+        "review_by":   None,
+        "review_cond": "niedrigere Inst-Beteiligung → häufiger +30 % im Hoch ab "
+                       "Eröffnung Tag 1; kein Beleg für Rendite. Bestätigung "
+                       "(Stufe 2) und Rendite-Test laufen blind ab 24.10.2026 "
+                       "(Auslöser n ≥ 500)",
+        "eval_ref":    {"file": "eval_results.jsonl", "test_id": "hi_s1"},
+    },
+    "h_g": {
+        "status":      "Unklar (1 Fenster) · kein Folgetest",
+        "status_kind": "heuristic",
+        "status_date": "2026-11-12",
+        "review_by":   None,
+        "review_cond": "Gewinnziel +30 % ab Eröffnung Tag 1 vs. Halten bis "
+                       "Schluss Tag 10 — keine Widerlegung, kein Beleg",
+        "eval_ref":    {"file": "eval_results.jsonl", "test_id": "hg_s1"},
+    },
+    "h_k": {
+        "status":      "Unklar (1 Fenster) · kein Folgetest",
+        "status_kind": "heuristic",
+        "status_date": "2026-11-12",
+        "review_by":   None,
+        "review_cond": "8-K-Meldung ja/nein → +30 % im Hoch ab Eröffnung Tag 1 "
+                       "— keine Widerlegung, kein Beleg",
+        "eval_ref":    {"file": "eval_results.jsonl", "test_id": "hk_s1"},
+    },
+}
+
+# Reihenfolge + Anzeigename der Befund-Zeilen ohne Daten-Dimension im
+# Konfidenz-Panel (nach den sechs Scores). Rein Anzeige.
+SCORE_STATUS_EXTRA_ROWS = (
+    ("paper_c", "Momentum 5T (Paper C)"),
+    ("h_i",     "Inst-Beteiligung (H-I)"),
+    ("h_g",     "Gewinnziel +30 % (H-G)"),
+    ("h_k",     "8-K-Meldung (H-K)"),
+)
+
+# Hinweis unter dem Wert „Institutioneller Anteil“ (Detailbereich der Karte),
+# Easy-Auftrag 13.11.2026 (open_item inst-anzeige-farbe): Farbe neutral, keine
+# Schwellen, kein Marker im Kartenkopf. Wortlaut von Easy vorgegeben.
+INST_OWNERSHIP_HINT = (
+    "Niedrigere Beteiligung: häufiger +30 % im Hoch (Beleg, 1 Zeitfenster). "
+    "Rendite im selben Zeitraum nicht besser als null — kein Kaufsignal."
+)
+
+# Explorative Zeile im Konfidenz-Panel (Easy-Auftrag 13.11.2026, Teil B).
+# HERKUNFT: Rendite-Landkarte (Bericht 13.11.2026, 00:43 UTC), main 26b7edfa,
+# 669 forward-Einstiege 21.07.–23.10.2026, Kauf Eröffnung Tag 1 → Schluss
+# Tag 10, Bootstrap N = 2000, Seed 42, 69 Vergleiche. KEIN Beleg — die
+# Bestätigung ist K1 (Freeze „Landkarte K1/K2“, blind ab 24.10.2026).
+# Zahlen nur mit Kennzeichnung „explorativ, 1 Fenster“.
+K1_EXPLORATIVE_ROW = {
+    "label": "Top-10 als Kaufliste",
+    "text":  ("Juli–Okt. 2026: vor Kosten etwa null (−1,1 % [−2,6; +0,5]), nach "
+              "angenommenen Kosten im Minus (−5,0 % [−6,4; −3,4] bei −4 %) — "
+              "Bestätigung läuft (K1)"),
+    "note":  ("explorativ, 1 Fenster · n = 669, Kauf Eröffnung Tag 1 bis Schluss "
+              "Tag 10 · Quelle Rendite-Landkarte 13.11.2026"),
 }
 
 # Erlaubte status_kind-Werte (Single-Source für Anzeige + Mock-Test-Wächter).
@@ -2343,13 +2411,17 @@ PAPER_C_BADGE = {
 
 # Kopfzeile im Konfidenz-Panel (Produkt-Text, einfache Sprache). Zahlen nur
 # aus eval_results.jsonl bzw. den Freeze-Blöcken; Termine sind Schätzungen.
+# Platzhalter {n_tests} / {belege} / {stand} füllt der Renderer aus
+# eval_results.jsonl (Zeilen = ausgewertete Bestätigungstests, verdict
+# „Beleg“, jüngstes evaluated_at) — Teil B 13.11.2026, statt fester „4“.
 VALIDATION_SUMMARY_TEXT = (
-    "Stand 13.11.2026: 4 Bestätigungstests, 1 formaler Beleg (Paper C: Momentum "
-    "5T → Spanne Tief→Hoch ≥ 30 % inkl. Einstiegstag) — kein Beleg für Gewinn "
-    "ab Einstieg; Replikation der Spanne Schätzung ~Dez. 2026, handelbare "
-    "Variante (ab Einstiegskurs) Schätzung ~Ende Jan. 2027. Exit-B.1 „Unklar“ — Nachfolger-Test läuft (n=500, Schätzung "
-    "~Mitte 2027). Setup/Conviction und KI: Tests laufen, Auswertung "
-    "automatisch bei n ≥ 250."
+    "Stand {stand}: {n_tests} Bestätigungstests ausgewertet, {belege} "
+    "— nur für Gipfel-Ziele (Hoch ≥ 30 %), je 1 Fenster; kein Beleg für "
+    "eine Rendite. Paper C: Replikation der Spanne Schätzung ~Dez. 2026, "
+    "handelbare Variante (ab Einstiegskurs) Schätzung ~Ende Jan. 2027. H-I: "
+    "Bestätigung und Rendite-Test laufen. Exit-B.1 „Unklar“ — Nachfolger-Test "
+    "läuft (n=500, Schätzung ~Mitte 2027). Setup/Conviction und KI: Tests "
+    "laufen, Auswertung automatisch bei n ≥ 250."
 )
 
 # Status-Drift-Wecker (Teil 2): der TÄGLICHE Daily-Run (generate_report.main)

@@ -3626,6 +3626,15 @@ Im Zweifel: lieber Sync mit kurzem Hinweis im Commit-Body als Drift-Risiko.
 >   anpassen (status + status_date + review_by). Der Wecker meldet Fälliges.
 >
 > Der historische Abschnitt darunter bleibt als Kontext stehen.
+>
+> **Teil B (13.11.2026, Anzeige):** das Panel zeigt nach den sechs Scores die
+> Befund-Zeilen aus `config.SCORE_STATUS_EXTRA_ROWS` (Paper C, H-I blau, H-G/H-K
+> „Unklar“ grau); Kennzahlen kommen zur Render-Zeit aus `eval_results.jsonl`
+> (`eval_ref`), die Kopfzeile zählt Tests/Belege dort (Platzhalter in
+> `VALIDATION_SUMMARY_TEXT`). Dazu eine explorative Zeile ohne Status-Punkt
+> (`K1_EXPLORATIVE_ROW`, „explorativ, 1 Fenster“). Inst-Beteiligung auf der Karte
+> neutral mit Hinweis (`INST_OWNERSHIP_HINT`, Helfer `_inst_row_html`). GRÜN bleibt
+> unvergeben. Test `scripts/mock_test_display_teil_b.py`.
 
 Externe Methodik-Bewertung: solange Live-Datenmenge klein ist (heutige
 Validierungs-Diagnose 13.05.2026: n=78 für Earliness V2), soll das

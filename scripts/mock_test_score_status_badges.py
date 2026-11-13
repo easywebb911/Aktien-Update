@@ -47,7 +47,7 @@ _spec.loader.exec_module(config)
 # 4 Karten-Scores + 2 Panel-only (earliness, exit_pressure) + Paper C
 # (Momentum 5T, Karten-Zeile + Panel, seit 07.11.2026) = 7 (eine Pflegeliste).
 _EXPECTED_KEYS = {"setup", "monster", "ki", "conviction", "earliness", "exit_pressure",
-                  "paper_c"}
+                  "paper_c", "h_i", "h_g", "h_k"}
 _CARD_KEYS = {"setup", "monster", "ki", "conviction"}
 _ISO_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -198,6 +198,9 @@ _EXPECTED_KIND = {
     "setup": "pending", "earliness": "falsified", "monster": "falsified",
     "ki": "heuristic", "conviction": "pending", "exit_pressure": "pending",
     "paper_c": "pending",   # 07.11. grün → 12.11.2026 blau (Easy-Entscheid 11.11.)
+    # Teil B 13.11.2026: H-I blau (Beleg nur Gipfel, Rendite-Test läuft),
+    # H-G/H-K „Unklar“ ohne Folgetest → grau.
+    "h_i": "pending", "h_g": "heuristic", "h_k": "heuristic",
 }
 
 

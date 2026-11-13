@@ -7488,27 +7488,8 @@ def _card(i: int, s: dict) -> str:
     catalyst_rows = earn_surp_row + _pc_row + _iv_row
     options_rows  = _pc_row + _iv_row  # legacy v1 placeholder, unused
 
-    # Institutional ownership row (+ optional 13F note)
-    _inst      = s.get("inst_ownership")
-    _13f_note  = s.get("sec_13f_note") or ""
-    _13f_badge = (
-        f' <span style="color:#22c55e;font-size:.8em">● {_13f_note}</span>'
-        if _13f_note else ""
-    )
-    if _inst is not None:
-        _inst_pct = float(_inst) * 100
-        _inst_col = "#22c55e" if _inst_pct >= 60 else ("#f59e0b" if _inst_pct >= 30 else "#ef4444")
-        _inst_row = (
-            f'<tr><td>Institutioneller Anteil</td>'
-            f'<td><span style="color:{_inst_col}">{_inst_pct:.1f}%</span>{_13f_badge}</td></tr>'
-        )
-    elif _13f_note:
-        _inst_row = (
-            f'<tr><td>Institutioneller Anteil</td>'
-            f'<td>{_13f_badge.strip()}</td></tr>'
-        )
-    else:
-        _inst_row = ""
+    # Institutional ownership row (+ optional 13F note) — shared Helper (v1 == v2)
+    _inst_row = _inst_row_html(s)
 
     # Float size row (Feature 2 — nutzt vorberechnete Detail-String aus _float_display)
     if float_detail_str:
@@ -8025,27 +8006,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     catalyst_rows = _earn_surp_row_ + _pc_row + _iv_row
     options_rows  = _pc_row + _iv_row  # legacy v1 placeholder, unused
 
-    # ── Institutional ownership ──────────────────────────────────────────
-    _inst      = s.get("inst_ownership")
-    _13f_note  = s.get("sec_13f_note") or ""
-    _13f_badge = (
-        f' <span style="color:#22c55e;font-size:.8em">● {_13f_note}</span>'
-        if _13f_note else ""
-    )
-    if _inst is not None:
-        _inst_pct = float(_inst) * 100
-        _inst_col = "#22c55e" if _inst_pct >= 60 else ("#f59e0b" if _inst_pct >= 30 else "#ef4444")
-        inst_row = (
-            f'<tr><td>Institutioneller Anteil</td>'
-            f'<td><span style="color:{_inst_col}">{_inst_pct:.1f}%</span>{_13f_badge}</td></tr>'
-        )
-    elif _13f_note:
-        inst_row = (
-            f'<tr><td>Institutioneller Anteil</td>'
-            f'<td>{_13f_badge.strip()}</td></tr>'
-        )
-    else:
-        inst_row = ""
+    # ── Institutional ownership — shared Helper (v1 == v2) ───────────────
+    inst_row = _inst_row_html(s)
 
     # ── Float row (detail table) — Feature 2 nutzt float_detail_str aus Helper ──
     if float_detail_str:
@@ -8691,6 +8653,116 @@ def _iso_to_de(iso: str) -> str:
         return iso or ""
 
 
+def _inst_row_html(s: dict) -> str:
+    """Detail-Zeile „Institutioneller Anteil“ (v1 ``_card`` + v2
+    ``_build_card_ctx``, byte-identisch). Teil B 13.11.2026 (open_item
+    inst-anzeige-farbe): Wert NEUTRAL (keine Farbe, keine 60/30-Schwellen,
+    kein Marker im Kartenkopf), darunter der Hinweis
+    ``config.INST_OWNERSHIP_HINT``. Die 13F-Notiz bleibt unverändert.
+    Rein Anzeige."""
+    _inst = s.get("inst_ownership")
+    _13f_note = s.get("sec_13f_note") or ""
+    _13f_badge = (
+        f' <span style="color:#22c55e;font-size:.8em">● {_13f_note}</span>'
+        if _13f_note else ""
+    )
+    if _inst is not None and _finite(_inst):
+        _inst_pct = float(_inst) * 100
+        _hint = str(INST_OWNERSHIP_HINT or "").strip()
+        _hint_html = (
+            f'<br><span class="inst-hint" style="color:var(--txt-dim);'
+            f'font-size:.8em">{_hint}</span>' if _hint else ""
+        )
+        return (
+            f'<tr><td>Institutioneller Anteil</td>'
+            f'<td><span>{_inst_pct:.1f}%</span>{_13f_badge}{_hint_html}</td></tr>'
+        )
+    if _13f_note:
+        return (
+            f'<tr><td>Institutioneller Anteil</td>'
+            f'<td>{_13f_badge.strip()}</td></tr>'
+        )
+    return ""
+
+
+def _eval_results_index(path=None) -> dict:
+    """``{test_id: row}`` aus ``eval_results.jsonl`` (fail-soft → ``{}``).
+    Rein lesend, nur für die Anzeige im Konfidenz-Panel."""
+    out = {}
+    try:
+        with open(path or EVAL_RESULTS_FILE, "r", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except (ValueError, TypeError):
+                    continue
+                if isinstance(row, dict) and row.get("test_id"):
+                    out[str(row["test_id"])] = row
+    except OSError:
+        return {}
+    return out
+
+
+def _de_num(x, nd=2, signed=False) -> str:
+    txt = f"{float(x):+.{nd}f}" if signed else f"{float(x):.{nd}f}"
+    return txt.replace("-", "−").replace(".", ",")
+
+
+def _eval_numbers_text(row) -> str:
+    """Kurztext der Kennzahl einer eval_results-Zeile (AUC oder Δ mit CI, n,
+    Holm-p). Leer bei fehlender/unlesbarer Zeile — nie erfundene Zahlen."""
+    if not isinstance(row, dict):
+        return ""
+    st = row.get("statistic") if isinstance(row.get("statistic"), dict) else {}
+    parts = []
+    try:
+        lo, hi = st.get("ci_lo"), st.get("ci_hi")
+        has_ci = _finite(lo) and _finite(hi)
+        if _finite(st.get("auc")):
+            ci = f" [{_de_num(lo)}; {_de_num(hi)}]" if has_ci else ""
+            parts.append(f"AUC {_de_num(st['auc'])}{ci}")
+        elif _finite(st.get("mean_delta")):
+            ci = (f" [{_de_num(lo, signed=True)}; {_de_num(hi, signed=True)}]"
+                  if has_ci else "")
+            parts.append(f"Δ {_de_num(st['mean_delta'], signed=True)} pp{ci}")
+        n = row.get("n_used") if row.get("n_used") is not None else row.get("n")
+        if isinstance(n, int) and not isinstance(n, bool):
+            na = st.get("n_a")
+            parts.append(f"n = {n}" + (f" ({na} Treffer)"
+                                       if isinstance(na, int) and not isinstance(na, bool) else ""))
+        ph = row.get("p_holm_adjusted")
+        if _finite(ph):
+            parts.append("p (Holm) " + (f"= {_de_num(ph, 3)}" if float(ph) >= 0.001 else "< 0,001"))
+    except (TypeError, ValueError):
+        return ""
+    if parts:
+        parts.append("1 Fenster")
+    return " · ".join(parts)
+
+
+def _validation_summary_html(index: dict) -> str:
+    """Kopfzeile des Konfidenz-Panels: Zahl der ausgewerteten Bestätigungstests
+    und der Belege aus eval_results.jsonl (statt fester Zahl). Fail-soft: ohne
+    Datei oder bei Platzhalter-Fehler → leer."""
+    tmpl = str(VALIDATION_SUMMARY_TEXT or "").strip()
+    if not tmpl or not index:
+        return ""
+    n_tests = len(index)
+    n_beleg = sum(1 for r in index.values() if r.get("verdict") == "Beleg")
+    belege = "1 formaler Beleg" if n_beleg == 1 else f"{n_beleg} formale Belege"
+    dates = sorted(str(r.get("evaluated_at") or "")[:10] for r in index.values()
+                   if r.get("evaluated_at"))
+    stand = _iso_to_de(dates[-1]) if dates else "—"
+    try:
+        txt = tmpl.format(n_tests=n_tests, belege=belege, stand=stand)
+    except (KeyError, IndexError, ValueError):
+        return ""
+    return txt.replace("<", "&lt;").replace(">", "&gt;")
+
+
 def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
     """Rendert das Konfidenz-Panel — ZWEI getrennte Dimensionen pro Score.
 
@@ -8760,27 +8832,48 @@ def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
             f'<span class="sb-pts"></span>'
             f'<span class="sb-note">{dot}<strong>{safe_status}</strong> · {daten_note}</span></li>'
         )
-    # Paper C (Momentum 5T → Spanne inkl. Einstiegstag): eigener Status-Eintrag ohne Daten-
-    # Dimension aus compute_score_confidence — Datenbasis aus dem Befund-Text.
-    _pc = (SCORE_STATUS_LABELS.get("paper_c") or {})
-    if _pc.get("status"):
-        _pc_kind = _status_kind_of("paper_c")
-        _pc_parts = []
-        if _pc.get("status_date"):
-            _pc_parts.append(f"Befund {_iso_to_de(_pc['status_date'])}")
-        if _pc.get("review_cond"):
-            _pc_parts.append(_pc["review_cond"])
-        _pc_status = _pc["status"].replace("<", "&lt;").replace(">", "&gt;")
+    # Befund-Zeilen ohne Daten-Dimension (Paper C, Hypothesen-Runde Nov. 2026):
+    # Status aus SCORE_STATUS_LABELS, Kennzahlen zur Render-Zeit aus
+    # eval_results.jsonl (eval_ref) — Teil B 13.11.2026. Paper C behält seinen
+    # bisherigen Text (Zahlen stehen dort im review_cond).
+    _ev = _eval_results_index()
+    for _xkey, _xlabel in SCORE_STATUS_EXTRA_ROWS:
+        _x = (SCORE_STATUS_LABELS.get(_xkey) or {})
+        if not _x.get("status"):
+            continue
+        _x_kind = _status_kind_of(_xkey)
+        _x_parts = []
+        if _xkey != "paper_c":
+            _ref = (_x.get("eval_ref") or {}).get("test_id")
+            _num = _eval_numbers_text(_ev.get(_ref)) if _ref else ""
+            if _num:
+                _x_parts.append(_num)
+        if _x.get("status_date"):
+            _x_parts.append(f"Befund {_iso_to_de(_x['status_date'])}")
+        if _x.get("review_cond"):
+            _x_parts.append(_x["review_cond"])
+        _x_status = _x["status"].replace("<", "&lt;").replace(">", "&gt;")
+        _x_note = " · ".join(_x_parts).replace("<", "&lt;").replace(">", "&gt;")
         rows.append(
-            f'<li><span class="sb-lbl">Momentum 5T (Paper C)</span>'
+            f'<li><span class="sb-lbl">{_xlabel}</span>'
             f'<span class="sb-pts"></span>'
-            f'<span class="sb-note"><span class="conf-status-dot conf-kind-{_pc_kind}" '
-            f'aria-hidden="true"></span> <strong>{_pc_status}</strong> · '
-            f'{" · ".join(_pc_parts)}</span></li>'
+            f'<span class="sb-note"><span class="conf-status-dot conf-kind-{_x_kind}" '
+            f'aria-hidden="true"></span> <strong>{_x_status}</strong> · '
+            f'{_x_note}</span></li>'
         )
-    _summary = str(VALIDATION_SUMMARY_TEXT or "").strip()
+    # Explorative Zeile K1 — ohne Status-Punkt und ohne Farbe (kein Befund).
+    _k1 = K1_EXPLORATIVE_ROW if isinstance(K1_EXPLORATIVE_ROW, dict) else {}
+    if _k1.get("text"):
+        _k1_lbl = str(_k1.get("label") or "Top-10 als Kaufliste")
+        _k1_txt = str(_k1["text"]).replace("<", "&lt;").replace(">", "&gt;")
+        _k1_note = str(_k1.get("note") or "").replace("<", "&lt;").replace(">", "&gt;")
+        rows.append(
+            f'<li class="sb-explorativ"><span class="sb-lbl">{_k1_lbl}</span>'
+            f'<span class="sb-pts"></span>'
+            f'<span class="sb-note"><strong>{_k1_txt}</strong> · {_k1_note}</span></li>'
+        )
+    _summary = _validation_summary_html(_ev)
     if _summary:
-        _summary = _summary.replace("<", "&lt;").replace(">", "&gt;")
         rows.insert(0, f'<li class="sb-summary"><span class="sb-note">{_summary}</span></li>')
     computed_at = confidence.get("computed_at") or "—"
     return ("\n".join(rows), computed_at)
