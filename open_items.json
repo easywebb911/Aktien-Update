@@ -861,7 +861,7 @@
       "id": "inst-anzeige-farbe",
       "title": "Karten-Farbe Inst-Beteiligung (60/30) passt nicht zur Datenlage",
       "opened": "2026-11-13",
-      "description": "Der Median der Inst-Beteiligung in den H-I-Zeilen liegt bei 0,90 (Teil 2 zu #686); 'niedrig' heißt in unseren Daten unter ~90 %. Die Karte färbt hoch = grün (Schwellen 60/30, generate_report.py ~5602/6139) — widerspricht der Dämpfer-Richtung aus H-I Stufe 1. Gehört in den Anzeige-Folge-PR (H-I blau, 7 Bestätigungstests); keine Änderung ohne Easy-Entscheid.",
+      "description": "Der Median der Inst-Beteiligung in den H-I-Zeilen liegt bei 0,90 (Teil 2 zu #686, Einstiege 21.07.–23.10.2026); 'niedrig' heißt in unseren Daten unter ~90 %. Die Karte färbt hoch = grün (Schwellen 60/30, generate_report.py ~5602/6139) — widerspricht der Dämpfer-Richtung aus H-I Stufe 1. Gehört in den Anzeige-Folge-PR (H-I blau, 7 Bestätigungstests); keine Änderung ohne Easy-Entscheid.",
       "status": "offen",
       "status_date": "2026-11-13"
     }
