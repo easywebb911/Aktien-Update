@@ -3372,6 +3372,16 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — open_items aus Rendite-Landkarte / H-I Teil 2 (1 PR, Auto-Merge Doku)
+
+- `#687` (Branch `claude/open-items-landkarte-q7n3`, Branch-Commit `e616848b`, kein Merge-Hash —
+  Regel a): drei neue open_items aus den explorativen Nachläufen (nur Einstiege 21.07.–23.10.2026):
+  `top10-netto-grundrendite-negativ`, `h-i-proxy-schwankung-momentum`, `inst-anzeige-farbe`. Kein
+  Code, keine Anzeige, kein Freeze berührt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#686`,
+  höchste in Block 1 erwähnte PR = `#687` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 12.11.2026 — Vorabregistrierung H-I Rendite (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Auftrag 12.11.2026 nach H-I Stufe 1 = Beleg (Treffer): `#686` (Branch
