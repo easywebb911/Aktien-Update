@@ -3390,6 +3390,23 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — Minutenkurse Tag 1 sammeln (Weg A, Schritt 2) + Probe entfernt (1 PR, Manual-Merge, neuer Workflow)
+
+- Probe-Verdikt „brauchbar“ (Lauf 43520272302, D = 12.11.: alle Top-10 mit Balken, fehlende Minuten 0–107
+  = kein Handel, Hoch/Tief vs. Tageszeile 9/10 ≤ 0,11 %, Minuten-Schluss ≠ offizieller Schluss 0–0,74 %,
+  vor-/nachbörslich vorhanden, Tiefe 20 Handelstage); Easy: Einschränkungen akzeptiert. `#696` (Branch
+  `claude/minute-bars-day1-r7k2`, Branch-Commit `d56307fc`, kein Merge-Hash — Regel a). Neu:
+  `scripts/minute_bars_update.py` + Workflow `.github/workflows/minute_bars.yml` (Cron `41 13 * * 1-5` +
+  Hand-Start = Backfill ~30 Tage): je Top-10-Einstieg 1-Min-Balken von Tag 1 inkl. vor-/nachbörslich
+  (gekennzeichnet), Tageszeilen D/Tag 1, Prüf-Kennzeichen Hoch/Tief 0,5 % (kein Ausschluss);
+  `minute_bars/<Tag1>.jsonl.gz` append-only (gzip-Glieder), State `minute_bars_state.json`, Digest-Zeile
+  „🕐 Minutenkurse“. Keine Auswertung; Einstiege ≥ 24.10. nur gespeichert. Probe-Dateien (#695) per
+  `git rm` entfernt. Test `scripts/mock_test_minute_bars.py` (CI). CLAUDE.md-Abschnitt, open_item
+  `handelskosten-messung` ergänzt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#695`,
+  höchste in Block 1 erwähnte PR = `#696` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 13.11.2026 — Mini-Stopp Geld/Brief + Wegwerf-Probe 1-Minuten-Kurse (1 PR, Manual-Merge, neuer Workflow)
 
 - Easy-Entscheid 13.11.: Mini-Stopp Geld/Brief bestätigt, HAIRCUT unverändert; Weg A als Sammelfeld in

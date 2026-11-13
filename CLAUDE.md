@@ -4537,6 +4537,37 @@ Schluss D; Gipfel-Bericht 11.11.2026). Zielfeld der Vorabregistrierung
   **Rückweg:** Merge revertieren (Freeze-Revert wird im Block protokolliert); Datei und
   State können gelöscht werden, keine Bestandsdatei berührt.
 
+## Minutenkurse Tag 1 (seit 13.11.2026, minute_bars/)
+
+**Zweck:** Rohdaten für die Handelskosten-/Ausführungs-Frage (open_item
+`handelskosten-messung`, Weg A), nachdem Geld/Brief aus yfinance für Nasdaq-Small-Caps
+unbrauchbar war (Mini-Stopp 13.11.). Probe (Lauf 43520272302): 1-Min-Balken brauchbar,
+Hoch/Tief passen zur Tageszeile, der letzte Minutenkurs ist NICHT der Schlusskurs
+(Schlussauktion fehlt), Yahoo liefert nur ~30 Tage (20 Handelstage) zurück.
+
+- **Skript** `scripts/minute_bars_update.py`, Workflow `.github/workflows/minute_bars.yml`
+  (neuer Cron `41 13 * * 1-5` + Hand-Start; erster Hand-Start = Backfill bis ~30 Tage zurück).
+- **Je Top-10-Einstieg** (`(ticker, D)`, Kandidaten wie `outcome_path`, ab
+  `MINUTE_BARS_START_DATE`) EINE Zeile: 1-Min-Balken von **Tag 1** (nächster US-Handelstag)
+  inkl. vor-/nachbörslich, Sitzung je Balken (`vor`/`reg`/`nach`); Tageszeilen D und Tag 1
+  (`tageszeile_d`/`tageszeile_tag1` — Einstiegs-/Schlusskurs kommen weiter von dort);
+  Prüf-Kennzeichen Hoch/Tief der regulären Minuten vs. Tageszeile (`MINUTE_BARS_HL_TOL_PCT`
+  0,5 %, inklusiv) — **kein Ausschluss**. Minuten ohne Handel bleiben leer.
+- **Abruf** erst wenn der Close von Tag 1 endgültig ist (`last_settled_close_date`);
+  yfinance `1m prepost=True auto_adjust=False`, Fenster ≤ 7 Tage je Ticker, Tageszeilen
+  `1d auto_adjust=False` (Stand zum Abrufzeitpunkt). Nicht mehr lieferbar → null +
+  `ausserhalb_yahoo_fenster`; keine Minuten → Retry `MINUTE_BARS_RETRY_DAYS` (5), dann
+  vormerken, null erst wenn ein späterer Lauf (anderer ET-Tag) ebenfalls leer ist.
+  Rate-Limit → kein Retry, betroffene Ticker bleiben offen, nie halbe Zeilen.
+- **Dateien** `minute_bars/<Tag1>.jsonl.gz`: append-only als weiteres gzip-Glied, kein Prune,
+  deterministisch (`mtime=0`), ~70–95 MB in 5 Jahren (Schätzung); State
+  `minute_bars_state.json` (nur Zählungen); Digest-Zeile „🕐 Minutenkurse“ (läuft / noch nie /
+  kaputt-überfällig).
+- **Keine Auswertung:** kein Score-/Ranking-/Push-/Anzeige-Effekt; Einstiege ≥ 24.10.2026 nur
+  speichern (open_item `blindes-fenster-keine-weiteren-tests`). Test
+  `scripts/mock_test_minute_bars.py`. **Rückweg:** Workflow per PR entfernen; Daten können
+  gelöscht werden, keine Bestandsdatei berührt.
+
 ## Totmann-Signal an healthchecks.io (seit 02.11.2026)
 
 **Zweck:** Ein Wächter, der selbst per GitHub-Zeitplan läuft (Health-Digest,
