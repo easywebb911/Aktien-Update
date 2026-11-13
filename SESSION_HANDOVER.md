@@ -3390,6 +3390,23 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — S16 entry_past_return_5d nach Produktions-Definition + Freeze-Vermerke (1 PR, Manual-Merge)
+
+- Easy-Entscheide nach #692: `#693` (Branch `claude/s16-epr-produktionsdef-p6w2`, Branch-Commit
+  `23d928fd`, kein Merge-Hash — Regel a). (1) open_item `epr-gemeinsamer-index-vs-eigene-handelstage`
+  erledigt; datierte Protokollvermerke „Prädiktor vor dem Lauf geprüft“ (Messlauf 43488284245) in den
+  Freezes Paper C Replikation + Paper C handelbar, MD5-Pin `mock_test_outcome_path` nachgezogen,
+  protected-ok nach Regel b. (2) `truth_check`: entry_past_return_5d je Schreibpfad (ab
+  `EPR_LIVE_FROM` 13.07.2026 entry_price / Schluss 5 eigene Handelstage davor, Split nach D über F;
+  Backfill-Manifest und Dividende seit Nenner Schluss/Schluss) — ARCT/AMCX/BJDX/TTEC/INR stimmen,
+  MNRO/CBRL neu_adjustiert (Dividende im Fenster); AMCX aus `truth_check_known.json` entfernt.
+  (3) Split im Fenster nur innerhalb der Rundungsschranke, Dividende im Fenster unverändert +
+  `abs_delta` im Log. Test `scripts/mock_test_truth_check_epr_def.py` (CI).
+- `open_items`: `epr-…` erledigt, Nachtrag `wahrheits-abgleich-einlaufphase`. CLAUDE.md ergänzt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#692`,
+  höchste in Block 1 erwähnte PR = `#693` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 13.11.2026 — S16-Rundungsschranke nach Kapitalmaßnahme + Cleanup Probe (1 PR, Manual-Merge)
 
 - Folge zu #691: `#692` (Branch `claude/s16-rundungsschranke-r3x8`, Branch-Commit `5ff64896`, kein
