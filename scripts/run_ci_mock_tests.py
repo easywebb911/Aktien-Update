@@ -54,6 +54,7 @@ ALLOWLIST = [
     "probe_quote_spread",
     "truth_check_known",
     "truth_check_rounding",
+    "truth_check_epr_def",
     "maxgain_none_not_zero",
     "postclose_gap_s15",
     "digest_warn_visible",

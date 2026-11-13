@@ -34,17 +34,6 @@
    "grund": "vor #680 am Zieltag-Abend aus vorläufigem Schlusskurs gefüllt und danach nie überschrieben (Commit f42f1549, 10.11.2026 18:23 ET)",
    "verweis": "open_item rendite-forward-abendzeile-nicht-final; #680",
    "entscheid_datum": "2026-11-12"
-  },
-  {
-   "datei": "export",
-   "ticker": "AMCX",
-   "date": "15.07.2026",
-   "feld": "entry_past_return_5d",
-   "alt": 5.11,
-   "vergleich": 5.16,
-   "grund": "Backfill-Altlast: Export-Zeile provenance backfill (Bestandsübernahme 04.08.2026), kein forward-Wert und kein Freeze-Prädiktor. Ursache der Differenz nicht einzeln belegt; vermutlich älterer Rechenweg (gemeinsamer Mehr-Ticker-Index bzw. Kurs zum Laufzeitpunkt statt eigene Handelstage/Schlusskurs) — wird über den epr-Messlauf (#691) eingeordnet.",
-   "verweis": "open_item wahrheits-abgleich-einlaufphase Punkt (5); open_item epr-gemeinsamer-index-vs-eigene-handelstage",
-   "entscheid_datum": "2026-11-13"
   }
  ]
 }

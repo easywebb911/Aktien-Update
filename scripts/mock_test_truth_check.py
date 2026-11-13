@@ -5,7 +5,7 @@ Kursreihen über eine injizierte Abruf-Funktion).
 
  a) korrekte Werte → 0 Abweichung
  b) ein manipuliertes return_5d → genau 1 Abweichung mit richtigem alt/neu
- c) Split im Fenster → Klasse neu_adjustiert
+ c) Split im Fenster → nur innerhalb der Rundungsschranke neu_adjustiert; Dividende wie bisher (+abs_delta)
  d) Rate-Limit → unbekannt(rate_limit), KEIN Retry, Lauf endet sauber
  e) delisteter Ticker → nicht_pruefbar, kein Abruf
  f) Bootstrap-Zeile wird nicht geprüft
@@ -108,7 +108,11 @@ def expected_row(t: str, d: date) -> dict:
     row["vix_level"] = round([v for dd_, v in _closes("^VIX") if dd_ == d][0], 2)
     dlt = (sp[i] - sp[i - 50]) / sp[i - 50] * 100
     row["market_regime"] = "bull" if dlt > 5 else ("bear" if dlt < -5 else "neutral")
-    row["entry_past_return_5d"] = round((c[i] / c[i - 5] - 1) * 100, 2)
+    # Produktions-Definition (Easy-Entscheid 13.11.2026): laufender Postclose ab
+    # 13.07.2026 rechnet Kurs zum Laufzeitpunkt (= entry_price) / Close 5 Tage davor;
+    # Backfill davor Schluss/Schluss.
+    num = row["entry_price"] if d >= tc.EPR_LIVE_FROM else c[i]
+    row["entry_past_return_5d"] = round((num / c[i - 5] - 1) * 100, 2)
     return row
 
 
@@ -203,20 +207,45 @@ def test_b_manipulated():
 
 
 def test_c_split():
+    # Seit 13.11.2026 (Easy-Entscheid): Split IM Fenster ist KEINE pauschale
+    # Freistellung mehr — neu_adjustiert nur innerhalb der Rundungsschranke.
+    # Der gespeicherte entry_price ist ein Rohkurs von D (vor dem Split): bei
+    # Split-Faktor 2.0 nach D ist er doppelt so hoch wie der bereinigte Kurs.
     world = copy.deepcopy(WORLD)
     i = [r["d"] for r in world["AAA"]].index(ENTRY)
     world["AAA"][i + 2]["split"] = 2.0
     good = expected_row("AAA", ENTRY)
+    good["entry_price"] = round(good["entry_price"] * 2.0, 4)
     bad = dict(good, return_5d=round(good["return_5d"] - 3.0, 2))
     line, _, _ = _run([bad], [], Fetcher(world))
     devs = line["abweichungen"]
-    check("c: Split im Fenster → neu_adjustiert", line["neu_adjustiert"] == 1
-          and line["abweichung"] == 0 and devs and devs[0]["klasse"] == "neu_adjustiert", line)
+    check("c: Split im Fenster, Δ 3 pp über Schranke → abweichung", line["abweichung"] == 1
+          and devs and devs[0]["klasse"] == "abweichung"
+          and devs[0].get("regel") == "split_im_fenster_ueber_schranke", line)
+    check("c: entry_past_return_5d mit Split-Faktor nachgerechnet (keine Abweichung)",
+          not any(d["feld"] == "entry_past_return_5d" for d in devs), devs)
+    small = dict(good, return_5d=round(good["return_5d"] - 0.03, 2))
+    line_s, _, _ = _run([small], [], Fetcher(world))
+    ds = line_s["abweichungen"]
+    # Künstliche Kurse mit vielen Nachkommastellen → Schranke ≈ 0,01 pp: schon
+    # 0,03 pp ist Alarm. (Fall „in der Schranke“ mit echten BJDX-Kursen:
+    # mock_test_truth_check_rounding.py / mock_test_truth_check_epr_def.py.)
+    check("c: feines Kursraster → Schranke ≈ 0,01, Δ 0,03 → abweichung",
+          line_s["abweichung"] == 1 and ds and abs(ds[0].get("schranke", 1) - 0.0101) < 0.002, line_s)
     # Split AUSSERHALB des Fensters → bleibt echte Abweichung.
     world2 = copy.deepcopy(WORLD)
     world2["AAA"][i + 20]["split"] = 2.0
     line2, _, _ = _run([bad], [], Fetcher(world2))
     check("c: Split außerhalb → abweichung", line2["abweichung"] == 1, line2)
+    # Dividende im Fenster → wie bisher neu_adjustiert, |Δ| wird mitgeschrieben.
+    world3 = copy.deepcopy(WORLD)
+    world3["AAA"][i + 2]["div"] = 0.1
+    bad3 = dict(expected_row("AAA", ENTRY), return_5d=round(good["return_5d"] - 3.0, 2))
+    line3, _, _ = _run([bad3], [], Fetcher(world3))
+    d3 = [d for d in line3["abweichungen"] if d["feld"] == "return_5d"]
+    check("c: Dividende im Fenster → neu_adjustiert + abs_delta",
+          d3 and d3[0]["klasse"] == "neu_adjustiert" and d3[0].get("regel") == "dividende_im_fenster"
+          and abs(d3[0].get("abs_delta", 0) - 3.0) < 1e-6, line3)
 
 
 def test_d_rate_limit():

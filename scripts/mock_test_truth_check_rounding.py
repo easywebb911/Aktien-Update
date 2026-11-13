@@ -137,12 +137,14 @@ def test_real_8():
             d = classify(row, s)[0]
         out.append(d)
     rest = [(d["ticker"], d["date"]) for d in out if d["klasse"] == "abweichung"]
-    check("nur ARCT bleibt Abweichung", rest == [("ARCT", "01.09.2026")], rest)
+    # AMCX/ARCT (entry_past_return_5d) klärt die Produktions-Definition, nicht die
+    # Rundungsschranke → mock_test_truth_check_epr_def.py.
+    check("nur AMCX + ARCT (entry_past_return_5d) bleiben hier Abweichung",
+          rest == [("AMCX", "15.07.2026"), ("ARCT", "01.09.2026")], rest)
     check("BJDX×3 neu_adjustiert", sum(d["klasse"] == "neu_adjustiert" for d in out) == 3)
     res, _ = mk._s16([mk._line("2026-11-13T03:20:51Z", out)])
     det = res[0]["detail"] if res else ""
-    check("S16 alarmiert nur noch für ARCT", res and "ARCT" in det and "BJDX" not in det
-          and "GRPN" not in det and "AMCX" not in det, res)
+    check("S16 nennt weder BJDX noch GRPN", res and "BJDX" not in det and "GRPN" not in det, res)
 
 
 def main() -> int:

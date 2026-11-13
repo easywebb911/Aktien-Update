@@ -4469,8 +4469,16 @@ Kursverhältnis-Felds (`return_Nd`, `_t1`, `_net`, `forward_Nd`, `entry_past_ret
 `neu_adjustiert` (`regel: rundung_nach_aktion`, mit `schranke`), wenn (a) die Reihe des Laufs die Aktion
 belegt UND (b) |Δ| ≤ S = 100·(b/a)·(h_a/a + h_b/b) + 0,01 mit h = 0,5·10^-k·F (F = Split-Faktor nach dem
 Kurstag, k = Nachkommastellen der Rohkurse im Fenster, 7 signifikante Stellen). Darüber voller Alarm.
-Die ältere Regel „Aktion IM Fenster → neu_adjustiert“ bleibt unverändert. Test
-`scripts/mock_test_truth_check_rounding.py` (echte BJDX-Kurse).
+**Seit dem Folge-PR (13.11.2026, Easy-Entscheid):** Split IM Fenster ebenfalls nur innerhalb dieser
+Schranke (`regel: rundung_split_im_fenster`, darüber `split_im_fenster_ueber_schranke` = Alarm; Felder
+ohne herleitbare Schranke wie `max_*` → Alarm). Dividende IM Fenster bleibt `neu_adjustiert` wie bisher,
+`abs_delta` wird mitgeschrieben (Entscheidungsgrundlage für später). `entry_past_return_5d` wird nach der
+**Produktions-Definition je Schreibpfad** nachgerechnet: Einstiege ab `EPR_LIVE_FROM` (13.07.2026,
+laufender Postclose) = gespeicherter `entry_price` (Kurs zum Laufzeitpunkt; Split nach D über F
+umgerechnet) / Schluss 5 eigene Handelstage davor; Stufe-B-Backfill (14.05.–10.07., Manifest) und
+Zeilen mit Dividende seit dem Nenner = Schluss/Schluss (`definition` im Log). Tests
+`scripts/mock_test_truth_check_rounding.py`, `scripts/mock_test_truth_check_epr_def.py` (echte Fälle
+ARCT, AMCX, BJDX, TTEC, INR, MNRO, CBRL).
 
 **Rückweg:** Workflow-Datei per PR entfernen oder (durch Easy) deaktivieren; Log + State bleiben liegen, S16
 meldet dann nach 2 Handelstagen „läuft nicht“. Test:
