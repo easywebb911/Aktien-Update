@@ -1,13 +1,11 @@
 {
   "abruf_fehler_ticker": {},
-  "davon_null_nach_grund": {
-    "ticker_ohne_kursdaten": 3
-  },
+  "davon_null_nach_grund": {},
   "erneut_versuchen": 0,
-  "geschrieben": 702,
+  "geschrieben": 0,
   "gesperrt_ohne_freeze": 0,
-  "last_run_utc": "2026-11-12T15:20:14+00:00",
-  "nicht_reif": 90,
+  "last_run_utc": "2026-11-13T03:40:22+00:00",
+  "nicht_reif": 100,
   "rate_limit_abbruch": false,
   "schema_v": 1,
   "zeilen_gesamt": 702
