@@ -3372,6 +3372,21 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — Wegwerf-Probe Geld/Brief (1 PR, Manual-Merge, neuer Workflow)
+
+- open_item `handelskosten-messung`, Schritt 1 (Easy-Reihenfolge 13.11.2026: Probe → Ergebnis →
+  Sammelfeld oder Mini-Stopp → Anzeige-PR): `#689` (Branch `claude/probe-geld-brief-w4r7`,
+  Branch-Commit `ffb37190`, kein Merge-Hash — Regel a). Neuer Workflow
+  `.github/workflows/probe_quote_spread.yml` (nur Hand-Start, `contents: read`, kein Commit, keine
+  Secrets) + `scripts/probe_quote_spread.py` (yfinance `.info`: Geld, Brief, Größen, letzter Kurs,
+  Tagesvolumen, Zeitstempel, `exchangeDataDelayedBy`; Top-10 von D + SPY + 3 illiquide Titel; Log +
+  Artifact; Kennzeichen `in_handelszeit`, außerhalb 09:30–16:00 ET zählt nicht) +
+  `scripts/mock_test_probe_quote_spread.py` (synthetisch, CI-Allowlist). Ab 05.12.2026 no-op;
+  Cleanup-PR löscht alle drei Dateien. Kein Sammelfeld, keine Daten-Datei.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#688`,
+  höchste in Block 1 erwähnte PR = `#689` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 13.11.2026 — Vorabregistrierung Landkarte K1/K2 (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Entscheid 13.11.2026 nach dem Landkarten-Bericht: `#688` (Branch

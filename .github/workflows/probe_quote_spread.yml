@@ -1,0 +1,54 @@
+name: Probe Geld/Brief (Wegwerf)
+
+# WEGWERF-PROBE (open_item handelskosten-messung). Read-only: kein Commit, kein
+# Push, keine Secrets, schreibt nichts ins Repo. Ergebnisse: Job-Log (Zeilen
+# [quote_probe_meta]/[quote_probe]) + Artifact. Nur Hand-Start (kein Zeitplan),
+# damit die Messzeitpunkte (z. B. 09:35 / 10:00 / 13:00 / nach Schluss ET)
+# gezielt gesetzt werden. Jede Messung loggt ihre echte Zeit (UTC + ET).
+# Rückweg: Cleanup-PR löscht diese Datei + scripts/probe_quote_spread.py +
+# scripts/mock_test_probe_quote_spread.py. Ab 05.12.2026 (ET) no-op.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-quote-spread
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main (nur lesen)
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Geld/Brief messen
+        run: python scripts/probe_quote_spread.py
+
+      - name: Artifact hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quote-probe-${{ github.run_id }}
+          path: ${{ runner.temp }}/quote_probe/
+          if-no-files-found: warn
+          retention-days: 30

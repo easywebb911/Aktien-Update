@@ -877,7 +877,7 @@
       "id": "handelskosten-messung",
       "title": "Echte Handelskosten der Top-10 messen statt −4 % annehmen",
       "opened": "2026-11-13",
-      "description": "HAIRCUT_ROUND_TRIP_PCT = −4 % ist eine Literaturschätzung und prägt jedes Netto-Ergebnis. Im Repo gibt es keine Geld-/Brief-Spanne der Aktien (nur Options-bid/ask in options_chain_raw.jsonl) und kein absolutes Volumen je Zeile (nur rvol). Ohne Neusammlung möglich: Spannen-Schätzer aus Tages-Hoch/-Tief/-Schluss (Corwin-Schultz, Abdi-Ranaldo) aus outcome_path-bars — grob, explorativ. Echte Werte nur per Mitschnitt ab jetzt (nicht nachholbar): Geld/Brief + Größe zur Eröffnung Tag 1 und Tagesvolumen je Top-10-Ticker. Entscheidung Easy.",
+      "description": "HAIRCUT_ROUND_TRIP_PCT = −4 % ist eine Literaturschätzung und prägt jedes Netto-Ergebnis. Im Repo gibt es keine Geld-/Brief-Spanne der Aktien (nur Options-bid/ask in options_chain_raw.jsonl) und kein absolutes Volumen je Zeile (nur rvol). Ohne Neusammlung möglich: Spannen-Schätzer aus Tages-Hoch/-Tief/-Schluss (Corwin-Schultz, Abdi-Ranaldo) aus outcome_path-bars — grob, explorativ. Echte Werte nur per Mitschnitt ab jetzt (nicht nachholbar): Geld/Brief + Größe zur Eröffnung Tag 1 und Tagesvolumen je Top-10-Ticker. Entscheidung Easy. Stand 13.11.2026: Schritt 1 = Wegwerf-Probe Geld/Brief (#689, Hand-Start in der US-Handelszeit, zwei Messpunkte: kurz nach Eröffnung und mitten am Tag). Danach Sammelfeld oder Mini-Stopp.",
       "status": "offen",
       "status_date": "2026-11-13"
     },
