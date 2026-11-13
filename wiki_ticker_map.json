@@ -845,6 +845,24 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "FLNC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-13T02:06:23Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Fluence Energy, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "FLNG": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-13T02:06:23Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "FLEX LNG Ltd.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "FLWS": {
     "qid": "Q4545752",
     "title": "1-800-Flowers.com,_Inc.",
@@ -871,6 +889,15 @@
     "company_name_at_resolve": "Freight Technologies, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "FRMI": {
+    "qid": "Q137397138",
+    "title": null,
+    "resolved_at": "2026-11-13T02:06:23Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Fermi Inc.",
+    "substrate": "none",
+    "reason": "no_article"
   },
   "FTK": {
     "qid": null,

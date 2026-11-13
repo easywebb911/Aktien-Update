@@ -8136,6 +8136,12 @@
       "shares_short": 4158766,
       "short_pct_float": 17.99,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 4374325,
+      "short_pct_float": 18.86,
+      "pub_date": "2026-11-10"
     }
   ],
   "RES": [
@@ -10833,6 +10839,12 @@
       "shares_short": 23274231,
       "short_pct_float": 19.99,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 23945400,
+      "short_pct_float": 21.89,
+      "pub_date": "2026-11-10"
     }
   ],
   "REAL": [
@@ -11981,6 +11993,21 @@
       "settlement_date": "2026-10-30",
       "shares_short": 28225,
       "short_pct_float": 27.25,
+      "pub_date": "2026-11-10"
+    }
+  ],
+  "FLNG": [
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 4316055,
+      "short_pct_float": null,
+      "pub_date": "2026-10-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 4684273,
+      "short_pct_float": 15.14,
       "pub_date": "2026-11-10"
     }
   ]

@@ -266,6 +266,11 @@
       "date": "2026-10-20",
       "inst_ownership": 0.24035999,
       "insider_ownership": 0.83089995
+    },
+    {
+      "date": "2026-11-12",
+      "inst_ownership": 0.23042,
+      "insider_ownership": 0.83044
     }
   ],
   "ARCT": [
@@ -3459,6 +3464,11 @@
       "date": "2026-11-11",
       "inst_ownership": 0.74527,
       "insider_ownership": 0.09437
+    },
+    {
+      "date": "2026-11-12",
+      "inst_ownership": 0.74523,
+      "insider_ownership": 0.09436
     }
   ],
   "NMAX": [
@@ -6417,6 +6427,11 @@
       "date": "2026-11-11",
       "inst_ownership": 1.09738,
       "insider_ownership": 0.02841
+    },
+    {
+      "date": "2026-11-12",
+      "inst_ownership": 1.09738,
+      "insider_ownership": 0.028499998
     }
   ],
   "ENOV": [
@@ -11956,6 +11971,11 @@
       "date": "2026-11-06",
       "inst_ownership": 0.94807,
       "insider_ownership": 0.019019999
+    },
+    {
+      "date": "2026-11-12",
+      "inst_ownership": 0.94912004,
+      "insider_ownership": 0.019019999
     }
   ],
   "REAL": [
@@ -13213,6 +13233,13 @@
       "date": "2026-11-12",
       "inst_ownership": 3.0000001e-05,
       "insider_ownership": 0.02262
+    }
+  ],
+  "FLNG": [
+    {
+      "date": "2026-11-12",
+      "inst_ownership": 0.30398,
+      "insider_ownership": 0.42885
     }
   ]
 }

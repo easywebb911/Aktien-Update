@@ -18216,1150 +18216,6 @@
     "source": "bootstrap"
   },
   {
-    "date": "14.08.2026",
-    "ticker": "ABX",
-    "score": 55.81,
-    "entry_price": 9.27,
-    "entry_price_t1": 9.12,
-    "short_float": 19.43,
-    "dtc": 8.45,
-    "rvol": 1.586,
-    "si_trend": "sideways",
-    "return_3d": -1.29,
-    "return_5d": 4.21,
-    "return_10d": 5.07,
-    "return_3d_t1": 0.44,
-    "return_5d_t1": 5.37,
-    "return_10d_t1": 5.26,
-    "max_drawdown_pct": -7.37,
-    "max_gain_pct": 11.77,
-    "market_regime": "neutral",
-    "vix_level": 14.25,
-    "score_normalization_version": 1,
-    "score_struct": 21.2,
-    "score_catalyst": 0.0,
-    "score_timing": 13.0,
-    "score_raw": 55.81,
-    "combo_bonus": 0.0,
-    "score_trend_bonus": 0.0,
-    "agent_boost_factor": 1.0,
-    "perfect_storm_mult": 1.0,
-    "finra_bonus": 2.5,
-    "pool_member": true,
-    "pool_position": 9,
-    "pool_size": 34,
-    "short_float_source": "yfinance",
-    "si_trend_source": "yfinance",
-    "si_trend_5d_slope": 0.2402,
-    "rvol_buildup_5d": 1.301,
-    "vol_stability_5d": 0.068,
-    "coiled_spring_score": 32.0,
-    "rvol_acceleration": 1.147,
-    "uoa_atm_ratio": null,
-    "score_delta_t1": null,
-    "anomaly_freshness": null,
-    "score_delta_t1_raw": null,
-    "anomaly_push_age_h": null,
-    "cost_to_borrow": null,
-    "entry_score": 23.89,
-    "entry_components": {
-      "anomaly_freshness": 0.0,
-      "score_delta_t1": null,
-      "uoa_atm_ratio": null,
-      "rvol_buildup_5d": 21.68,
-      "si_trend_5d": 50.0
-    },
-    "entry_n_components": 3,
-    "push_history_available": true,
-    "monster_score": 55.81,
-    "ki_signal_score": null,
-    "ki_sentiment_source": null,
-    "conviction_score": 64.0,
-    "conviction_components": {
-      "setup": 18,
-      "earliness": 21,
-      "anomaly": 14,
-      "regime": 11
-    },
-    "entry_past_return_5d": -2.63,
-    "days_to_earnings": 83,
-    "si_velocity_pub": -0.425,
-    "material_8k_events": {
-      "collected": true,
-      "reason": null,
-      "cik": "0001814287",
-      "truncated": false,
-      "events": [
-        {
-          "acceptance_datetime": "2026-08-13T20:39:05.000Z",
-          "accession": "0001628280-26-056792",
-          "cik": "0001814287",
-          "item_codes": [
-            "7.01",
-            "8.01",
-            "9.01"
-          ],
-          "matched_terms": []
-        }
-      ]
-    },
-    "attention_wiki": {
-      "substrate": "none",
-      "article_qid": null,
-      "article_title": null,
-      "views_t_minus_1": null,
-      "views_t": null,
-      "views_t_backfilled_at": null,
-      "baseline_30d_median": null,
-      "baseline_30d_n": null,
-      "delta_ratio": null
-    },
-    "ssr_restriction": {
-      "collected": true,
-      "reason": null,
-      "source": "cboe_cumulative",
-      "restricted_t": false,
-      "triggered_today": false,
-      "carry_over": false,
-      "trigger_date": null,
-      "trigger_time_et": null,
-      "end_date": null,
-      "rescinded_date": null,
-      "fetched_at": "2026-08-14T21:43:40Z",
-      "source_latest_trigger": "2026-08-14 9:42:21"
-    },
-    "source_pools": [
-      "yahoo_small_cap_gainers"
-    ],
-    "backtest_schema_version": 4
-  },
-  {
-    "date": "14.08.2026",
-    "ticker": "ARCT",
-    "score": 78.2,
-    "entry_price": 8.23,
-    "entry_price_t1": 8.14,
-    "short_float": 31.54,
-    "dtc": 13.49,
-    "rvol": 1.715,
-    "si_trend": "up",
-    "return_3d": 24.91,
-    "return_5d": 63.43,
-    "return_10d": 84.57,
-    "return_3d_t1": 35.01,
-    "return_5d_t1": 76.17,
-    "return_10d_t1": 81.33,
-    "max_drawdown_pct": -17.7,
-    "max_gain_pct": 115.18,
-    "market_regime": "neutral",
-    "vix_level": 14.25,
-    "score_normalization_version": 1,
-    "score_struct": 33.1,
-    "score_catalyst": 0.0,
-    "score_timing": 14.3,
-    "score_raw": 82.95,
-    "combo_bonus": 5.0,
-    "score_trend_bonus": 0.0,
-    "agent_boost_factor": 1.0,
-    "perfect_storm_mult": 1.0,
-    "finra_bonus": 7.0,
-    "pool_member": true,
-    "pool_position": 3,
-    "pool_size": 34,
-    "short_float_source": "yfinance",
-    "si_trend_source": "yfinance",
-    "si_trend_5d_slope": 68.64,
-    "rvol_buildup_5d": 0.769,
-    "vol_stability_5d": 0.0823,
-    "coiled_spring_score": 17.7,
-    "rvol_acceleration": 1.596,
-    "uoa_atm_ratio": 0.03165735567970205,
-    "score_delta_t1": 12.5,
-    "anomaly_freshness": 0.0,
-    "score_delta_t1_raw": 12.5,
-    "anomaly_push_age_h": 108.88,
-    "cost_to_borrow": null,
-    "entry_score": 41.06,
-    "entry_components": {
-      "anomaly_freshness": 0.0,
-      "score_delta_t1": 91.67,
-      "uoa_atm_ratio": 0.79,
-      "rvol_buildup_5d": 12.82,
-      "si_trend_5d": 100.0
-    },
-    "entry_n_components": 5,
-    "push_history_available": true,
-    "monster_score": 63.0,
-    "ki_signal_score": 10.0,
-    "ki_sentiment_source": "keyword",
-    "conviction_score": 65.0,
-    "conviction_components": {
-      "setup": 26,
-      "earliness": 28,
-      "anomaly": 0,
-      "regime": 11
-    },
-    "entry_past_return_5d": 11.07,
-    "days_to_earnings": null,
-    "si_velocity_pub": -0.918,
-    "material_8k_events": {
-      "collected": true,
-      "reason": null,
-      "cik": "0001768224",
-      "truncated": false,
-      "events": []
-    },
-    "attention_wiki": {
-      "substrate": "en",
-      "article_qid": "Q98713358",
-      "article_title": "Arcturus_Therapeutics",
-      "views_t_minus_1": 39,
-      "views_t": 17,
-      "views_t_backfilled_at": "2026-08-17T21:44:28Z",
-      "baseline_30d_median": 29.5,
-      "baseline_30d_n": 30,
-      "delta_ratio": 1.322
-    },
-    "ssr_restriction": {
-      "collected": true,
-      "reason": null,
-      "source": "cboe_cumulative",
-      "restricted_t": false,
-      "triggered_today": false,
-      "carry_over": false,
-      "trigger_date": null,
-      "trigger_time_et": null,
-      "end_date": null,
-      "rescinded_date": null,
-      "fetched_at": "2026-08-14T21:43:40Z",
-      "source_latest_trigger": "2026-08-14 9:42:21"
-    },
-    "source_pools": [
-      "manual",
-      "yahoo_most_shorted_stocks"
-    ],
-    "backtest_schema_version": 4
-  },
-  {
-    "date": "14.08.2026",
-    "ticker": "ASMB",
-    "score": 74.66,
-    "entry_price": 32.95,
-    "entry_price_t1": 30.01,
-    "short_float": 15.83,
-    "dtc": 14.83,
-    "rvol": 3.195,
-    "si_trend": "sideways",
-    "return_3d": 2.7,
-    "return_5d": 4.34,
-    "return_10d": 3.4,
-    "return_3d_t1": 11.73,
-    "return_5d_t1": 17.56,
-    "return_10d_t1": 12.06,
-    "max_drawdown_pct": -10.5,
-    "max_gain_pct": 24.2,
-    "market_regime": "neutral",
-    "vix_level": 14.25,
-    "score_normalization_version": 1,
-    "score_struct": 25.7,
-    "score_catalyst": 5.0,
-    "score_timing": 28.0,
-    "score_raw": 83.63,
-    "combo_bonus": 0.0,
-    "score_trend_bonus": 0.0,
-    "agent_boost_factor": 1.05,
-    "perfect_storm_mult": 1.0,
-    "finra_bonus": 2.5,
-    "pool_member": true,
-    "pool_position": 5,
-    "pool_size": 34,
-    "short_float_source": "yfinance",
-    "si_trend_source": "yfinance",
-    "si_trend_5d_slope": 57.0,
-    "rvol_buildup_5d": 2.928,
-    "vol_stability_5d": 0.0665,
-    "coiled_spring_score": 33.5,
-    "rvol_acceleration": 0.621,
-    "uoa_atm_ratio": 0.4830508474576271,
-    "score_delta_t1": 0.0,
-    "anomaly_freshness": null,
-    "score_delta_t1_raw": 0.0,
-    "anomaly_push_age_h": null,
-    "cost_to_borrow": null,
-    "entry_score": 42.18,
-    "entry_components": {
-      "anomaly_freshness": 0.0,
-      "score_delta_t1": 50.0,
-      "uoa_atm_ratio": 12.08,
-      "rvol_buildup_5d": 48.8,
-      "si_trend_5d": 100.0
-    },
-    "entry_n_components": 5,
-    "push_history_available": true,
-    "monster_score": 74.66,
-    "ki_signal_score": 35.0,
-    "ki_sentiment_source": "keyword",
-    "conviction_score": 64.0,
-    "conviction_components": {
-      "setup": 25,
-      "earliness": 28,
-      "anomaly": 0,
-      "regime": 11
-    },
-    "entry_past_return_5d": 23.5,
-    "days_to_earnings": null,
-    "si_velocity_pub": 1346.7273,
-    "material_8k_events": {
-      "collected": true,
-      "reason": null,
-      "cik": "0001426800",
-      "truncated": false,
-      "events": [
-        {
-          "acceptance_datetime": "2026-08-14T16:05:17.000Z",
-          "accession": "0001193125-26-352193",
-          "cik": "0001426800",
-          "item_codes": [
-            "2.02",
-            "9.01"
-          ],
-          "matched_terms": []
-        }
-      ]
-    },
-    "attention_wiki": {
-      "substrate": "none",
-      "article_qid": null,
-      "article_title": null,
-      "views_t_minus_1": null,
-      "views_t": null,
-      "views_t_backfilled_at": null,
-      "baseline_30d_median": null,
-      "baseline_30d_n": null,
-      "delta_ratio": null
-    },
-    "ssr_restriction": {
-      "collected": true,
-      "reason": null,
-      "source": "cboe_cumulative",
-      "restricted_t": false,
-      "triggered_today": false,
-      "carry_over": false,
-      "trigger_date": null,
-      "trigger_time_et": null,
-      "end_date": null,
-      "rescinded_date": null,
-      "fetched_at": "2026-08-14T21:43:40Z",
-      "source_latest_trigger": "2026-08-14 9:42:21"
-    },
-    "source_pools": [
-      "yahoo_small_cap_gainers"
-    ],
-    "backtest_schema_version": 4
-  },
-  {
-    "date": "14.08.2026",
-    "ticker": "CAPR",
-    "score": 60.2,
-    "entry_price": 6.65,
-    "entry_price_t1": 7.45,
-    "short_float": 30.49,
-    "dtc": 3.28,
-    "rvol": 6.403,
-    "si_trend": "down",
-    "return_3d": 20.0,
-    "return_5d": -5.41,
-    "return_10d": 44.21,
-    "return_3d_t1": -8.19,
-    "return_5d_t1": -8.72,
-    "return_10d_t1": 33.02,
-    "max_drawdown_pct": -27.5,
-    "max_gain_pct": 76.54,
-    "market_regime": "neutral",
-    "vix_level": 14.25,
-    "score_normalization_version": 1,
-    "score_struct": 17.0,
-    "score_catalyst": 5.0,
-    "score_timing": 30.0,
-    "score_raw": 70.82,
-    "combo_bonus": 0.0,
-    "score_trend_bonus": 0.0,
-    "agent_boost_factor": 1.0,
-    "perfect_storm_mult": 1.0,
-    "finra_bonus": 0.0,
-    "pool_member": true,
-    "pool_position": 8,
-    "pool_size": 34,
-    "short_float_source": "yfinance",
-    "si_trend_source": "finra",
-    "si_trend_5d_slope": -0.6529,
-    "rvol_buildup_5d": 8.81,
-    "vol_stability_5d": 0.147,
-    "coiled_spring_score": 0.0,
-    "rvol_acceleration": 2.383,
-    "uoa_atm_ratio": null,
-    "score_delta_t1": null,
-    "anomaly_freshness": null,
-    "score_delta_t1_raw": null,
-    "anomaly_push_age_h": null,
-    "cost_to_borrow": null,
-    "entry_score": 41.67,
-    "entry_components": {
-      "anomaly_freshness": 0.0,
-      "score_delta_t1": null,
-      "uoa_atm_ratio": null,
-      "rvol_buildup_5d": 100.0,
-      "si_trend_5d": 25.0
-    },
-    "entry_n_components": 3,
-    "push_history_available": true,
-    "monster_score": 60.2,
-    "ki_signal_score": null,
-    "ki_sentiment_source": null,
-    "conviction_score": 62.0,
-    "conviction_components": {
-      "setup": 20,
-      "earliness": 3,
-      "anomaly": 28,
-      "regime": 11
-    },
-    "entry_past_return_5d": 62.59,
-    "days_to_earnings": 88,
-    "si_velocity_pub": -0.9012,
-    "material_8k_events": {
-      "collected": true,
-      "reason": null,
-      "cik": "0001133869",
-      "truncated": false,
-      "events": [
-        {
-          "acceptance_datetime": "2026-08-13T20:07:30.000Z",
-          "accession": "0001104659-26-095908",
-          "cik": "0001133869",
-          "item_codes": [
-            "2.02",
-            "9.01"
-          ],
-          "matched_terms": [
-            "PDUFA"
-          ]
-        }
-      ]
-    },
-    "attention_wiki": {
-      "substrate": "none",
-      "article_qid": null,
-      "article_title": null,
-      "views_t_minus_1": null,
-      "views_t": null,
-      "views_t_backfilled_at": null,
-      "baseline_30d_median": null,
-      "baseline_30d_n": null,
-      "delta_ratio": null
-    },
-    "ssr_restriction": {
-      "collected": true,
-      "reason": null,
-      "source": "cboe_cumulative",
-      "restricted_t": false,
-      "triggered_today": false,
-      "carry_over": false,
-      "trigger_date": null,
-      "trigger_time_et": null,
-      "end_date": null,
-      "rescinded_date": null,
-      "fetched_at": "2026-08-14T21:43:40Z",
-      "source_latest_trigger": "2026-08-14 9:42:21"
-    },
-    "source_pools": [
-      "yahoo_aggressive_small_caps",
-      "yahoo_most_shorted_stocks",
-      "yahoo_small_cap_gainers"
-    ],
-    "backtest_schema_version": 4
-  },
-  {
-    "date": "14.08.2026",
-    "ticker": "DMRC",
-    "score": 73.59,
-    "entry_price": 7.53,
-    "entry_price_t1": 6.78,
-    "short_float": 24.12,
-    "dtc": 14.98,
-    "rvol": 1.581,
-    "si_trend": "up",
-    "return_3d": -6.24,
-    "return_5d": -18.33,
-    "return_10d": -20.19,
-    "return_3d_t1": -2.36,
-    "return_5d_t1": -11.36,
-    "return_10d_t1": -11.8,
-    "max_drawdown_pct": -26.47,
-    "max_gain_pct": 23.06,
-    "market_regime": "neutral",
-    "vix_level": 14.25,
-    "score_normalization_version": 1,
-    "score_struct": 30.3,
-    "score_catalyst": 0.0,
-    "score_timing": 15.9,
-    "score_raw": 73.59,
-    "combo_bonus": 0.0,
-    "score_trend_bonus": 0.0,
-    "agent_boost_factor": 1.0,
-    "perfect_storm_mult": 1.0,
-    "finra_bonus": 5.0,
-    "pool_member": true,
-    "pool_position": 6,
-    "pool_size": 34,
-    "short_float_source": "yfinance",
-    "si_trend_source": "finra",
-    "si_trend_5d_slope": -0.9995,
-    "rvol_buildup_5d": 2.34,
-    "vol_stability_5d": 0.1241,
-    "coiled_spring_score": 0.0,
-    "rvol_acceleration": 0.758,
-    "uoa_atm_ratio": null,
-    "score_delta_t1": null,
-    "anomaly_freshness": null,
-    "score_delta_t1_raw": null,
-    "anomaly_push_age_h": null,
-    "cost_to_borrow": null,
-    "entry_score": 13.0,
-    "entry_components": {
-      "anomaly_freshness": 0.0,
-      "score_delta_t1": null,
-      "uoa_atm_ratio": null,
-      "rvol_buildup_5d": 39.0,
-      "si_trend_5d": 0.0
-    },
-    "entry_n_components": 3,
-    "push_history_available": true,
-    "monster_score": 73.59,
-    "ki_signal_score": null,
-    "ki_sentiment_source": null,
-    "conviction_score": 77.0,
-    "conviction_components": {
-      "setup": 24,
-      "earliness": 28,
-      "anomaly": 14,
-      "regime": 11
-    },
-    "entry_past_return_5d": -5.28,
-    "days_to_earnings": 76,
-    "si_velocity_pub": 0.0761,
-    "material_8k_events": {
-      "collected": true,
-      "reason": null,
-      "cik": "0002119322",
-      "truncated": false,
-      "events": [
-        {
-          "acceptance_datetime": "2026-08-12T21:15:26.000Z",
-          "accession": "0001437749-26-027384",
-          "cik": "0002119322",
-          "item_codes": [
-            "5.02"
-          ],
-          "matched_terms": []
-        },
-        {
-          "acceptance_datetime": "2026-08-13T20:05:51.000Z",
-          "accession": "0001437749-26-027662",
-          "cik": "0002119322",
-          "item_codes": [
-            "2.02",
-            "9.01"
-          ],
-          "matched_terms": []
-        }
-      ]
-    },
-    "attention_wiki": {
-      "substrate": "en",
-      "article_qid": "Q5275736",
-      "article_title": "Digimarc",
-      "views_t_minus_1": 42,
-      "views_t": 51,
-      "views_t_backfilled_at": "2026-08-17T21:44:28Z",
-      "baseline_30d_median": 35.5,
-      "baseline_30d_n": 30,
-      "delta_ratio": 1.1831
-    },
-    "ssr_restriction": {
-      "collected": true,
-      "reason": null,
-      "source": "cboe_cumulative",
-      "restricted_t": false,
-      "triggered_today": false,
-      "carry_over": false,
-      "trigger_date": null,
-      "trigger_time_et": null,
-      "end_date": null,
-      "rescinded_date": null,
-      "fetched_at": "2026-08-14T21:43:40Z",
-      "source_latest_trigger": "2026-08-14 9:42:21"
-    },
-    "source_pools": [
-      "yahoo_small_cap_gainers"
-    ],
-    "backtest_schema_version": 4
-  },
-  {
-    "date": "14.08.2026",
-    "ticker": "INDI",
-    "score": 77.5,
-    "entry_price": 4.71,
-    "entry_price_t1": 4.71,
-    "short_float": 33.35,
-    "dtc": 12.9,
-    "rvol": 1.937,
-    "si_trend": "up",
-    "return_3d": -14.97,
-    "return_5d": -11.89,
-    "return_10d": -19.75,
-    "return_3d_t1": -15.07,
-    "return_5d_t1": -16.77,
-    "return_10d_t1": -21.13,
-    "max_drawdown_pct": -27.4,
-    "max_gain_pct": 28.13,
-    "market_regime": "neutral",
-    "vix_level": 14.25,
-    "score_normalization_version": 1,
-    "score_struct": 29.0,
-    "score_catalyst": 5.0,
-    "score_timing": 19.7,
-    "score_raw": 82.11,
-    "combo_bonus": 5.0,
-    "score_trend_bonus": 0.0,
-    "agent_boost_factor": 1.0,
-    "perfect_storm_mult": 1.0,
-    "finra_bonus": 5.0,
-    "pool_member": true,
-    "pool_position": 4,
-    "pool_size": 34,
-    "short_float_source": "yfinance",
-    "si_trend_source": "finra",
-    "si_trend_5d_slope": 3.3157,
-    "rvol_buildup_5d": 1.865,
-    "vol_stability_5d": 0.1091,
-    "coiled_spring_score": 0.0,
-    "rvol_acceleration": 0.877,
-    "uoa_atm_ratio": null,
-    "score_delta_t1": -15.0,
-    "anomaly_freshness": 0.0,
-    "score_delta_t1_raw": -29.9,
-    "anomaly_push_age_h": 265.75,
-    "cost_to_borrow": null,
-    "entry_score": 26.52,
-    "entry_components": {
-      "anomaly_freshness": 0.0,
-      "score_delta_t1": 0.0,
-      "uoa_atm_ratio": null,
-      "rvol_buildup_5d": 31.08,
-      "si_trend_5d": 75.0
-    },
-    "entry_n_components": 4,
-    "push_history_available": true,
-    "monster_score": 77.5,
-    "ki_signal_score": null,
-    "ki_sentiment_source": null,
-    "conviction_score": 79.0,
-    "conviction_components": {
-      "setup": 26,
-      "earliness": 28,
-      "anomaly": 14,
-      "regime": 11
-    },
-    "entry_past_return_5d": 16.58,
-    "days_to_earnings": 83,
-    "si_velocity_pub": 0.6618,
-    "material_8k_events": {
-      "collected": true,
-      "reason": null,
-      "cik": "0001841925",
-      "truncated": false,
-      "events": []
-    },
-    "attention_wiki": {
-      "substrate": "none",
-      "article_qid": null,
-      "article_title": null,
-      "views_t_minus_1": null,
-      "views_t": null,
-      "views_t_backfilled_at": null,
-      "baseline_30d_median": null,
-      "baseline_30d_n": null,
-      "delta_ratio": null
-    },
-    "ssr_restriction": {
-      "collected": true,
-      "reason": null,
-      "source": "cboe_cumulative",
-      "restricted_t": false,
-      "triggered_today": false,
-      "carry_over": false,
-      "trigger_date": null,
-      "trigger_time_et": null,
-      "end_date": null,
-      "rescinded_date": null,
-      "fetched_at": "2026-08-14T21:43:40Z",
-      "source_latest_trigger": "2026-08-14 9:42:21"
-    },
-    "source_pools": [
-      "yahoo_most_shorted_stocks"
-    ],
-    "backtest_schema_version": 4
-  },
-  {
-    "date": "14.08.2026",
-    "ticker": "METC",
-    "score": 81.0,
-    "entry_price": 12.25,
-    "entry_price_t1": 12.23,
-    "short_float": 64.61,
-    "dtc": 8.21,
-    "rvol": 1.54,
-    "si_trend": "up",
-    "return_3d": -1.55,
-    "return_5d": -2.86,
-    "return_10d": 8.57,
-    "return_3d_t1": -8.83,
-    "return_5d_t1": 1.64,
-    "return_10d_t1": 16.43,
-    "max_drawdown_pct": -13.87,
-    "max_gain_pct": 33.62,
-    "market_regime": "neutral",
-    "vix_level": 14.25,
-    "score_normalization_version": 1,
-    "score_struct": 34.8,
-    "score_catalyst": 0.0,
-    "score_timing": 13.7,
-    "score_raw": 84.4,
-    "combo_bonus": 5.0,
-    "score_trend_bonus": 0.0,
-    "agent_boost_factor": 1.0,
-    "perfect_storm_mult": 1.0,
-    "finra_bonus": 5.0,
-    "pool_member": true,
-    "pool_position": 2,
-    "pool_size": 34,
-    "short_float_source": "yfinance",
-    "si_trend_source": "finra",
-    "si_trend_5d_slope": 2.2675,
-    "rvol_buildup_5d": 1.835,
-    "vol_stability_5d": 0.0745,
-    "coiled_spring_score": 25.5,
-    "rvol_acceleration": 2.464,
-    "uoa_atm_ratio": null,
-    "score_delta_t1": 11.8,
-    "anomaly_freshness": null,
-    "score_delta_t1_raw": 11.8,
-    "anomaly_push_age_h": null,
-    "cost_to_borrow": null,
-    "entry_score": 48.73,
-    "entry_components": {
-      "anomaly_freshness": 0.0,
-      "score_delta_t1": 89.33,
-      "uoa_atm_ratio": null,
-      "rvol_buildup_5d": 30.58,
-      "si_trend_5d": 75.0
-    },
-    "entry_n_components": 4,
-    "push_history_available": true,
-    "monster_score": 81.0,
-    "ki_signal_score": null,
-    "ki_sentiment_source": null,
-    "conviction_score": 73.0,
-    "conviction_components": {
-      "setup": 27,
-      "earliness": 21,
-      "anomaly": 14,
-      "regime": 11
-    },
-    "entry_past_return_5d": 19.63,
-    "days_to_earnings": 73,
-    "si_velocity_pub": 2.4321,
-    "material_8k_events": {
-      "collected": true,
-      "reason": null,
-      "cik": "0001687187",
-      "truncated": false,
-      "events": []
-    },
-    "attention_wiki": {
-      "substrate": "none",
-      "article_qid": null,
-      "article_title": null,
-      "views_t_minus_1": null,
-      "views_t": null,
-      "views_t_backfilled_at": null,
-      "baseline_30d_median": null,
-      "baseline_30d_n": null,
-      "delta_ratio": null
-    },
-    "ssr_restriction": {
-      "collected": true,
-      "reason": null,
-      "source": "cboe_cumulative",
-      "restricted_t": false,
-      "triggered_today": false,
-      "carry_over": false,
-      "trigger_date": null,
-      "trigger_time_et": null,
-      "end_date": null,
-      "rescinded_date": null,
-      "fetched_at": "2026-08-14T21:43:40Z",
-      "source_latest_trigger": "2026-08-14 9:42:21"
-    },
-    "source_pools": [
-      "yahoo_aggressive_small_caps",
-      "yahoo_small_cap_gainers"
-    ],
-    "backtest_schema_version": 4
-  },
-  {
-    "date": "14.08.2026",
-    "ticker": "NMAX",
-    "score": 97.75,
-    "entry_price": 10.87,
-    "entry_price_t1": 10.36,
-    "short_float": 85.44,
-    "dtc": 8.09,
-    "rvol": 5.675,
-    "si_trend": "down",
-    "return_3d": 0.37,
-    "return_5d": -1.1,
-    "return_10d": -1.47,
-    "return_3d_t1": 4.92,
-    "return_5d_t1": 2.12,
-    "return_10d_t1": 3.86,
-    "max_drawdown_pct": -16.39,
-    "max_gain_pct": 21.57,
-    "market_regime": "neutral",
-    "vix_level": 14.25,
-    "score_normalization_version": 1,
-    "score_struct": 34.3,
-    "score_catalyst": 5.0,
-    "score_timing": 33.0,
-    "score_raw": 100.0,
-    "combo_bonus": 5.0,
-    "score_trend_bonus": 0.0,
-    "agent_boost_factor": 1.15,
-    "perfect_storm_mult": 1.1,
-    "finra_bonus": 0.0,
-    "pool_member": true,
-    "pool_position": 1,
-    "pool_size": 34,
-    "short_float_source": "yfinance",
-    "si_trend_source": "yfinance",
-    "si_trend_5d_slope": 1.5908,
-    "rvol_buildup_5d": 4.918,
-    "vol_stability_5d": 0.0718,
-    "coiled_spring_score": 28.2,
-    "rvol_acceleration": 2.185,
-    "uoa_atm_ratio": 0.3482758620689655,
-    "score_delta_t1": 9.7,
-    "anomaly_freshness": null,
-    "score_delta_t1_raw": 9.7,
-    "anomaly_push_age_h": null,
-    "cost_to_borrow": null,
-    "entry_score": 49.6,
-    "entry_components": {
-      "anomaly_freshness": 0.0,
-      "score_delta_t1": 82.33,
-      "uoa_atm_ratio": 8.71,
-      "rvol_buildup_5d": 81.97,
-      "si_trend_5d": 75.0
-    },
-    "entry_n_components": 5,
-    "push_history_available": true,
-    "monster_score": 100.0,
-    "ki_signal_score": 82.0,
-    "ki_sentiment_source": "keyword",
-    "conviction_score": 68.0,
-    "conviction_components": {
-      "setup": 32,
-      "earliness": 11,
-      "anomaly": 14,
-      "regime": 11
-    },
-    "entry_past_return_5d": 21.18,
-    "days_to_earnings": 91,
-    "si_velocity_pub": 1.6936,
-    "material_8k_events": {
-      "collected": true,
-      "reason": null,
-      "cik": "0002026478",
-      "truncated": false,
-      "events": [
-        {
-          "acceptance_datetime": "2026-08-13T20:06:24.000Z",
-          "accession": "0002026478-26-000060",
-          "cik": "0002026478",
-          "item_codes": [
-            "2.02",
-            "7.01",
-            "9.01"
-          ],
-          "matched_terms": []
-        }
-      ]
-    },
-    "attention_wiki": {
-      "substrate": "en",
-      "article_qid": "Q11991273",
-      "article_title": "Newsmax_Media",
-      "views_t_minus_1": 21,
-      "views_t": 19,
-      "views_t_backfilled_at": "2026-08-17T21:44:28Z",
-      "baseline_30d_median": 13.5,
-      "baseline_30d_n": 30,
-      "delta_ratio": 1.5556
-    },
-    "ssr_restriction": {
-      "collected": true,
-      "reason": null,
-      "source": "cboe_cumulative",
-      "restricted_t": false,
-      "triggered_today": false,
-      "carry_over": false,
-      "trigger_date": null,
-      "trigger_time_et": null,
-      "end_date": null,
-      "rescinded_date": null,
-      "fetched_at": "2026-08-14T21:43:40Z",
-      "source_latest_trigger": "2026-08-14 9:42:21"
-    },
-    "source_pools": [
-      "yahoo_small_cap_gainers"
-    ],
-    "backtest_schema_version": 4
-  },
-  {
-    "date": "14.08.2026",
-    "ticker": "SPCE",
-    "score": 50.09,
-    "entry_price": 3.32,
-    "entry_price_t1": 3.13,
-    "short_float": 25.56,
-    "dtc": 3.73,
-    "rvol": 1.855,
-    "si_trend": "up",
-    "return_3d": -3.31,
-    "return_5d": -7.23,
-    "return_10d": -11.45,
-    "return_3d_t1": -1.6,
-    "return_5d_t1": -4.15,
-    "return_10d_t1": -6.71,
-    "max_drawdown_pct": -17.15,
-    "max_gain_pct": 11.22,
-    "market_regime": "neutral",
-    "vix_level": 14.25,
-    "score_normalization_version": 1,
-    "score_struct": 17.6,
-    "score_catalyst": 0.0,
-    "score_timing": 16.6,
-    "score_raw": 50.09,
-    "combo_bonus": 0.0,
-    "score_trend_bonus": 0.0,
-    "agent_boost_factor": 1.0,
-    "perfect_storm_mult": 1.0,
-    "finra_bonus": 5.0,
-    "pool_member": true,
-    "pool_position": 10,
-    "pool_size": 34,
-    "short_float_source": "yfinance",
-    "si_trend_source": "finra",
-    "si_trend_5d_slope": 0.1214,
-    "rvol_buildup_5d": 2.226,
-    "vol_stability_5d": 0.0737,
-    "coiled_spring_score": 16.0,
-    "rvol_acceleration": 0.872,
-    "uoa_atm_ratio": null,
-    "score_delta_t1": null,
-    "anomaly_freshness": null,
-    "score_delta_t1_raw": null,
-    "anomaly_push_age_h": null,
-    "cost_to_borrow": null,
-    "entry_score": 29.03,
-    "entry_components": {
-      "anomaly_freshness": 0.0,
-      "score_delta_t1": null,
-      "uoa_atm_ratio": null,
-      "rvol_buildup_5d": 37.1,
-      "si_trend_5d": 50.0
-    },
-    "entry_n_components": 3,
-    "push_history_available": true,
-    "monster_score": 50.09,
-    "ki_signal_score": null,
-    "ki_sentiment_source": null,
-    "conviction_score": 49.0,
-    "conviction_components": {
-      "setup": 17,
-      "earliness": 7,
-      "anomaly": 14,
-      "regime": 11
-    },
-    "entry_past_return_5d": 7.1,
-    "days_to_earnings": null,
-    "si_velocity_pub": 1.7886,
-    "material_8k_events": {
-      "collected": true,
-      "reason": null,
-      "cik": "0001706946",
-      "truncated": false,
-      "events": [
-        {
-          "acceptance_datetime": "2026-08-12T20:13:59.000Z",
-          "accession": "0001706946-26-000126",
-          "cik": "0001706946",
-          "item_codes": [
-            "2.02",
-            "9.01"
-          ],
-          "matched_terms": []
-        }
-      ]
-    },
-    "attention_wiki": {
-      "substrate": "en",
-      "article_qid": "Q373225",
-      "article_title": "Virgin_Galactic",
-      "views_t_minus_1": 595,
-      "views_t": 568,
-      "views_t_backfilled_at": "2026-08-17T21:44:28Z",
-      "baseline_30d_median": 421.0,
-      "baseline_30d_n": 30,
-      "delta_ratio": 1.4133
-    },
-    "ssr_restriction": {
-      "collected": true,
-      "reason": null,
-      "source": "cboe_cumulative",
-      "restricted_t": false,
-      "triggered_today": false,
-      "carry_over": false,
-      "trigger_date": null,
-      "trigger_time_et": null,
-      "end_date": null,
-      "rescinded_date": null,
-      "fetched_at": "2026-08-14T21:43:40Z",
-      "source_latest_trigger": "2026-08-14 9:42:21"
-    },
-    "source_pools": [
-      "yahoo_most_shorted_stocks",
-      "yahoo_small_cap_gainers"
-    ],
-    "backtest_schema_version": 4
-  },
-  {
-    "date": "14.08.2026",
-    "ticker": "STKH",
-    "score": 69.28,
-    "entry_price": 3.6,
-    "entry_price_t1": 3.96,
-    "short_float": 59.58,
-    "dtc": 0.12,
-    "rvol": 3.144,
-    "si_trend": "down",
-    "return_3d": -2.78,
-    "return_5d": 1.94,
-    "return_10d": -15.83,
-    "return_3d_t1": 2.02,
-    "return_5d_t1": -12.12,
-    "return_10d_t1": -24.49,
-    "max_drawdown_pct": -53.9,
-    "max_gain_pct": 97.18,
-    "market_regime": "neutral",
-    "vix_level": 14.25,
-    "score_normalization_version": 1,
-    "score_struct": 19.0,
-    "score_catalyst": 0.0,
-    "score_timing": 30.0,
-    "score_raw": 69.28,
-    "combo_bonus": 0.0,
-    "score_trend_bonus": 0.0,
-    "agent_boost_factor": 1.0,
-    "perfect_storm_mult": 1.0,
-    "finra_bonus": 0.0,
-    "pool_member": true,
-    "pool_position": 7,
-    "pool_size": 34,
-    "short_float_source": "yfinance",
-    "si_trend_source": "finra",
-    "si_trend_5d_slope": -0.9939,
-    "rvol_buildup_5d": 0.25,
-    "vol_stability_5d": 0.5257,
-    "coiled_spring_score": 0.0,
-    "rvol_acceleration": 84.973,
-    "uoa_atm_ratio": null,
-    "score_delta_t1": null,
-    "anomaly_freshness": null,
-    "score_delta_t1_raw": null,
-    "anomaly_push_age_h": null,
-    "cost_to_borrow": null,
-    "entry_score": 1.39,
-    "entry_components": {
-      "anomaly_freshness": 0.0,
-      "score_delta_t1": null,
-      "uoa_atm_ratio": null,
-      "rvol_buildup_5d": 4.17,
-      "si_trend_5d": 0.0
-    },
-    "entry_n_components": 3,
-    "push_history_available": true,
-    "monster_score": 69.28,
-    "ki_signal_score": null,
-    "ki_sentiment_source": null,
-    "conviction_score": 48.0,
-    "conviction_components": {
-      "setup": 23,
-      "earliness": 0,
-      "anomaly": 14,
-      "regime": 11
-    },
-    "entry_past_return_5d": 91.49,
-    "days_to_earnings": null,
-    "si_velocity_pub": 10.2938,
-    "material_8k_events": {
-      "collected": true,
-      "reason": null,
-      "cik": "0001828098",
-      "truncated": false,
-      "events": []
-    },
-    "attention_wiki": {
-      "substrate": "none",
-      "article_qid": null,
-      "article_title": null,
-      "views_t_minus_1": null,
-      "views_t": null,
-      "views_t_backfilled_at": null,
-      "baseline_30d_median": null,
-      "baseline_30d_n": null,
-      "delta_ratio": null
-    },
-    "ssr_restriction": {
-      "collected": true,
-      "reason": null,
-      "source": "cboe_cumulative",
-      "restricted_t": false,
-      "triggered_today": false,
-      "carry_over": false,
-      "trigger_date": null,
-      "trigger_time_et": null,
-      "end_date": null,
-      "rescinded_date": null,
-      "fetched_at": "2026-08-14T21:43:40Z",
-      "source_latest_trigger": "2026-08-14 9:42:21"
-    },
-    "source_pools": [
-      "yahoo_most_shorted_stocks"
-    ],
-    "backtest_schema_version": 4
-  },
-  {
     "date": "17.08.2026",
     "ticker": "ARCT",
     "score": 68.2,
@@ -78930,7 +77786,7 @@
     "return_3d_net": 9.75,
     "return_5d_net": 3.35,
     "return_10d_net": null,
-    "max_drawdown_pct": -9.13,
+    "max_drawdown_pct": -10.27,
     "max_gain_pct": 17.17,
     "max_gain_pct_net": 12.58,
     "market_regime": "neutral",
@@ -79022,7 +77878,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 12.76,
-    "return_5d_vs_spy": 10.27
+    "return_5d_vs_spy": 10.27,
+    "rolling_window_n": 9
   },
   {
     "date": "30.10.2026",
@@ -79043,7 +77900,7 @@
     "return_3d_net": 3.56,
     "return_5d_net": -14.56,
     "return_10d_net": null,
-    "max_drawdown_pct": -23.57,
+    "max_drawdown_pct": -23.93,
     "max_gain_pct": 27.27,
     "max_gain_pct_net": 22.28,
     "market_regime": "neutral",
@@ -79135,7 +77992,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 6.32,
-    "return_5d_vs_spy": -8.37
+    "return_5d_vs_spy": -8.37,
+    "rolling_window_n": 9
   },
   {
     "date": "30.10.2026",
@@ -79250,7 +78108,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 8.43,
-    "return_5d_vs_spy": 1.05
+    "return_5d_vs_spy": 1.05,
+    "rolling_window_n": 9
   },
   {
     "date": "30.10.2026",
@@ -79363,7 +78222,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 8.9,
-    "return_5d_vs_spy": 10.92
+    "return_5d_vs_spy": 10.92,
+    "rolling_window_n": 9
   },
   {
     "date": "30.10.2026",
@@ -79385,8 +78245,8 @@
     "return_5d_net": 3.39,
     "return_10d_net": null,
     "max_drawdown_pct": -11.66,
-    "max_gain_pct": 33.21,
-    "max_gain_pct_net": 27.99,
+    "max_gain_pct": 33.48,
+    "max_gain_pct_net": 28.25,
     "market_regime": "neutral",
     "vix_level": 19.42,
     "score_normalization_version": 1,
@@ -79487,7 +78347,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 11.99,
-    "return_5d_vs_spy": 10.31
+    "return_5d_vs_spy": 10.31,
+    "rolling_window_n": 9
   },
   {
     "date": "30.10.2026",
@@ -79509,8 +78370,8 @@
     "return_5d_net": 17.96,
     "return_10d_net": null,
     "max_drawdown_pct": -10.19,
-    "max_gain_pct": 40.73,
-    "max_gain_pct_net": 35.21,
+    "max_gain_pct": 41.51,
+    "max_gain_pct_net": 35.96,
     "market_regime": "neutral",
     "vix_level": 19.42,
     "score_normalization_version": 1,
@@ -79611,7 +78472,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 16.02,
-    "return_5d_vs_spy": 25.47
+    "return_5d_vs_spy": 25.47,
+    "rolling_window_n": 9
   },
   {
     "date": "30.10.2026",
@@ -79632,7 +78494,7 @@
     "return_3d_net": 4.21,
     "return_5d_net": -4.71,
     "return_10d_net": null,
-    "max_drawdown_pct": -10.19,
+    "max_drawdown_pct": -12.93,
     "max_gain_pct": 13.63,
     "max_gain_pct_net": 9.17,
     "market_regime": "neutral",
@@ -79724,7 +78586,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 6.99,
-    "return_5d_vs_spy": 1.88
+    "return_5d_vs_spy": 1.88,
+    "rolling_window_n": 9
   },
   {
     "date": "30.10.2026",
@@ -79837,7 +78700,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 9.16,
-    "return_5d_vs_spy": -21.38
+    "return_5d_vs_spy": -21.38,
+    "rolling_window_n": 9
   },
   {
     "date": "30.10.2026",
@@ -79961,7 +78825,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 0.3,
-    "return_5d_vs_spy": -1.69
+    "return_5d_vs_spy": -1.69,
+    "rolling_window_n": 9
   },
   {
     "date": "30.10.2026",
@@ -80075,7 +78940,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 0.1,
-    "return_5d_vs_spy": 6.96
+    "return_5d_vs_spy": 6.96,
+    "rolling_window_n": 9
   },
   {
     "date": "02.11.2026",
@@ -80096,9 +78962,9 @@
     "return_3d_net": 14.12,
     "return_5d_net": 30.71,
     "return_10d_net": null,
-    "max_drawdown_pct": -14.59,
-    "max_gain_pct": 50.82,
-    "max_gain_pct_net": 44.91,
+    "max_drawdown_pct": -20.04,
+    "max_gain_pct": 68.37,
+    "max_gain_pct_net": 61.77,
     "market_regime": "neutral",
     "vix_level": 21.15,
     "score_normalization_version": 1,
@@ -80190,7 +79056,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 21.32,
-    "return_5d_vs_spy": 35.97
+    "return_5d_vs_spy": 35.97,
+    "rolling_window_n": 8
   },
   {
     "date": "02.11.2026",
@@ -80314,7 +79181,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 16.33,
-    "return_5d_vs_spy": 17.36
+    "return_5d_vs_spy": 17.36,
+    "rolling_window_n": 8
   },
   {
     "date": "02.11.2026",
@@ -80439,7 +79307,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": -2.87,
-    "return_5d_vs_spy": -0.62
+    "return_5d_vs_spy": -0.62,
+    "rolling_window_n": 8
   },
   {
     "date": "02.11.2026",
@@ -80553,7 +79422,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 6.38,
-    "return_5d_vs_spy": 7.38
+    "return_5d_vs_spy": 7.38,
+    "rolling_window_n": 8
   },
   {
     "date": "02.11.2026",
@@ -80666,7 +79536,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 16.2,
-    "return_5d_vs_spy": 29.64
+    "return_5d_vs_spy": 29.64,
+    "rolling_window_n": 8
   },
   {
     "date": "02.11.2026",
@@ -80688,8 +79559,8 @@
     "return_5d_net": 9.73,
     "return_10d_net": null,
     "max_drawdown_pct": -10.19,
-    "max_gain_pct": 32.48,
-    "max_gain_pct_net": 27.28,
+    "max_gain_pct": 33.22,
+    "max_gain_pct_net": 28.0,
     "market_regime": "neutral",
     "vix_level": 21.15,
     "score_normalization_version": 1,
@@ -80780,7 +79651,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 5.26,
-    "return_5d_vs_spy": 14.13
+    "return_5d_vs_spy": 14.13,
+    "rolling_window_n": 8
   },
   {
     "date": "02.11.2026",
@@ -80894,7 +79766,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 22.18,
-    "return_5d_vs_spy": 17.98
+    "return_5d_vs_spy": 17.98,
+    "rolling_window_n": 8
   },
   {
     "date": "02.11.2026",
@@ -81020,7 +79893,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": -1.63,
-    "return_5d_vs_spy": 12.3
+    "return_5d_vs_spy": 12.3,
+    "rolling_window_n": 8
   },
   {
     "date": "02.11.2026",
@@ -81145,7 +80019,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 8.71,
-    "return_5d_vs_spy": -0.08
+    "return_5d_vs_spy": -0.08,
+    "rolling_window_n": 8
   },
   {
     "date": "02.11.2026",
@@ -81259,7 +80134,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": -4.99,
-    "return_5d_vs_spy": -0.92
+    "return_5d_vs_spy": -0.92,
+    "rolling_window_n": 8
   },
   {
     "date": "03.11.2026",
@@ -81372,7 +80248,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 28.72,
-    "return_5d_vs_spy": 2.53
+    "return_5d_vs_spy": 2.53,
+    "rolling_window_n": 7
   },
   {
     "date": "03.11.2026",
@@ -81393,9 +80270,9 @@
     "return_3d_net": 4.94,
     "return_5d_net": 3.43,
     "return_10d_net": null,
-    "max_drawdown_pct": -14.59,
-    "max_gain_pct": 40.7,
-    "max_gain_pct_net": 35.18,
+    "max_drawdown_pct": -20.04,
+    "max_gain_pct": 57.06,
+    "max_gain_pct_net": 50.9,
     "market_regime": "neutral",
     "vix_level": 20.83,
     "score_normalization_version": 1,
@@ -81487,7 +80364,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 11.75,
-    "return_5d_vs_spy": 8.24
+    "return_5d_vs_spy": 8.24,
+    "rolling_window_n": 7
   },
   {
     "date": "03.11.2026",
@@ -81509,8 +80387,8 @@
     "return_5d_net": 8.02,
     "return_10d_net": null,
     "max_drawdown_pct": -16.88,
-    "max_gain_pct": 27.1,
-    "max_gain_pct_net": 22.12,
+    "max_gain_pct": 37.3,
+    "max_gain_pct_net": 31.92,
     "market_regime": "neutral",
     "vix_level": 20.83,
     "score_normalization_version": 1,
@@ -81612,7 +80490,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": -0.39,
-    "return_5d_vs_spy": 13.02
+    "return_5d_vs_spy": 13.02,
+    "rolling_window_n": 7
   },
   {
     "date": "03.11.2026",
@@ -81737,7 +80616,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 0.96,
-    "return_5d_vs_spy": 3.13
+    "return_5d_vs_spy": 3.13,
+    "rolling_window_n": 7
   },
   {
     "date": "03.11.2026",
@@ -81861,7 +80741,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": -1.18,
-    "return_5d_vs_spy": 0.51
+    "return_5d_vs_spy": 0.51,
+    "rolling_window_n": 7
   },
   {
     "date": "03.11.2026",
@@ -81883,8 +80764,8 @@
     "return_5d_net": 7.37,
     "return_10d_net": null,
     "max_drawdown_pct": -14.27,
-    "max_gain_pct": 31.32,
-    "max_gain_pct_net": 26.17,
+    "max_gain_pct": 31.37,
+    "max_gain_pct_net": 26.22,
     "market_regime": "neutral",
     "vix_level": 20.83,
     "score_normalization_version": 1,
@@ -81975,7 +80856,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 6.77,
-    "return_5d_vs_spy": 12.34
+    "return_5d_vs_spy": 12.34,
+    "rolling_window_n": 7
   },
   {
     "date": "03.11.2026",
@@ -82088,7 +80970,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": -5.5,
-    "return_5d_vs_spy": -6.5
+    "return_5d_vs_spy": -6.5,
+    "rolling_window_n": 7
   },
   {
     "date": "03.11.2026",
@@ -82201,7 +81084,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 8.77,
-    "return_5d_vs_spy": 14.42
+    "return_5d_vs_spy": 14.42,
+    "rolling_window_n": 7
   },
   {
     "date": "03.11.2026",
@@ -82223,8 +81107,8 @@
     "return_5d_net": 8.32,
     "return_10d_net": null,
     "max_drawdown_pct": -9.08,
-    "max_gain_pct": 21.11,
-    "max_gain_pct_net": 16.36,
+    "max_gain_pct": 21.78,
+    "max_gain_pct_net": 17.0,
     "market_regime": "neutral",
     "vix_level": 20.83,
     "score_normalization_version": 1,
@@ -82315,7 +81199,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": 7.23,
-    "return_5d_vs_spy": 13.33
+    "return_5d_vs_spy": 13.33,
+    "rolling_window_n": 7
   },
   {
     "date": "03.11.2026",
@@ -82440,7 +81325,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": -30.71,
-    "return_5d_vs_spy": -33.0
+    "return_5d_vs_spy": -33.0,
+    "rolling_window_n": 7
   },
   {
     "date": "05.11.2026",
@@ -82462,8 +81348,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -11.29,
-    "max_gain_pct": 45.11,
-    "max_gain_pct_net": 39.42,
+    "max_gain_pct": 46.59,
+    "max_gain_pct_net": 40.84,
     "market_regime": "neutral",
     "vix_level": 28.18,
     "score_normalization_version": 1,
@@ -82563,7 +81449,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": 22.38
+    "return_3d_vs_spy": 22.38,
+    "rolling_window_n": 5
   },
   {
     "date": "05.11.2026",
@@ -82686,7 +81573,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": -3.71
+    "return_3d_vs_spy": -3.71,
+    "rolling_window_n": 5
   },
   {
     "date": "05.11.2026",
@@ -82810,7 +81698,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": -5.05
+    "return_3d_vs_spy": -5.05,
+    "rolling_window_n": 5
   },
   {
     "date": "05.11.2026",
@@ -82941,7 +81830,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": -18.61
+    "return_3d_vs_spy": -18.61,
+    "rolling_window_n": 5
   },
   {
     "date": "05.11.2026",
@@ -83064,7 +81954,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": -3.71
+    "return_3d_vs_spy": -3.71,
+    "rolling_window_n": 5
   },
   {
     "date": "05.11.2026",
@@ -83177,7 +82068,8 @@
       "yahoo_most_shorted_stocks"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": -4.08
+    "return_3d_vs_spy": -4.08,
+    "rolling_window_n": 5
   },
   {
     "date": "05.11.2026",
@@ -83300,7 +82192,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": 9.58
+    "return_3d_vs_spy": 9.58,
+    "rolling_window_n": 5
   },
   {
     "date": "05.11.2026",
@@ -83321,7 +82214,7 @@
     "return_3d_net": -9.5,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": -7.37,
+    "max_drawdown_pct": -12.57,
     "max_gain_pct": 8.18,
     "max_gain_pct_net": 3.94,
     "market_regime": "neutral",
@@ -83423,7 +82316,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": -8.12
+    "return_3d_vs_spy": -8.12,
+    "rolling_window_n": 5
   },
   {
     "date": "05.11.2026",
@@ -83547,7 +82441,8 @@
       "yahoo_most_shorted_stocks"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": -0.59
+    "return_3d_vs_spy": -0.59,
+    "rolling_window_n": 5
   },
   {
     "date": "05.11.2026",
@@ -83569,8 +82464,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -6.83,
-    "max_gain_pct": 10.7,
-    "max_gain_pct_net": 6.36,
+    "max_gain_pct": 11.36,
+    "max_gain_pct_net": 6.99,
     "market_regime": "neutral",
     "vix_level": 28.18,
     "score_normalization_version": 1,
@@ -83684,7 +82579,8 @@
       "yahoo_most_shorted_stocks"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": 2.73
+    "return_3d_vs_spy": 2.73,
+    "rolling_window_n": 5
   },
   {
     "date": "06.11.2026",
@@ -83706,8 +82602,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -14.55,
-    "max_gain_pct": 40.2,
-    "max_gain_pct_net": 34.7,
+    "max_gain_pct": 44.86,
+    "max_gain_pct_net": 39.18,
     "market_regime": "neutral",
     "vix_level": 25.64,
     "score_normalization_version": 1,
@@ -83796,7 +82692,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": 19.34
+    "return_3d_vs_spy": 19.34,
+    "rolling_window_n": 4
   },
   {
     "date": "06.11.2026",
@@ -83818,8 +82715,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -10.63,
-    "max_gain_pct": 16.32,
-    "max_gain_pct_net": 11.76,
+    "max_gain_pct": 21.04,
+    "max_gain_pct_net": 16.29,
     "market_regime": "neutral",
     "vix_level": 25.64,
     "score_normalization_version": 1,
@@ -83921,7 +82818,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": 12.74
+    "return_3d_vs_spy": 12.74,
+    "rolling_window_n": 4
   },
   {
     "date": "06.11.2026",
@@ -83943,8 +82841,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -24.86,
-    "max_gain_pct": 38.8,
-    "max_gain_pct_net": 33.36,
+    "max_gain_pct": 46.27,
+    "max_gain_pct_net": 40.53,
     "market_regime": "neutral",
     "vix_level": 25.64,
     "score_normalization_version": 1,
@@ -84045,7 +82943,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": 7.57
+    "return_3d_vs_spy": 7.57,
+    "rolling_window_n": 4
   },
   {
     "date": "06.11.2026",
@@ -84067,8 +82966,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -12.07,
-    "max_gain_pct": 33.01,
-    "max_gain_pct_net": 27.79,
+    "max_gain_pct": 43.95,
+    "max_gain_pct_net": 38.3,
     "market_regime": "neutral",
     "vix_level": 25.64,
     "score_normalization_version": 1,
@@ -84169,7 +83068,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": 22.89
+    "return_3d_vs_spy": 22.89,
+    "rolling_window_n": 4
   },
   {
     "date": "06.11.2026",
@@ -84304,7 +83204,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": -8.35
+    "return_3d_vs_spy": -8.35,
+    "rolling_window_n": 4
   },
   {
     "date": "06.11.2026",
@@ -84326,8 +83227,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -24.43,
-    "max_gain_pct": 44.37,
-    "max_gain_pct_net": 38.71,
+    "max_gain_pct": 51.25,
+    "max_gain_pct_net": 45.32,
     "market_regime": "neutral",
     "vix_level": 25.64,
     "score_normalization_version": 1,
@@ -84428,7 +83329,8 @@
       "yahoo_most_shorted_stocks"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": 23.74
+    "return_3d_vs_spy": 23.74,
+    "rolling_window_n": 4
   },
   {
     "date": "06.11.2026",
@@ -84449,7 +83351,7 @@
     "return_3d_net": -6.35,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": -11.63,
+    "max_drawdown_pct": -12.79,
     "max_gain_pct": 23.11,
     "max_gain_pct_net": 18.28,
     "market_regime": "neutral",
@@ -84540,7 +83442,8 @@
       "yahoo_most_shorted_stocks"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": -5.86
+    "return_3d_vs_spy": -5.86,
+    "rolling_window_n": 4
   },
   {
     "date": "06.11.2026",
@@ -84664,7 +83567,8 @@
       "yahoo_most_shorted_stocks"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": -5.04
+    "return_3d_vs_spy": -5.04,
+    "rolling_window_n": 4
   },
   {
     "date": "06.11.2026",
@@ -84777,7 +83681,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": 0.28
+    "return_3d_vs_spy": 0.28,
+    "rolling_window_n": 4
   },
   {
     "date": "06.11.2026",
@@ -84900,7 +83805,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "return_3d_vs_spy": -2.62
+    "return_3d_vs_spy": -2.62,
+    "rolling_window_n": 4
   },
   {
     "date": "09.11.2026",
@@ -84922,8 +83828,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -10.63,
-    "max_gain_pct": 14.69,
-    "max_gain_pct_net": 10.19,
+    "max_gain_pct": 19.34,
+    "max_gain_pct_net": 14.66,
     "market_regime": "neutral",
     "vix_level": 19.92,
     "score_normalization_version": 1,
@@ -85024,7 +83930,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 3
   },
   {
     "date": "09.11.2026",
@@ -85157,7 +84064,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 3
   },
   {
     "date": "09.11.2026",
@@ -85179,8 +84087,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -15.2,
-    "max_gain_pct": 18.96,
-    "max_gain_pct_net": 14.29,
+    "max_gain_pct": 23.38,
+    "max_gain_pct_net": 18.54,
     "market_regime": "neutral",
     "vix_level": 19.92,
     "score_normalization_version": 1,
@@ -85279,7 +84187,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 3
   },
   {
     "date": "09.11.2026",
@@ -85392,7 +84301,8 @@
       "yahoo_small_cap_gainers",
       "yahoo_undervalued_growth_stocks"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 3
   },
   {
     "date": "09.11.2026",
@@ -85414,8 +84324,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -24.43,
-    "max_gain_pct": 38.32,
-    "max_gain_pct_net": 32.9,
+    "max_gain_pct": 44.91,
+    "max_gain_pct_net": 39.23,
     "market_regime": "neutral",
     "vix_level": 19.92,
     "score_normalization_version": 1,
@@ -85515,7 +84425,8 @@
     "source_pools": [
       "yahoo_most_shorted_stocks"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 3
   },
   {
     "date": "09.11.2026",
@@ -85638,7 +84549,8 @@
       "yahoo_most_shorted_stocks",
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 3
   },
   {
     "date": "09.11.2026",
@@ -85660,8 +84572,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -13.25,
-    "max_gain_pct": 15.56,
-    "max_gain_pct_net": 11.03,
+    "max_gain_pct": 19.35,
+    "max_gain_pct_net": 14.67,
     "market_regime": "neutral",
     "vix_level": 19.92,
     "score_normalization_version": 1,
@@ -85749,7 +84661,8 @@
     "source_pools": [
       "yahoo_most_shorted_stocks"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 3
   },
   {
     "date": "09.11.2026",
@@ -85770,7 +84683,7 @@
     "return_3d_net": null,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": -11.37,
+    "max_drawdown_pct": -12.79,
     "max_gain_pct": 12.64,
     "max_gain_pct_net": 8.22,
     "market_regime": "neutral",
@@ -85871,7 +84784,8 @@
     "source_pools": [
       "yahoo_most_shorted_stocks"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 3
   },
   {
     "date": "09.11.2026",
@@ -85993,7 +84907,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 3
   },
   {
     "date": "09.11.2026",
@@ -86117,7 +85032,8 @@
       "yahoo_most_shorted_stocks",
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 3
   },
   {
     "date": "10.11.2026",
@@ -86139,8 +85055,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -8.0,
-    "max_gain_pct": 8.7,
-    "max_gain_pct_net": 4.44,
+    "max_gain_pct": 10.24,
+    "max_gain_pct_net": 5.92,
     "market_regime": "neutral",
     "vix_level": 19.46,
     "score_normalization_version": 1,
@@ -86228,7 +85144,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 2
   },
   {
     "date": "10.11.2026",
@@ -86250,8 +85167,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -14.55,
-    "max_gain_pct": 17.03,
-    "max_gain_pct_net": 12.44,
+    "max_gain_pct": 20.92,
+    "max_gain_pct_net": 16.18,
     "market_regime": "neutral",
     "vix_level": 19.46,
     "score_normalization_version": 1,
@@ -86350,7 +85267,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 2
   },
   {
     "date": "10.11.2026",
@@ -86372,8 +85290,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -11.3,
-    "max_gain_pct": 12.74,
-    "max_gain_pct_net": 8.32,
+    "max_gain_pct": 22.02,
+    "max_gain_pct_net": 17.23,
     "market_regime": "neutral",
     "vix_level": 19.46,
     "score_normalization_version": 1,
@@ -86461,7 +85379,8 @@
     "source_pools": [
       "yahoo_aggressive_small_caps"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 2
   },
   {
     "date": "10.11.2026",
@@ -86483,8 +85402,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -6.55,
-    "max_gain_pct": 7.01,
-    "max_gain_pct_net": 2.81,
+    "max_gain_pct": 8.52,
+    "max_gain_pct_net": 4.26,
     "market_regime": "neutral",
     "vix_level": 19.46,
     "score_normalization_version": 1,
@@ -86582,7 +85501,8 @@
     "source_pools": [
       "yahoo_most_shorted_stocks"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 2
   },
   {
     "date": "10.11.2026",
@@ -86604,8 +85524,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -13.42,
-    "max_gain_pct": 15.5,
-    "max_gain_pct_net": 10.97,
+    "max_gain_pct": 21.0,
+    "max_gain_pct_net": 16.25,
     "market_regime": "neutral",
     "vix_level": 19.46,
     "score_normalization_version": 1,
@@ -86693,7 +85613,8 @@
     "source_pools": [
       "yahoo_most_shorted_stocks"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 2
   },
   {
     "date": "10.11.2026",
@@ -86815,7 +85736,8 @@
     "source_pools": [
       "yahoo_most_shorted_stocks"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 2
   },
   {
     "date": "10.11.2026",
@@ -86926,7 +85848,8 @@
     "source_pools": [
       "yahoo_most_shorted_stocks"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 2
   },
   {
     "date": "10.11.2026",
@@ -86948,8 +85871,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -8.97,
-    "max_gain_pct": 9.85,
-    "max_gain_pct_net": 5.54,
+    "max_gain_pct": 11.95,
+    "max_gain_pct_net": 7.56,
     "market_regime": "neutral",
     "vix_level": 19.46,
     "score_normalization_version": 1,
@@ -87037,7 +85960,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 2
   },
   {
     "date": "10.11.2026",
@@ -87160,7 +86084,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 2
   },
   {
     "date": "10.11.2026",
@@ -87182,8 +86107,8 @@
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -34.13,
-    "max_gain_pct": 51.81,
-    "max_gain_pct_net": 45.86,
+    "max_gain_pct": 82.53,
+    "max_gain_pct_net": 75.37,
     "market_regime": "neutral",
     "vix_level": 19.46,
     "score_normalization_version": 1,
@@ -87282,7 +86207,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 2
   },
   {
     "date": "11.11.2026",
@@ -87303,9 +86229,9 @@
     "return_3d_net": null,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": null,
-    "max_gain_pct": null,
-    "max_gain_pct_net": null,
+    "max_drawdown_pct": -7.73,
+    "max_gain_pct": 8.38,
+    "max_gain_pct_net": 4.13,
     "market_regime": "neutral",
     "vix_level": 17.49,
     "score_normalization_version": 1,
@@ -87404,7 +86330,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 1
   },
   {
     "date": "11.11.2026",
@@ -87425,9 +86352,9 @@
     "return_3d_net": null,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": null,
-    "max_gain_pct": null,
-    "max_gain_pct_net": null,
+    "max_drawdown_pct": -17.71,
+    "max_gain_pct": 21.52,
+    "max_gain_pct_net": 16.75,
     "market_regime": "neutral",
     "vix_level": 17.49,
     "score_normalization_version": 1,
@@ -87504,8 +86431,8 @@
       "article_qid": "Q54953653",
       "article_title": "B&G_Foods",
       "views_t_minus_1": null,
-      "views_t": null,
-      "views_t_backfilled_at": null,
+      "views_t": 160,
+      "views_t_backfilled_at": "2026-11-13T02:06:23Z",
       "baseline_30d_median": 111.5,
       "baseline_30d_n": 30,
       "delta_ratio": null
@@ -87527,7 +86454,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 1
   },
   {
     "date": "11.11.2026",
@@ -87548,9 +86476,9 @@
     "return_3d_net": null,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": null,
-    "max_gain_pct": null,
-    "max_gain_pct_net": null,
+    "max_drawdown_pct": -20.04,
+    "max_gain_pct": 25.06,
+    "max_gain_pct_net": 20.16,
     "market_regime": "neutral",
     "vix_level": 17.49,
     "score_normalization_version": 1,
@@ -87652,7 +86580,8 @@
       "yahoo_most_shorted_stocks",
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 1
   },
   {
     "date": "11.11.2026",
@@ -87673,9 +86602,9 @@
     "return_3d_net": null,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": null,
-    "max_gain_pct": null,
-    "max_gain_pct_net": null,
+    "max_drawdown_pct": -7.38,
+    "max_gain_pct": 7.97,
+    "max_gain_pct_net": 3.74,
     "market_regime": "neutral",
     "vix_level": 17.49,
     "score_normalization_version": 1,
@@ -87763,7 +86692,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 1
   },
   {
     "date": "11.11.2026",
@@ -87784,9 +86714,9 @@
     "return_3d_net": null,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": null,
-    "max_gain_pct": null,
-    "max_gain_pct_net": null,
+    "max_drawdown_pct": -10.82,
+    "max_gain_pct": 12.14,
+    "max_gain_pct_net": 7.74,
     "market_regime": "neutral",
     "vix_level": 17.49,
     "score_normalization_version": 1,
@@ -87886,7 +86816,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 1
   },
   {
     "date": "11.11.2026",
@@ -87907,9 +86838,9 @@
     "return_3d_net": null,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": null,
-    "max_gain_pct": null,
-    "max_gain_pct_net": null,
+    "max_drawdown_pct": -11.29,
+    "max_gain_pct": 12.72,
+    "max_gain_pct_net": 8.3,
     "market_regime": "neutral",
     "vix_level": 17.49,
     "score_normalization_version": 1,
@@ -87999,7 +86930,8 @@
       "yahoo_most_shorted_stocks",
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 1
   },
   {
     "date": "11.11.2026",
@@ -88020,9 +86952,9 @@
     "return_3d_net": null,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": null,
-    "max_gain_pct": null,
-    "max_gain_pct_net": null,
+    "max_drawdown_pct": -7.62,
+    "max_gain_pct": 8.25,
+    "max_gain_pct_net": 4.0,
     "market_regime": "neutral",
     "vix_level": 17.49,
     "score_normalization_version": 1,
@@ -88087,8 +87019,8 @@
       "article_qid": "Q6902090",
       "article_title": "Monro_Muffler_Brake",
       "views_t_minus_1": null,
-      "views_t": null,
-      "views_t_backfilled_at": null,
+      "views_t": 55,
+      "views_t_backfilled_at": "2026-11-13T02:06:23Z",
       "baseline_30d_median": 36.5,
       "baseline_30d_n": 30,
       "delta_ratio": null
@@ -88111,7 +87043,8 @@
       "yahoo_most_shorted_stocks",
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 1
   },
   {
     "date": "11.11.2026",
@@ -88132,9 +87065,9 @@
     "return_3d_net": null,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": null,
-    "max_gain_pct": null,
-    "max_gain_pct_net": null,
+    "max_drawdown_pct": -12.76,
+    "max_gain_pct": 14.63,
+    "max_gain_pct_net": 10.13,
     "market_regime": "neutral",
     "vix_level": 17.49,
     "score_normalization_version": 1,
@@ -88210,8 +87143,8 @@
       "article_qid": "Q57060073",
       "article_title": "Energy_Vault",
       "views_t_minus_1": null,
-      "views_t": null,
-      "views_t_backfilled_at": null,
+      "views_t": 79,
+      "views_t_backfilled_at": "2026-11-13T02:06:23Z",
       "baseline_30d_median": 87.5,
       "baseline_30d_n": 30,
       "delta_ratio": null
@@ -88233,7 +87166,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 1
   },
   {
     "date": "11.11.2026",
@@ -88254,9 +87188,9 @@
     "return_3d_net": null,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": null,
-    "max_gain_pct": null,
-    "max_gain_pct_net": null,
+    "max_drawdown_pct": -18.81,
+    "max_gain_pct": 23.17,
+    "max_gain_pct_net": 18.34,
     "market_regime": "neutral",
     "vix_level": 17.49,
     "score_normalization_version": 1,
@@ -88332,8 +87266,8 @@
       "article_qid": "Q7695737",
       "article_title": "TTEC",
       "views_t_minus_1": null,
-      "views_t": null,
-      "views_t_backfilled_at": null,
+      "views_t": 120,
+      "views_t_backfilled_at": "2026-11-13T02:06:23Z",
       "baseline_30d_median": 92.5,
       "baseline_30d_n": 30,
       "delta_ratio": null
@@ -88356,7 +87290,8 @@
       "yahoo_aggressive_small_caps",
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "rolling_window_n": 1
   },
   {
     "date": "11.11.2026",
@@ -88377,9 +87312,9 @@
     "return_3d_net": null,
     "return_5d_net": null,
     "return_10d_net": null,
-    "max_drawdown_pct": null,
-    "max_gain_pct": null,
-    "max_gain_pct_net": null,
+    "max_drawdown_pct": -5.46,
+    "max_gain_pct": 5.78,
+    "max_gain_pct_net": 1.63,
     "market_regime": "neutral",
     "vix_level": 17.49,
     "score_normalization_version": 1,
@@ -88444,8 +87379,8 @@
       "article_qid": "Q5183828",
       "article_title": "Wolfspeed",
       "views_t_minus_1": null,
-      "views_t": null,
-      "views_t_backfilled_at": null,
+      "views_t": 172,
+      "views_t_backfilled_at": "2026-11-13T02:06:23Z",
       "baseline_30d_median": 150.0,
       "baseline_30d_n": 30,
       "delta_ratio": null
@@ -88468,6 +87403,1198 @@
       "manual",
       "yahoo_most_shorted_stocks",
       "yahoo_small_cap_gainers"
+    ],
+    "backtest_schema_version": 4,
+    "rolling_window_n": 1
+  },
+  {
+    "date": "12.11.2026",
+    "ticker": "FLNC",
+    "score": 55.46,
+    "entry_price": 4.735,
+    "entry_price_t1": null,
+    "short_float": 49.11,
+    "dtc": 6.62,
+    "rvol": 0.927,
+    "si_trend": "up",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null,
+    "return_3d_net": null,
+    "return_5d_net": null,
+    "return_10d_net": null,
+    "max_drawdown_pct": null,
+    "max_gain_pct": null,
+    "max_gain_pct_net": null,
+    "rolling_window_n": 0,
+    "market_regime": "neutral",
+    "vix_level": 18.7,
+    "score_normalization_version": 1,
+    "score_struct": 30.4,
+    "score_catalyst": 13.0,
+    "score_timing": 0.0,
+    "score_raw": 52.82,
+    "combo_bonus": 5.0,
+    "score_trend_bonus": 0.0,
+    "agent_boost_factor": 1.05,
+    "perfect_storm_mult": 1.0,
+    "finra_bonus": 5.0,
+    "pool_member": true,
+    "pool_position": 4,
+    "pool_size": 28,
+    "short_float_source": "yfinance",
+    "si_trend_source": "finra",
+    "si_trend_5d_slope": -0.5523,
+    "rvol_buildup_5d": 0.782,
+    "vol_stability_5d": 0.0944,
+    "coiled_spring_score": 0.0,
+    "rvol_acceleration": 1.048,
+    "uoa_atm_ratio": 0.058212058212058215,
+    "score_delta_t1": null,
+    "anomaly_freshness": null,
+    "score_delta_t1_raw": null,
+    "anomaly_push_age_h": null,
+    "cost_to_borrow": null,
+    "entry_score": 9.87,
+    "entry_components": {
+      "anomaly_freshness": 0.0,
+      "score_delta_t1": null,
+      "uoa_atm_ratio": 1.46,
+      "rvol_buildup_5d": 13.03,
+      "si_trend_5d": 25.0
+    },
+    "entry_n_components": 4,
+    "push_history_available": true,
+    "monster_score": 55.46,
+    "ki_signal_score": 36.0,
+    "ki_sentiment_source": "keyword",
+    "ki_signal_ts": "2026-11-13T02:06:15Z",
+    "conviction_score": 57.0,
+    "conviction_components": {
+      "setup": 18,
+      "earliness": 14,
+      "anomaly": 14,
+      "regime": 11
+    },
+    "entry_past_return_5d": -7.07,
+    "days_to_earnings": 11,
+    "si_velocity_pub": -0.1122,
+    "material_8k_events": {
+      "collected": true,
+      "reason": null,
+      "cik": "0001868941",
+      "truncated": false,
+      "events": []
+    },
+    "attention_wiki": {
+      "substrate": "none",
+      "article_qid": null,
+      "article_title": null,
+      "views_t_minus_1": null,
+      "views_t": null,
+      "views_t_backfilled_at": null,
+      "baseline_30d_median": null,
+      "baseline_30d_n": null,
+      "delta_ratio": null
+    },
+    "ssr_restriction": {
+      "collected": true,
+      "reason": null,
+      "source": "cboe_cumulative",
+      "restricted_t": false,
+      "triggered_today": false,
+      "carry_over": false,
+      "trigger_date": null,
+      "trigger_time_et": null,
+      "end_date": null,
+      "rescinded_date": null,
+      "fetched_at": "2026-11-13T02:06:23Z",
+      "source_latest_trigger": "2026-11-12 9:56:20"
+    },
+    "source_pools": [
+      "yahoo_aggressive_small_caps",
+      "yahoo_most_shorted_stocks"
+    ],
+    "backtest_schema_version": 4
+  },
+  {
+    "date": "12.11.2026",
+    "ticker": "FLNG",
+    "score": 49.05,
+    "entry_price": 25.83,
+    "entry_price_t1": null,
+    "short_float": 15.14,
+    "dtc": 11.88,
+    "rvol": 1.218,
+    "si_trend": "up",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null,
+    "return_3d_net": null,
+    "return_5d_net": null,
+    "return_10d_net": null,
+    "max_drawdown_pct": null,
+    "max_gain_pct": null,
+    "max_gain_pct_net": null,
+    "rolling_window_n": 0,
+    "market_regime": "neutral",
+    "vix_level": 18.7,
+    "score_normalization_version": 1,
+    "score_struct": 26.7,
+    "score_catalyst": 0.0,
+    "score_timing": 1.5,
+    "score_raw": 49.05,
+    "combo_bonus": 0.0,
+    "score_trend_bonus": 0.0,
+    "agent_boost_factor": 1.0,
+    "perfect_storm_mult": 1.0,
+    "finra_bonus": 5.0,
+    "pool_member": true,
+    "pool_position": 7,
+    "pool_size": 28,
+    "short_float_source": "yfinance",
+    "si_trend_source": "finra",
+    "si_trend_5d_slope": 0.2504,
+    "rvol_buildup_5d": 1.172,
+    "vol_stability_5d": 0.0349,
+    "coiled_spring_score": 65.1,
+    "rvol_acceleration": 0.628,
+    "uoa_atm_ratio": null,
+    "score_delta_t1": null,
+    "anomaly_freshness": null,
+    "score_delta_t1_raw": null,
+    "anomaly_push_age_h": null,
+    "cost_to_borrow": null,
+    "entry_score": 23.18,
+    "entry_components": {
+      "anomaly_freshness": 0.0,
+      "score_delta_t1": null,
+      "uoa_atm_ratio": null,
+      "rvol_buildup_5d": 19.53,
+      "si_trend_5d": 50.0
+    },
+    "entry_n_components": 3,
+    "push_history_available": true,
+    "monster_score": 49.05,
+    "ki_signal_score": 15.0,
+    "ki_sentiment_source": "keyword",
+    "ki_signal_ts": "2026-11-13T02:06:15Z",
+    "conviction_score": 62.0,
+    "conviction_components": {
+      "setup": 16,
+      "earliness": 21,
+      "anomaly": 14,
+      "regime": 11
+    },
+    "entry_past_return_5d": -0.42,
+    "days_to_earnings": null,
+    "si_velocity_pub": -0.5545,
+    "material_8k_events": {
+      "collected": true,
+      "reason": null,
+      "cik": "0001772253",
+      "truncated": false,
+      "events": []
+    },
+    "attention_wiki": {
+      "substrate": "none",
+      "article_qid": null,
+      "article_title": null,
+      "views_t_minus_1": null,
+      "views_t": null,
+      "views_t_backfilled_at": null,
+      "baseline_30d_median": null,
+      "baseline_30d_n": null,
+      "delta_ratio": null
+    },
+    "ssr_restriction": {
+      "collected": true,
+      "reason": null,
+      "source": "cboe_cumulative",
+      "restricted_t": false,
+      "triggered_today": false,
+      "carry_over": false,
+      "trigger_date": null,
+      "trigger_time_et": null,
+      "end_date": null,
+      "rescinded_date": null,
+      "fetched_at": "2026-11-13T02:06:23Z",
+      "source_latest_trigger": "2026-11-12 9:56:20"
+    },
+    "source_pools": [
+      "yahoo_aggressive_small_caps"
+    ],
+    "backtest_schema_version": 4
+  },
+  {
+    "date": "12.11.2026",
+    "ticker": "FRMI",
+    "score": 56.87,
+    "entry_price": 2.06,
+    "entry_price_t1": null,
+    "short_float": 15.13,
+    "dtc": 2.69,
+    "rvol": 3.203,
+    "si_trend": "up",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null,
+    "return_3d_net": null,
+    "return_5d_net": null,
+    "return_10d_net": null,
+    "max_drawdown_pct": null,
+    "max_gain_pct": null,
+    "max_gain_pct_net": null,
+    "rolling_window_n": 0,
+    "market_regime": "neutral",
+    "vix_level": 18.7,
+    "score_normalization_version": 1,
+    "score_struct": 12.3,
+    "score_catalyst": 15.0,
+    "score_timing": 22.0,
+    "score_raw": 56.87,
+    "combo_bonus": 0.0,
+    "score_trend_bonus": 0.0,
+    "agent_boost_factor": 1.0,
+    "perfect_storm_mult": 1.0,
+    "finra_bonus": 7.0,
+    "pool_member": true,
+    "pool_position": 3,
+    "pool_size": 28,
+    "short_float_source": "yfinance",
+    "si_trend_source": "finra",
+    "si_trend_5d_slope": 6.5477,
+    "rvol_buildup_5d": 0.687,
+    "vol_stability_5d": 0.156,
+    "coiled_spring_score": 0.0,
+    "rvol_acceleration": 2.548,
+    "uoa_atm_ratio": null,
+    "score_delta_t1": null,
+    "anomaly_freshness": null,
+    "score_delta_t1_raw": null,
+    "anomaly_push_age_h": null,
+    "cost_to_borrow": null,
+    "entry_score": 37.15,
+    "entry_components": {
+      "anomaly_freshness": 0.0,
+      "score_delta_t1": null,
+      "uoa_atm_ratio": null,
+      "rvol_buildup_5d": 11.45,
+      "si_trend_5d": 100.0
+    },
+    "entry_n_components": 3,
+    "push_history_available": true,
+    "monster_score": 56.87,
+    "ki_signal_score": 77.0,
+    "ki_sentiment_source": "keyword",
+    "ki_signal_ts": "2026-11-13T02:06:15Z",
+    "conviction_score": 58.0,
+    "conviction_components": {
+      "setup": 19,
+      "earliness": 0,
+      "anomaly": 28,
+      "regime": 11
+    },
+    "entry_past_return_5d": 34.64,
+    "days_to_earnings": 0,
+    "si_velocity_pub": 0.2726,
+    "material_8k_events": {
+      "collected": true,
+      "reason": null,
+      "cik": "0002071778",
+      "truncated": false,
+      "events": [
+        {
+          "acceptance_datetime": "2026-11-12T12:00:25.000Z",
+          "accession": "0001213900-26-118351",
+          "cik": "0002071778",
+          "item_codes": [
+            "2.02",
+            "7.01",
+            "9.01"
+          ],
+          "matched_terms": []
+        }
+      ]
+    },
+    "attention_wiki": {
+      "substrate": "none",
+      "article_qid": "Q137397138",
+      "article_title": null,
+      "views_t_minus_1": null,
+      "views_t": null,
+      "views_t_backfilled_at": null,
+      "baseline_30d_median": null,
+      "baseline_30d_n": null,
+      "delta_ratio": null
+    },
+    "ssr_restriction": {
+      "collected": true,
+      "reason": null,
+      "source": "cboe_cumulative",
+      "restricted_t": false,
+      "triggered_today": false,
+      "carry_over": false,
+      "trigger_date": null,
+      "trigger_time_et": null,
+      "end_date": null,
+      "rescinded_date": null,
+      "fetched_at": "2026-11-13T02:06:23Z",
+      "source_latest_trigger": "2026-11-12 9:56:20"
+    },
+    "source_pools": [
+      "yahoo_small_cap_gainers"
+    ],
+    "backtest_schema_version": 4
+  },
+  {
+    "date": "12.11.2026",
+    "ticker": "GO",
+    "score": 44.19,
+    "entry_price": 12.85,
+    "entry_price_t1": null,
+    "short_float": 28.44,
+    "dtc": 8.08,
+    "rvol": 1.383,
+    "si_trend": "down",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null,
+    "return_3d_net": null,
+    "return_5d_net": null,
+    "return_10d_net": null,
+    "max_drawdown_pct": null,
+    "max_gain_pct": null,
+    "max_gain_pct_net": null,
+    "rolling_window_n": 0,
+    "market_regime": "neutral",
+    "vix_level": 18.7,
+    "score_normalization_version": 1,
+    "score_struct": 21.6,
+    "score_catalyst": 8.5,
+    "score_timing": 6.0,
+    "score_raw": 44.19,
+    "combo_bonus": 0.0,
+    "score_trend_bonus": 0.0,
+    "agent_boost_factor": 1.0,
+    "perfect_storm_mult": 1.0,
+    "finra_bonus": 0.0,
+    "pool_member": true,
+    "pool_position": 9,
+    "pool_size": 28,
+    "short_float_source": "yfinance",
+    "si_trend_source": "yfinance",
+    "si_trend_5d_slope": 2.4615,
+    "rvol_buildup_5d": 2.245,
+    "vol_stability_5d": 0.0604,
+    "coiled_spring_score": 39.6,
+    "rvol_acceleration": 0.471,
+    "uoa_atm_ratio": null,
+    "score_delta_t1": null,
+    "anomaly_freshness": null,
+    "score_delta_t1_raw": null,
+    "anomaly_push_age_h": null,
+    "cost_to_borrow": null,
+    "entry_score": 37.47,
+    "entry_components": {
+      "anomaly_freshness": 0.0,
+      "score_delta_t1": null,
+      "uoa_atm_ratio": null,
+      "rvol_buildup_5d": 37.42,
+      "si_trend_5d": 75.0
+    },
+    "entry_n_components": 3,
+    "push_history_available": true,
+    "monster_score": 44.19,
+    "ki_signal_score": 55.0,
+    "ki_sentiment_source": "keyword",
+    "ki_signal_ts": "2026-11-13T02:06:15Z",
+    "conviction_score": 61.0,
+    "conviction_components": {
+      "setup": 15,
+      "earliness": 21,
+      "anomaly": 14,
+      "regime": 11
+    },
+    "entry_past_return_5d": -2.21,
+    "days_to_earnings": null,
+    "si_velocity_pub": -0.5696,
+    "material_8k_events": {
+      "collected": true,
+      "reason": null,
+      "cik": "0001771515",
+      "truncated": false,
+      "events": [
+        {
+          "acceptance_datetime": "2026-11-10T21:03:35.000Z",
+          "accession": "0001771515-26-000073",
+          "cik": "0001771515",
+          "item_codes": [
+            "2.02",
+            "9.01"
+          ],
+          "matched_terms": []
+        }
+      ]
+    },
+    "attention_wiki": {
+      "substrate": "en",
+      "article_qid": "Q5609934",
+      "article_title": "Grocery_Outlet",
+      "views_t_minus_1": null,
+      "views_t": null,
+      "views_t_backfilled_at": null,
+      "baseline_30d_median": 160.5,
+      "baseline_30d_n": 30,
+      "delta_ratio": null
+    },
+    "ssr_restriction": {
+      "collected": true,
+      "reason": null,
+      "source": "cboe_cumulative",
+      "restricted_t": false,
+      "triggered_today": false,
+      "carry_over": false,
+      "trigger_date": null,
+      "trigger_time_et": null,
+      "end_date": null,
+      "rescinded_date": null,
+      "fetched_at": "2026-11-13T02:06:23Z",
+      "source_latest_trigger": "2026-11-12 9:56:20"
+    },
+    "source_pools": [
+      "yahoo_aggressive_small_caps"
+    ],
+    "backtest_schema_version": 4
+  },
+  {
+    "date": "12.11.2026",
+    "ticker": "NUAI",
+    "score": 41.12,
+    "entry_price": 2.72,
+    "entry_price_t1": null,
+    "short_float": 28.9,
+    "dtc": 3.21,
+    "rvol": 1.369,
+    "si_trend": "down",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null,
+    "return_3d_net": null,
+    "return_5d_net": null,
+    "return_10d_net": null,
+    "max_drawdown_pct": null,
+    "max_gain_pct": null,
+    "max_gain_pct_net": null,
+    "rolling_window_n": 0,
+    "market_regime": "neutral",
+    "vix_level": 18.7,
+    "score_normalization_version": 1,
+    "score_struct": 15.2,
+    "score_catalyst": 20.0,
+    "score_timing": 9.3,
+    "score_raw": 41.12,
+    "combo_bonus": 0.0,
+    "score_trend_bonus": 0.0,
+    "agent_boost_factor": 1.0,
+    "perfect_storm_mult": 1.0,
+    "finra_bonus": 0.0,
+    "pool_member": true,
+    "pool_position": 10,
+    "pool_size": 28,
+    "short_float_source": "yfinance",
+    "si_trend_source": "finra",
+    "si_trend_5d_slope": 0.4257,
+    "rvol_buildup_5d": 0.552,
+    "vol_stability_5d": 0.2024,
+    "coiled_spring_score": 0.0,
+    "rvol_acceleration": 1.511,
+    "uoa_atm_ratio": null,
+    "score_delta_t1": null,
+    "anomaly_freshness": null,
+    "score_delta_t1_raw": null,
+    "anomaly_push_age_h": null,
+    "cost_to_borrow": null,
+    "entry_score": 19.73,
+    "entry_components": {
+      "anomaly_freshness": 0.0,
+      "score_delta_t1": null,
+      "uoa_atm_ratio": null,
+      "rvol_buildup_5d": 9.2,
+      "si_trend_5d": 50.0
+    },
+    "entry_n_components": 3,
+    "push_history_available": true,
+    "monster_score": 41.12,
+    "ki_signal_score": 100.0,
+    "ki_sentiment_source": "keyword",
+    "ki_signal_ts": "2026-11-13T02:06:15Z",
+    "conviction_score": 60.0,
+    "conviction_components": {
+      "setup": 14,
+      "earliness": 7,
+      "anomaly": 28,
+      "regime": 11
+    },
+    "entry_past_return_5d": 66.87,
+    "days_to_earnings": 0,
+    "si_velocity_pub": 0.0585,
+    "material_8k_events": {
+      "collected": true,
+      "reason": null,
+      "cik": "0002028336",
+      "truncated": false,
+      "events": [
+        {
+          "acceptance_datetime": "2026-11-12T11:35:25.000Z",
+          "accession": "0001213900-26-118324",
+          "cik": "0002028336",
+          "item_codes": [
+            "2.02",
+            "7.01",
+            "9.01"
+          ],
+          "matched_terms": []
+        }
+      ]
+    },
+    "attention_wiki": {
+      "substrate": "none",
+      "article_qid": null,
+      "article_title": null,
+      "views_t_minus_1": null,
+      "views_t": null,
+      "views_t_backfilled_at": null,
+      "baseline_30d_median": null,
+      "baseline_30d_n": null,
+      "delta_ratio": null
+    },
+    "ssr_restriction": {
+      "collected": true,
+      "reason": null,
+      "source": "cboe_cumulative",
+      "restricted_t": false,
+      "triggered_today": false,
+      "carry_over": false,
+      "trigger_date": null,
+      "trigger_time_et": null,
+      "end_date": null,
+      "rescinded_date": null,
+      "fetched_at": "2026-11-13T02:06:23Z",
+      "source_latest_trigger": "2026-11-12 9:56:20"
+    },
+    "source_pools": [
+      "yahoo_most_shorted_stocks"
+    ],
+    "backtest_schema_version": 4
+  },
+  {
+    "date": "12.11.2026",
+    "ticker": "TTEC",
+    "score": 66.99,
+    "entry_price": 2.96,
+    "entry_price_t1": null,
+    "short_float": 23.04,
+    "dtc": 11.49,
+    "rvol": 1.588,
+    "si_trend": "up",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null,
+    "return_3d_net": null,
+    "return_5d_net": null,
+    "return_10d_net": null,
+    "max_drawdown_pct": null,
+    "max_gain_pct": null,
+    "max_gain_pct_net": null,
+    "rolling_window_n": 0,
+    "market_regime": "neutral",
+    "vix_level": 18.7,
+    "score_normalization_version": 1,
+    "score_struct": 29.9,
+    "score_catalyst": 5.0,
+    "score_timing": 17.0,
+    "score_raw": 69.51,
+    "combo_bonus": 0.0,
+    "score_trend_bonus": 0.0,
+    "agent_boost_factor": 1.05,
+    "perfect_storm_mult": 1.0,
+    "finra_bonus": 5.0,
+    "pool_member": true,
+    "pool_position": 1,
+    "pool_size": 28,
+    "short_float_source": "yfinance",
+    "si_trend_source": "yfinance",
+    "si_trend_5d_slope": -0.0333,
+    "rvol_buildup_5d": 52.187,
+    "vol_stability_5d": 0.1822,
+    "coiled_spring_score": 0.0,
+    "rvol_acceleration": 0.427,
+    "uoa_atm_ratio": null,
+    "score_delta_t1": -15.0,
+    "anomaly_freshness": null,
+    "score_delta_t1_raw": -21.3,
+    "anomaly_push_age_h": null,
+    "cost_to_borrow": null,
+    "entry_score": 37.5,
+    "entry_components": {
+      "anomaly_freshness": 0.0,
+      "score_delta_t1": 0.0,
+      "uoa_atm_ratio": null,
+      "rvol_buildup_5d": 100.0,
+      "si_trend_5d": 50.0
+    },
+    "entry_n_components": 4,
+    "push_history_available": true,
+    "monster_score": 66.99,
+    "ki_signal_score": 55.0,
+    "ki_sentiment_source": "keyword",
+    "ki_signal_ts": "2026-11-13T02:06:15Z",
+    "conviction_score": 54.0,
+    "conviction_components": {
+      "setup": 22,
+      "earliness": 21,
+      "anomaly": 0,
+      "regime": 11
+    },
+    "entry_past_return_5d": 100.0,
+    "days_to_earnings": null,
+    "si_velocity_pub": null,
+    "material_8k_events": {
+      "collected": true,
+      "reason": null,
+      "cik": "0001013880",
+      "truncated": false,
+      "events": [
+        {
+          "acceptance_datetime": "2026-11-09T23:43:59.000Z",
+          "accession": "0001104659-26-124650",
+          "cik": "0001013880",
+          "item_codes": [
+            "2.02",
+            "9.01"
+          ],
+          "matched_terms": []
+        }
+      ]
+    },
+    "attention_wiki": {
+      "substrate": "en",
+      "article_qid": "Q7695737",
+      "article_title": "TTEC",
+      "views_t_minus_1": null,
+      "views_t": null,
+      "views_t_backfilled_at": null,
+      "baseline_30d_median": 92.5,
+      "baseline_30d_n": 30,
+      "delta_ratio": null
+    },
+    "ssr_restriction": {
+      "collected": true,
+      "reason": null,
+      "source": "cboe_cumulative",
+      "restricted_t": false,
+      "triggered_today": false,
+      "carry_over": false,
+      "trigger_date": null,
+      "trigger_time_et": null,
+      "end_date": null,
+      "rescinded_date": null,
+      "fetched_at": "2026-11-13T02:06:23Z",
+      "source_latest_trigger": "2026-11-12 9:56:20"
+    },
+    "source_pools": [
+      "yahoo_aggressive_small_caps",
+      "yahoo_small_cap_gainers"
+    ],
+    "backtest_schema_version": 4
+  },
+  {
+    "date": "12.11.2026",
+    "ticker": "ULCC",
+    "score": 53.13,
+    "entry_price": 7.7,
+    "entry_price_t1": null,
+    "short_float": 39.0,
+    "dtc": 6.99,
+    "rvol": 0.818,
+    "si_trend": "down",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null,
+    "return_3d_net": null,
+    "return_5d_net": null,
+    "return_10d_net": null,
+    "max_drawdown_pct": null,
+    "max_gain_pct": null,
+    "max_gain_pct_net": null,
+    "rolling_window_n": 0,
+    "market_regime": "neutral",
+    "vix_level": 18.7,
+    "score_normalization_version": 1,
+    "score_struct": 24.1,
+    "score_catalyst": 0.0,
+    "score_timing": 3.0,
+    "score_raw": 41.94,
+    "combo_bonus": 0.0,
+    "score_trend_bonus": 0.0,
+    "agent_boost_factor": 1.1,
+    "perfect_storm_mult": 1.0,
+    "finra_bonus": 0.0,
+    "pool_member": true,
+    "pool_position": 5,
+    "pool_size": 28,
+    "short_float_source": "yfinance",
+    "si_trend_source": "finra",
+    "si_trend_5d_slope": 1.4602,
+    "rvol_buildup_5d": 1.354,
+    "vol_stability_5d": 0.0801,
+    "coiled_spring_score": 19.9,
+    "rvol_acceleration": 0.992,
+    "uoa_atm_ratio": 0.0028101164191087916,
+    "score_delta_t1": -15.0,
+    "anomaly_freshness": null,
+    "score_delta_t1_raw": -20.8,
+    "anomaly_push_age_h": null,
+    "cost_to_borrow": null,
+    "entry_score": 19.53,
+    "entry_components": {
+      "anomaly_freshness": 0.0,
+      "score_delta_t1": 0.0,
+      "uoa_atm_ratio": 0.07,
+      "rvol_buildup_5d": 22.57,
+      "si_trend_5d": 75.0
+    },
+    "entry_n_components": 5,
+    "push_history_available": true,
+    "monster_score": 53.13,
+    "ki_signal_score": 28.0,
+    "ki_sentiment_source": "keyword",
+    "ki_signal_ts": "2026-11-13T02:06:15Z",
+    "conviction_score": 57.0,
+    "conviction_components": {
+      "setup": 18,
+      "earliness": 14,
+      "anomaly": 14,
+      "regime": 11
+    },
+    "entry_past_return_5d": 8.15,
+    "days_to_earnings": null,
+    "si_velocity_pub": 1.0129,
+    "material_8k_events": {
+      "collected": true,
+      "reason": null,
+      "cik": "0001670076",
+      "truncated": false,
+      "events": []
+    },
+    "attention_wiki": {
+      "substrate": "en",
+      "article_qid": "Q1139541",
+      "article_title": "Frontier_Airlines",
+      "views_t_minus_1": null,
+      "views_t": null,
+      "views_t_backfilled_at": null,
+      "baseline_30d_median": 862.5,
+      "baseline_30d_n": 30,
+      "delta_ratio": null
+    },
+    "ssr_restriction": {
+      "collected": true,
+      "reason": null,
+      "source": "cboe_cumulative",
+      "restricted_t": false,
+      "triggered_today": false,
+      "carry_over": false,
+      "trigger_date": null,
+      "trigger_time_et": null,
+      "end_date": null,
+      "rescinded_date": null,
+      "fetched_at": "2026-11-13T02:06:23Z",
+      "source_latest_trigger": "2026-11-12 9:56:20"
+    },
+    "source_pools": [
+      "yahoo_aggressive_small_caps"
+    ],
+    "backtest_schema_version": 4
+  },
+  {
+    "date": "12.11.2026",
+    "ticker": "UNIT",
+    "score": 45.69,
+    "entry_price": 4.3,
+    "entry_price_t1": null,
+    "short_float": 21.89,
+    "dtc": 5.5,
+    "rvol": 1.567,
+    "si_trend": "up",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null,
+    "return_3d_net": null,
+    "return_5d_net": null,
+    "return_10d_net": null,
+    "max_drawdown_pct": null,
+    "max_gain_pct": null,
+    "max_gain_pct_net": null,
+    "rolling_window_n": 0,
+    "market_regime": "neutral",
+    "vix_level": 18.7,
+    "score_normalization_version": 1,
+    "score_struct": 18.6,
+    "score_catalyst": 0.0,
+    "score_timing": 8.5,
+    "score_raw": 45.69,
+    "combo_bonus": 0.0,
+    "score_trend_bonus": 0.0,
+    "agent_boost_factor": 1.0,
+    "perfect_storm_mult": 1.0,
+    "finra_bonus": 5.0,
+    "pool_member": true,
+    "pool_position": 8,
+    "pool_size": 28,
+    "short_float_source": "yfinance",
+    "si_trend_source": "finra",
+    "si_trend_5d_slope": 171.6,
+    "rvol_buildup_5d": 1.379,
+    "vol_stability_5d": 0.1355,
+    "coiled_spring_score": 0.0,
+    "rvol_acceleration": 1.039,
+    "uoa_atm_ratio": null,
+    "score_delta_t1": null,
+    "anomaly_freshness": null,
+    "score_delta_t1_raw": null,
+    "anomaly_push_age_h": null,
+    "cost_to_borrow": null,
+    "entry_score": 40.99,
+    "entry_components": {
+      "anomaly_freshness": 0.0,
+      "score_delta_t1": null,
+      "uoa_atm_ratio": null,
+      "rvol_buildup_5d": 22.98,
+      "si_trend_5d": 100.0
+    },
+    "entry_n_components": 3,
+    "push_history_available": true,
+    "monster_score": 45.69,
+    "ki_signal_score": 35.0,
+    "ki_sentiment_source": "keyword",
+    "ki_signal_ts": "2026-11-13T02:06:15Z",
+    "conviction_score": 54.0,
+    "conviction_components": {
+      "setup": 15,
+      "earliness": 14,
+      "anomaly": 14,
+      "regime": 11
+    },
+    "entry_past_return_5d": -19.85,
+    "days_to_earnings": null,
+    "si_velocity_pub": 1.4171,
+    "material_8k_events": {
+      "collected": true,
+      "reason": null,
+      "cik": "0002020795",
+      "truncated": false,
+      "events": [
+        {
+          "acceptance_datetime": "2026-11-09T13:07:25.000Z",
+          "accession": "0001628280-26-071900",
+          "cik": "0002020795",
+          "item_codes": [
+            "2.02",
+            "9.01"
+          ],
+          "matched_terms": []
+        }
+      ]
+    },
+    "attention_wiki": {
+      "substrate": "none",
+      "article_qid": "Q135579976",
+      "article_title": null,
+      "views_t_minus_1": null,
+      "views_t": null,
+      "views_t_backfilled_at": null,
+      "baseline_30d_median": null,
+      "baseline_30d_n": null,
+      "delta_ratio": null
+    },
+    "ssr_restriction": {
+      "collected": true,
+      "reason": null,
+      "source": "cboe_cumulative",
+      "restricted_t": false,
+      "triggered_today": false,
+      "carry_over": false,
+      "trigger_date": null,
+      "trigger_time_et": null,
+      "end_date": null,
+      "rescinded_date": null,
+      "fetched_at": "2026-11-13T02:06:23Z",
+      "source_latest_trigger": "2026-11-12 9:56:20"
+    },
+    "source_pools": [
+      "yahoo_small_cap_gainers"
+    ],
+    "backtest_schema_version": 4
+  },
+  {
+    "date": "12.11.2026",
+    "ticker": "WBTN",
+    "score": 51.63,
+    "entry_price": 10.08,
+    "entry_price_t1": null,
+    "short_float": 18.86,
+    "dtc": 8.71,
+    "rvol": 1.177,
+    "si_trend": "up",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null,
+    "return_3d_net": null,
+    "return_5d_net": null,
+    "return_10d_net": null,
+    "max_drawdown_pct": null,
+    "max_gain_pct": null,
+    "max_gain_pct_net": null,
+    "rolling_window_n": 0,
+    "market_regime": "neutral",
+    "vix_level": 18.7,
+    "score_normalization_version": 1,
+    "score_struct": 26.5,
+    "score_catalyst": 0.0,
+    "score_timing": 5.4,
+    "score_raw": 51.63,
+    "combo_bonus": 0.0,
+    "score_trend_bonus": 0.0,
+    "agent_boost_factor": 1.0,
+    "perfect_storm_mult": 1.0,
+    "finra_bonus": 5.0,
+    "pool_member": true,
+    "pool_position": 6,
+    "pool_size": 28,
+    "short_float_source": "yfinance",
+    "si_trend_source": "yfinance",
+    "si_trend_5d_slope": 62.9762,
+    "rvol_buildup_5d": 2.269,
+    "vol_stability_5d": 0.0797,
+    "coiled_spring_score": 20.3,
+    "rvol_acceleration": 0.438,
+    "uoa_atm_ratio": null,
+    "score_delta_t1": null,
+    "anomaly_freshness": null,
+    "score_delta_t1_raw": null,
+    "anomaly_push_age_h": null,
+    "cost_to_borrow": null,
+    "entry_score": 45.94,
+    "entry_components": {
+      "anomaly_freshness": 0.0,
+      "score_delta_t1": null,
+      "uoa_atm_ratio": null,
+      "rvol_buildup_5d": 37.82,
+      "si_trend_5d": 100.0
+    },
+    "entry_n_components": 3,
+    "push_history_available": true,
+    "monster_score": 51.63,
+    "ki_signal_score": 25.0,
+    "ki_sentiment_source": "keyword",
+    "ki_signal_ts": "2026-11-13T02:06:15Z",
+    "conviction_score": 63.0,
+    "conviction_components": {
+      "setup": 17,
+      "earliness": 21,
+      "anomaly": 14,
+      "regime": 11
+    },
+    "entry_past_return_5d": 6.55,
+    "days_to_earnings": null,
+    "si_velocity_pub": -0.8973,
+    "material_8k_events": {
+      "collected": true,
+      "reason": null,
+      "cik": "0001997859",
+      "truncated": false,
+      "events": [
+        {
+          "acceptance_datetime": "2026-11-09T21:13:33.000Z",
+          "accession": "0001997859-26-000098",
+          "cik": "0001997859",
+          "item_codes": [
+            "2.02",
+            "9.01"
+          ],
+          "matched_terms": []
+        }
+      ]
+    },
+    "attention_wiki": {
+      "substrate": "none",
+      "article_qid": null,
+      "article_title": null,
+      "views_t_minus_1": null,
+      "views_t": null,
+      "views_t_backfilled_at": null,
+      "baseline_30d_median": null,
+      "baseline_30d_n": null,
+      "delta_ratio": null
+    },
+    "ssr_restriction": {
+      "collected": true,
+      "reason": null,
+      "source": "cboe_cumulative",
+      "restricted_t": false,
+      "triggered_today": false,
+      "carry_over": false,
+      "trigger_date": null,
+      "trigger_time_et": null,
+      "end_date": null,
+      "rescinded_date": null,
+      "fetched_at": "2026-11-13T02:06:23Z",
+      "source_latest_trigger": "2026-11-12 9:56:20"
+    },
+    "source_pools": [
+      "yahoo_aggressive_small_caps"
+    ],
+    "backtest_schema_version": 4
+  },
+  {
+    "date": "12.11.2026",
+    "ticker": "WOLF",
+    "score": 57.23,
+    "entry_price": 26.51,
+    "entry_price_t1": null,
+    "short_float": 54.21,
+    "dtc": 6.02,
+    "rvol": 0.393,
+    "si_trend": "sideways",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null,
+    "return_3d_net": null,
+    "return_5d_net": null,
+    "return_10d_net": null,
+    "max_drawdown_pct": null,
+    "max_gain_pct": null,
+    "max_gain_pct_net": null,
+    "rolling_window_n": 0,
+    "market_regime": "neutral",
+    "vix_level": 18.7,
+    "score_normalization_version": 1,
+    "score_struct": 32.7,
+    "score_catalyst": 5.0,
+    "score_timing": 3.0,
+    "score_raw": 51.54,
+    "combo_bonus": 0.0,
+    "score_trend_bonus": 0.0,
+    "agent_boost_factor": 1.05,
+    "perfect_storm_mult": 1.0,
+    "finra_bonus": 2.5,
+    "pool_member": true,
+    "pool_position": 2,
+    "pool_size": 28,
+    "short_float_source": "yfinance",
+    "si_trend_source": "finra",
+    "si_trend_5d_slope": -0.1872,
+    "rvol_buildup_5d": 0.481,
+    "vol_stability_5d": 0.1122,
+    "coiled_spring_score": 0.0,
+    "rvol_acceleration": 0.54,
+    "uoa_atm_ratio": 0.05089820359281437,
+    "score_delta_t1": -12.8,
+    "anomaly_freshness": null,
+    "score_delta_t1_raw": -12.8,
+    "anomaly_push_age_h": null,
+    "cost_to_borrow": null,
+    "entry_score": 13.32,
+    "entry_components": {
+      "anomaly_freshness": 0.0,
+      "score_delta_t1": 7.33,
+      "uoa_atm_ratio": 1.27,
+      "rvol_buildup_5d": 8.02,
+      "si_trend_5d": 50.0
+    },
+    "entry_n_components": 5,
+    "push_history_available": true,
+    "monster_score": 57.23,
+    "ki_signal_score": 28.0,
+    "ki_sentiment_source": "keyword",
+    "ki_signal_ts": "2026-11-13T02:06:15Z",
+    "conviction_score": 44.0,
+    "conviction_components": {
+      "setup": 19,
+      "earliness": 14,
+      "anomaly": 0,
+      "regime": 11
+    },
+    "entry_past_return_5d": 30.21,
+    "days_to_earnings": 83,
+    "si_velocity_pub": -0.3843,
+    "material_8k_events": {
+      "collected": true,
+      "reason": null,
+      "cik": "0000895419",
+      "truncated": false,
+      "events": []
+    },
+    "attention_wiki": {
+      "substrate": "en",
+      "article_qid": "Q5183828",
+      "article_title": "Wolfspeed",
+      "views_t_minus_1": null,
+      "views_t": null,
+      "views_t_backfilled_at": null,
+      "baseline_30d_median": 150.0,
+      "baseline_30d_n": 30,
+      "delta_ratio": null
+    },
+    "ssr_restriction": {
+      "collected": true,
+      "reason": null,
+      "source": "cboe_cumulative",
+      "restricted_t": false,
+      "triggered_today": false,
+      "carry_over": false,
+      "trigger_date": null,
+      "trigger_time_et": null,
+      "end_date": null,
+      "rescinded_date": null,
+      "fetched_at": "2026-11-13T02:06:23Z",
+      "source_latest_trigger": "2026-11-12 9:56:20"
+    },
+    "source_pools": [
+      "manual",
+      "yahoo_most_shorted_stocks"
     ],
     "backtest_schema_version": 4
   }
