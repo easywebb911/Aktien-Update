@@ -3390,6 +3390,20 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — Anzeige-PR Teil B: Inst neutral, H-I blau, H-G/H-K Unklar, Testzahl gezählt, K1 explorativ (1 PR, Manual-Merge)
+
+- `#697` (Branch `claude/anzeige-teil-b-h7m4`, Branch-Commit `71166e05`, kein Merge-Hash — Regel a).
+  Rein Anzeige. Institutioneller Anteil ohne Farbe/60-30-Schwellen, Hinweis `config.INST_OWNERSHIP_HINT`,
+  Helfer `_inst_row_html` (v1 = v2); `SCORE_STATUS_LABELS` neu `h_i` (blau, „Beleg (Gipfel), 1 Fenster —
+  Rendite-Test läuft“), `h_g`/`h_k` („Unklar“, grau), Panel-Zahlen zur Render-Zeit aus `eval_results.jsonl`;
+  Panel-Kopfzeile zählt Tests/Belege (heute 7/2); explorative K1-Zeile (`config.K1_EXPLORATIVE_ROW`,
+  Rendite-Landkarte 13.11.). GRÜN unvergeben. Golden: nur die Inst-Zeile. Test
+  `scripts/mock_test_display_teil_b.py` (CI). open_item `inst-anzeige-farbe` erledigt,
+  `top10-netto-grundrendite-negativ` ergänzt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#696`,
+  höchste in Block 1 erwähnte PR = `#697` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 13.11.2026 — Minutenkurse Tag 1 sammeln (Weg A, Schritt 2) + Probe entfernt (1 PR, Manual-Merge, neuer Workflow)
 
 - Probe-Verdikt „brauchbar“ (Lauf 43520272302, D = 12.11.: alle Top-10 mit Balken, fehlende Minuten 0–107
