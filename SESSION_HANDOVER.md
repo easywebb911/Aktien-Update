@@ -3390,6 +3390,20 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — Mini-Stopp Geld/Brief + Wegwerf-Probe 1-Minuten-Kurse (1 PR, Manual-Merge, neuer Workflow)
+
+- Easy-Entscheid 13.11.: Mini-Stopp Geld/Brief bestätigt, HAIRCUT unverändert; Weg A als Sammelfeld in
+  zwei Schritten. `#695` (Branch `claude/minuten-probe-cleanup-q5t8`, Branch-Commit `a75b0e09`, kein
+  Merge-Hash — Regel a). Geld/Brief-Probe (#689) per `git rm` entfernt; Befund (Nasdaq-Spannen 35–56 %,
+  eingefroren, 15 Min verzögert; NYSE plausibel, 20 Min) in open_item `handelskosten-messung`. Neu:
+  Wegwerf-Workflow `.github/workflows/probe_minute_bars.yml` (Hand-Start, read-only, Artifact) +
+  `scripts/probe_minute_bars.py` (1-Min-Balken Top-10 von D: Vollständigkeit 390, Lücken, Nasdaq/NYSE,
+  Abgleich Tageszeile, prepost, Abruftiefe) + Test `scripts/mock_test_probe_minute_bars.py` (CI).
+  Schritt 2 (Sammelfeld) nur bei Verdikt „brauchbar“, eigener PR.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#694`,
+  höchste in Block 1 erwähnte PR = `#695` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 13.11.2026 — Nacht-Probe: Endbericht + Cleanup (1 PR, Auto-Merge)
 
 - `#694` (Branch `claude/cleanup-nacht-probe-w8k3`, Branch-Commit `6fa1b122`, kein Merge-Hash —
