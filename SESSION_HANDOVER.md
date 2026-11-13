@@ -7133,6 +7133,15 @@ Top-10-Auswahl während der Sammlung braucht hier einen datierten Eintrag.
 **Änderungs-Protokoll (bindend ab 07.11.2026):** Keine Änderung an diesem Block
 ohne datierten Protokolleintrag, der die Änderung und ihren Grund festhält.
 
+**Protokolleintrag 13.11.2026 (abends) — Prädiktor `entry_past_return_5d` vor dem Lauf
+geprüft:** Einmaliger read-only Messlauf 43488284245 (13.11.2026, Easy-Auftrag) hat den
+gespeicherten Prädiktor aller forward-Zeilen gegen die Rechnung auf den eigenen Handelstagen
+geprüft: vor 24.10.: 665 geprüft, 660 stimmen, 5 weichen ab (Dividende seit dem Nenner bzw.
+Zähler = Kurs zum Laufzeitpunkt); ab 24.10. (nur Prädiktor, kein Ergebnisfeld gelesen):
+130 geprüft, 129 stimmen, 1 Abweichung 0,04 pp; keine Lücke im gemeinsamen Index; Spearman
+gespeichert vs. neu 0,99999 bzw. 1,0. Rangbasierter Test nicht berührt. **Keine Änderung an
+Daten oder Verfahren**; open_item `epr-gemeinsamer-index-vs-eigene-handelstage` erledigt.
+
 **Protokolleintrag 13.11.2026 — Fehler im Zielfeld `max_gain_pct` (Rolling-Fenster
 vor Tag 10 eingefroren):** Kriterien dieses Blocks **unverändert**; dokumentiert
 werden Fehler, Fix und Naht.
@@ -7294,6 +7303,15 @@ als Einstieg an; der tatsächliche Kaufkurs (Nachbörse/Folgetag) ist nicht mode
 **Änderungs-Protokoll (bindend ab 12.11.2026):** Keine Änderung an diesem Block ohne
 datierten Protokolleintrag, der die Änderung und ihren Grund festhält. Ein Revert
 dieses Blocks wird ebenfalls als Protokolleintrag festgehalten.
+
+**Protokolleintrag 13.11.2026 (abends) — Prädiktor `entry_past_return_5d` vor dem Lauf
+geprüft:** Einmaliger read-only Messlauf 43488284245 (13.11.2026, Easy-Auftrag) hat den
+gespeicherten Prädiktor aller forward-Zeilen gegen die Rechnung auf den eigenen Handelstagen
+geprüft: vor 24.10.: 665 geprüft, 660 stimmen, 5 weichen ab (Dividende seit dem Nenner bzw.
+Zähler = Kurs zum Laufzeitpunkt); ab 24.10. (nur Prädiktor, kein Ergebnisfeld gelesen):
+130 geprüft, 129 stimmen, 1 Abweichung 0,04 pp; keine Lücke im gemeinsamen Index; Spearman
+gespeichert vs. neu 0,99999 bzw. 1,0. Rangbasierter Test nicht berührt. **Keine Änderung an
+Daten oder Verfahren**; open_item `epr-gemeinsamer-index-vs-eigene-handelstage` erledigt.
 
 **Protokolleintrag 13.11.2026 — Auslöser von n ≥ 300 auf n ≥ 500 angehoben (Easy-Entscheid
 12.11.2026):** Punkt 6 gilt ab jetzt mit **n ≥ 500** statt 300; gezählt wird unverändert

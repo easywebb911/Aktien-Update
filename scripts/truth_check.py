@@ -31,17 +31,20 @@ nachgerechnet nach den Produktionsregeln:
   Regime aus dem Vortagsschluss. Alles andere bleibt ``abweichung``.
   Bestätigungen über diese Laufzeit-Regel (nicht exakt der Schluss) stehen mit
   Spanne in ``laufzeit_regel`` der Log-Zeile.
-* ``entry_past_return_5d`` — ``_compute_entry_past_return_5d``: Close am
-  Entry-Tag gegen den 5. Handelstag davor (eigene Handelstage des Tickers).
+* ``entry_past_return_5d`` — PRODUKTIONS-Definition je Schreibpfad (seit
+  13.11.2026): Einstiege ab ``EPR_LIVE_FROM`` (laufender Postclose) = gespeicherter
+  ``entry_price`` (Kurs zum Laufzeitpunkt, Split nach D über den Split-Faktor
+  umgerechnet) gegen den Schluss 5 eigene Handelstage davor; Stufe-B-Backfill
+  davor (und bei Dividende seit dem Nenner) Schluss gegen Schluss.
 
 KEINE Preis-Felder (``entry_price``, ``entry_price_t1``). Bootstrap-Zeilen
 werden übersprungen. Toleranz ``config.TRUTH_CHECK_TOLERANCE_PP`` (0,02).
 Abweichung → Blick auf Dividenden/Splits im Fenster (aus derselben Kurs-
 Abfrage, ``actions=True``): vorhanden → Klasse ``neu_adjustiert``, sonst
-``abweichung``. Seit 13.11.2026 zusätzlich (BJDX-Klasse, ``rounding_bound``):
-Aktion NACH dem Fenster (bis heute) UND |Δ| ≤ hergeleitete Rundungsschranke →
-``neu_adjustiert`` mit ``regel: rundung_nach_aktion`` + ``schranke``; darüber
-weiter ``abweichung``.
+``abweichung``. Seit 13.11.2026 (``_classify_dev``): Dividende im Fenster →
+``neu_adjustiert`` wie bisher, ``abs_delta`` im Log; Split im Fenster ODER Aktion
+nach dem Fenster → ``neu_adjustiert`` nur bei |Δ| ≤ Rundungsschranke
+(``rounding_bound``; ``regel`` + ``schranke``), sonst ``abweichung``.
 
 Umfang je Lauf: frisch gereifte Export-Zeilen (Zeilenzahl > ``export_lines_seen``
 im State), frisch vollständige Exit-Shadow-Records, Wiederholungen (Abweichung
@@ -92,6 +95,11 @@ RETURN_FIELDS = tuple(
     f for w in WINDOWS
     for f in (f"return_{w}d", f"return_{w}d_t1", f"return_{w}d_net", f"return_{w}d_vs_spy"))
 MAX_FIELDS = ("max_gain_pct", "max_drawdown_pct")
+# entry_past_return_5d: erster Einstiegstag, den der laufende Postclose mit Wert
+# geschrieben hat (Zähler = Kurs zum Laufzeitpunkt). Davor (14.05.–10.07.2026)
+# stammen alle Werte aus dem Stufe-B-Backfill (Schluss/Schluss, Manifest). Beleg:
+# Manifest-Daten 14.05.–10.07.; erste Nicht-Manifest-Werte 13.07.2026 (Test).
+EPR_LIVE_FROM = date(2026, 7, 13)
 SHADOW_FIELDS = tuple(f"forward_{n}d" for n in SHADOW_HORIZONS)
 
 
@@ -181,11 +189,13 @@ class Series:
         return None
 
     def has_action(self, d0: date, d1: date) -> bool:
-        for r in self.rows:
-            if d0 <= r["d"] <= d1:
-                if (_num(r.get("div")) or 0.0) != 0.0 or (_num(r.get("split")) or 0.0) != 0.0:
-                    return True
-        return False
+        return self.has_dividend(d0, d1) or self.has_split(d0, d1)
+
+    def has_dividend(self, d0: date, d1: date) -> bool:
+        return any(d0 <= r["d"] <= d1 and (_num(r.get("div")) or 0.0) != 0.0 for r in self.rows)
+
+    def has_split(self, d0: date, d1: date) -> bool:
+        return any(d0 <= r["d"] <= d1 and (_num(r.get("split")) or 0.0) != 0.0 for r in self.rows)
 
 
 def _close_at(s: Series, ei: int, off: int, final_cut: date):
@@ -228,12 +238,27 @@ def recompute_backtest(row: dict, s: Series | None, spy: Series | None,
                     cw1, dw1 = _close_at(s, ei, 1 + w, final_cut)
                     if cw1 is not None:
                         out[f"return_{w}d_t1"] = (round((cw1 / c1 - 1) * 100, 2), (edate, dw1), (tk,))
-            # entry_past_return_5d: Close am Entry-Tag / Close 5 eigene Handelstage davor.
+            # entry_past_return_5d — Rechenweg je SCHREIBPFAD (Easy-Entscheid 13.11.2026):
+            #  * Laufender Postclose (Einstieg ab EPR_LIVE_FROM): Produktion rechnet
+            #    s["price"] (Kurs zum Laufzeitpunkt, = gespeicherter entry_price, auf
+            #    4 Stellen gerundet) / Close 5 Handelstage davor. Nachgerechnet mit dem
+            #    GESPEICHERTEN entry_price (exakt), Nenner auf den eigenen Handelstagen;
+            #    ein Split nach D wird über F (Rohkurs → bereinigt) umgerechnet.
+            #    Dividende seit dem Nenner → bisheriger Rechenweg (Schluss/Schluss),
+            #    weil die Dividenden-Bereinigung den Rohkurs nicht exakt abbildet
+            #    ("kein Verhalten für Dividenden ändern").
+            #  * Stufe-B-Backfill (Einstiege bis 10.07.2026, Manifest
+            #    backfill_entry_past_return_5d_manifest.json): Schluss / Schluss.
             if ei >= 5:
-                num, den = s.closes[ei][1], s.closes[ei - 5][1]
+                den, dden = s.closes[ei - 5][1], s.cidx[ei - 5]
                 if den > 0:
+                    ep = _num(row.get("entry_price"))
+                    live = (edate >= EPR_LIVE_FROM and ep is not None and ep > 0
+                            and not s.has_dividend(dden, s.rows[-1]["d"]))
+                    num = ep * _split_factor_after(s, edate) if live else s.closes[ei][1]
                     out["entry_past_return_5d"] = (
-                        round((num / den - 1.0) * 100.0, 2), (s.cidx[ei - 5], edate), (tk,))
+                        round((num / den - 1.0) * 100.0, 2), (dden, edate), (tk,))
+                    out["_epr_def"] = "laufzeitkurs" if live else "schluss"
         # max_gain / max_drawdown nur bei Einträgen > 14 Kalendertage.
         if (today - edate).days > 14:
             win = [r for r in s.own if edate <= r["d"] <= final_cut][:11]
@@ -395,19 +420,50 @@ def compare_row(datei: str, row: dict, rec: dict, series: dict, tol: float,
             max_d = delta if max_d is None else max(max_d, delta)
     out = []
     for f, alt, neu, span, srcs, delta in devs:
-        adjusted = any(series.get(t) is not None and series[t].has_action(span[0], span[1])
-                       for t in srcs)
-        d = {"datei": datei, "ticker": row.get("ticker"), "date": row.get("date"),
-             "feld": f, "alt": alt, "neu": neu,
-             "klasse": "neu_adjustiert" if adjusted else "abweichung"}
-        if not adjusted and len(srcs) == 1 and delta is not None:
-            bound = rounding_bound(series.get(srcs[0]), f, span)
-            if bound is not None and delta <= bound + 1e-9:
-                d["klasse"] = "neu_adjustiert"
-                d["regel"] = "rundung_nach_aktion"
-                d["schranke"] = round(bound, 4)
-        out.append(d)
+        out.append(_classify_dev(datei, row, rec, series, f, alt, neu, span, srcs, delta))
     return n_cmp, out, max_d
+
+
+def _classify_dev(datei, row, rec, series, f, alt, neu, span, srcs, delta) -> dict:
+    """Klassierung einer Abweichung (Easy-Entscheide 13.11.2026):
+    * Dividende IM Fenster (irgendeine Quelle) → ``neu_adjustiert`` wie bisher,
+      zusätzlich ``abs_delta`` im Log (Beobachtung, kein Verhaltenswechsel).
+    * sonst Split im Fenster ODER Aktion nach dem Fenster → ``neu_adjustiert`` nur,
+      wenn |Δ| ≤ Rundungsschranke (``rounding_bound``); sonst ``abweichung``.
+      Felder ohne herleitbare Schranke (max_*, vix, regime) → ``abweichung``.
+    * keine Aktion → ``abweichung``."""
+    d = {"datei": datei, "ticker": row.get("ticker"), "date": row.get("date"),
+         "feld": f, "alt": alt, "neu": neu, "klasse": "abweichung"}
+    if f == "entry_past_return_5d" and rec.get("_epr_def"):
+        d["definition"] = rec["_epr_def"]
+    if any(series.get(t) is not None and series[t].has_dividend(span[0], span[1]) for t in srcs):
+        d["klasse"] = "neu_adjustiert"
+        d["regel"] = "dividende_im_fenster"
+        if delta is not None:
+            d["abs_delta"] = round(delta, 4)
+        return d
+    split_in = any(series.get(t) is not None and series[t].has_split(span[0], span[1]) for t in srcs)
+    bfield, bsrc = f, srcs[0] if srcs else None
+    if f.endswith("_vs_spy"):
+        spy = series.get(SPY)
+        spy_quiet = spy is not None and spy.rows and not spy.has_action(span[0], spy.rows[-1]["d"])
+        bfield = f[: -len("_vs_spy")] if spy_quiet else None
+    elif len(srcs) != 1:
+        bfield = None
+    bound = None
+    if bfield and delta is not None:
+        bound = rounding_bound(series.get(bsrc), bfield, span,
+                               b_exact=(f == "entry_past_return_5d"
+                                        and rec.get("_epr_def") == "laufzeitkurs"))
+    if bound is not None:
+        d["schranke"] = round(bound, 4)
+        if delta <= bound + 1e-9:
+            d["klasse"] = "neu_adjustiert"
+            d["regel"] = "rundung_split_im_fenster" if split_in else "rundung_nach_aktion"
+            return d
+    if split_in:
+        d["regel"] = "split_im_fenster_ueber_schranke"
+    return d
 
 
 # ── Rundungsschranke nach Kapitalmaßnahme (Easy-Entscheid 13.11.2026) ─────────
@@ -446,7 +502,7 @@ def _split_factor_after(s: Series, d: date) -> float:
     return f
 
 
-def rounding_bound(s: Series | None, field: str, span) -> float | None:
+def rounding_bound(s: Series | None, field: str, span, *, b_exact: bool = False) -> float | None:
     """Schranke S (pp) oder ``None`` (Regel greift nicht: kein Kursverhältnis-
     Feld, keine belegte Aktion seit Fensterbeginn, Kurse fehlen). Pure."""
     if s is None or not s.rows or not any(field.startswith(p) for p in RATIO_PREFIXES) \
@@ -465,7 +521,8 @@ def rounding_bound(s: Series | None, field: str, span) -> float | None:
     win = [(d, c) for d, c in s.closes if d0 <= d <= d1]
     k = max(_decimals(c / _split_factor_after(s, d)) for d, c in win)
     ha = 0.5 * 10.0 ** -k * _split_factor_after(s, da)
-    hb = 0.5 * 10.0 ** -k * _split_factor_after(s, db)
+    # b_exact: Zähler ist ein gespeicherter Wert (entry_price), keine Kursreihe → kein Rundungsanteil.
+    hb = 0.0 if b_exact else 0.5 * 10.0 ** -k * _split_factor_after(s, db)
     core = 100.0 * (b / a) * (ha / a + hb / b)
     if field.endswith("_net"):
         h = abs(float(config.HAIRCUT_ROUND_TRIP_PCT)) / 200.0
