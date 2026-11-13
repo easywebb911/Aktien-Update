@@ -54,7 +54,7 @@ ALLOWLIST = [
     "hypothesen_nov26_eval",
     "probe_quote_spread",
     "truth_check_known",
-    "probe_epr_bjdx",
+    "truth_check_rounding",
     "maxgain_none_not_zero",
     "postclose_gap_s15",
     "digest_warn_visible",
