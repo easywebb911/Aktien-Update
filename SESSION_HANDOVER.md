@@ -3383,7 +3383,11 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Lauf nach Replikation, „Paper C handelbar“, H-I Stufe 2 und H-I Rendite, n ≥ 500. Abschnitt G
   benennt die acht Bestätigungstests auf denselben blinden Zeilen. Nur Text, kein Ergebnis
   berechnet; alle bestehenden Freeze-Abschnitte MD5-unverändert.
-- `open_items` neu: `landkarte-k1k2-skript` (offen), `handelskosten-messung` (offen).
+- Easy-Entscheid vor dem Merge: Methodik-Entscheide 1–8 bestätigt (K1 brutto; Short Float
+  unabhängig von der Quelle, yfinance-only nur berichtet); `protected-ok` nach Regel b freigegeben.
+  **Auf das blinde Fenster (Einstieg ≥ 24.10.2026) kommen keine weiteren Bestätigungstests ohne
+  ausdrücklichen Easy-Entscheid** (open_item `blindes-fenster-keine-weiteren-tests`).
+- `open_items` neu: `landkarte-k1k2-skript` (offen), `handelskosten-messung` (offen), `blindes-fenster-keine-weiteren-tests` (beobachtet).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#687`,
   höchste in Block 1 erwähnte PR = `#688` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
