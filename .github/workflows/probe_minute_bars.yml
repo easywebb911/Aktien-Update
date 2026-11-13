@@ -1,0 +1,53 @@
+name: Probe 1-Minuten-Kurse (Wegwerf)
+
+# WEGWERF-PROBE (open_item handelskosten-messung, Weg A, Easy-Auftrag 13.11.2026).
+# Read-only: kein Commit, kein Push, keine Secrets. Ergebnis: Job-Log (Zeilen
+# [minute_probe_meta]/[minute_probe]/[minute_probe_depth]) + Artifact.
+# Rate-Limit → Abbruch ohne Ergebnis (Exit 3). Nur Hand-Start. Ab 05.12.2026 no-op.
+# Rückweg: Cleanup-PR löscht diese Datei + scripts/probe_minute_bars.py +
+# scripts/mock_test_probe_minute_bars.py.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-minute-bars
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main (nur lesen)
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: 1-Minuten-Kurse prüfen (Rate-Limit → Abbruch ohne Ergebnis)
+        run: python scripts/probe_minute_bars.py --out "$RUNNER_TEMP/minute_probe/minute_probe.json"
+
+      - name: Artifact hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: minute-probe-${{ github.run_id }}
+          path: ${{ runner.temp }}/minute_probe/
+          if-no-files-found: warn
+          retention-days: 30
