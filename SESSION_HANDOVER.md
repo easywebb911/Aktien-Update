@@ -7705,12 +7705,13 @@ und die Quelle des Short-Float-Werts. Alle bestehenden Freeze-Blöcke bleiben by
    (`date`, `DD.MM.YYYY`, ET-Handelstag) **≥ 24.10.2026**, alle Scores, Dedup nach `(ticker,
    date)` (erste Zeile gewinnt) **vor** jeder Zählung. Join zu `outcome_path.jsonl` über
    `(ticker, date)`. Doppelte Zeile in `outcome_path.jsonl`: die erste zählt.
-2. **Verwertbar** (wörtlich wie Block „H-I Rendite“ A.2, ohne Inst-Prädiktor): Zeile in
+2. **Verwertbar** (wie Block „H-I Rendite“ A.2, ohne Inst-Prädiktor): Zeile in
    `outcome_path.jsonl` vorhanden, `grund` `null`, `bars` genau 11 Einträge (`bars[0]` = D,
    `bars[k]` = Handelstag k), `o1 = bars[1].o` endlich und > 0, `bars[1..10].h` endlich,
-   `bars[3].c` und `bars[10].c` endlich und > 0. Ausschlussgründe in dieser Reihenfolge:
-   `zeile_fehlt` → `grund:<Wert>` → `bars_unvollstaendig` → `open_tag1_fehlt` →
-   `close_tag3_fehlt` → `close_tag10_fehlt`; nur für K2 danach `short_float_fehlt`.
+   `bars[10].c` endlich und > 0. Ausschlussgründe in dieser Reihenfolge: `zeile_fehlt` →
+   `grund:<Wert>` → `bars_unvollstaendig` → `open_tag1_fehlt` → `close_tag10_fehlt`; nur für K2
+   danach `short_float_fehlt`. R3 (nur berichtet) wird über die verwertbaren Zeilen mit endlichem
+   `bars[3].c` > 0 gerechnet; fehlt er, fällt die Zeile nur aus den R3-Kennzahlen (gezählt).
 3. **Renditen je Zeile (in %):** `R10 = (bars[10].c / o1 − 1) × 100`;
    `R3 = (bars[3].c / o1 − 1) × 100`. Netto: `apply_round_trip_haircut(R)` (`backtest_history.py`,
    `HAIRCUT_ROUND_TRIP_PCT` = −4,0, multiplikativ, Rundung auf 2 Nachkommastellen); Netto −8 % =
@@ -7718,8 +7719,10 @@ und die Quelle des Short-Float-Werts. Alle bestehenden Freeze-Blöcke bleiben by
 4. **Short Float (K2):** das Export-Feld `short_float` derselben Zeile — der beim Daily-Run am
    Einstiegstag D gespeicherte Wert in Prozent (`backtest_history._build_backtest_extension`,
    Feld aus dem Stock-Dict des Laufs; Quelle in `short_float_source`). Verwendet wird der
-   gespeicherte Wert **unabhängig von der Quelle**; nicht endlich → `short_float_fehlt`. Kein
-   Nachladen, keine Umrechnung.
+   gespeicherte Wert **unabhängig von der Quelle**. `short_float_fehlt`, wenn der Wert nicht
+   endlich ist **oder** `short_float_source` fehlt bzw. `"none"`/`"unknown"` ist (dort steht ein
+   Platzhalter, oft 0,0, kein gemessener Wert). Ein Wert 0,0 mit echter Quelle zählt als Wert.
+   Kein Nachladen, keine Umrechnung.
 5. **Hälften (K2):** `m` = Median von `short_float` über alle K2-Zeilen nach allen Ausschlüssen
    (bei gerader Zahl Mittel der beiden mittleren Werte). **Untere Hälfte U** = `short_float ≤ m`,
    **obere Hälfte O** = `short_float > m`. Größen von U und O werden berichtet.
@@ -7799,7 +7802,8 @@ verwendeten Zeilen); Skript-Commit; N; Seed; Gesamtzahl bisher gelaufener Bestä
 #### E. Zählungen beim Freeze (nur Zeilen, Stand 13.11.2026)
 
 - Export forward ≥ 24.10.2026 nach Dedup: **30** Zeilen (Einstiege 26.–28.10.2026), alle mit
-  endlichem `short_float`, Quelle `yfinance` 30. Kein Ergebnisfeld gelesen.
+  endlichem `short_float`, Quelle `yfinance` 30 (keine mit `none`/`unknown`). Kein Ergebnisfeld
+  gelesen.
 - Stufe-1-Fenster (bekannt): 672 Zeilen; `short_float_source` yfinance 632, finviz 40.
 - n ≥ 500 voraussichtlich etwa gleichzeitig mit „Paper C handelbar“ und H-I Stufe 2 (Schätzung
   Ende Januar 2027 an Einstiegen plus Reifung, nicht bindend).
