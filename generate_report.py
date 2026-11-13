@@ -8702,7 +8702,10 @@ def _eval_results_index(path=None) -> dict:
                 if isinstance(row, dict) and row.get("test_id"):
                     out[str(row["test_id"])] = row
     except OSError:
+        log.info("eval_results.jsonl nicht lesbar — Panel ohne Kopfzeile/Kennzahlen")
         return {}
+    if not out:
+        log.info("eval_results.jsonl leer — Panel ohne Kopfzeile/Kennzahlen")
     return out
 
 

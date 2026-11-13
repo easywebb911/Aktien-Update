@@ -2414,6 +2414,10 @@ PAPER_C_BADGE = {
 # Platzhalter {n_tests} / {belege} / {stand} füllt der Renderer aus
 # eval_results.jsonl (Zeilen = ausgewertete Bestätigungstests, verdict
 # „Beleg“, jüngstes evaluated_at) — Teil B 13.11.2026, statt fester „4“.
+# PFLEGE: Der feste Satzteil „nur für Gipfel-Ziele …, je 1 Fenster; kein Beleg
+# für eine Rendite“ stimmt nur, solange jeder „Beleg“ in eval_results ein
+# Gipfel-Ziel aus 1 Fenster ist (Stand 13.11.: paper_c_gipfel, hi_s1). Kommt
+# ein Rendite-Beleg oder eine Replikation dazu, diesen Text mit anpassen.
 VALIDATION_SUMMARY_TEXT = (
     "Stand {stand}: {n_tests} Bestätigungstests ausgewertet, {belege} "
     "— nur für Gipfel-Ziele (Hoch ≥ 30 %), je 1 Fenster; kein Beleg für "
