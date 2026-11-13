@@ -9,7 +9,8 @@ Ohne Netz, ohne pandas/yfinance (Abrufe injiziert).
     Ausschluss) / ohne Tageszeile (ok=None, Grund).
  4  Verpasster Tag: Yahoo liefert nicht mehr → null + ausserhalb_yahoo_fenster;
     Mehrtages-Fenster fällt auf Einzeltage zurück.
- 5  Keine Minuten: erst Retry, nach RETRY_DAYS null + Grund.
+ 5  Keine Minuten: erst Retry, nach RETRY_DAYS vormerken, null erst wenn ein
+    späterer Lauf (anderer ET-Tag) auch leer ist; transient leer → echte Zeile.
  6  Doppel-Lauf überschreibt nichts; neuer Tag hängt ein gzip-Glied an
     (alte Bytes = Präfix, alles lesbar).
  7  Rate-Limit: Abbruch ohne Retry, keine Zeile, Flag im State.
@@ -162,9 +163,26 @@ def test_window_and_retry():
         s = mb.run(now_utc=NOW, **k)
         check("keine Minuten: zuerst Retry, nichts geschrieben",
               s["geschrieben"] == 0 and s["erneut_versuchen"] == 1, s)
-        s = mb.run(now_utc=NOW + timedelta(days=config.MINUTE_BARS_RETRY_DAYS), **k)
-        check("nach Retry-Fenster null + Grund",
-              s["geschrieben"] == 1 and s["davon_null_nach_grund"] == {mb.GRUND_KEINE_MINUTEN: 1}, s)
+        later = NOW + timedelta(days=config.MINUTE_BARS_RETRY_DAYS)
+        s = mb.run(now_utc=later, **k)
+        check("nach Retry-Fenster erst vorgemerkt, nichts geschrieben",
+              s["geschrieben"] == 0 and len(s["leer_vorgemerkt"]) == 1, s)
+        s = mb.run(now_utc=later + timedelta(hours=2), **k)
+        check("gleicher ET-Tag: weiter nur vorgemerkt", s["geschrieben"] == 0, s)
+        s = mb.run(now_utc=later + timedelta(days=1), **k)
+        check("späterer Lauf weiter leer → null + Grund",
+              s["geschrieben"] == 1 and s["davon_null_nach_grund"] == {mb.GRUND_KEINE_MINUTEN: 1}
+              and s["leer_vorgemerkt"] == {}, s)
+    with tempfile.TemporaryDirectory() as td:
+        tmp = pathlib.Path(td)
+        write_inputs(tmp, [{"ticker": "BBB", "date": D.strftime("%d.%m.%Y")}])
+        late = NOW + timedelta(days=config.MINUTE_BARS_RETRY_DAYS)
+        mb.run(now_utc=late, minute_fn=lambda t, s, e: ([], None),
+               daily_fn=lambda t, s, e: daily([D, D1]), **kw(tmp))
+        s = mb.run(now_utc=late + timedelta(days=1), minute_fn=lambda t, s, e: (minute_bars(D1), "NMS"),
+                   daily_fn=lambda t, s, e: daily([D, D1]), **kw(tmp))
+        check("transient leer, dann Daten → echte Zeile statt null",
+              s["geschrieben"] == 1 and s["davon_null_nach_grund"] == {}, s)
 
 
 def test_append_and_double_run():

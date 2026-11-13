@@ -4556,7 +4556,8 @@ Hoch/Tief passen zur Tageszeile, der letzte Minutenkurs ist NICHT der Schlusskur
 - **Abruf** erst wenn der Close von Tag 1 endgültig ist (`last_settled_close_date`);
   yfinance `1m prepost=True auto_adjust=False`, Fenster ≤ 7 Tage je Ticker, Tageszeilen
   `1d auto_adjust=False` (Stand zum Abrufzeitpunkt). Nicht mehr lieferbar → null +
-  `ausserhalb_yahoo_fenster`; keine Minuten → Retry `MINUTE_BARS_RETRY_DAYS` (5), dann null.
+  `ausserhalb_yahoo_fenster`; keine Minuten → Retry `MINUTE_BARS_RETRY_DAYS` (5), dann
+  vormerken, null erst wenn ein späterer Lauf (anderer ET-Tag) ebenfalls leer ist.
   Rate-Limit → kein Retry, betroffene Ticker bleiben offen, nie halbe Zeilen.
 - **Dateien** `minute_bars/<Tag1>.jsonl.gz`: append-only als weiteres gzip-Glied, kein Prune,
   deterministisch (`mtime=0`), ~70–95 MB in 5 Jahren (Schätzung); State

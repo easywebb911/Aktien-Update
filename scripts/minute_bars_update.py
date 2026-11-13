@@ -20,6 +20,8 @@ Einschränkungen akzeptiert; open_item ``handelskosten-messung``):
   (``trading_date.last_settled_close_date``), solange Yahoo die Minuten noch
   liefert (~30 Tage). Ein Tag, den Yahoo nicht mehr liefert, wird als
   ``null`` mit Grund ``ausserhalb_yahoo_fenster`` notiert. Unbekannt ≠ 0.
+  Keine Minuten/Tageszeile: Retry ``RETRY_DAYS``, danach erst vormerken und
+  null erst, wenn auch ein späterer Lauf (anderer ET-Tag) leer bleibt.
 * Erster Lauf = Backfill aller noch abrufbaren Tage ab
   ``config.MINUTE_BARS_START_DATE``.
 
@@ -275,6 +277,17 @@ def write_state(state: dict, path=STATE_FILE) -> None:
     os.replace(tmp, path)
 
 
+def _read_marks(path) -> dict:
+    """Vormerkungen des letzten Laufs (``ticker|D-ISO`` → erster ET-Tag leer).
+    Fehlt/kaputt → leer (dann wird nur vorgemerkt, nie vorschnell null)."""
+    try:
+        st = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+        m = st.get("leer_vorgemerkt") if isinstance(st, dict) else None
+        return {str(k): str(v) for k, v in m.items()} if isinstance(m, dict) else {}
+    except (OSError, ValueError, AttributeError):
+        return {}
+
+
 # ── Plan (pure) ───────────────────────────────────────────────────────────────
 def plan(candidates, done: set, settled: date) -> dict:
     reif, nicht_reif = [], 0
@@ -448,9 +461,17 @@ def run(*, now_utc: datetime | None = None, minute_fn=yahoo_minutes, daily_fn=ya
         by_ticker.setdefault(t, []).append((d, next_trading_day(d)))
     data, errors = fetch_all(by_ticker, minute_fn, daily_fn)
     today = now_utc.astimezone(ET).date()
+    # Unvollständig nach dem Retry-Fenster: erst vormerken, null erst im NÄCHSTEN
+    # Lauf an einem späteren ET-Tag (ein einzelner leerer Abruf kann transient
+    # sein; eine geschriebene Zeile ist append-only nie mehr korrigierbar).
+    prev_marks = _read_marks(state_path)
+    marks = {}
     records, grund_count, retry_later, pruef_abw, pruef_offen = [], {}, 0, 0, 0
     for t, d in p["reif"]:
         if t in errors:
+            key = f"{t}|{d.isoformat()}"
+            if key in prev_marks:
+                marks[key] = prev_marks[key]          # Vormerkung bleibt erhalten
             continue                               # Abruf-Fehler → nächster Lauf
         got = data.get(t) or {}
         day1 = next_trading_day(d)
@@ -462,6 +483,11 @@ def run(*, now_utc: datetime | None = None, minute_fn=yahoo_minutes, daily_fn=ya
                                fetched_utc=fetched_utc)
             incomplete = rec["grund"] is not None or rec["tageszeile_tag1"] is None
             if incomplete and (today - day1).days < RETRY_DAYS:
+                retry_later += 1
+                continue
+            key = f"{t}|{d.isoformat()}"
+            if incomplete and not (key in prev_marks and prev_marks[key] < today.isoformat()):
+                marks[key] = prev_marks.get(key, today.isoformat())
                 retry_later += 1
                 continue
         if rec["grund"] is not None:
@@ -487,6 +513,7 @@ def run(*, now_utc: datetime | None = None, minute_fn=yahoo_minutes, daily_fn=ya
         "abruf_fehler_ticker": dict(sorted(err_count.items())),
         "rate_limit_abbruch": "rate_limit" in err_count,
         "zeilen_gesamt": len(done) + written,
+        "leer_vorgemerkt": dict(sorted(marks.items())),
     }
     write_state(state, state_path)
     # NUR Zählungen loggen — keine Kurse, keine Kennzahl (keine Auswertung).
