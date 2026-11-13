@@ -170,6 +170,21 @@ OUTCOME_PATH_REPLICATION_FROM  = _date(2026, 10, 24)
 OUTCOME_PATH_FREEZE_HEADING    = ("### VORABREGISTRIERUNG — Paper C handelbar "
                                   "(Gipfel ab Einstiegskurs), eingefroren 12.11.2026")
 
+# Minutenkurse Tag 1 (Weg A, Schritt 2, Easy-Auftrag 13.11.2026; open_item
+# handelskosten-messung): je Top-10-Einstieg D die 1-Minuten-Balken von Tag 1
+# (nächster US-Handelstag) inkl. vor-/nachbörslich + Tageszeilen D/Tag 1.
+# scripts/minute_bars_update.py. Eigene Dateien (eine gz-Datei je Tag 1),
+# append-only, kein Prune. Reine Sammlung: kein Score-/Filter-/Push-/Anzeige-
+# Effekt, keine Auswertung (Einstiege ≥ 24.10.2026 nur speichern).
+MINUTE_BARS_DIR                = "minute_bars"
+MINUTE_BARS_STATE_FILE         = "minute_bars_state.json"
+# Erster Einstieg D, für den ein Abruf versucht wird (Tag 1 = 14.10.2026 =
+# 30 Tage vor dem Bau; Yahoo liefert 1-Min-Balken nur ~30 Tage zurück).
+MINUTE_BARS_START_DATE         = _date(2026, 10, 13)
+MINUTE_BARS_RETRY_DAYS         = 5     # Kalendertage nach Tag 1: so lange erneut abrufen, dann null + Grund
+MINUTE_BARS_HL_TOL_PCT         = 0.5   # Prüf-Kennzeichen Hoch/Tief Minuten vs. Tageszeile (kein Ausschluss)
+MINUTE_BARS_STALE_DAYS         = 5     # Digest: letzter Lauf älter → „überfällig“
+
 # Open-Items-Tracker (siehe CLAUDE.md "scripts/lint_open_items_consistency.py")
 # — Dateiname zentralisiert, damit health_check.py (Wochen-Digest-Block) und
 # scripts/lint_open_items_consistency.py dieselbe Quelle referenzieren können,

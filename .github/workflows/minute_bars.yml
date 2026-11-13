@@ -1,0 +1,128 @@
+name: Minutenkurse Tag 1
+
+# Sammler + Backfill (Easy-Auftrag 13.11.2026, Weg A Schritt 2, open_item
+# handelskosten-messung): je Top-10-Einstieg D die 1-Minuten-Balken von Tag 1
+# (inkl. vor-/nachbörslich, gekennzeichnet) + Tageszeilen D/Tag 1 —
+# scripts/minute_bars_update.py. Reine Sammlung, keine Auswertung, kein
+# Score-/Ranking-/Push-/Anzeige-Effekt.
+# Schreibt AUSSCHLIESSLICH minute_bars/<Tag1>.jsonl.gz (append-only: neue
+# Zeilen als weiteres gzip-Glied, kein Prune) und minute_bars_state.json.
+#
+# Backfill: der ERSTE Lauf (workflow_dispatch nach dem Merge) holt alle Tage
+# nach, die Yahoo noch liefert (~30 Tage zurück); ältere werden als null mit
+# Grund notiert. Rate-Limit → kein Retry; offene Zeilen kommen im nächsten Lauf.
+#
+# Zeitplan: NEUER Cron (kein bestehender geändert, Lesson 8z8) werktags
+# 13:41 UTC = 08:41/09:41 ET — nach 07:00 ET, ab dann ist der Close des
+# Vortags endgültig (trading_date.last_settled_close_date). Drift unkritisch
+# (Yahoo-Fenster ~30 Tage). Eigene concurrency-Gruppe, bewusst keine
+# gemeinsame mit dem Daily-Run.
+#
+# Rückweg: diese Datei per PR löschen (oder durch Easy deaktivieren); die
+# Daten (minute_bars/, minute_bars_state.json) können gelöscht werden — kein
+# Konsument im Tool, keine Bestandsdatei berührt.
+
+on:
+  schedule:
+    - cron: '41 13 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # NUR für minute_bars/ + minute_bars_state.json
+
+concurrency:
+  group: minute-bars
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  minute-bars:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Minutenkurse sammeln
+        run: python scripts/minute_bars_update.py --run
+
+      - name: Commit minute_bars + state
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          # Muster wie outcome_path.yml: frische Versionen sichern, in einer
+          # Retry-Schleife auf den NEUESTEN origin/main-Stand aufsetzen und NUR
+          # die eigenen Dateien wieder einspielen.
+          FRESH_DIR="${RUNNER_TEMP:-/tmp}/minute_bars_fresh"
+          FRESH_STATE="${RUNNER_TEMP:-/tmp}/minute_bars_state_fresh.json"
+          if [ ! -f minute_bars_state.json ]; then
+            echo "Kein State geschrieben — nichts zu committen."
+            exit 0
+          fi
+          cp minute_bars_state.json "$FRESH_STATE"
+          rm -rf "$FRESH_DIR"
+          mkdir -p "$FRESH_DIR"
+          if [ -d minute_bars ]; then cp -a minute_bars/. "$FRESH_DIR"/; fi
+          pushed=0
+          for attempt in 1 2 3 4 5; do
+            if ! git fetch origin main; then
+              echo "fetch fehlgeschlagen (Versuch $attempt) — retry."
+              sleep 2
+              continue
+            fi
+            git reset --hard origin/main
+            # Append-only-Härtung: jede Datei auf origin muss byte-genau Anfang
+            # der frischen Datei sein und darf nicht fehlen → sonst Abbruch.
+            if [ -d minute_bars ]; then
+              for f in minute_bars/*.jsonl.gz; do
+                [ -e "$f" ] || continue
+                nf="$FRESH_DIR/$(basename "$f")"
+                if [ ! -f "$nf" ]; then
+                  echo "ERROR: $f fehlt in der frischen Ablage — kein Push."
+                  exit 1
+                fi
+                ORIG_SIZE=$(stat -c %s "$f")
+                if ! cmp -s -n "$ORIG_SIZE" "$f" "$nf"; then
+                  echo "ERROR: $f auf origin ist kein Präfix der neuen Datei — kein Push."
+                  exit 1
+                fi
+              done
+            fi
+            cp "$FRESH_STATE" minute_bars_state.json
+            mkdir -p minute_bars
+            cp -a "$FRESH_DIR"/. minute_bars/
+            git add minute_bars_state.json
+            git add minute_bars
+            if git diff --staged --quiet; then
+              echo "Keine Aenderung gegenueber origin/main."
+              pushed=1
+              break
+            fi
+            git commit -m "Minutenkurse Tag 1 $(date -u '+%Y-%m-%d')"
+            if git push origin main; then
+              echo "minute_bars gepusht (Versuch $attempt)."
+              pushed=1
+              break
+            fi
+            echo "push rejected (Versuch $attempt) — neu fetchen und retry."
+            sleep 2
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "ERROR: minute_bars konnte nach 5 Versuchen nicht gepusht werden."
+            exit 1
+          fi

@@ -402,6 +402,14 @@ def main(*, now_ts: datetime | None = None,
         log.warning("outcome_path_liveness_line unerwartet: %r", _op_exc)
         outcome_path_line = None
 
+    # Minutenkurse Tag 1 (minute_bars/, 13.11.2026): nur Zählungen.
+    try:
+        minute_bars_line = hc.minute_bars_liveness_line(
+            ROOT / hc.MINUTE_BARS_DIR, ROOT / hc.MINUTE_BARS_STATE_FILE, now_ts=now_ts)
+    except Exception as _mb_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("minute_bars_liveness_line unerwartet: %r", _mb_exc)
+        minute_bars_line = None
+
     # options_chain_raw-Liveness (17.10.2026): analog options_oi, eigene Datei
     # (JSONL). raise-frei; try/except ist reine Absicherung.
     try:
@@ -660,6 +668,7 @@ def main(*, now_ts: datetime | None = None,
         options_oi_line=options_oi_line,
         chain_raw_line=chain_raw_line,
         outcome_path_line=outcome_path_line,
+        minute_bars_line=minute_bars_line,
         ftd_line=ftd_line,
         reg_sho_line=reg_sho_line,
         news_coverage_line=news_coverage_line,

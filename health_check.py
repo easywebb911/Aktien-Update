@@ -4505,6 +4505,73 @@ def outcome_path_liveness_line(data_path=None, state_path=None, *, now_ts=None) 
         return "📈 Kursverlauf: Status nicht ermittelbar"
 
 
+# ── Minutenkurse Tag 1 (minute_bars/, 13.11.2026) ────────────────────────────
+# Liveness für den Digest: NUR Zählungen (Zeilen, jüngster Tag 1, letzter Lauf)
+# — nie ein Kurs, keine Auswertung. Frische aus ``minute_bars_state.json``.
+MINUTE_BARS_DIR = config.MINUTE_BARS_DIR
+MINUTE_BARS_STATE_FILE = config.MINUTE_BARS_STATE_FILE
+
+
+def minute_bars_liveness_line(data_dir=None, state_path=None, *, now_ts=None) -> str:
+    """Eine Zeile, drei Zustände (fail-soft, nie Exception):
+      a) **läuft** — State frisch → „läuft · N Einstiege · jüngster Tag 1 … ·
+         letzter Lauf …“ (Zusatz „Rate-Limit-Abbruch“ bzw. „N null“).
+      b) **noch nie gelaufen** — State fehlt.
+      c) **kaputt** — State/Datei unlesbar oder letzter Lauf überfällig."""
+    import gzip as _gzip
+    import pathlib
+    try:
+        dd = pathlib.Path(data_dir if data_dir is not None else MINUTE_BARS_DIR)
+        sp = state_path if state_path is not None else MINUTE_BARS_STATE_FILE
+        try:
+            with open(sp, "r", encoding="utf-8") as fh:
+                st = json.load(fh)
+        except FileNotFoundError:
+            return "🕐 Minutenkurse: sammelt ab dem ersten Lauf (noch kein State)"
+        except (json.JSONDecodeError, OSError, UnicodeDecodeError, ValueError):
+            return "🕐 Minutenkurse: State unlesbar/kaputt"
+        if not isinstance(st, dict) or not st.get("last_run_utc") or st.get("datei_kaputt"):
+            return "🕐 Minutenkurse: State/Datei unlesbar/kaputt"
+        n_rows, n_null, newest = 0, 0, None
+        if dd.exists():
+            for f in sorted(dd.glob("*.jsonl.gz")):
+                try:
+                    with _gzip.open(f, "rt", encoding="utf-8") as fh:
+                        for line in fh:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            rec = json.loads(line)
+                            n_rows += 1
+                            if rec.get("grund"):
+                                n_null += 1
+                            t1 = str(rec.get("tag1") or "")
+                            if t1 and (newest is None or t1 > newest):
+                                newest = t1
+                except (OSError, EOFError, ValueError, UnicodeDecodeError):
+                    return "🕐 Minutenkurse: Datei unlesbar/kaputt"
+        try:
+            last_dt = datetime.fromisoformat(str(st["last_run_utc"]).replace("Z", "+00:00"))
+            if last_dt.tzinfo is None:
+                last_dt = last_dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            return "🕐 Minutenkurse: State unlesbar/kaputt"
+        now = now_ts or datetime.now(timezone.utc)
+        if (now - last_dt).total_seconds() / 86400.0 > config.MINUTE_BARS_STALE_DAYS:
+            return (f"🕐 Minutenkurse: Sammler-Lauf überfällig (letzter Lauf "
+                    f"{last_dt.strftime('%d.%m.%Y')}, >{config.MINUTE_BARS_STALE_DAYS}d) · "
+                    f"{n_rows} Einstiege")
+        newest_txt = (datetime.strptime(newest, "%Y-%m-%d").strftime("%d.%m.%Y")
+                      if newest else "—")
+        extra = f" · {n_null} ohne Minuten" if n_null else ""
+        if st.get("rate_limit_abbruch"):
+            extra += " · Rate-Limit-Abbruch"
+        return (f"🕐 Minutenkurse: läuft · {n_rows} Einstiege · jüngster Tag 1 "
+                f"{newest_txt} · letzter Lauf {last_dt.strftime('%d.%m.%Y')}{extra}")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "🕐 Minutenkurse: Status nicht ermittelbar"
+
+
 def format_digest_body(state_fails: list[dict],
                        provider_fails: list[dict],
                        *,
@@ -4517,6 +4584,7 @@ def format_digest_body(state_fails: list[dict],
                        options_oi_line: str | None = None,
                        chain_raw_line: str | None = None,
                        outcome_path_line: str | None = None,
+                       minute_bars_line: str | None = None,
                        ftd_line: str | None = None,
                        reg_sho_line: str | None = None,
                        news_coverage_line: str | None = None,
@@ -4567,6 +4635,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{chain_raw_line}"
         if outcome_path_line:
             body += f"\n{outcome_path_line}"
+        if minute_bars_line:
+            body += f"\n{minute_bars_line}"
         if ftd_line:
             body += f"\n{ftd_line}"
         if reg_sho_line:
@@ -4645,6 +4715,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(chain_raw_line)
         if outcome_path_line:
             body_lines.append(outcome_path_line)
+        if minute_bars_line:
+            body_lines.append(minute_bars_line)
         if ftd_line:
             body_lines.append(ftd_line)
         if reg_sho_line:
@@ -4720,6 +4792,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(chain_raw_line)
     if outcome_path_line:
         lines.append(outcome_path_line)
+    if minute_bars_line:
+        lines.append(minute_bars_line)
     if ftd_line:
         lines.append(ftd_line)
     if reg_sho_line:
