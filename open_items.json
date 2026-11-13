@@ -864,6 +864,30 @@
       "description": "Der Median der Inst-Beteiligung in den H-I-Zeilen liegt bei 0,90 (Teil 2 zu #686, Einstiege 21.07.–23.10.2026); 'niedrig' heißt in unseren Daten unter ~90 %. Die Karte färbt hoch = grün (Schwellen 60/30, generate_report.py ~5602/6139) — widerspricht der Dämpfer-Richtung aus H-I Stufe 1. Gehört in den Anzeige-Folge-PR (H-I blau, 7 Bestätigungstests); keine Änderung ohne Easy-Entscheid.",
       "status": "offen",
       "status_date": "2026-11-13"
+    },
+    {
+      "id": "landkarte-k1k2-skript",
+      "title": "Auswertungs-Skript Landkarte K1/K2 (Freeze #688) bauen",
+      "opened": "2026-11-13",
+      "description": "Freeze-Block 'VORABREGISTRIERUNG — Landkarte K1/K2' (#688). Skript noch nicht gebaut: einmaliger Lauf (family landkarte_k1k2, Test-IDs lk_k1/lk_k2, MD5-Pin, Sperre) nach paper_c_replikation, paper_c_handelbar, hyp_nov26_s2 und hi_rendite, n >= 500. Kann zusammen mit hi-rendite-skript gebaut werden. Eigener PR, Manual-Merge.",
+      "status": "offen",
+      "status_date": "2026-11-13"
+    },
+    {
+      "id": "handelskosten-messung",
+      "title": "Echte Handelskosten der Top-10 messen statt −4 % annehmen",
+      "opened": "2026-11-13",
+      "description": "HAIRCUT_ROUND_TRIP_PCT = −4 % ist eine Literaturschätzung und prägt jedes Netto-Ergebnis. Im Repo gibt es keine Geld-/Brief-Spanne der Aktien (nur Options-bid/ask in options_chain_raw.jsonl) und kein absolutes Volumen je Zeile (nur rvol). Ohne Neusammlung möglich: Spannen-Schätzer aus Tages-Hoch/-Tief/-Schluss (Corwin-Schultz, Abdi-Ranaldo) aus outcome_path-bars — grob, explorativ. Echte Werte nur per Mitschnitt ab jetzt (nicht nachholbar): Geld/Brief + Größe zur Eröffnung Tag 1 und Tagesvolumen je Top-10-Ticker. Entscheidung Easy.",
+      "status": "offen",
+      "status_date": "2026-11-13"
+    },
+    {
+      "id": "blindes-fenster-keine-weiteren-tests",
+      "title": "Blindes Fenster ≥ 24.10.2026: keine weiteren Bestätigungstests ohne Easy-Entscheid",
+      "opened": "2026-11-13",
+      "description": "Easy-Entscheid 13.11.2026 (#688): Auf die Einstiege ≥ 24.10.2026 laufen bereits acht Bestätigungstests (Replikation, Paper C handelbar, H-I Stufe 2, H-I Rendite F1/F2, Landkarte K1/K2, dazu Exit-B.1-Nachfolger überschneidend; Freeze-Block K1/K2 Abschnitt G). Weitere Tests auf diesen Zeilen nur mit ausdrücklichem Easy-Entscheid. Bleibt stehen, bis die Läufe erfolgt sind.",
+      "status": "beobachtet",
+      "status_date": "2026-11-13"
     }
   ]
 }
