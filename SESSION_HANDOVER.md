@@ -7675,6 +7675,158 @@ gelaufener Bestätigungstests (`eval_results.jsonl`).
 Protokolleintrag, der Änderung und Grund festhält. Ein Revert wird ebenfalls als
 Protokolleintrag festgehalten.
 
+### VORABREGISTRIERUNG — Landkarte K1/K2 (Grundvorsprung brutto, Short Float), eingefroren mit dem Merge
+
+**Easy-Entscheid 13.11.2026** nach dem explorativen Landkarten-Bericht (Einstiege 21.07.–23.10.2026):
+K1 und K2 einfrieren; bei K2 läuft die Inst-Beteiligung nur als berichtete Zusatzzahl, kein eigener
+Test. Eingefroren mit Easys Merge (Freeze-Datum = ET-Datum des Merge-Commits). **Beim Schreiben
+wurde für Einstiege ≥ 24.10.2026 kein Ergebnis- oder Kursfeld gelesen**; gezählt wurden nur Zeilen
+und die Quelle des Short-Float-Werts. Alle bestehenden Freeze-Blöcke bleiben byte-unverändert.
+
+#### A. Stichprobe, Ausschlüsse, Renditen
+
+1. **Stichprobe:** `matured_backtest_export.jsonl`, `provenance == "forward"`, Einstieg D
+   (`date`, `DD.MM.YYYY`, ET-Handelstag) **≥ 24.10.2026**, alle Scores, Dedup nach `(ticker,
+   date)` (erste Zeile gewinnt) **vor** jeder Zählung. Join zu `outcome_path.jsonl` über
+   `(ticker, date)`. Doppelte Zeile in `outcome_path.jsonl`: die erste zählt.
+2. **Verwertbar** (wörtlich wie Block „H-I Rendite“ A.2, ohne Inst-Prädiktor): Zeile in
+   `outcome_path.jsonl` vorhanden, `grund` `null`, `bars` genau 11 Einträge (`bars[0]` = D,
+   `bars[k]` = Handelstag k), `o1 = bars[1].o` endlich und > 0, `bars[1..10].h` endlich,
+   `bars[3].c` und `bars[10].c` endlich und > 0. Ausschlussgründe in dieser Reihenfolge:
+   `zeile_fehlt` → `grund:<Wert>` → `bars_unvollstaendig` → `open_tag1_fehlt` →
+   `close_tag3_fehlt` → `close_tag10_fehlt`; nur für K2 danach `short_float_fehlt`.
+3. **Renditen je Zeile (in %):** `R10 = (bars[10].c / o1 − 1) × 100`;
+   `R3 = (bars[3].c / o1 − 1) × 100`. Netto: `apply_round_trip_haircut(R)` (`backtest_history.py`,
+   `HAIRCUT_ROUND_TRIP_PCT` = −4,0, multiplikativ, Rundung auf 2 Nachkommastellen); Netto −8 % =
+   `apply_round_trip_haircut(R, haircut_pct = −8,0)`.
+4. **Short Float (K2):** das Export-Feld `short_float` derselben Zeile — der beim Daily-Run am
+   Einstiegstag D gespeicherte Wert in Prozent (`backtest_history._build_backtest_extension`,
+   Feld aus dem Stock-Dict des Laufs; Quelle in `short_float_source`). Verwendet wird der
+   gespeicherte Wert **unabhängig von der Quelle**; nicht endlich → `short_float_fehlt`. Kein
+   Nachladen, keine Umrechnung.
+5. **Hälften (K2):** `m` = Median von `short_float` über alle K2-Zeilen nach allen Ausschlüssen
+   (bei gerader Zahl Mittel der beiden mittleren Werte). **Untere Hälfte U** = `short_float ≤ m`,
+   **obere Hälfte O** = `short_float > m`. Größen von U und O werden berichtet.
+
+#### B. Fragen, Tests, Kriterien
+
+1. **K1 — Grundvorsprung brutto:** Ist die mittlere **Brutto**-Rendite R10 über alle verwertbaren
+   Zeilen größer als 0?
+   - Test-p = einseitiger Wilcoxon-Vorzeichen-Rang-Test auf `d = R10` gegen 0, Alternative „d nach
+     oben verschoben“, Formel wie Block „Hypothesen-Runde November 2026“ B.4 (Nullen entfernt und
+     gezählt, Tie- und Stetigkeitskorrektur 0,5; W⁺ und Var(W⁺) wie
+     `stats_helpers.wilcoxon_signed_rank_paired(R10, Z)` mit Z = Liste aus n Nullen).
+   - Effekt = Mittel(R10). Bootstrap-CI: `freeze_eval.paired_bootstrap_mean_delta(R10, Z,
+     n_iter = 2000, seed = 42, lo_pct = 2,5, hi_pct = 97,5)`.
+   - **Erfolgskriterium:** (a) Holm-signifikant (C.1); (b) 2,5.-Perzentil des Mittelwerts > 0;
+     (c) Regime-Split plausibel (C.3).
+   - **Nur berichtet:** Netto −4 % und −8 % (Mittel, CI), Median, Anteil Verlierer (R10 < 0),
+     10./90. Perzentil (`freeze_eval._percentile`), dieselben Kennzahlen für R3.
+2. **K2 — Short Float:** Ist die **Netto**-Rendite (−4 %) bis Schluss Tag 10 der unteren
+   Short-Float-Hälfte U höher als die der oberen O? **Erwartete Richtung: U besser** (Landkarte;
+   Literatur „hoher Short-Anteil → schwächere Folgerendite“).
+   - Test-p = `p_two_sided` aus `stats_helpers.mann_whitney_u_auc(A, B)`, A = N10 (netto R10) der
+     Zeilen in U, B = N10 der Zeilen in O.
+   - Effekt = Mittel(N10 in U) − Mittel(N10 in O). Bootstrap-CI wörtlich wie Block „H-I Rendite“
+     B.1: `rng = random.Random(42)`; 2000-mal `a = [U[rng.randrange(nU)] for _ in range(nU)]`,
+     danach `b = [O[rng.randrange(nO)] for _ in range(nO)]`, `δ = mean(a) − mean(b)`; δ sortiert,
+     Perzentile 2,5 / 97,5 mit `freeze_eval._percentile`; Zeilenreihenfolge = Export nach Dedup.
+   - **Erfolgskriterium:** (a) Holm-signifikant; (b) AUC **> 0,5** und 2,5.-Perzentil von δ > 0;
+     (c) Regime-Split plausibel.
+   - **Nur berichtet:** dieselbe Rechnung brutto (R10) und netto −8 %; Kennzahlen je Hälfte
+     (Mittel, Median, Anteil Verlierer, 10./90. Perzentil); dieselbe K2-Rechnung **innerhalb der
+     Inst-Hälften** (Inst-Wert wie Block „H-I Rendite“ A.3, Schnitt am Median der K2-Zeilen mit
+     Inst-Wert, `≤` = unten; K2-Hälften dort neu am Median der jeweiligen Inst-Hälfte); Zahl der
+     Zeilen je `short_float_source`; dieselbe K2-Rechnung nur für Zeilen mit
+     `short_float_source == "yfinance"`.
+3. **Floor:** K1 mindestens **40** verwertbare Zeilen; K2 U und O je mindestens **40** Zeilen;
+   sonst „nicht auswertbar“, p = 1 im Holm-Schritt.
+
+#### C. Familie, Regime, Verdikte, Auslöser
+
+1. **Familie:** `family = "landkarte_k1k2"`, **k = 2** (K1, K2), **α = 0,05, Holm**
+   (`stats_helpers.multiple_testing_correction`, Labels `k1`, `k2`); berichtet wird zusätzlich der
+   Holm-adjustierte p (max über (k − j)·p der aufsteigend sortierten p, auf 1 gekappt). Eigene
+   Familie, nicht Teil einer anderen.
+2. **Test-IDs:** `lk_k1`, `lk_k2`.
+3. **Regime-Split** nach `market_regime` (bull/bear/neutral; anderer oder fehlender Wert → Gruppe
+   „unbekannt“, nie prüfbar). K1: je Regime Mittel(R10), prüfbar ab **30** Zeilen. K2: je Regime δ
+   (Mittel U − Mittel O, Hälften einmal über alle Zeilen gebildet), prüfbar, wenn U und O im Regime
+   je mindestens **30** Zeilen haben. „Plausibel“ = kein prüfbares Regime liegt auf der anderen
+   Seite von 0 als der Gesamtwert (genau 0 ist keine Gegenrichtung).
+4. **Verdikte:** „Beleg“ = (a)+(b)+(c); „bedingt“ = (a)+(b), aber kein Regime prüfbar; „Unklar“ =
+   (a) oder (b) verfehlt oder ein prüfbares Regime widerspricht; „nicht auswertbar“ = Floor
+   verfehlt. Weder „bedingt“ noch „Unklar“ ist eine Widerlegung. Eine Punktschätzung allein ist nie
+   Beleg.
+5. **Cluster-Doppellauf:** `freeze_eval.cluster_double_run` über alle verwendeten Zeilen
+   (`ticker`, `date`, `entry_price` aus dem Export); K2-Hälften im zweiten Lauf mit demselben `m`;
+   `point_key`/`baseline`: K1 Mittel gegen 0, K2 δ gegen 0. Nur berichtet.
+6. **Auslöser:** **einmaliger** gemeinsamer Lauf, sobald (1) in `eval_results.jsonl` Zeilen der
+   Familien `paper_c_replikation`, `paper_c_handelbar`, `hyp_nov26_s2` **und** `hi_rendite` stehen
+   und (2) **n ≥ 500** verwertbare K1-Zeilen vorliegen (K2 rechnet mit den K2-Zeilen zu diesem
+   Zeitpunkt). Kein ergebnisabhängiger Auslöser.
+7. **Sperre:** steht eine Zeile mit `family = "landkarte_k1k2"` in `eval_results.jsonl`, ist kein
+   weiterer Lauf erlaubt (nur mit datiertem Protokolleintrag hier). Das Auswertungs-Skript prüft
+   vor dem Lauf die MD5 dieses Blocks (Überschrift bis vor die nächste Überschrift der Ebene ≤ 3)
+   und bricht bei Abweichung ab. Seed 42, N = 2000 für jeden Bootstrap-Aufruf.
+8. **Status:** über eine Anzeige entscheidet Easy gesondert (CLAUDE.md-GRÜN-Regel).
+
+#### D. Pflichtangaben im Bericht
+
+n, Ausschlüsse je Grund, Median `m`, Größen U/O; Teststatistik, roher und Holm-adjustierter p,
+AUC (K2), Mittel bzw. δ mit CI, Kriterien, Regime-Tabelle, Cluster-Doppellauf; alle
+„nur berichtet“-Zahlen aus B; Zeilen mit Split/Dividende im Fenster; Datenhash (SHA-256 je Datei:
+Export, `outcome_path.jsonl`, `inst_ownership_history.json`, plus `freeze_eval._data_hash` der
+verwendeten Zeilen); Skript-Commit; N; Seed; Gesamtzahl bisher gelaufener Bestätigungstests
+(`eval_results.jsonl`).
+
+#### E. Zählungen beim Freeze (nur Zeilen, Stand 13.11.2026)
+
+- Export forward ≥ 24.10.2026 nach Dedup: **30** Zeilen (Einstiege 26.–28.10.2026), alle mit
+  endlichem `short_float`, Quelle `yfinance` 30. Kein Ergebnisfeld gelesen.
+- Stufe-1-Fenster (bekannt): 672 Zeilen; `short_float_source` yfinance 632, finviz 40.
+- n ≥ 500 voraussichtlich etwa gleichzeitig mit „Paper C handelbar“ und H-I Stufe 2 (Schätzung
+  Ende Januar 2027 an Einstiegen plus Reifung, nicht bindend).
+
+#### F. Vorwissen (offen benannt)
+
+- **Landkarte 13.11.2026** (explorativ, nur Einstiege 21.07.–23.10.2026, n = 669, **69
+  Vergleiche**): Kauf Eröffnung Tag 1 — brutto Schluss Tag 10 −1,07 % [−2,62; +0,54], Tag 3
+  −0,07 %, netto (−4 %) Tag 10 −4,95 % [−6,44; −3,41]; alle Haltedauern brutto nahe null; Strecke
+  Schluss Tag 3 → Tag 10 brutto −1,19 %. Short Float (Median 33,0 %): untere Hälfte netto Tag 10
+  −2,77 % [−5,17; −0,43], obere −7,15 % [−9,02; −5,29]. Grundrendite netto in Teil 2 zu H-I (nur
+  H-I-Zeilen) ≈ −5,7 %.
+- **Teil 2 zu H-I** (explorativ, gleiche Zeitspanne): Inst-Beteiligung hängt mit Short Float
+  zusammen (ρ +0,28); Netto Halten untere Inst-Hälfte −3,96 %, obere −7,37 %.
+- Die Wahl von K1/K2 ist **ergebnis-informiert** (aus der Landkarte ausgewählt); die blinde
+  Stichprobe ist disjunkt, Schwellen und Kriterien stammen nicht aus jenen Zahlen.
+
+#### G. Mehrere Familien auf denselben blinden Zeilen
+
+Auf den Einstiegen ≥ 24.10.2026 laufen damit **sieben** Bestätigungstests in fünf eigenen
+Familien: Replikation (1), „Paper C handelbar“ (1), H-I Stufe 2 (1), H-I Rendite (2), Landkarte
+K1/K2 (2); dazu überschneidet sich der Exit-B.1-Nachfolger (1, Einstieg ≥ 09.11.2026, Score ≥ 70)
+mit denselben Zeilen — **acht** insgesamt. Jede Familie hält ihr α = 0,05 nur für sich. Wären alle
+Nullhypothesen wahr und die Tests unabhängig, läge die Wahrscheinlichkeit für **mindestens einen**
+„Beleg“ bei rund 1 − 0,95⁸ ≈ 34 %. Ein einzelner Treffer ist deshalb **im Lichte aller acht
+Tests** zu lesen: jeder Bericht nennt diese Zahl, und kein einzelner Beleg reicht allein für eine
+Score- oder Filter-Änderung (Easy entscheidet).
+
+#### H. Überschneidungen und Grenzen
+
+- Dieselben Zeilen wie H-I Rendite (R10/N10 ist dort N1); Short Float und Inst-Beteiligung hängen
+  zusammen — K2 und H-I Rendite F1 sind nicht unabhängig.
+- Kosten −4 % sind eine Annahme (`HAIRCUT_ROUND_TRIP_PCT`), keine Messung; K1 ist deshalb
+  **brutto** gestellt, −8 % wird berichtet.
+- Short Float kommt aus einer Fallback-Kette; der gespeicherte Wert gilt, die Quelle wird
+  berichtet (A.4).
+- Kauf genau zum Eröffnungskurs Tag 1, Verkauf genau zum Schlusskurs; keine Slippage, Leihkosten
+  oder Steuern.
+
+**Änderungs-Protokoll (bindend ab Merge):** Keine Änderung an diesem Block ohne datierten
+Protokolleintrag, der Änderung und Grund festhält. Ein Revert wird ebenfalls als
+Protokolleintrag festgehalten.
+
 ### ✅ STATUS-PANEL — 6. Eintrag `si_position_history` — ERLEDIGT (PR #430, 14.07.)
 
 Vorarbeit 13.07. (Read-only-Diagnose) → Bau 14.07. **nach** dem ersten Postclose-
