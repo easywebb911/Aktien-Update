@@ -840,6 +840,30 @@
       "description": "Freeze-Block 'VORABREGISTRIERUNG — H-I Rendite' in SESSION_HANDOVER §5 (#686). Skript noch nicht gebaut: einmaliger Lauf (family hi_rendite, Test-IDs hi_r_f1/hi_r_f2, MD5-Pin, Sperre) nach Replikation, 'Paper C handelbar' und H-I Stufe 2 (hyp_nov26_s2), n >= 500. Kann den Rechenweg von scripts/hypothesen_nov26_eval.py wiederverwenden. Eigener PR, Manual-Merge.",
       "status": "offen",
       "status_date": "2026-11-12"
+    },
+    {
+      "id": "top10-netto-grundrendite-negativ",
+      "title": "Grundrendite der Top-10 nach Kosten negativ",
+      "opened": "2026-11-13",
+      "description": "Explorativ (Teil 2 zu #686 + Rendite-Landkarte 13.11.2026, nur Einstiege 21.07.–23.10.2026, n=669): Kauf zur Eröffnung Tag 1, Halten bis Schluss Tag 10 — brutto im Mittel −1,1 % (CI −2,6 bis +0,5), netto (−4 % Round-Trip) −5,0 % (CI −6,4 bis −3,4). Brutto liegt auf allen Haltedauern (Tag 1–10) nahe null; der Verlust kommt überwiegend aus den Kosten. Kein Beleg (ein Fenster, fast nur neutrale Marktphase). Vorschlag: eigene Vorabregistrierung auf dem blinden Fenster (Einstieg ≥ 24.10.2026) zur Frage, ob die Auswahl brutto überhaupt einen Vorsprung hat; Entscheidung Easy.",
+      "status": "offen",
+      "status_date": "2026-11-13"
+    },
+    {
+      "id": "h-i-proxy-schwankung-momentum",
+      "title": "H-I: Inst-Beteiligung nur Hinweis auf Schwankung/Momentum/Kurs?",
+      "opened": "2026-11-13",
+      "description": "Explorativ (Teil 2 zu #686, Fenster 21.07.–23.10.2026): inst_ownership hängt mit Kurs (ρ +0,45), Marktwert (+0,37), Short Float (+0,28), Momentum 5T (−0,22) und Schwankung 5T (−0,19) zusammen; Schwankung und Momentum trennen Treffer allein stärker (AUC 0,72 / 0,71 gegen 0,33). Innerhalb von Marktwert-/Schwankungs-Hälften bleibt die Trennung teils bestehen, beim Geld nicht stabil. Vorschlag: in einer späteren Runde vorab registrieren, ob Inst nach Kontrolle von Schwankung und Momentum noch beiträgt. Freezes H-I Stufe 2 und H-I Rendite unverändert.",
+      "status": "offen",
+      "status_date": "2026-11-13"
+    },
+    {
+      "id": "inst-anzeige-farbe",
+      "title": "Karten-Farbe Inst-Beteiligung (60/30) passt nicht zur Datenlage",
+      "opened": "2026-11-13",
+      "description": "Der Median der Inst-Beteiligung in den H-I-Zeilen liegt bei 0,90 (Teil 2 zu #686); 'niedrig' heißt in unseren Daten unter ~90 %. Die Karte färbt hoch = grün (Schwellen 60/30, generate_report.py ~5602/6139) — widerspricht der Dämpfer-Richtung aus H-I Stufe 1. Gehört in den Anzeige-Folge-PR (H-I blau, 7 Bestätigungstests); keine Änderung ohne Easy-Entscheid.",
+      "status": "offen",
+      "status_date": "2026-11-13"
     }
   ]
 }
