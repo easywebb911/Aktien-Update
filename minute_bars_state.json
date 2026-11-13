@@ -1,0 +1,18 @@
+{
+  "abruf_fehler_ticker": {
+    "yahoo_fehler": 1
+  },
+  "davon_null_nach_grund": {
+    "ausserhalb_yahoo_fenster": 10
+  },
+  "erneut_versuchen": 0,
+  "geschrieben": 209,
+  "last_run_utc": "2026-11-13T22:54:16+00:00",
+  "leer_vorgemerkt": {},
+  "nicht_reif": 10,
+  "pruefung_hoch_tief_abweichend": 5,
+  "pruefung_nicht_moeglich": 0,
+  "rate_limit_abbruch": false,
+  "schema_v": 1,
+  "zeilen_gesamt": 209
+}
