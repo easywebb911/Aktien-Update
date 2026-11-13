@@ -3372,6 +3372,22 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — Vorabregistrierung Landkarte K1/K2 (1 PR, Manual-Merge, protected-ok Regel b)
+
+- Easy-Entscheid 13.11.2026 nach dem Landkarten-Bericht: `#688` (Branch
+  `claude/landkarte-k1k2-freeze-m5t2`, Branch-Commit `70d53ed7`, kein Merge-Hash — Regel a). Neuer
+  Freeze-Block „VORABREGISTRIERUNG — Landkarte K1/K2 (Grundvorsprung brutto, Short Float),
+  eingefroren mit dem Merge“ in §5: K1 mittlere Brutto-Rendite Eröffnung Tag 1 → Schluss Tag 10 > 0
+  (einseitiger Wilcoxon + Bootstrap), K2 Short Float untere vs. obere Hälfte netto −4 % (Mann-Whitney
+  + Bootstrap Mittelwert-Differenz, erwartet untere besser); Familie `landkarte_k1k2`, Holm k = 2;
+  Lauf nach Replikation, „Paper C handelbar“, H-I Stufe 2 und H-I Rendite, n ≥ 500. Abschnitt G
+  benennt die acht Bestätigungstests auf denselben blinden Zeilen. Nur Text, kein Ergebnis
+  berechnet; alle bestehenden Freeze-Abschnitte MD5-unverändert.
+- `open_items` neu: `landkarte-k1k2-skript` (offen), `handelskosten-messung` (offen).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#687`,
+  höchste in Block 1 erwähnte PR = `#688` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 13.11.2026 — open_items aus Rendite-Landkarte / H-I Teil 2 (1 PR, Auto-Merge Doku)
 
 - `#687` (Branch `claude/open-items-landkarte-q7n3`, Branch-Commit `e616848b`, kein Merge-Hash —
