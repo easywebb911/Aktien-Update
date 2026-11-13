@@ -53,6 +53,7 @@ ALLOWLIST = [
     "paper_c_eval",
     "hypothesen_nov26_eval",
     "probe_quote_spread",
+    "truth_check_known",
     "maxgain_none_not_zero",
     "postclose_gap_s15",
     "digest_warn_visible",

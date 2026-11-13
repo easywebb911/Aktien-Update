@@ -77,6 +77,13 @@ SPY, VIX = "SPY", "^VIX"
 MAX_DEVIATIONS_LOGGED = 50       # Log-Zeile bleibt klein
 MAX_RETRY_KEYS = 300             # Wiederholungs-Liste gedeckelt
 UNKNOWN_REASONS = ("yahoo_fehler", "ausdruecklich_leer", "rate_limit")
+# Liste geprüfter, bekannter Abweichungen (Easy-Entscheid 13.11.2026). Nur per
+# PR mit Easy-Merge pflegen; jeder Eintrag braucht Grund, Verweis und
+# Entscheid-Datum. Ein Eintrag greift NUR, wenn gespeicherter UND neu
+# berechneter Wert innerhalb der Toleranz zu den eingetragenen Werten passen.
+KNOWN_FILE = "truth_check_known.json"
+KNOWN_REQUIRED = ("datei", "ticker", "date", "feld", "alt", "vergleich",
+                  "grund", "verweis", "entscheid_datum")
 
 RETURN_FIELDS = tuple(
     f for w in WINDOWS
@@ -474,6 +481,45 @@ def fetch_all(tickers: list[str], starts: dict, end: date, fetch_fn, *, workers:
 
 
 # ── Dateien (nur lesend) + State/Log (einzige Schreibziele) ──────────────────
+def load_known(path: pathlib.Path) -> list:
+    """Bekannte Fälle laden. Fail-safe: fehlende/kaputte Datei oder ein
+    unvollständiger Eintrag → dieser Eintrag (bzw. alle) greift NICHT, die
+    Abweichung alarmiert wie bisher."""
+    try:
+        data = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    items = data.get("eintraege") if isinstance(data, dict) else None
+    if not isinstance(items, list):
+        return []
+    out = []
+    for e in items:
+        if not isinstance(e, dict) or any(e.get(k) in (None, "") for k in KNOWN_REQUIRED):
+            continue
+        if _num(e.get("alt")) is None or _num(e.get("vergleich")) is None:
+            continue
+        out.append(e)
+    return out
+
+
+def apply_known(devs: list, known: list, tol: float) -> list:
+    """Pure: setzt ``klasse`` von ``abweichung`` auf ``bekannt``, wenn ein
+    Eintrag mit gleicher (datei, ticker, date, feld) existiert und BEIDE Werte
+    (gespeichert ``alt`` und neu berechnet ``neu``) innerhalb ``tol`` zu den
+    eingetragenen Werten passen. Sonst unverändert (voller Alarm)."""
+    idx = {(e["datei"], e["ticker"], e["date"], e["feld"]): e for e in known}
+    out = []
+    for d in devs:
+        e = idx.get((d.get("datei"), d.get("ticker"), d.get("date"), d.get("feld")))
+        a, n = _num(d.get("alt")), _num(d.get("neu"))
+        if (d.get("klasse") == "abweichung" and e is not None and a is not None and n is not None
+                and abs(a - float(e["alt"])) <= tol + 1e-9
+                and abs(n - float(e["vergleich"])) <= tol + 1e-9):
+            d = dict(d, klasse="bekannt", verweis=e["verweis"])
+        out.append(d)
+    return out
+
+
 def _read_jsonl(path: pathlib.Path) -> list:
     out = []
     try:
@@ -602,7 +648,8 @@ def run(now: datetime, root: pathlib.Path = ROOT, fetch_fn=None, *,
     series, unknown = fetch_all(order, starts, end, fetch_fn,
                                 workers=int(config.TRUTH_CHECK_MAX_WORKERS))
 
-    cnt = {"stimmt": 0, "abweichung": 0, "neu_adjustiert": 0, "nicht_pruefbar": 0}
+    known = load_known(root / KNOWN_FILE)
+    cnt = {"stimmt": 0, "abweichung": 0, "neu_adjustiert": 0, "bekannt": 0, "nicht_pruefbar": 0}
     unk = {k: 0 for k in UNKNOWN_REASONS}
     devs_all, max_d, n_cmp_total = [], None, 0
     runtime_notes: list = []
@@ -621,6 +668,7 @@ def run(now: datetime, root: pathlib.Path = ROOT, fetch_fn=None, *,
         rec = (recompute_shadow(r, s, final_cut) if datei == "exit_shadow"
                else recompute_backtest(r, s, series.get(SPY), series.get(VIX), final_cut, today))
         n_cmp, devs, md = compare_row(datei, r, rec, series, tol, notes=runtime_notes)
+        devs = apply_known(devs, known, tol)
         n_cmp_total += n_cmp
         if n_cmp == 0:
             unk["ausdruecklich_leer"] += 1
@@ -629,6 +677,8 @@ def run(now: datetime, root: pathlib.Path = ROOT, fetch_fn=None, *,
             max_d = md if max_d is None else max(max_d, md)
         if any(d["klasse"] == "abweichung" for d in devs):
             cnt["abweichung"] += 1
+        elif any(d["klasse"] == "bekannt" for d in devs):
+            cnt["bekannt"] += 1
         elif devs:
             cnt["neu_adjustiert"] += 1
         else:
@@ -685,6 +735,7 @@ def main(argv=None) -> int:
     u = line["unbekannt"]
     print(f"Wahrheits-Abgleich: {line['n_zeilen']} Zeilen · {line['stimmt']} stimmt · "
           f"{line['abweichung']} Abweichung · {line['neu_adjustiert']} neu-adjustiert · "
+          f"{line['bekannt']} bekannt (geprüft) · "
           f"unbekannt Yahoo {u['yahoo_fehler']} / leer {u['ausdruecklich_leer']} / "
           f"Rate-Limit {u['rate_limit']} · nicht prüfbar {line['nicht_pruefbar']} · "
           f"max |Δ| {line['max_abs_delta']}")
