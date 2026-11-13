@@ -3383,6 +3383,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Familie `hi_rendite`, Holm k = 2; Lauf nach Replikation, „Paper C handelbar“ und H-I Stufe 2,
   n ≥ 500. Nur Text, keine Rendite nach Inst gerechnet; alle bestehenden Freeze-Abschnitte
   MD5-unverändert. Explorativer Nachlauf auf dem Stufe-1-Fenster erst nach dem Merge.
+- Easy-Entscheid vor dem Merge: Methodik-Entscheide 1–8 bestätigt wie empfohlen (bindend nur N1 =
+  Netto-Halten bis Close Tag 10; N2, brutto und −8 % nur berichtet); `protected-ok` nach Regel b
+  freigegeben. Freeze-Block unverändert.
 - `open_items` neu: `hi-rendite-skript` (offen).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#685`,
   höchste in Block 1 erwähnte PR = `#686` (eigene) — kein Rückstand.
