@@ -3390,6 +3390,24 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — S16-Rundungsschranke nach Kapitalmaßnahme + Cleanup Probe (1 PR, Manual-Merge)
+
+- Folge zu #691: `#692` (Branch `claude/s16-rundungsschranke-r3x8`, Branch-Commit `5ff64896`, kein
+  Merge-Hash — Regel a). Beleg-Lauf 43488284245: BJDX Reverse-Split 1:4 am 03.11.2026 (und
+  29.01.2026), Kurse seither auf Raster 0,004 (Rohkurs 0,001 × 4). `truth_check.rounding_bound`:
+  `neu_adjustiert` nur bei (a) belegter Aktion nach Fensterbeginn bis heute UND (b) |Δ| ≤
+  S = 100·(b/a)·(h_a/a+h_b/b)+0,01, h = 0,5·10^-k·F; nur Kursverhältnis-Felder; darüber Alarm.
+  Alte Regel (Aktion im Fenster) unverändert. Test `scripts/mock_test_truth_check_rounding.py`
+  (echte BJDX-Kurse; echte 8 Fälle → nur ARCT bleibt). Probe-Dateien aus #691 entfernt.
+  epr-Messlauf: 665 + 130 geprüft, 5 + 1 Abweichungen, keine Index-Lücke, Spearman 0,99999 / 1,0
+  (Details open_item `epr-gemeinsamer-index-vs-eigene-handelstage`).
+- `open_items`: `truth-check-nachadjustierung-ausserhalb-fenster` → erledigt; Nachträge
+  `epr-gemeinsamer-index-vs-eigene-handelstage`, `wahrheits-abgleich-einlaufphase`. CLAUDE.md
+  Abschnitt Wahrheits-Abgleich ergänzt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#691`,
+  höchste in Block 1 erwähnte PR = `#692` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 13.11.2026 — Beleg-/Messlauf BJDX + entry_past_return_5d, AMCX bekannt (1 PR, Manual-Merge, neuer Workflow)
 
 - Easy-Entscheide 13.11.2026 nach #690: Gruppe (1) bleibt Einzel-Einträge, AMCX 15.07. als
