@@ -832,6 +832,14 @@
       "description": "Freeze-Block in SESSION_HANDOVER §5 (#684). Skript noch nicht gebaut: einmaliger Stufe-1-Lauf (Einstiege 21.07.–23.10.2026, family hyp_nov26_s1, Test-IDs hg_s1/hi_s1/hk_s1) mit MD5-Pin des Blocks und Sperre über eval_results.jsonl; Stufe 2 (hyp_nov26_s2) erst nach Replikation + 'Paper C handelbar' und n >= 500 je weitergereichter Hypothese. Eigener PR, Manual-Merge. Ziel ab Eröffnung Tag 1 (Block A.1), aus bars gerechnet; 'ab Close D' nur berichtet. Gemeinsamer Rechenweg mit 'Paper C handelbar' (Protokolleintrag 12.11.2026 spät). Stand 13.11.2026: Skript gebaut (#685, Manual-Merge); offen bleibt der einmalige Stufe-1-Lauf nach dem Merge (Workflow health_check_digest.yml, Input hypothesen_nov26_s1).",
       "status": "offen",
       "status_date": "2026-11-13"
+    },
+    {
+      "id": "hi-rendite-skript",
+      "title": "Auswertungs-Skript H-I Rendite (Freeze #686) bauen",
+      "opened": "2026-11-12",
+      "description": "Freeze-Block 'VORABREGISTRIERUNG — H-I Rendite' in SESSION_HANDOVER §5 (#686). Skript noch nicht gebaut: einmaliger Lauf (family hi_rendite, Test-IDs hi_r_f1/hi_r_f2, MD5-Pin, Sperre) nach Replikation, 'Paper C handelbar' und H-I Stufe 2 (hyp_nov26_s2), n >= 500. Kann den Rechenweg von scripts/hypothesen_nov26_eval.py wiederverwenden. Eigener PR, Manual-Merge.",
+      "status": "offen",
+      "status_date": "2026-11-12"
     }
   ]
 }
