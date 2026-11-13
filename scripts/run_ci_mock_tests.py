@@ -48,7 +48,6 @@ ALLOWLIST = [
     "destructive_guard",
     "maxgain_export_correction",
     "score_smoothing_chrono",
-    "diagnose_night_probe",
     "paper_c_marker",
     "paper_c_eval",
     "hypothesen_nov26_eval",
