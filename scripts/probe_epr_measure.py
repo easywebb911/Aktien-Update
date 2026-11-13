@@ -22,7 +22,8 @@ gelesen — die Projektion passiert direkt beim Einlesen, kein Ergebnisfeld wird
 Prädiktor-Abweichungen, keine Ticker/Daten im Log.
 
 Ursachen (nur für Abweichungen, Reihenfolge fest):
-``aktion_seit_nenner`` (Split/Dividende zwischen Nenner-Tag und heute),
+``aktion_seit_nenner`` (Split/Dividende zwischen Nenner-Tag und HEUTE — bewusst
+inkl. Aktionen nach dem Einstieg, weil Yahoo dann die ganze Reihe nachbereinigt),
 ``luecke_index`` (eigener Nenner-Tag ≠ 5. US-Handelstag vor Einstieg →
 Handelsaussetzung bzw. Lücke im gemeinsamen Index), ``zaehler_laufzeitkurs``
 (gespeicherter Wert = entry_price / eigener Nenner), ``sonstiges``.
@@ -68,7 +69,8 @@ def load_rows(root: pathlib.Path = ROOT) -> tuple[dict, int]:
         if p["provenance"] == "forward" and p["ticker"] and p["date"]:
             exp[(p["ticker"], p["date"])] = p
     try:
-        raw = json.load(open(root / config.BACKTEST_FILE, encoding="utf-8"))
+        with open(root / config.BACKTEST_FILE, encoding="utf-8") as fh:
+            raw = json.load(fh)
     except (OSError, ValueError):
         raw = []
     for e in raw if isinstance(raw, list) else []:

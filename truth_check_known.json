@@ -42,7 +42,7 @@
    "feld": "entry_past_return_5d",
    "alt": 5.11,
    "vergleich": 5.16,
-   "grund": "Backfill-Altlast: Export-Zeile provenance backfill (Bestandsübernahme 04.08.2026, nicht im Stufe-B-Manifest); Wert stammt aus dem älteren Rechenweg (gemeinsamer Mehr-Ticker-Index, Zähler = Kurs zum Laufzeitpunkt), nicht aus dem Rechenweg des Wahrheits-Abgleichs (eigene Handelstage, Schlusskurs). Kein forward-Wert, kein Freeze-Prädiktor.",
+   "grund": "Backfill-Altlast: Export-Zeile provenance backfill (Bestandsübernahme 04.08.2026), kein forward-Wert und kein Freeze-Prädiktor. Ursache der Differenz nicht einzeln belegt; vermutlich älterer Rechenweg (gemeinsamer Mehr-Ticker-Index bzw. Kurs zum Laufzeitpunkt statt eigene Handelstage/Schlusskurs) — wird über den epr-Messlauf (#691) eingeordnet.",
    "verweis": "open_item wahrheits-abgleich-einlaufphase Punkt (5); open_item epr-gemeinsamer-index-vs-eigene-handelstage",
    "entscheid_datum": "2026-11-13"
   }
