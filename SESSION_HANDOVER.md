@@ -3390,6 +3390,21 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — Nacht-Probe: Endbericht + Cleanup (1 PR, Auto-Merge)
+
+- `#694` (Branch `claude/cleanup-nacht-probe-w8k3`, Branch-Commit `6fa1b122`, kein Merge-Hash —
+  Regel a). Wegwerf-Probe entfernt (`diagnose_night_probe.yml`, `scripts/diagnose_night_probe.py`,
+  `scripts/mock_test_diagnose_night_probe.py`, Allowlist). Endbericht (Läufe 2–13, D = 09.–12.11.,
+  Tag-Referenz D=12.11. per Hand-Start 43497660708): um ~01:30 ET sind die KURSE der Zeile D endgültig
+  (gleich Tag-Referenz), nur das Volumen ändert sich noch; Halbzeilen nachts nur vereinzelt im
+  Batch-Download (GO, WBTN), Postclose 21:05/21:28 ET dagegen 77/78 bzw. 76/78 Halbzeilen. Options-OI
+  ändert sich über Nacht. Wurzellösung Berichtsdatum NICHT gebaut (Entscheidung Easy).
+- `open_items`: `berichtsdatum-wurzelloesung-nacht-probe` (Endbericht, Status offen),
+  `postclose-halbzeilen-2028et` (Nachtrag).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#692` (#693 offen),
+  höchste in Block 1 erwähnte PR = `#694` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 13.11.2026 — S16-Rundungsschranke nach Kapitalmaßnahme + Cleanup Probe (1 PR, Manual-Merge)
 
 - Folge zu #691: `#692` (Branch `claude/s16-rundungsschranke-r3x8`, Branch-Commit `5ff64896`, kein
