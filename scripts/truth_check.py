@@ -38,7 +38,10 @@ KEINE Preis-Felder (``entry_price``, ``entry_price_t1``). Bootstrap-Zeilen
 werden übersprungen. Toleranz ``config.TRUTH_CHECK_TOLERANCE_PP`` (0,02).
 Abweichung → Blick auf Dividenden/Splits im Fenster (aus derselben Kurs-
 Abfrage, ``actions=True``): vorhanden → Klasse ``neu_adjustiert``, sonst
-``abweichung``.
+``abweichung``. Seit 13.11.2026 zusätzlich (BJDX-Klasse, ``rounding_bound``):
+Aktion NACH dem Fenster (bis heute) UND |Δ| ≤ hergeleitete Rundungsschranke →
+``neu_adjustiert`` mit ``regel: rundung_nach_aktion`` + ``schranke``; darüber
+weiter ``abweichung``.
 
 Umfang je Lauf: frisch gereifte Export-Zeilen (Zeilenzahl > ``export_lines_seen``
 im State), frisch vollständige Exit-Shadow-Records, Wiederholungen (Abweichung
@@ -394,10 +397,80 @@ def compare_row(datei: str, row: dict, rec: dict, series: dict, tol: float,
     for f, alt, neu, span, srcs, delta in devs:
         adjusted = any(series.get(t) is not None and series[t].has_action(span[0], span[1])
                        for t in srcs)
-        out.append({"datei": datei, "ticker": row.get("ticker"), "date": row.get("date"),
-                    "feld": f, "alt": alt, "neu": neu,
-                    "klasse": "neu_adjustiert" if adjusted else "abweichung"})
+        d = {"datei": datei, "ticker": row.get("ticker"), "date": row.get("date"),
+             "feld": f, "alt": alt, "neu": neu,
+             "klasse": "neu_adjustiert" if adjusted else "abweichung"}
+        if not adjusted and len(srcs) == 1 and delta is not None:
+            bound = rounding_bound(series.get(srcs[0]), f, span)
+            if bound is not None and delta <= bound + 1e-9:
+                d["klasse"] = "neu_adjustiert"
+                d["regel"] = "rundung_nach_aktion"
+                d["schranke"] = round(bound, 4)
+        out.append(d)
     return n_cmp, out, max_d
+
+
+# ── Rundungsschranke nach Kapitalmaßnahme (Easy-Entscheid 13.11.2026) ─────────
+# BJDX-Klasse: Split/Dividende NACH dem Rechenfenster. Yahoo bereinigt dann die
+# ganze Reihe neu und liefert die Kurse auf einem anderen Raster (BJDX: Reverse-
+# Split 1:4 am 03.11.2026, Rohkurse seither auf 0,001 gerundet → bereinigt auf
+# 0,004). Ein früher gespeichertes Verhältnis kann dadurch um eine Rundungsgröße
+# abweichen. KEINE pauschale Freistellung: ``neu_adjustiert`` nur, wenn
+#   (a) die Kursreihe des Laufs eine Aktion (Split/Dividende) zwischen
+#       Fensterbeginn und Reihenende (= heute) belegt UND
+#   (b) |Δ| ≤ Schranke S aus Kursniveau und Nachkommastellen:
+#       F(d)  = Π 1/split_ratio aller Splits NACH dem Kurstag d (Rohkurs = bereinigt / F),
+#       k     = größte Nachkommastellenzahl der Rohkurse im Fenster (7 signifikante
+#               Stellen — Yahoo liefert float32, ~7,2 Dezimalstellen),
+#       h(d)  = 0,5 · 10^-k · F(d)  (halbes Rohkurs-Raster, in bereinigten Einheiten),
+#       S     = 100 · (b/a) · (h_a/a + h_b/b) + 0,01   (Verhältnis b/a − 1; 0,01 =
+#               Rundung beider Prozentwerte auf 2 Stellen); für ``_net`` der Brutto-
+#               Anteil mal Haircut-Faktor (<1) + 0,01.
+# Gilt nur für Felder der Form Kurs b / Kurs a − 1 eines Tickers (return_Nd, _t1,
+# _net, forward_Nd, entry_past_return_5d). Darüber → weiter ``abweichung``.
+RATIO_PREFIXES = ("return_", "forward_", "entry_past_return_5d")
+_SIG_DIGITS = 7
+
+
+def _decimals(v: float) -> int:
+    t = f"{float(f'{v:.{_SIG_DIGITS}g}'):.{_SIG_DIGITS + 3}f}".rstrip("0").rstrip(".")
+    return len(t.split(".")[1]) if "." in t else 0
+
+
+def _split_factor_after(s: Series, d: date) -> float:
+    f = 1.0
+    for r in s.rows:
+        sp = _num(r.get("split"))
+        if r["d"] > d and sp and sp > 0:
+            f *= 1.0 / sp
+    return f
+
+
+def rounding_bound(s: Series | None, field: str, span) -> float | None:
+    """Schranke S (pp) oder ``None`` (Regel greift nicht: kein Kursverhältnis-
+    Feld, keine belegte Aktion seit Fensterbeginn, Kurse fehlen). Pure."""
+    if s is None or not s.rows or not any(field.startswith(p) for p in RATIO_PREFIXES) \
+            or field.endswith("_vs_spy"):
+        return None
+    d0, d1 = span
+    if not s.has_action(d0, s.rows[-1]["d"]):
+        return None
+    ia = s.cpos(d0) + (1 if "_t1" in field else 0)
+    ib = s.cpos(d1)
+    if s.cpos(d0) < 0 or ib < 0 or ia > ib:
+        return None
+    (da, a), (db, b) = s.closes[ia], s.closes[ib]
+    if a <= 0 or b <= 0:
+        return None
+    win = [(d, c) for d, c in s.closes if d0 <= d <= d1]
+    k = max(_decimals(c / _split_factor_after(s, d)) for d, c in win)
+    ha = 0.5 * 10.0 ** -k * _split_factor_after(s, da)
+    hb = 0.5 * 10.0 ** -k * _split_factor_after(s, db)
+    core = 100.0 * (b / a) * (ha / a + hb / b)
+    if field.endswith("_net"):
+        h = abs(float(config.HAIRCUT_ROUND_TRIP_PCT)) / 200.0
+        core *= (1.0 - h) / (1.0 + h)
+    return core + 0.01
 
 
 # ── Yahoo-Abruf (injizierbar) ────────────────────────────────────────────────

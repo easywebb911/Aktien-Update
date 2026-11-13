@@ -4461,6 +4461,17 @@ warn/crit noch für „dieselbe Abweichung in 2 Läufen“; die Digest-Zeile nen
 Fehlende/kaputte Liste → alles alarmiert. Neue Einträge nur per PR mit Easy-Merge (Test
 `scripts/mock_test_truth_check_known.py` prüft Grund/Verweis/Datum). Liste leeren = alter Zustand.
 
+**Rundungsschranke nach Kapitalmaßnahme (seit 13.11.2026, BJDX-Klasse):** liegt ein Split oder eine
+Dividende NACH dem Rechenfenster (bis heute), bereinigt Yahoo die ganze Reihe neu und liefert die Kurse
+teils auf einem gröberen Raster (Beleg BJDX: Reverse-Split 1:4 am 03.11.2026, Rohkurse seither auf 0,001
+→ bereinigt 0,004; Lauf 43488284245). `truth_check.rounding_bound` klassiert eine Abweichung eines
+Kursverhältnis-Felds (`return_Nd`, `_t1`, `_net`, `forward_Nd`, `entry_past_return_5d`) nur dann als
+`neu_adjustiert` (`regel: rundung_nach_aktion`, mit `schranke`), wenn (a) die Reihe des Laufs die Aktion
+belegt UND (b) |Δ| ≤ S = 100·(b/a)·(h_a/a + h_b/b) + 0,01 mit h = 0,5·10^-k·F (F = Split-Faktor nach dem
+Kurstag, k = Nachkommastellen der Rohkurse im Fenster, 7 signifikante Stellen). Darüber voller Alarm.
+Die ältere Regel „Aktion IM Fenster → neu_adjustiert“ bleibt unverändert. Test
+`scripts/mock_test_truth_check_rounding.py` (echte BJDX-Kurse).
+
 **Rückweg:** Workflow-Datei per PR entfernen oder (durch Easy) deaktivieren; Log + State bleiben liegen, S16
 meldet dann nach 2 Handelstagen „läuft nicht“. Test:
 ``scripts/mock_test_truth_check.py``. Einlaufphase: open_items
