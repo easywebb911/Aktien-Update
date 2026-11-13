@@ -3372,6 +3372,24 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#677` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — Wahrheits-Abgleich: Klasse „bekannt (geprüft)“ (1 PR, Manual-Merge)
+
+- Anlass S16 crit 13.11.2026 (8 Abweichungen): `#690` (Branch `claude/truth-check-bekannt-v6p3`,
+  Branch-Commit `34189693`, kein Merge-Hash — Regel a). Neue Datei `truth_check_known.json`
+  (geprüfte Fälle mit Grund, Verweis, Entscheid-Datum; nur per Easy-Merge). `scripts/truth_check.py`:
+  `load_known`/`apply_known` — eine Abweichung wird `bekannt`, nur wenn gespeicherter UND neu
+  berechneter Wert innerhalb der Toleranz zu den eingetragenen Werten passen; neuer Zähler
+  `bekannt` im Log. `health_check.py`: S16 zählt `bekannt` nicht (weder crit/warn noch „2 Läufe“),
+  Digest-Zeile nennt „N bekannt (geprüft)“ (nur wenn N > 0). Erstbefüllung nur Gruppe (1)
+  (GRPN 26.10. return_10d_t1, FRGT 27.10. return_5d_t1, Exit-Shadow GRPN 27.10. forward_10d;
+  Easy-Entscheid 12.11.). Gruppe (2) und BJDX nicht eingetragen (Empfehlung im PR). Test
+  `scripts/mock_test_truth_check_known.py` (CI-Allowlist), u. a. mit den echten 8 Fällen.
+- `open_items`: Nachträge `rendite-forward-abendzeile-nicht-final`, `wahrheits-abgleich-einlaufphase`;
+  neu `truth-check-nachadjustierung-ausserhalb-fenster` (offen).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#689`,
+  höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 13.11.2026 — Wegwerf-Probe Geld/Brief (1 PR, Manual-Merge, neuer Workflow)
 
 - open_item `handelskosten-messung`, Schritt 1 (Easy-Reihenfolge 13.11.2026: Probe → Ergebnis →
