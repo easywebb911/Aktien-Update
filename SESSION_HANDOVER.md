@@ -3390,6 +3390,25 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 13.11.2026 — Beleg-/Messlauf BJDX + entry_past_return_5d, AMCX bekannt (1 PR, Manual-Merge, neuer Workflow)
+
+- Easy-Entscheide 13.11.2026 nach #690: Gruppe (1) bleibt Einzel-Einträge, AMCX 15.07. als
+  Backfill-Altlast, ARCT nicht eingetragen, BJDX-Regel ja aber enger (belegte Aktion + Rundungsschranke).
+  `#691` (Branch `claude/s16-nachadjustiert-epr-k4m9`, Branch-Commit `e0a7adb9`, kein Merge-Hash —
+  Regel a). Yahoo aus der Session gesperrt → Schritt 1 = Wegwerf-Workflow
+  `.github/workflows/probe_epr_bjdx.yml` (nur Hand-Start, `contents: read`, Artifact, Rate-Limit →
+  Abbruch ohne Ergebnis) mit `scripts/probe_bjdx_actions.py` (Split-Datum/Faktor, Nachkommastellen;
+  BJDX/AMCX/ARCT) und `scripts/probe_epr_measure.py` (alle forward-Zeilen, eigene Handelstage,
+  Ursachen, Rang-Korrelation; BLINDHEIT: nur Prädiktor-Feld, ab 24.10. nur Anzahlen/Größen).
+  `truth_check_known.json` + AMCX. Tests `scripts/mock_test_probe_epr_bjdx.py` (CI),
+  `mock_test_truth_check_known.py` (echte Fälle: 4 bekannt, 4 Abweichung). Schritt 2 (Folge-PR nach
+  dem Lauf): Regel mit hergeleiteter Schranke + Cleanup der Probe.
+- `open_items`: Nachträge `epr-gemeinsamer-index-vs-eigene-handelstage`,
+  `truth-check-nachadjustierung-ausserhalb-fenster`, `wahrheits-abgleich-einlaufphase`.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#690`,
+  höchste in Block 1 erwähnte PR = `#691` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 13.11.2026 — Wegwerf-Probe Geld/Brief (1 PR, Manual-Merge, neuer Workflow)
 
 - open_item `handelskosten-messung`, Schritt 1 (Easy-Reihenfolge 13.11.2026: Probe → Ergebnis →

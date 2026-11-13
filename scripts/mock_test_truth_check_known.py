@@ -9,8 +9,9 @@ Ohne Netz, ohne pandas/yfinance (künstliche Kursreihen aus mock_test_truth_chec
  2  apply_known: bekannter Fall → bekannt; verschobener gespeicherter ODER neu
     berechneter Wert → abweichung; neuer Fall → abweichung; neu_adjustiert bleibt.
  3  Die echten 8 Abweichungen aus dem Log vom 13.11.2026 (03:20 UTC): Gruppe (1)
-    → bekannt, die übrigen 5 bleiben abweichung; S16 meldet weiter crit, aber ohne
-    Gruppe (1); nur Gruppe (1) → kein S16-Fail; Digest-Zeile zeigt „bekannt (geprüft)“.
+    und AMCX (Backfill-Altlast, Easy-Entscheid 13.11.) → bekannt, die übrigen 4
+    (ARCT, BJDX×3) bleiben abweichung; S16 meldet weiter crit, aber ohne die
+    bekannten; nur bekannte → kein S16-Fail; Digest-Zeile zeigt „bekannt (geprüft)“.
  4  End-to-end über truth_check.run: Eintrag passt → Zähler bekannt, nicht abweichung;
     Eintrag passt nicht mehr → abweichung. Determinismus (zweimal gleich).
 """
@@ -53,6 +54,8 @@ REAL_8 = [
     {"datei": "export", "ticker": "BJDX", "date": "05.08.2026", "feld": "return_10d_t1", "alt": -18.32, "neu": -18.35, "klasse": "abweichung"},
 ]
 GROUP1 = {("export", "GRPN", "26.10.2026"), ("export", "FRGT", "27.10.2026"), ("exit_shadow", "GRPN", "27.10.2026")}
+AMCX = ("export", "AMCX", "15.07.2026")   # Backfill-Altlast (Easy-Entscheid 13.11.2026)
+KNOWN_SET = GROUP1 | {AMCX}
 
 
 def _known():
@@ -63,7 +66,7 @@ def test_list():
     print("1 Liste")
     raw = json.loads((ROOT / tc.KNOWN_FILE).read_text(encoding="utf-8"))
     items = raw.get("eintraege") or []
-    check("Datei hat Einträge", len(items) == 3, len(items))
+    check("Datei hat Einträge", len(items) == 4, len(items))
     for e in items:
         miss = [k for k in tc.KNOWN_REQUIRED if e.get(k) in (None, "")]
         check(f"Eintrag {e.get('ticker')} {e.get('date')} {e.get('feld')}: Pflichtfelder", not miss, miss)
@@ -128,20 +131,25 @@ def test_real_8():
     k = _known()
     cls = tc.apply_known(REAL_8, k, TOL)
     bek = {(d["datei"], d["ticker"], d["date"]) for d in cls if d["klasse"] == "bekannt"}
-    check("genau Gruppe (1) → bekannt", bek == GROUP1, bek)
-    check("übrige 5 bleiben abweichung", sum(d["klasse"] == "abweichung" for d in cls) == 5)
+    check("genau Gruppe (1) + AMCX → bekannt", bek == KNOWN_SET, bek)
+    check("übrige 4 (ARCT, BJDX×3) bleiben abweichung", sum(d["klasse"] == "abweichung" for d in cls) == 4)
     prev_old = _line("2026-11-12T03:42:53Z", [dict(d) for d in REAL_8[:5]])   # alter Lauf ohne Klasse bekannt
     last = _line("2026-11-13T03:20:51Z", cls)
     res, dl = _s16([prev_old, last])
     det = res[0]["detail"] if res else ""
-    check("S16 weiter crit (Gruppe 2 + BJDX ungeprüft)", res and res[0]["severity"] == "crit", res)
-    check("S16-Text nennt Gruppe (1) nicht", "GRPN" not in det and "FRGT" not in det, det)
-    check("S16: 5 Zeilen weichen ab", "5 Zeilen weichen ab" in det, det)
+    check("S16 weiter crit (ARCT + BJDX ungeprüft)", res and res[0]["severity"] == "crit", res)
+    check("S16-Text nennt Gruppe (1) und AMCX nicht", "GRPN" not in det and "FRGT" not in det and "AMCX" not in det, det)
+    check("S16: 4 Zeilen weichen ab", "4 Zeilen weichen ab" in det, det)
     only1 = tc.apply_known(REAL_8[:3], k, TOL)
     res2, dl2 = _s16([_line("2026-11-12T03:42:53Z", [dict(d) for d in REAL_8[:3]]),
                       _line("2026-11-13T03:20:51Z", only1)])
     check("nur Gruppe (1) → kein S16-Fail (auch nicht „2 Läufe“)", res2 == [], res2)
     check("Digest-Zeile: 3 bekannt (geprüft)", "3 bekannt (geprüft)" in dl2 and "0 Abweichung" in dl2, dl2)
+    only_k = tc.apply_known(REAL_8[:4], k, TOL)
+    res3, dl3 = _s16([_line("2026-11-12T03:42:53Z", [dict(d) for d in REAL_8[:4]]),
+                      _line("2026-11-13T03:20:51Z", only_k)])
+    check("nur Gruppe (1) + AMCX → kein S16-Fail", res3 == [], res3)
+    check("Digest-Zeile: 4 bekannt (geprüft)", "4 bekannt (geprüft)" in dl3, dl3)
     print("    Beispiel-Digest-Zeile:", dl)
 
 
