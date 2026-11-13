@@ -65,7 +65,11 @@ exec(
     "    SCORE_CONFIDENCE_N_MITTEL,\n"
     "    SCORE_CONFIDENCE_N_PROVISORISCH,\n"
     "    VALIDATION_SUMMARY_TEXT,\n"
+    "    SCORE_STATUS_EXTRA_ROWS,\n"
+    "    K1_EXPLORATIVE_ROW,\n"
+    "    EVAL_RESULTS_FILE,\n"
     ")\n"
+    "import json, math\n"
     "from datetime import datetime\n"
     "from zoneinfo import ZoneInfo\n"
     "_STATUS_KIND_FALLBACK = 'heuristic'\n"
@@ -74,6 +78,11 @@ exec(
     + _extract("compute_score_confidence") + "\n"
     + _extract_assign("_DATA_TIER_LABEL") + "\n"
     + _extract("_iso_to_de") + "\n"
+    + _extract("_finite") + "\n"
+    + _extract("_eval_results_index") + "\n"
+    + _extract("_de_num") + "\n"
+    + _extract("_eval_numbers_text") + "\n"
+    + _extract("_validation_summary_html") + "\n"
     + _extract("_score_confidence_rows_html"),
     ns,
 )

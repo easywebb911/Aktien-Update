@@ -845,7 +845,7 @@
       "id": "top10-netto-grundrendite-negativ",
       "title": "Grundrendite der Top-10 nach Kosten negativ",
       "opened": "2026-11-13",
-      "description": "Explorativ (Teil 2 zu #686 + Rendite-Landkarte 13.11.2026, nur Einstiege 21.07.–23.10.2026, n=669): Kauf zur Eröffnung Tag 1, Halten bis Schluss Tag 10 — brutto im Mittel −1,1 % (CI −2,6 bis +0,5), netto (−4 % Round-Trip) −5,0 % (CI −6,4 bis −3,4). Brutto liegt auf allen Haltedauern (Tag 1–10) nahe null; der Verlust kommt überwiegend aus den Kosten. Kein Beleg (ein Fenster, fast nur neutrale Marktphase). Vorschlag: eigene Vorabregistrierung auf dem blinden Fenster (Einstieg ≥ 24.10.2026) zur Frage, ob die Auswahl brutto überhaupt einen Vorsprung hat; Entscheidung Easy.",
+      "description": "Explorativ (Teil 2 zu #686 + Rendite-Landkarte 13.11.2026, nur Einstiege 21.07.–23.10.2026, n=669): Kauf zur Eröffnung Tag 1, Halten bis Schluss Tag 10 — brutto im Mittel −1,1 % (CI −2,6 bis +0,5), netto (−4 % Round-Trip) −5,0 % (CI −6,4 bis −3,4). Brutto liegt auf allen Haltedauern (Tag 1–10) nahe null; der Verlust kommt überwiegend aus den Kosten. Kein Beleg (ein Fenster, fast nur neutrale Marktphase). Vorschlag: eigene Vorabregistrierung auf dem blinden Fenster (Einstieg ≥ 24.10.2026) zur Frage, ob die Auswahl brutto überhaupt einen Vorsprung hat; Entscheidung Easy. 13.11.2026: als explorative Zeile im Konfidenz-Panel sichtbar (config.K1_EXPLORATIVE_ROW, gekennzeichnet „explorativ, 1 Fenster“); Bestätigung über K1 (Freeze „Landkarte K1/K2“).",
       "status": "offen",
       "status_date": "2026-11-13"
     },
@@ -861,8 +861,8 @@
       "id": "inst-anzeige-farbe",
       "title": "Karten-Farbe Inst-Beteiligung (60/30) passt nicht zur Datenlage",
       "opened": "2026-11-13",
-      "description": "Der Median der Inst-Beteiligung in den H-I-Zeilen liegt bei 0,90 (Teil 2 zu #686, Einstiege 21.07.–23.10.2026); 'niedrig' heißt in unseren Daten unter ~90 %. Die Karte färbt hoch = grün (Schwellen 60/30, generate_report.py ~5602/6139) — widerspricht der Dämpfer-Richtung aus H-I Stufe 1. Gehört in den Anzeige-Folge-PR (H-I blau, 7 Bestätigungstests); keine Änderung ohne Easy-Entscheid.",
-      "status": "offen",
+      "description": "Der Median der Inst-Beteiligung in den H-I-Zeilen liegt bei 0,90 (Teil 2 zu #686, Einstiege 21.07.–23.10.2026); 'niedrig' heißt in unseren Daten unter ~90 %. Die Karte färbt hoch = grün (Schwellen 60/30, generate_report.py ~5602/6139) — widerspricht der Dämpfer-Richtung aus H-I Stufe 1. Gehört in den Anzeige-Folge-PR (H-I blau, 7 Bestätigungstests); keine Änderung ohne Easy-Entscheid. ERLEDIGT 13.11.2026 (Anzeige-PR Teil B): Wert neutral (keine Farbe, Schwellen 60/30 aufgelöst), kein Marker im Kartenkopf, Hinweis „Niedrigere Beteiligung: häufiger +30 % im Hoch (Beleg, 1 Zeitfenster). Rendite im selben Zeitraum nicht besser als null — kein Kaufsignal.“ (config.INST_OWNERSHIP_HINT, Helfer _inst_row_html für v1+v2).",
+      "status": "erledigt",
       "status_date": "2026-11-13"
     },
     {

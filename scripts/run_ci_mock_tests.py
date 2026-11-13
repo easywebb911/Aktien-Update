@@ -55,6 +55,7 @@ ALLOWLIST = [
     "truth_check_rounding",
     "truth_check_epr_def",
     "minute_bars",
+    "display_teil_b",
     "maxgain_none_not_zero",
     "postclose_gap_s15",
     "digest_warn_visible",
