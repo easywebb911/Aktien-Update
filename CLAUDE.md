@@ -4453,6 +4453,14 @@ Kein healthchecks.io-Ping (eigener Check wäre Easys Entscheidung).
 Gleichzeitigkeit: eigene concurrency-Gruppe, bewusst **nicht** die des
 Daily-Runs (GitHub verwirft in einer Gruppe einen wartenden Lauf).
 
+**Klasse „bekannt (geprüft)“ (seit 13.11.2026, #690):** `truth_check_known.json` listet geprüfte
+Abweichungen (datei, ticker, date, feld, gespeicherter Wert `alt`, Vergleichswert `vergleich`, Grund,
+Verweis, Entscheid-Datum). Ein Eintrag greift nur, wenn gespeicherter UND neu berechneter Wert innerhalb
+der Toleranz passen — sonst wieder `abweichung` mit vollem Alarm. `bekannt` zählt in S16 weder für
+warn/crit noch für „dieselbe Abweichung in 2 Läufen“; die Digest-Zeile nennt „N bekannt (geprüft)“.
+Fehlende/kaputte Liste → alles alarmiert. Neue Einträge nur per PR mit Easy-Merge (Test
+`scripts/mock_test_truth_check_known.py` prüft Grund/Verweis/Datum). Liste leeren = alter Zustand.
+
 **Rückweg:** Workflow-Datei per PR entfernen oder (durch Easy) deaktivieren; Log + State bleiben liegen, S16
 meldet dann nach 2 Handelstagen „läuft nicht“. Test:
 ``scripts/mock_test_truth_check.py``. Einlaufphase: open_items

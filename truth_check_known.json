@@ -1,0 +1,39 @@
+{
+ "schema_v": 1,
+ "hinweis": "Geprüfte, bekannte Abweichungen für den Wahrheits-Abgleich (S16). Nur per PR mit Easy-Merge ändern. Ein Eintrag greift nur, wenn gespeicherter (alt) UND neu berechneter Wert (vergleich) innerhalb der Toleranz (config.TRUTH_CHECK_TOLERANCE_PP) passen; sonst Alarm wie bisher. Datei leeren = alter Zustand.",
+ "eintraege": [
+  {
+   "datei": "export",
+   "ticker": "GRPN",
+   "date": "26.10.2026",
+   "feld": "return_10d_t1",
+   "alt": -24.3,
+   "vergleich": -24.27,
+   "grund": "vor #680 am Zieltag-Abend aus vorläufigem Schlusskurs gefüllt und danach nie überschrieben (Commit f42f1549, 10.11.2026 18:23 ET)",
+   "verweis": "open_item rendite-forward-abendzeile-nicht-final; #680",
+   "entscheid_datum": "2026-11-12"
+  },
+  {
+   "datei": "export",
+   "ticker": "FRGT",
+   "date": "27.10.2026",
+   "feld": "return_5d_t1",
+   "alt": -1.47,
+   "vergleich": -1.5,
+   "grund": "vor #680 am Zieltag-Abend aus vorläufigem Schlusskurs gefüllt und danach nie überschrieben (Commit ec7c7eeb, 04.11.2026 17:40 ET)",
+   "verweis": "open_item rendite-forward-abendzeile-nicht-final; #680",
+   "entscheid_datum": "2026-11-12"
+  },
+  {
+   "datei": "exit_shadow",
+   "ticker": "GRPN",
+   "date": "27.10.2026",
+   "feld": "forward_10d",
+   "alt": -24.3,
+   "vergleich": -24.27,
+   "grund": "vor #680 am Zieltag-Abend aus vorläufigem Schlusskurs gefüllt und danach nie überschrieben (Commit f42f1549, 10.11.2026 18:23 ET)",
+   "verweis": "open_item rendite-forward-abendzeile-nicht-final; #680",
+   "entscheid_datum": "2026-11-12"
+  }
+ ]
+}

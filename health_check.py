@@ -558,6 +558,8 @@ def evaluate_s17_rolling_window(export_path: str, outcome_path: str,
 #   warn  „läuft nicht“: kein Log, oder letzter Lauf älter als
 #         HEALTH_CHECK_S16_MAX_TRADING_DAYS (2) US-Handelstage.
 # ``neu_adjustiert`` (Dividende/Split im Fenster) ist KEIN Fail, nur Zähler.
+# ``bekannt`` (geprüft, Eintrag in truth_check_known.json, 13.11.2026) ist KEIN
+# Fail und zählt nicht für „dieselbe Abweichung in 2 Läufen“ — nur Info-Zähler.
 _S16_DEFAULT_LOG = getattr(config, "TRUTH_CHECK_LOG_FILE", "truth_check_log.jsonl")
 
 
@@ -683,9 +685,12 @@ def truth_check_digest_line(path=None) -> str:
         md = ln.get("max_abs_delta")
         md_txt = (f"{float(md):.2f}".replace(".", ",") + " pp") if md is not None else "—"
         rl = f", Rate-Limit {u_rl}" if u_rl else ""
+        n_bek = int(ln.get("bekannt") or 0)
+        bek = f"{n_bek} bekannt (geprüft) · " if n_bek else ""
         return (f"🔍 Wahrheits-Abgleich: {int(ln.get('n_zeilen') or 0)} Zeilen · "
                 f"{int(ln.get('abweichung') or 0)} Abweichung · "
                 f"{int(ln.get('neu_adjustiert') or 0)} neu-adjustiert · "
+                f"{bek}"
                 f"{u_yahoo + u_leer + u_rl} unbekannt (Yahoo {u_yahoo}, leer {u_leer}{rl}) · "
                 f"max |Δ| {md_txt}")
     except Exception:  # pragma: no cover — nie den Digest brechen
