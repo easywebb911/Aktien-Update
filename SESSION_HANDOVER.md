@@ -3429,6 +3429,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 14.11.2026 — Handover-Konsistenz zum Sitzungsende + Tiingo-Ergebnis (1 PR, Doku, Self-Merge)
+
+- `#708` (Branch `claude/handover-konsistenz-w3k9`, Branch-Commit `8f53894e`, kein Merge-Hash — Regel a).
+  Kopf (Bogen 09.–14.11.), Block 2 (Positionen), Block 3 (Verifikation 14.11.), Block 4
+  (Wiedervorlagen 14.11., Halbzeilen-Status, Re-Test-Kalender), Block 5/6g (Edge-Stand, H-I),
+  Lessons 8z10–8z14, open_items-Nachträge (10 Items). Tiingo-Probe (Lauf 43626657445):
+  69 % < 90 % → „nicht bauen in dieser Form“, Kontrolle gültig. Freeze-Blöcke unberührt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#707`, höchste in Block 1
+  erwähnte PR = `#708` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 14.11.2026 — Gewinn-Felder im Backtest (1 PR, Manual-Merge, neue Schema-Felder, protected-ok Regel b)
 
 - `#707` (Branch `claude/earnings-felder-r4t8`, Branch-Commit `76f412a4`, kein Merge-Hash — Regel a).
