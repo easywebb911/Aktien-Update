@@ -460,7 +460,10 @@ def nachweis(log_dir, log_path=LOG_FILE, fetch=fetch_evening, rsi_fn=_rsi_pandas
             e_final = sc.evaluate_row(r, fin_final)
             e_fill = sc.evaluate_row(r, fin_fill)
             diff = round(e_fill["score_neu"] - e_final["score_neu"], 2)
+            of, cf = _f(got[1][-1]), _f(got[0][-1])
             row_out = {"ticker": r["ticker"], "diff": diff,
+                       "open_abw_pct": round((o / of - 1) * 100, 3) if of else None,
+                       "close_abw_pct": round((c / cf - 1) * 100, 3) if cf else None,
                        "vol_diff_pct": (round((vols[-1] / got[2][-1] - 1) * 100, 2)
                                         if _f(got[2][-1]) else None)}
             if abs(diff) >= 0.5:
@@ -485,6 +488,12 @@ def nachweis(log_dir, log_path=LOG_FILE, fetch=fetch_evening, rsi_fn=_rsi_pandas
         res["abende"].append(ev)
         all_rows.extend(out_rows)
     diffs = [x["diff"] for x in all_rows]
+    def _n(key, lim):
+        return sum(1 for x in all_rows if x.get(key) is not None and abs(x[key]) > lim)
+    res["abweichung_quelle"] = {
+        "open_ueber_0_1pct": _n("open_abw_pct", 0.1), "open_ueber_1pct": _n("open_abw_pct", 1.0),
+        "close_ueber_0_1pct": _n("close_abw_pct", 0.1),
+        "volumen_ueber_1pct": _n("vol_diff_pct", 1.0), "volumen_ueber_5pct": _n("vol_diff_pct", 5.0)}
     res["gesamt"] = {"verglichen": len(diffs), "ab_05": sum(1 for x in diffs if abs(x) >= 0.5),
                      "ab_005": sum(1 for x in diffs if abs(x) >= 0.05),
                      "max_abs": max((abs(x) for x in diffs), default=0.0),
@@ -511,6 +520,7 @@ def main(argv=None) -> int:
                     print("[fixb_nachweis_rest] " + json.dumps({"D": ev.get("D"), **z},
                                                                ensure_ascii=False))
         print("[fixb_nachweis_gesamt] " + json.dumps(res["gesamt"], ensure_ascii=False))
+        print("[fixb_nachweis_quelle] " + json.dumps(res.get("abweichung_quelle"), ensure_ascii=False))
         out = pathlib.Path(a.out)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(res, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
