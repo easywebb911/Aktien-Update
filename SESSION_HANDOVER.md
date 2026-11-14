@@ -47,7 +47,9 @@ zuerst, mit Ausnahmen):
    Minutenkurse Tag 1 werden gesammelt (`#696`).
 9. **Rückrechnung:** Proben (`#704`/`#705`: freie NYSE/Nasdaq-SI ab
    29.12.2017; Abgang 9–16 % in 12 Monaten; yfinance/Stooq ohne
-   Delisting-Kurse), Tiingo-Probe (`#706`); Gewinn-Felder im Backtest (`#707`).
+   Delisting-Kurse), Tiingo-Probe (`#706`, Lauf 14.11.: nur 69 % der
+   Verschwundenen abgedeckt → Regel „nicht bauen in dieser Form“); Gewinn-Felder
+   im Backtest (`#707`).
 
 **Edge-Stand 14.11.2026:** 7 Bestätigungstests, 2 Belege (`paper_c_gipfel` =
 Spanne inkl. Einstiegstag; `hi_s1`, je 1 Fenster), GRÜN unvergeben.
@@ -5251,7 +5253,7 @@ neu getestet.
 | **Di 17.11., ~23:07 UTC** (erster `score_abgleich` für D = 16.11.) | **Fix-B-Wirkungsbeleg:** 0 Zeilen mit |Δ| ≥ 0,5 erwartet → Easy melden → Cleanup Probe 1 | `fixb-wirkungsbeleg` |
 | erster Nachtlauf | **Berichtsdatum Variante A** belegen (`nacht_lauf_et`, kein Verwurf) | `berichtsdatum-wurzelloesung-nacht-probe` |
 | **~20./21.11.2026** (nach 10 Werktags-Läufen) | **Wahrheits-Abgleich Einlaufphase**: Fehlalarme prüfen (Rundungsschranke, Dividende im Fenster) | `wahrheits-abgleich-einlaufphase` |
-| läuft (Hand-Start nach `#706`) | **Tiingo-Probe:** Regel vorab ≥ 90 % Abdeckung der Verschwundenen (nur bei gültiger Kontrolle) → bauen; danach Easy-Entscheid Datenablage + Zeiträume-Freeze, Cleanup `probe_rueckrechnung.yml`/`probe_tiingo.yml` | `rueckrechnung-survivorship-delisting`, `mehrjahres-rueckrechnung-probe`, `rueckrechnung-datenablage`, `rueckrechnung-zeitraeume-freeze` |
+| **Easy-Entscheid offen** | **Tiingo-Probe ausgewertet 14.11.2026** (Lauf 43626657445): Abdeckung der Verschwundenen **97/140 = 69 %** (KI 61–76 %) < 90 % → Regel vorab: **nicht bauen in dieser Form**; Kontrolle 20/20 gültig. Nächster Schritt: Easy-Entscheid (andere Quelle / Ersatzrendite mit Sensitivität / keine Rückrechnung), danach Cleanup `probe_rueckrechnung.yml`/`probe_tiingo.yml` | `rueckrechnung-survivorship-delisting`, `mehrjahres-rueckrechnung-probe`, `rueckrechnung-datenablage`, `rueckrechnung-zeitraeume-freeze` |
 | vor dem Bau-Entscheid Rückrechnung | **Hypothesen Gewinnzahlen/Sprungtag** (ENTWURF H-EA1/H-EA2/H-JUMP) — Freeze erst mit dem Bau-Entscheid, vor jedem Blick in Mehrjahres-Renditen | `rueckrechnung-hypothesen-gewinnzahlen` |
 | ab 01.12.2026 | **Glättung:** erster echter Monatswechsel-Nachweis | `score-smoothing-textsortierung-monatswechsel` |
 | **03.12.2026** | **Sammel-Wiedervorlage** (unverändert): NaN-Baseline Gruppe 1, FINRA-SSR-UTC-Cache-Schlüssel, KI-Score-Edge-Freeze, Options-Rohketten, PR-#532-Sibling-Bugs | `nan-bypass-baseline-70`, `finra-ssr-utc-cache-key`, `ki-score-edge-freeze`, `options-chain-raw-sammelfeld`, `pr532-or0-sibling-bugs` |
