@@ -1130,6 +1130,11 @@ def get_yfinance_data(ticker: str) -> dict:
 # (Download fehlgeschlagen / Zählung nicht möglich). Quelle für nan_pct im
 # provider_health-Eintrag yfinance_batch (Schritt 2, 14.11.2026).
 _YF_BATCH_HALFROW_COUNT: tuple[int, int] | None = None
+# Fix B (14.11.2026): Zählung der Herkunft letzter Tageszeilen im letzten
+# Postclose-Batch ({herkunft: anzahl}); None außerhalb des Postclose.
+_LAST_BAR_COUNTS: dict | None = None
+# Fix B: Herkunft der letzten ^GSPC-Zeile im Lauf (Postclose), sonst None.
+_SPX_LAST_BAR: str | None = None
 
 
 def _batch_nan_pct(count) -> float | None:
@@ -1167,6 +1172,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
     # ── Phase A: Batch OHLCV history (single HTTP request for all tickers) ──
     hist_batch = None
     globals()["_YF_BATCH_HALFROW_COUNT"] = None
+    globals()["_LAST_BAR_COUNTS"] = None
     try:
         hist_batch = yf.download(
             tickers, period="1y", group_by="ticker",
@@ -1431,7 +1437,9 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             if hist_batch is not None and not hist_batch.empty:
                 # yf.download with one ticker returns a flat DataFrame;
                 # with multiple tickers it returns a MultiLevel DataFrame.
-                df = hist_batch if len(tickers) == 1 else hist_batch[ticker]
+                # Fix B (14.11.2026): über _df_for — dieselbe (ggf. reparierte)
+                # letzte Zeile wie alle anderen Konsumenten.
+                df = _df_for(ticker)
                 if df is not None and not df.empty and len(df) >= 5:
                     avg_vol = float(df["Volume"].tail(20).mean())
                     cur_vol = float(df["Volume"].iloc[-1])
@@ -1547,14 +1555,42 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             log.debug("squeeze-detect error: %s", exc)
         return None
 
-    def _df_for(ticker: str):
-        """Extrahiere ticker-spezifisches DataFrame aus dem Batch."""
+    def _raw_df_for(ticker: str):
+        """Ticker-DataFrame aus dem Batch (unverändert)."""
         try:
             if hist_batch is None or hist_batch.empty:
                 return None
             return hist_batch if len(tickers) == 1 else hist_batch[ticker]
         except Exception:
             return None
+
+    # Fix B (14.11.2026): letzte Tageszeile EINMAL je Ticker entscheiden —
+    # nur im Postclose (Premarket/Intraday unverändert, Easy-Entscheid 3).
+    _frames: dict = {}
+    _last_bar: dict = {}
+    _repair_on = _REPORT_RUN_PHASE == "postclose"
+    for _t in tickers:
+        _d0 = _raw_df_for(_t)
+        if _repair_on and _d0 is not None:
+            try:
+                _d1, _hk = _apply_last_bar_repair(_d0, info_map.get(_t))
+            except Exception as _rep_exc:  # noqa: BLE001 — nie den Lauf brechen
+                log.warning("Fix B: Reparatur %s fehlgeschlagen (%s) — Zeile unverändert",
+                            _t, _rep_exc)
+                _d1, _hk = _d0, None
+            _frames[_t], _last_bar[_t] = _d1, _hk
+        else:
+            _frames[_t], _last_bar[_t] = _d0, None
+    if _repair_on:
+        _hk_counts = {}
+        for _hk in _last_bar.values():
+            _hk_counts[_hk] = _hk_counts.get(_hk, 0) + 1
+        print(f"[letzte_zeile] postclose {_hk_counts} von {len(tickers)}", flush=True)
+        globals()["_LAST_BAR_COUNTS"] = _hk_counts
+
+    def _df_for(ticker: str):
+        """Ticker-DataFrame mit entschiedener letzter Zeile (Fix B)."""
+        return _frames.get(ticker)
 
     # ── Combine history + info; fallback to individual call if both are empty ──
     for ticker in tickers:
@@ -1618,6 +1654,10 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "bar_date":       ((lambda _bdf: _bdf.index[-1].date().isoformat()
                                 if _bdf is not None and not _bdf.empty else None)
                                (_df_for(ticker))),
+            # Fix B (14.11.2026): Herkunft der letzten Tageszeile
+            # (vollstaendig / aus_info_gefuellt / vortag_rueckfall; None
+            # außerhalb des Postclose oder ohne Batch-Zeile).
+            "letzte_zeile":   _last_bar.get(ticker),
             # Earliness-Trend-Logging — Liste der letzten 5 Tage
             # ({volume,high,low,close}, ältester → neuester). Wird von
             # _build_backtest_extension für die 3 Trend-Sub-Signale
@@ -1653,7 +1693,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         # Konsumenten sind bereits explizit auf „kann None sein" gebaut,
         # keiner fabriziert bei None eine Ersatzzahl).
         try:
-            _df = hist_batch if len(tickers) == 1 else hist_batch[ticker]
+            _df = _df_for(ticker)
             _c_now = _finite_cell(_df["Close"], -1) if _df is not None else None
             if _c_now is not None and len(_df) >= 6:
                 _c6 = _finite_cell(_df["Close"], -6)
@@ -3343,6 +3383,128 @@ def _halfrow_probe_lines(hist_batch, tickers, info_map,
     return out, n_half
 
 
+# ── Fix B: unvollständige letzte Tageszeile (Halbzeile) im Postclose ───────────
+# Easy-Entscheid 14.11.2026 (open_items postclose-halbe-tageszeile-preis-score-
+# pfad (c), postclose-halbzeilen-2028et; Probe 1 Lauf 43578382904: 76 von 149
+# Halbzeilen-Zeilen mit Score-Abweichung ≥ 0,5). EINE Stelle: die letzte Zeile
+# jedes Tickers wird VOR allen Konsumenten (_hist_stats, _compute_indicators,
+# change_2d/3d/5d, hist_5d, Squeeze-Detektor, rel_volume_yesterday, bar_date)
+# entschieden — kein zweiter Reparaturweg.
+#   vollstaendig        : Open/High/Low/Close/Volume endlich → unverändert.
+#   aus_info_gefuellt   : nicht endliche Zellen aus dem BEREITS geladenen .info
+#                         gefüllt — nur wenn regularMarketTime (ET) derselbe
+#                         Handelstag ist wie die Zeile und jeder benötigte Wert
+#                         endlich ist. Volumen (regularMarketVolume bzw. Batch)
+#                         ist zum Laufzeitpunkt VORLÄUFIG (Nacht-Probe: Nachtrag
+#                         meist < 1 %, einzeln bis 17 %).
+#   vortag_rueckfall    : sonst Zeile verwerfen → letzte Zeile = Vortag, Bar-Datum
+#                         ehrlich D−1 (der Vintage-Guard verwirft dann den
+#                         Backtest-Eintrag mit eigenem Grund, Easy 1A).
+# Nur im Postclose (Easy 3): Premarket/Intraday unverändert.
+_LAST_BAR_CELLS = (
+    ("Open", "regularMarketOpen"),
+    ("High", "regularMarketDayHigh"),
+    ("Low", "regularMarketDayLow"),
+    ("Close", "regularMarketPrice"),
+    ("Volume", "regularMarketVolume"),
+)
+LAST_BAR_COMPLETE = "vollstaendig"
+LAST_BAR_FILLED = "aus_info_gefuellt"
+LAST_BAR_PRIOR = "vortag_rueckfall"
+_NY_TZ = ZoneInfo("America/New_York")
+
+
+def _info_market_date_et(info: dict | None):
+    """ET-Kalenderdatum von ``info['regularMarketTime']`` (Epoch-Sekunden) oder None."""
+    try:
+        ts = _halfrow_probe_num((info or {}).get("regularMarketTime"))
+        if ts is None:
+            return None
+        return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone(_NY_TZ).date()
+    except (OverflowError, OSError, ValueError):
+        return None
+
+
+def _last_bar_decision(row_date, cells: dict, info: dict | None,
+                       cols: tuple | None = None) -> tuple[str, dict]:
+    """PURE Entscheidung über die letzte Tageszeile (ohne pandas).
+
+    ``row_date``: Datum der Zeile (date). ``cells``: {Open, High, Low, Close,
+    Volume} wie im Batch (beliebige Zahlen/None/NaN). ``info``: .info-Dict.
+    Returns ``(herkunft, fuellwerte)``; ``fuellwerte`` nur für
+    ``aus_info_gefuellt`` (nur die nicht endlichen Zellen). ``cols`` begrenzt
+    die geprüften Spalten (^GSPC: nur ``Close``)."""
+    use = [c for c, _ in _LAST_BAR_CELLS if cols is None or c in cols]
+    missing = [col for col in use
+               if _halfrow_probe_num((cells or {}).get(col)) is None]
+    if not missing:
+        return LAST_BAR_COMPLETE, {}
+    if row_date is None or _info_market_date_et(info) != row_date:
+        return LAST_BAR_PRIOR, {}
+    fills = {}
+    src = dict(_LAST_BAR_CELLS)
+    for col in missing:
+        v = _halfrow_probe_num((info or {}).get(src[col]))
+        if v is None or (col != "Volume" and v <= 0) or (col == "Volume" and v < 0):
+            return LAST_BAR_PRIOR, {}
+        fills[col] = v
+    return LAST_BAR_FILLED, fills
+
+
+def _spx_close_with_repair(spx_hist, info_fetch=None):
+    """^GSPC-Schlusskurse für RS vs. SPY und die relative Tagesbewegung (nur
+    Postclose). Returns ``(close_series, herkunft)``; herkunft
+    ``vollstaendig`` / ``aus_info_gefuellt`` / ``unvollstaendig_wie_bisher``
+    (nicht füllbar → bisheriges Verhalten: letzte Zeile per dropna weg)."""
+    close = spx_hist["Close"].squeeze()
+    try:
+        last_ok = _halfrow_probe_num(close.iloc[-1]) is not None
+    except Exception:
+        last_ok = True
+    if last_ok:
+        return close.dropna(), LAST_BAR_COMPLETE
+    try:
+        info = (info_fetch or (lambda: yf.Ticker("^GSPC").info or {}))()
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Fix B: ^GSPC-.info nicht abrufbar (%s)", exc)
+        info = {}
+    try:
+        row_date = close.index[-1].date()
+    except Exception:
+        row_date = None
+    herkunft, fills = _last_bar_decision(row_date, {"Close": close.iloc[-1]}, info, ("Close",))
+    if herkunft == LAST_BAR_FILLED:
+        out = close.copy()
+        out.iloc[-1] = fills["Close"]
+        return out.dropna(), herkunft
+    log.warning("Fix B: letzte ^GSPC-Zeile %s unvollständig und nicht füllbar — wie bisher (Vortag)",
+                row_date)
+    return close.dropna(), "unvollstaendig_wie_bisher"
+
+
+def _apply_last_bar_repair(df, info: dict | None, cols: tuple | None = None):
+    """Wendet ``_last_bar_decision`` auf einen Ticker-DataFrame an (pandas).
+    Returns ``(df, herkunft)``; ``df`` ist eine Kopie, wenn geändert."""
+    if df is None or getattr(df, "empty", True):
+        return df, LAST_BAR_COMPLETE
+    try:
+        row_date = df.index[-1].date()
+    except Exception:
+        row_date = None
+    last = df.iloc[-1]
+    cells = {col: (last[col] if col in df.columns else None) for col, _ in _LAST_BAR_CELLS}
+    herkunft, fills = _last_bar_decision(row_date, cells, info, cols)
+    if herkunft == LAST_BAR_COMPLETE:
+        return df, herkunft
+    if herkunft == LAST_BAR_PRIOR:
+        return df.iloc[:-1].copy(), herkunft
+    out = df.copy()
+    for col, v in fills.items():
+        if col in out.columns:
+            out.iloc[-1, out.columns.get_loc(col)] = v
+    return out, herkunft
+
+
 def _finite_cell(series, idx):
     """``float(series.iloc[idx])`` wenn endlich, sonst ``None``.
 
@@ -3608,6 +3770,21 @@ _M5T_UNFINAL_NOTE = "unfertiger Tag — gezählt wird der Schlusskurs-Wert"
 def _de_pct(val: float) -> str:
     """+10.8 → „+10,8 %“ (deutsches Komma, geschütztes Leerzeichen vor %)."""
     return f"{val:+.1f}".replace(".", ",") + "\u00a0%"
+
+
+def _last_bar_note_row_html(stock: dict) -> str:
+    """Fix B (14.11.2026, Easy 1A): Hinweis-Zeile auf der Karte, wenn die
+    letzte Tageszeile im Postclose nicht füllbar war und die Werte vom Vortag
+    stammen. Sonst leerer String (Karte byte-gleich)."""
+    if stock.get("letzte_zeile") != LAST_BAR_PRIOR:
+        return ""
+    bd = stock.get("bar_date")
+    try:
+        bd_txt = datetime.strptime(str(bd), "%Y-%m-%d").strftime("%d.%m.%Y")
+    except (TypeError, ValueError):
+        bd_txt = "Vortag"
+    return (f'<tr><td>Kursstand</td><td><span class="m5t-note">Tageszeile heute '
+            f'unvollständig — Werte vom {bd_txt}</span></td></tr>')
 
 
 def _momentum_5t_row_html(stock: dict) -> str:
@@ -7483,7 +7660,7 @@ def _card(i: int, s: dict) -> str:
     # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-SPY).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
     momentum_rows = (_rsi_row + _ma_combined_row + _ma50_row2 + rs_spy_row
-                     + _momentum_5t_row_html(s))
+                     + _momentum_5t_row_html(s) + _last_bar_note_row_html(s))
     float_turnover_row = _float_turnover_row_html(s)
 
     # Options market data rows — Feature 4: <0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch
@@ -8001,7 +8178,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-SPY).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
     momentum_rows = (_rsi_row + _ma_combined_row + _ma50_row2 + _rs_spy_row_
-                     + _momentum_5t_row_html(s))
+                     + _momentum_5t_row_html(s) + _last_bar_note_row_html(s))
     float_turnover_row = _float_turnover_row_html(s)
 
     # ── Options rows — Feature 4 (<0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch) ──
@@ -19401,6 +19578,14 @@ def main():
         if _spx_hist is not None and not _spx_hist.empty and len(_spx_hist) >= 21:
             # squeeze() collapses a single-ticker MultiLevel column DataFrame to a Series
             _spx_close = _spx_hist["Close"].squeeze().dropna()
+            # Fix B (14.11.2026, Easy-Entscheid 2): unvollständige letzte ^GSPC-
+            # Zeile im Postclose aus ^GSPC-.info füllen (gleiche Regel wie die
+            # Aktien, nur Schlusskurs). Nicht füllbar → wie bisher (dropna =
+            # Vortag) + Log-Zeile + Kennzeichen am Backtest-Eintrag.
+            if run_phase == "postclose":
+                _spx_close, _spx_hk = _spx_close_with_repair(_spx_hist)
+                globals()["_SPX_LAST_BAR"] = _spx_hk
+                print(f"[letzte_zeile] ^GSPC {_spx_hk}", flush=True)
             _last  = float(_spx_close.iloc[-1])
             _first = float(_spx_close.iloc[-21])
             _spx_perf_20d = (_last - _first) / _first * 100
@@ -19581,6 +19766,10 @@ def main():
             # Vintage-Guard (M1): Bar-Datum der Capture aufs Stock-Dict
             # durchreichen (intern, NICHT persistiertes Schema-Feld).
             "bar_date":            yfd.get("bar_date"),
+            # Fix B (14.11.2026): Herkunft der letzten Tageszeile (intern +
+            # Backtest-Kennzeichen + Karten-Hinweis bei Vortag-Rückfall).
+            "letzte_zeile":        yfd.get("letzte_zeile"),
+            "spx_letzte_zeile":    _SPX_LAST_BAR,
             "inst_ownership":  yfd.get("inst_ownership"),
             # Insider-Ownership — nur für inst_ownership_history-Sammlung (kein
             # Frontend-/Score-Konsum). Aus demselben yfd (kein Extra-Fetch).

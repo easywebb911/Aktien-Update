@@ -48,8 +48,9 @@ def test_nan_pct():
     check("Zählung nur bei vorhandenem Download (sonst kein falsches 0 %)",
           'if hist_batch is not None and not getattr(hist_batch, "empty", True):\n'
           '            globals()["_YF_BATCH_HALFROW_COUNT"] = (_probe_n, len(tickers))' in src)
-    check("Reset vor jedem Download",
-          'globals()["_YF_BATCH_HALFROW_COUNT"] = None\n    try:\n        hist_batch = yf.download(' in src)
+    i_reset = src.find('globals()["_YF_BATCH_HALFROW_COUNT"] = None')
+    i_dl = src.find("hist_batch = yf.download(", i_reset)
+    check("Reset vor jedem Download", 0 < i_reset < i_dl < i_reset + 200, (i_reset, i_dl))
 
 
 def test_halfrow_line():

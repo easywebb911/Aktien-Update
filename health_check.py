@@ -390,8 +390,12 @@ _S15_VINTAGE_TIME_REASONS = ("pre_open", "before_close", "after_window")
 _S15_VINTAGE_LOOKBACK_H = 26
 
 
+_S15_UNFILLABLE_REASON = "zeile_nicht_fuellbar"   # Fix B (14.11.2026)
+
+
 def _postclose_vintage_time_skips(path: str, now_utc: datetime,
-                                  lookback_h: int = _S15_VINTAGE_LOOKBACK_H) -> list[dict]:
+                                  lookback_h: int = _S15_VINTAGE_LOOKBACK_H,
+                                  reasons: tuple = _S15_VINTAGE_TIME_REASONS) -> list[dict]:
     """Zeit-bedingte Postclose-Verwürfe aus ``vintage_guard_log.jsonl`` der
     letzten ``lookback_h`` Stunden. Nur lesend, fail-soft (fehlende/kaputte
     Datei oder Zeile → ignoriert). Das Log schreibt nur der Postclose-Append."""
@@ -409,7 +413,7 @@ def _postclose_vintage_time_skips(path: str, now_utc: datetime,
             rec = json.loads(line)
         except ValueError:
             continue
-        if not isinstance(rec, dict) or rec.get("reason") not in _S15_VINTAGE_TIME_REASONS:
+        if not isinstance(rec, dict) or rec.get("reason") not in reasons:
             continue
         try:
             ts = datetime.strptime(str(rec.get("ts_utc")), "%Y-%m-%dT%H:%M:%SZ").replace(
@@ -695,6 +699,33 @@ def _s16_unknown_total(line: dict) -> int:
     return sum(int(v or 0) for v in u.values()) if isinstance(u, dict) else 0
 
 
+def _s16_score_check_reasons(block) -> list[tuple[str, str]]:
+    """Score-Abgleich (Fix B / Wächter, Easy-Entscheid 14.11.2026):
+    warn ab 1 Zeile |Δ| ≥ 0,5; crit ab 3 Zeilen in einem Lauf ODER Wechsel
+    über/unter 70 MIT |Δ| ≥ 0,5. Wechsel um 70 bei |Δ| < 0,5 nur Info (kein
+    Fail). Modell reproduziert gespeicherte Scores nicht → warn (Messung
+    kaputt). Pure, fail-soft."""
+    if not isinstance(block, dict):
+        return []
+    if block.get("fehler"):
+        return [("warn", f"Score-Abgleich fehlgeschlagen ({block.get('fehler')})")]
+    out = []
+    n = int(block.get("abw_ab_05") or 0)
+    w = int(block.get("wechsel70_mit_abw") or 0)
+    ex = ", ".join(f"{d.get('ticker')} {d.get('D')} {d.get('score_alt')}→{d.get('score_neu')}"
+                   for d in (block.get("abweichungen") or [])[:3] if isinstance(d, dict))
+    if n >= HEALTH_CHECK_S16_CRIT_ROWS or w >= 1:
+        out.append(("crit", f"Score-Abgleich: {n} Zeile(n) |Δ| ≥ 0,5, {w} Wechsel um 70 "
+                            f"({ex}) — Abend-Score weicht von endgültigen Kursen ab"))
+    elif n >= 1:
+        out.append(("warn", f"Score-Abgleich: {n} Zeile(n) |Δ| ≥ 0,5 ({ex})"))
+    m = int(block.get("modell_nicht_reproduziert") or 0)
+    if m:
+        out.append(("warn", f"Score-Abgleich: Modell reproduziert {m} gespeicherte Score(s) "
+                            f"nicht — Messung prüfen"))
+    return out
+
+
 def evaluate_s16_truth_check(path=None, *, now_utc: datetime | None = None) -> list[dict]:
     """S16 — höchstens EIN Fail-Dict (schlimmste Stufe, Gründe verbunden).
     Pure bis auf das Lesen des Logs; fail-soft (nie Exception)."""
@@ -754,6 +785,7 @@ def evaluate_s16_truth_check(path=None, *, now_utc: datetime | None = None) -> l
                 streaks.append(f"{t} ({n}×)")
         if streaks:
             reasons.append(("warn", "Ticker in Folge unbekannt: " + ", ".join(streaks)))
+        reasons.extend(_s16_score_check_reasons(last.get("score_abgleich")))
         if not reasons:
             return []
         sev = "crit" if any(r[0] == "crit" for r in reasons) else "warn"
@@ -784,9 +816,26 @@ def truth_check_digest_line(path=None) -> str:
                 f"{int(ln.get('neu_adjustiert') or 0)} neu-adjustiert · "
                 f"{bek}"
                 f"{u_yahoo + u_leer + u_rl} unbekannt (Yahoo {u_yahoo}, leer {u_leer}{rl}) · "
-                f"max |Δ| {md_txt}")
+                f"max |Δ| {md_txt}" + _score_check_digest_suffix(ln.get("score_abgleich")))
     except Exception:  # pragma: no cover — nie den Digest brechen
         return "🔍 Wahrheits-Abgleich: Status nicht ermittelbar"
+
+
+def _score_check_digest_suffix(block) -> str:
+    """Zusatz zur Digest-Zeile: Score-Abgleich (Fix B / Wächter). Leer, wenn
+    in diesem Lauf kein Abend geprüft wurde."""
+    if not isinstance(block, dict):
+        return ""
+    if block.get("fehler"):
+        return " · Score-Abgleich: Fehler"
+    n_ev = len(block.get("abende") or [])
+    if not n_ev:
+        return ""
+    return (f" · Score-Abgleich {n_ev} Abend(e)/{int(block.get('zeilen') or 0)} Zeilen: "
+            f"{int(block.get('abw_ab_05') or 0)} mit |Δ| ≥ 0,5, "
+            f"Wechsel 70 {int(block.get('wechsel70_mit_abw') or 0)} "
+            f"(Info {int(block.get('wechsel70_info') or 0)}), "
+            f"Rangwechsel max {int(block.get('rang_wechsel_max') or 0)}")
 
 
 # ── S10 — Daten-Integritäts-Check (Phase 1, minimal) ──────────────────────
@@ -1563,6 +1612,19 @@ def evaluate_state_invariants(
                            f"{_last.get('reason')}, Berichtsdatum "
                            f"{_last.get('report_date')}, Lauf {_et} ET) — "
                            f"Berichtsdatum-Rückfall prüfen"),
+            })
+        # Fix B (14.11.2026, Easy-Entscheid 1A): Einträge entfallen, weil die
+        # letzte Tageszeile weder vollständig noch aus .info füllbar war.
+        _uf = _postclose_vintage_time_skips(vintage_guard_log_path, now_for_s8,
+                                            reasons=(_S15_UNFILLABLE_REASON,))
+        if _uf:
+            _n = sum(int(r.get("ticker_count") or 0) for r in _uf)
+            fails.append({
+                "id": "S15", "severity": "warn",
+                "detail": (f"{_n} Backtest-Einträge entfallen: letzte Tageszeile "
+                           f"nicht füllbar (Berichtsdatum "
+                           f"{_uf[-1].get('report_date')}) — Kurse vom Vortag, "
+                           f"kein Eintrag geschrieben"),
             })
 
     # === S16 (warn/crit) — Wahrheits-Abgleich (08.11.2026) =================
@@ -4678,6 +4740,23 @@ def minute_bars_liveness_line(data_dir=None, state_path=None, *, now_ts=None) ->
         return "🕐 Minutenkurse: Status nicht ermittelbar"
 
 
+def unfillable_entries_line(path=None, *, now_ts=None) -> str:
+    """Digest-Zeile (Fix B, Easy 14.11.2026): wie viele Backtest-Einträge
+    entfallen sind, weil die letzte Tageszeile nicht füllbar war — 24 h und
+    7 Tage, damit ein Anstieg auffällt. Fail-soft, nie Exception."""
+    try:
+        now = now_ts or datetime.now(timezone.utc)
+        p = path if path is not None else "vintage_guard_log.jsonl"
+        d1 = _postclose_vintage_time_skips(p, now, 24, (_S15_UNFILLABLE_REASON,))
+        d7 = _postclose_vintage_time_skips(p, now, 24 * 7, (_S15_UNFILLABLE_REASON,))
+        n1 = sum(int(r.get("ticker_count") or 0) for r in d1)
+        n7 = sum(int(r.get("ticker_count") or 0) for r in d7)
+        return (f"🧩 {n1} Einträge entfallen: Zeile nicht füllbar (24 h) · "
+                f"{n7} in 7 Tagen")
+    except Exception:  # pragma: no cover
+        return "🧩 Einträge entfallen (Zeile nicht füllbar): nicht ermittelbar"
+
+
 def batch_halfrow_line(provider_entries) -> str:
     """Eine Hinweis-Zeile zum Halbzeilen-Anteil des Kurs-Batches (Schritt 2,
     14.11.2026; open_item ``provider-health-nan-pct-fehlt``).
@@ -4737,6 +4816,7 @@ def format_digest_body(state_fails: list[dict],
                        outcome_path_line: str | None = None,
                        minute_bars_line: str | None = None,
                        halfrow_line: str | None = None,
+                       unfillable_line: str | None = None,
                        ftd_line: str | None = None,
                        reg_sho_line: str | None = None,
                        news_coverage_line: str | None = None,
@@ -4791,6 +4871,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{minute_bars_line}"
         if halfrow_line:
             body += f"\n{halfrow_line}"
+        if unfillable_line:
+            body += f"\n{unfillable_line}"
         if ftd_line:
             body += f"\n{ftd_line}"
         if reg_sho_line:
@@ -4873,6 +4955,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(minute_bars_line)
         if halfrow_line:
             body_lines.append(halfrow_line)
+        if unfillable_line:
+            body_lines.append(unfillable_line)
         if ftd_line:
             body_lines.append(ftd_line)
         if reg_sho_line:
@@ -4952,6 +5036,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(minute_bars_line)
     if halfrow_line:
         lines.append(halfrow_line)
+    if unfillable_line:
+        lines.append(unfillable_line)
     if ftd_line:
         lines.append(ftd_line)
     if reg_sho_line:

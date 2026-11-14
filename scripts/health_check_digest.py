@@ -417,6 +417,12 @@ def main(*, now_ts: datetime | None = None,
     except Exception as _hr_exc:  # pragma: no cover — Helper ist raise-frei
         log.warning("batch_halfrow_line unerwartet: %r", _hr_exc)
         halfrow_line = None
+    try:
+        unfillable_line = hc.unfillable_entries_line(ROOT / "vintage_guard_log.jsonl",
+                                                     now_ts=now_ts)
+    except Exception as _uf_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("unfillable_entries_line unerwartet: %r", _uf_exc)
+        unfillable_line = None
 
     # options_chain_raw-Liveness (17.10.2026): analog options_oi, eigene Datei
     # (JSONL). raise-frei; try/except ist reine Absicherung.
@@ -678,6 +684,7 @@ def main(*, now_ts: datetime | None = None,
         outcome_path_line=outcome_path_line,
         minute_bars_line=minute_bars_line,
         halfrow_line=halfrow_line,
+        unfillable_line=unfillable_line,
         ftd_line=ftd_line,
         reg_sho_line=reg_sho_line,
         news_coverage_line=news_coverage_line,

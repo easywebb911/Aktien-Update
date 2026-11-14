@@ -774,7 +774,7 @@ def plan_scope(export_rows: list, shadow_rows: list, state: dict | None, rot_n: 
 
 
 def run(now: datetime, root: pathlib.Path = ROOT, fetch_fn=None, *,
-        write: bool = True) -> dict:
+        write: bool = True, score_fetch=None, score_rsi=None) -> dict:
     """Ein Lauf. Liest Export + Exit-Shadow, schreibt NUR Log + State."""
     fetch_fn = fetch_fn or yahoo_fetch
     tol = float(config.TRUTH_CHECK_TOLERANCE_PP)
@@ -854,6 +854,24 @@ def run(now: datetime, root: pathlib.Path = ROOT, fetch_fn=None, *,
             recheck.append(k)
             devs_all.extend(devs)
 
+    # Score-Abgleich (Fix B / Wächter, Easy-Entscheid 14.11.2026): gespeicherter
+    # Abend-Score je Postclose-Top-10-Zeile gegen Nachrechnung aus endgültigen
+    # Kursen. Eigener Block; zählt NICHT in die Feld-Abweichungen oben.
+    prev_state = load_state(state_path) or {}
+    checked = set(prev_state.get("score_abgleich_abende") or [])
+    try:
+        import score_check
+        sc_kwargs = {}
+        if score_fetch is not None:
+            sc_kwargs["fetch"] = score_fetch
+        if score_rsi is not None:
+            sc_kwargs["rsi_fn"] = score_rsi
+        score_block, sc_done = score_check.run_score_check(
+            _read_jsonl(root / "score_inflation_log.jsonl"), final_cut, checked, **sc_kwargs)
+    except Exception as exc:  # noqa: BLE001 — nie den Wahrheits-Abgleich brechen
+        score_block, sc_done = {"fehler": f"{type(exc).__name__}: {str(exc)[:120]}"}, []
+    new_state["score_abgleich_abende"] = sorted(checked | set(sc_done))[-120:]
+
     new_state["recheck"] = recheck
     new_state["retry"] = retry[:MAX_RETRY_KEYS]
     new_state["last_run_ts"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -876,6 +894,7 @@ def run(now: datetime, root: pathlib.Path = ROOT, fetch_fn=None, *,
         "ticker_geprueft": sorted(t for t in need),
         "ticker_unbekannt": {t: v for t, v in sorted(unknown.items()) if t in need},
         "rate_limit_abbruch": any(v == "rate_limit" for v in unknown.values()),
+        "score_abgleich": score_block,
     }
     if write:
         with open(root / config.TRUTH_CHECK_LOG_FILE, "a", encoding="utf-8") as fh:
@@ -908,6 +927,13 @@ def main(argv=None) -> int:
           f"max |Δ| {line['max_abs_delta']}")
     for d in line["abweichungen"]:
         print(f"  {d['klasse']}: {d['ticker']} {d['date']} {d['feld']} alt={d['alt']} neu={d['neu']}")
+    sb = line.get("score_abgleich") or {}
+    print(f"Score-Abgleich: {len(sb.get('abende') or [])} Abende · {sb.get('zeilen', 0)} Zeilen · "
+          f"|Δ|≥0,5: {sb.get('abw_ab_05', 0)} · |Δ|≥0,05: {sb.get('abw_ab_005', 0)} · "
+          f"Wechsel 70 (mit |Δ|≥0,5): {sb.get('wechsel70_mit_abw', 0)} · Info-Wechsel 70: "
+          f"{sb.get('wechsel70_info', 0)} · max Rangwechsel {sb.get('rang_wechsel_max', 0)} · "
+          f"Modell nicht reproduziert {sb.get('modell_nicht_reproduziert', 0)}"
+          + (f" · Fehler {sb['fehler']}" if sb.get("fehler") else ""))
     return 0   # Befunde wertet S16 aus; der Lauf selbst bleibt grün.
 
 
