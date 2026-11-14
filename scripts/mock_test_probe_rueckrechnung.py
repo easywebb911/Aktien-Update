@@ -50,11 +50,16 @@ def main() -> int:
     s = [date(2026, 10, 15), date(2026, 10, 30)]
     check("12 Stichtag erst nach Veröffentlichung nutzbar",
           pr.latest_usable_settlement(date(2026, 11, 6), s) == date(2026, 10, 15)
-          and pr.latest_usable_settlement(date(2026, 11, 10), s) == date(2026, 10, 30)
+          and pr.latest_usable_settlement(date(2026, 11, 10), s) == date(2026, 10, 15)
+          and pr.latest_usable_settlement(date(2026, 11, 11), s) == date(2026, 10, 30)
           and pr.latest_usable_settlement(date(2026, 10, 20), s) is None)
     check("13 Split roh + Vorperiode unbereinigt", pr.classify_split(1000, 100, 1000, 0.1) == ("folgt_split", "unbereinigt"))
     check("14 Split Vorperiode bereinigt", pr.classify_split(1000, 100, 100, 0.1) == ("folgt_split", "bereinigt"))
     check("15 Split unverändert", pr.classify_split(1000, 1000, 1000, 0.1)[0] == "unveraendert")
+    check("16b Faktor 2: unverändert und folgt_split getrennt",
+          pr.classify_split(1000, 1000, 1000, 2.0)[0] == "unveraendert"
+          and pr.classify_split(1000, 2000, 1000, 2.0)[0] == "folgt_split")
+    check("16c Verzug 8 Werktage (7 + Reserve)", pr.PUB_LAG_BUSINESS_DAYS == 8)
     check("16 kein echter Split → unklar", pr.classify_split(1000, 1000, 1000, 1.0) == ("unklar", "unklar"))
     o = pr.overlap_stats([({"A", "B"}, {"A", "C"}), ({"A"}, {"B"}), (set(), {"A"})])
     check("17 Überschneidung Mittel/Verteilung", o["tage"] == 2 and o["mittel"] == 0.5 and o["verteilung"]["1"] == 1)

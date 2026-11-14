@@ -61,7 +61,7 @@ STOOQ_CONTROL_N = 10
 STOOQ_MISSING_N = 150           # je Jahr 2021 und 2022
 SPLIT_EXAMPLES_MAX = 30
 PROXY_FROM = date(2026, 7, 1)
-PUB_LAG_BUSINESS_DAYS = 7       # ANNAHME FINRA-Kalender (Stichtag + 7 Werktage)
+PUB_LAG_BUSINESS_DAYS = 8       # ANNAHME FINRA-Kalender (~7 Werktage) + 1 Tag Reserve
 YF_BATCH = 100
 
 FINRA_API = "https://api.finra.org/data/group/otcMarket/name/{ds}"
@@ -115,6 +115,7 @@ class Stats:
 STATS = Stats()
 LAST_ERR: dict[str, str] = {}
 FALLBACK_USED: dict[str, int] = {}
+YF_BATCH_ERRORS: list[str] = []
 
 
 def log(msg):
@@ -207,8 +208,12 @@ def classify_split(cur0, cur1, prev1, factor):
     if cur0 <= 0 or factor <= 0 or 0.67 < factor < 1.5:
         return "unklar", "unklar"
     r = cur1 / cur0
-    stueck = ("folgt_split" if 0.5 * factor <= r <= 2 * factor
-              else "unveraendert" if 0.5 <= r <= 2 else "unklar")
+    if 0.8 <= r <= 1.25:
+        stueck = "unveraendert"
+    elif 0.67 * factor <= r <= 1.5 * factor:
+        stueck = "folgt_split"
+    else:
+        stueck = "unklar"
     if abs(prev1 - cur0) <= 0.01 * cur0:
         vor = "unbereinigt"
     elif abs(prev1 - cur0 * factor) <= 0.05 * cur0 * factor:
@@ -345,8 +350,11 @@ def sec_get(url):
     return r
 
 
-def yf_download(symbols, start, end, src="yfinance"):
-    """{yf_symbol: DataFrame|None}. Rate-Limit → RateLimited."""
+BATCH_ERR = object()   # Abruf-Fehler ≠ „nicht vorhanden“
+
+
+def yf_download(symbols, start, end, src="yfinance", auto_adjust=True):
+    """{yf_symbol: DataFrame|None|BATCH_ERR}. Rate-Limit → RateLimited."""
     import yfinance as yf
     out = {}
     for i in range(0, len(symbols), YF_BATCH):
@@ -354,12 +362,17 @@ def yf_download(symbols, start, end, src="yfinance"):
         t0 = time.monotonic()
         try:
             df = yf.download(batch, start=start.isoformat(), end=end.isoformat(), interval="1d",
-                             auto_adjust=True, actions=True, group_by="ticker",
+                             auto_adjust=auto_adjust, actions=True, group_by="ticker",
                              threads=True, progress=False)
         except Exception as exc:  # noqa: BLE001
             if "RateLimit" in type(exc).__name__ or "Too Many Requests" in str(exc):
                 raise RateLimited(str(exc)) from exc
-            df = None
+            YF_BATCH_ERRORS.append(f"{type(exc).__name__}: {str(exc)[:120]}")
+            for s in batch:
+                out[s] = BATCH_ERR
+            STATS.add(src, time.monotonic() - t0, 0)
+            time.sleep(2.0)
+            continue
         errs = getattr(getattr(yf, "shared", None), "_ERRORS", {}) or {}
         if any("Too Many Requests" in str(v) or "Rate limit" in str(v) for v in errs.values()):
             raise RateLimited("yfinance: " + "; ".join(list(map(str, errs.values()))[:3]))
@@ -486,7 +499,10 @@ def probe_survivorship(result, ds, sdates):
         sample = draw_sample(recs, year)
         dtcs = {s: dtc_value(recs[s]) for s in sample}
         low, high, med = split_halves(dtcs)
-        data = yf_download([yf_symbol(s) for s in sample], sd, sd + timedelta(days=AVAIL_WINDOW_DAYS))
+        data = yf_download([yf_symbol(s) for s in sample], sd, sd + timedelta(days=AVAIL_WINDOW_DAYS),
+                           auto_adjust=False)   # Rohkurse: Preisklasse/Volumen wie damals
+        errored = {s for s in sample if data.get(yf_symbol(s)) is BATCH_ERR}
+        sample = [s for s in sample if s not in errored]
         exp_days = sum(1 for k in range(AVAIL_WINDOW_DAYS)
                        if (sd + timedelta(days=k)).weekday() < 5)
         avail, full, plaus, price = {}, {}, {}, {}
@@ -508,6 +524,12 @@ def probe_survivorship(result, ds, sdates):
                     for ts, f in spl.items():
                         p6_cands.append((s, ts.date(), float(f), year))
 
+        mcodes = {}
+        for s in sample:
+            mc = str(pick(recs[s], "market"))
+            a_, n_ = mcodes.get(mc, (0, 0))
+            mcodes[mc] = (a_ + int(avail[s]), n_ + 1)
+
         def grp(members):
             m = [s for s in sample if s in members]
             return {"vorhanden": wilson(sum(avail[s] for s in m), len(m)),
@@ -519,6 +541,8 @@ def probe_survivorship(result, ds, sdates):
             "stichtag": sd.isoformat(), "cnms_tag": cn_day.isoformat() if cn_day else None,
             "finra_zeilen": len(rows), "gelistet_stammaktien": len(recs), "stichprobe": len(sample),
             "dtc_median": med, "ohne_dtc": sum(1 for v in dtcs.values() if v is None),
+            "abruf_fehler_ausgeschlossen": len(errored),
+            "vorhanden_je_marktcode": {k: wilson(*v) for k, v in sorted(mcodes.items())},
             "gesamt": grp(set(sample)), "dtc_niedrig": grp(low), "dtc_hoch": grp(high),
             "preis_unter_5_nur_vorhandene": len(cheap), "preis_ab_5_nur_vorhandene": len(dear),
             "dtc_hoch_unter_5": len(high & cheap), "dtc_niedrig_unter_5": len(low & cheap),
@@ -578,7 +602,7 @@ def probe_sec(year, sd, sample, sec_map):
             units = r.json()["facts"]["dei"]["EntityCommonStockSharesOutstanding"]["units"]["shares"]
         except (KeyError, ValueError, TypeError):
             continue
-        ok = any(u.get("filed") and date.fromisoformat(u["filed"]) <= sd
+        ok = any(u.get("filed") and u.get("end") and date.fromisoformat(u["filed"]) <= sd
                  and date.fromisoformat(u["end"]) >= sd - timedelta(days=200) for u in units)
         pit += ok
     out["pit_stichprobe"] = wilson(pit, checked) if checked else None
@@ -601,6 +625,8 @@ def probe_stooq(result, p2):
                 return "daten", float(body.splitlines()[1].split(",")[4])
             except (IndexError, ValueError):
                 return "daten", None
+        if "limit" in body.lower() and "exceed" in body.lower():
+            raise RateLimited("Stooq: Tageslimit")
         if "apikey" in body.lower() or "api key" in body.lower():
             return "key_noetig", None
         return "leer", None
@@ -635,7 +661,8 @@ def probe_stooq(result, p2):
 
 
 def probe_splits(result, ds, sdates, cands):
-    cands = sorted(set(cands))[:SPLIT_EXAMPLES_MAX]
+    allc = sorted({c for c in cands if not 0.67 < c[2] < 1.5})
+    cands = [allc[i] for i in draw_sample(range(len(allc)), 9999, SPLIT_EXAMPLES_MAX)]
     tally, examples = {}, []
     for sym, sday, factor, _y in cands:
         if 0.67 < factor < 1.5:
@@ -659,7 +686,9 @@ def probe_splits(result, ds, sdates, cands):
                              "si_vor": pick(r0, "current"), "si_nach": pick(r1, "current"),
                              "vorperiode_im_nach": pick(r1, "previous"),
                              "split_flag": pick(r1, "split"), "klasse": k})
-    result["P6"] = {"kandidaten": len(cands), "auswertbar": sum(tally.values()), "klassen": tally,
+    result["P6"] = {"splits_gefunden": len(allc), "gezogen": len(cands),
+                    "faktoren": sorted({c[2] for c in cands}),
+                    "auswertbar": sum(tally.values()), "klassen": tally,
                     "beispiele": examples}
 
 
@@ -726,6 +755,8 @@ def probe_proxy(result, ds, sdates):
     syms = sorted(cand | {"^GSPC"})
     data = yf_download([yf_symbol(s) for s in syms], start, days[-1] + timedelta(days=1), src="yfinance_proxy")
     spx = data.get("^GSPC")
+    if spx is BATCH_ERR:
+        spx = None
     pairs, in_universe = [], []
     for d in days:
         sd = latest_usable_settlement(d, sets_, hol)
@@ -736,7 +767,7 @@ def probe_proxy(result, ds, sdates):
         for s in cand:
             x = si.get(sd, {}).get(s)
             df = data.get(yf_symbol(s))
-            if x is None or df is None:
+            if x is None or df is None or df is BATCH_ERR:
                 continue
             h = df[df.index.date <= d]
             if len(h) < 22 or h.index[-1].date() != d:
@@ -773,7 +804,7 @@ def probe_proxy(result, ds, sdates):
         "echte_ticker_im_proxy_universum": {"treffer": sum(a for a, _ in in_universe),
                                            "von": sum(b for _, b in in_universe)},
         "nicht_us_ausgeschlossen": sum(len(real[d]) - len(real_us[d]) for d in days),
-        "annahmen": "SI ab Stichtag + 7 Werktage; Short-Anteil = SI / ausstehende Aktien (SEC CY2026Q2I); "
+        "annahmen": "SI ab Stichtag + 8 Werktage; Aktienzahl aus Frame CY2026Q2I (Nähe dadurch eher optimistisch); Short-Anteil = SI / ausstehende Aktien (SEC CY2026Q2I); "
                     "ohne Float, Turnover, News, KI, Malus, Glättung",
     }
 
@@ -826,6 +857,7 @@ def main(argv=None) -> int:
     result.pop("_sec_map_http", None)
     result["finra_ersatzfilter_genutzt"] = FALLBACK_USED
     result["finra_letzte_fehler"] = LAST_ERR
+    result["yfinance_batch_fehler"] = {"anzahl": len(YF_BATCH_ERRORS), "beispiele": YF_BATCH_ERRORS[:5]}
     result["laufzeit_s"] = round(time.monotonic() - t0, 1)
     for k in ("P2", "P3", "P4", "P5", "P6", "P7"):
         log(f"{k} " + json.dumps(result.get(k), default=str))
