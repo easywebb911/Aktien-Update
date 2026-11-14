@@ -2494,7 +2494,3 @@
 {"schema_v": 1, "run_ts": "2026-11-14T01:43:22Z", "ticker": "VEEA", "reason": "last_day_incomplete_shifted", "dropped_day": "2026-11-13 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
 {"schema_v": 1, "run_ts": "2026-11-14T01:43:22Z", "ticker": "AMC", "reason": "nonfinite_cell", "dropped_day": "2026-11-13 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
 {"schema_v": 1, "run_ts": "2026-11-14T01:43:22Z", "ticker": "AMC", "reason": "last_day_incomplete_shifted", "dropped_day": "2026-11-13 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
-{"schema_v": 1, "run_ts": "2026-11-14T10:35:17Z", "ticker": "AAA", "reason": "nonfinite_cell", "dropped_day": "2026-11-13 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
-{"schema_v": 1, "run_ts": "2026-11-14T10:35:17Z", "ticker": "AAA", "reason": "last_day_incomplete_shifted", "dropped_day": "2026-11-13 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
-{"schema_v": 1, "run_ts": "2026-11-14T10:35:17Z", "ticker": "CCC", "reason": "nonfinite_cell", "dropped_day": "2026-11-13 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
-{"schema_v": 1, "run_ts": "2026-11-14T10:35:17Z", "ticker": "CCC", "reason": "last_day_incomplete_shifted", "dropped_day": "2026-11-13 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
