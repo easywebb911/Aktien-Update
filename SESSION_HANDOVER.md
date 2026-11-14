@@ -1,4 +1,4 @@
-# SESSION_HANDOVER.md — Stand 08.11.2026 (Bogen 04.–08.11.: Daten-Wahrheit → §4 „Unklar“ → Paper C Beleg → Replikations-Freeze → Exit-Nachfolger → Marker GRÜN → Wächter S15/S16; davor: Bogen 01.–02.11.: Monatsrundgang + Merge-/Datenkorrektur-Disziplin + NaN-Baseline-Abbau + Positions-Stand + Watchlist-Earnings + Postclose-Halbzeilen-Diagnose + §4-Sensitivität vorab registriert + [halfrow_probe]; davor: Woche 15.08.–09.10.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix + Handover-Staleness-CI-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix, S10-crit seit 03.10. abgeklungen) + NYSE-empty-Detail-Logging + Open-Items-Oktober-Rundgang + US-Feiertage algorithmisch + SI-Timestamp-Logging + NaN-Guard-Symmetrie entry_past_return_5d + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel)
+# SESSION_HANDOVER.md — Stand 14.11.2026 (Bogen 09.–14.11.: Score-Verlauf chronologisch → Gipfel-Definition geklärt, Paper C blau + „Paper C handelbar“ → endgültiger Schlusskurs ab 07:00 ET → Wahrheits-Abgleich nachgeschärft → Hypothesen-Runde/H-I Rendite/K1-K2 eingefroren, Stufe 1 gelaufen → Halbzeile: Berichtsdatum A + Fix B → Rückrechnungs-Proben + Gewinn-Felder; davor: Bogen 04.–08.11.: Daten-Wahrheit → §4 „Unklar“ → Paper C Beleg → Replikations-Freeze → Exit-Nachfolger → Marker GRÜN → Wächter S15/S16; davor: Bogen 01.–02.11.: Monatsrundgang + Merge-/Datenkorrektur-Disziplin + NaN-Baseline-Abbau + Positions-Stand + Watchlist-Earnings + Postclose-Halbzeilen-Diagnose + §4-Sensitivität vorab registriert + [halfrow_probe]; davor: Woche 15.08.–09.10.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix + Handover-Staleness-CI-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix, S10-crit seit 03.10. abgeklungen) + NYSE-empty-Detail-Logging + Open-Items-Oktober-Rundgang + US-Feiertage algorithmisch + SI-Timestamp-Logging + NaN-Guard-Symmetrie entry_past_return_5d + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
@@ -18,7 +18,44 @@ ein zweiter, push-getriggerter Workflow **erst NACH** dem Commit — rein
 detektiv, verhindert den Verlust nicht, macht ihn nur sichtbar. Ein
 roter Check-Run auf einem main-Commit braucht also einen Follow-up-Fix.
 
-**Aktueller Bogen 04.–08.11.2026** (PRs `#644`–`#664` inkl. Vorlauf
+**Aktueller Bogen 09.–14.11.2026** (PRs `#665`–`#707`, alle git-belegt
+gemergt, Details in „## 1) HEUTE IMPLEMENTIERT“; dort ab 02.11.2026 neueste
+zuerst, mit Ausnahmen):
+1. **Score-Verlauf chronologisch:** Glättung über geparstes Datum statt Text
+   (`#667`), §4-Protokolleintrag (`#668`), Kurve ohne KI-Score (`#669`),
+   Freeze-Berichtigung Setup-Edge/H5 (`#671`), `score_delta_t1` aus derselben
+   Quelle (`#672`).
+2. **Gipfel-Definition geklärt:** `max_gain_pct` misst die Spanne laufendes
+   Tief → Hoch **inkl. Einstiegstag** → Paper C **grün → blau** (`#675`);
+   handelbares Feld `outcome_path.jsonl` + Freeze „Paper C handelbar“ (`#674`,
+   Auslöser n ≥ 500 `#676`); Rolling-Fenster bis Tag 10 + S17 (`#676`/`#677`);
+   Einmal-Korrektur Export (`#678`, zweiter Lauf `#703`).
+3. **Endgültiger Schlusskurs** für Einmal-Felder und den Wahrheits-Abgleich erst
+   ab **07:00 ET des Folgetags** (`#679`–`#682`).
+4. **Sperren gegen zerstörerische Befehle** nach dem Lösch-Vorfall 12.11.
+   (`#683`, Lesson 8z9).
+5. **Neue Freezes:** Hypothesen-Runde Nov. (`#684`, Skript `#685`; Stufe 1
+   gelaufen 13.11.: H-I **Beleg** (1 Fenster), H-G/H-K „Unklar“), H-I Rendite
+   (`#686`), Landkarte K1/K2 (`#688`), open_items (`#687`), Anzeige Teil B (`#697`).
+6. **Wahrheits-Abgleich nachgeschärft:** vix/regime nach Produktions-Definition
+   (`#670`), „bekannt (geprüft)“ (`#690`), Rundungsschranke (`#691`/`#692`),
+   `entry_past_return_5d` nach Produktions-Definition (`#693`).
+7. **Halbzeile / Berichtsdatum:** Nacht-Probe (`#666`, Endbericht `#694`,
+   Items `#673`) → Variante A + S15-Verwurf + Probe 1 (`#698`/`#700`) →
+   `nan_pct`/`entry_price`/S17 (`#699`) → **Fix B** (`#701`) → `oi_stand` (`#702`).
+8. **Handelskosten:** Geld/Brief aus yfinance unbrauchbar (`#689`/`#695`);
+   Minutenkurse Tag 1 werden gesammelt (`#696`).
+9. **Rückrechnung:** Proben (`#704`/`#705`: freie NYSE/Nasdaq-SI ab
+   29.12.2017; Abgang 9–16 % in 12 Monaten; yfinance/Stooq ohne
+   Delisting-Kurse), Tiingo-Probe (`#706`, Lauf 14.11.: nur 69 % der
+   Verschwundenen abgedeckt → Regel „nicht bauen in dieser Form“); Gewinn-Felder
+   im Backtest (`#707`).
+
+**Edge-Stand 14.11.2026:** 7 Bestätigungstests, 2 Belege (`paper_c_gipfel` =
+Spanne inkl. Einstiegstag; `hi_s1`, je 1 Fenster), GRÜN unvergeben.
+Nächste Schritte: Block 4, „Wiedervorlagen Stand 14.11.2026“.
+
+**Vorheriger Bogen 04.–08.11.2026** (PRs `#644`–`#664` inkl. Vorlauf
 02.–03.11.; alle git-belegt gemergt, Details in „## 1) HEUTE
 IMPLEMENTIERT“), in dieser Reihenfolge:
 1. **Daten-Wahrheit:** Renditen, `max_gain_pct`/`max_drawdown_pct` und
@@ -37,9 +74,10 @@ IMPLEMENTIERT“), in dieser Reihenfolge:
 6. **Marker GRÜN:** Karten-Zeile „Momentum 5T“, `SCORE_STATUS_LABELS
    ["paper_c"]` = erstes GRÜN; Setup/Conviction blau (Test läuft), KI
    heuristisch, Exit-Druck „Unklar“, Nachfolger sammelt ab 09.11. (`#663`).
+   *(Seit 12.11.2026 blau, `#675` — Lesson 8z10.)*
 7. **Wächter:** S15 Postclose-Lücke (`#658`), aktive warns im OK-Digest
    (`#659`), **S16 Wahrheits-Abgleich** (`#664`).
-Nächste Schritte: Block 4, „Wiedervorlagen Stand 08.11.2026“.
+Nächste Schritte damals: Block 4, „Wiedervorlagen Stand 08.11.2026“ (überholt, siehe Stand 14.11.2026).
 
 **Vorheriger Bogen 01.–02.11.2026** (PRs `#624`–`#639`, alle git-belegt
 gemergt, Details in „## 1) HEUTE IMPLEMENTIERT“): Monatsrundgang November ·
@@ -49,7 +87,8 @@ Positions-Stand (`#635`) · Earnings-Termin auf Watchlist-Karten (`#637`) ·
 **Postclose-Halbzeile** (yfinance liefert in Abendläufen die Tageszeile halb
 leer — Diagnose 02.11.) → **§4-Sensitivitätsprüfung vorab registriert**
 (`#638`, n=242/250, kein Ergebnis) + Log-Probe `[halfrow_probe]` (`#639`).
-Nächste Schritte siehe Block 4, „Wiedervorlagen Postclose-Halbzeile“.
+Nächste Schritte siehe Block 4, „Wiedervorlagen Postclose-Halbzeile“ (Plan
+(a)–(d) seit 14.11.2026 weitgehend erledigt, Status dort).
 
 **Datums-Basis (belegt, nicht Erinnerung):** Repo-Stand **27.09.2026**.
 **15.08.–27.09.2026** (PRs #533–#566, 33 PRs, alle git-belegt gemergt,
@@ -107,7 +146,7 @@ Anker.
 
 ---
 
-## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
+## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes; ab 02.11.2026 überwiegend neueste zuerst)
 
 ### 15.08.–27.09.2026 — Sechs-Wochen-Nachtrag (33 PRs, thematisch gruppiert)
 
@@ -3340,7 +3379,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#675` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
-### 13.11.2026 — Paper C handelbar Auslöser 500 + max_gain-Fenster bis Tag 10 + Wächter S17 (1 PR, Manual-Merge, protected-ok Regel b)
+### 12.11.2026 — Paper C handelbar Auslöser 500 + max_gain-Fenster bis Tag 10 + Wächter S17 (1 PR, Manual-Merge, protected-ok Regel b)
 
 - Easy-Entscheide 12.11.2026 nach dem Nachtrag zum Gipfel-Bericht: `#676` (Branch
   `claude/paper-c-handelbar-trigger-maxgain-w4k9`, Branch-Commit `feedc62a`, kein Merge-Hash —
@@ -3388,6 +3427,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   neu `truth-check-nachadjustierung-ausserhalb-fenster` (offen).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#689`,
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
+### 14.11.2026 — Handover-Konsistenz zum Sitzungsende + Tiingo-Ergebnis (1 PR, Doku, Self-Merge)
+
+- `#708` (Branch `claude/handover-konsistenz-w3k9`, Branch-Commit `8f53894e`, kein Merge-Hash — Regel a).
+  Kopf (Bogen 09.–14.11.), Block 2 (Positionen), Block 3 (Verifikation 14.11.), Block 4
+  (Wiedervorlagen 14.11., Halbzeilen-Status, Re-Test-Kalender), Block 5/6g (Edge-Stand, H-I),
+  Lessons 8z10–8z14, open_items-Nachträge (10 Items). Tiingo-Probe (Lauf 43626657445):
+  69 % < 90 % → „nicht bauen in dieser Form“, Kontrolle gültig. Freeze-Blöcke unberührt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#707`, höchste in Block 1
+  erwähnte PR = `#708` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
 ### 14.11.2026 — Gewinn-Felder im Backtest (1 PR, Manual-Merge, neue Schema-Felder, protected-ok Regel b)
@@ -4981,23 +5031,19 @@ Objekt). Aus der Sandbox nicht direkt lesbar — `app_data.json`-Mirror ist der
 letzte Daily-Run-Snapshot; bei Abweichung gewinnt der Gist. Zwischen Runs kann
 `current_price` stale sein (S3-Merge-Tag-Muster, §8 — kein Ausfall-Indiz).
 
-**Stand `app_data.json` — letzter erfolgreicher Daily-Run `last_daily_run_ts =
-2026-07-13T09:48:58Z` (premarket, 13.07.):** **7 offene Positionen.**
+**Stand `app_data.json` — letzter Daily-Run `last_daily_run_ts =
+2026-11-14T01:44:17Z` (postclose, D = 13.11.):** **2 offene Positionen.**
 
-| Ticker | entry_date | entry_price | current_price | shares | Hold-Flag |
-|---|---|---|---|---|---|
-| AMC   | 2026-05-01 | $1.50   | $1.89   | 500 | ✓ `no_exit_alerts=True` |
-| IONQ  | 2026-05-11 | $49.10  | $42.86  | 40  | — |
-| PDYN  | 2025-01-20 | $11.52  | $5.28   | 150 | — |
-| AI    | 2026-06-01 | $11.00  | $8.95   | 10  | — |
-| WOLF  | 2026-07-03 | $50.97  | $35.29  | 7   | — |
-| FRMM  | 2026-07-06 | $6.95   | $5.96   | 15  | — |
-| LENZ  | 2026-07-07 | $6.00   | $5.59   | 15  | — |
+| Ticker | entry_date | entry_price | shares | Hold-Flag |
+|---|---|---|---|---|
+| AMC  | 2026-05-01 | $1.50  | 500 | ✓ `no_exit_alerts=True` |
+| WOLF | 2026-07-03 | $50.97 | 7   | — |
 
-**Änderungen seit 12.07.-Handover:** Positions-Set unverändert (dieselben 7).
-`current_price`-Werte sind der **13.07.-premarket**-Snapshot — zwischen Runs
-stale (kein Ausfall-Indiz, §8). Details (P&L, These, Lessons) ausschließlich im
-Gist / Trade-Journal, nicht Session-Kontext.
+**Änderungen seit dem Stand 13.07.:** IONQ/PDYN als Geister-Positionen entfernt
+(31.10., `#614`–`#616`); AI/FRMM/LENZ stehen nicht mehr in `app_data.json`
+(Schließung nur daraus abgeleitet — am Gist bestätigen). `current_price` ist
+zwischen Runs stale (§8). Details (P&L, These) ausschließlich im Gist /
+Trade-Journal.
 
 **Hold-Flag-Regel unverändert:** `AMC` trägt weiterhin `no_exit_alerts=True`
 (bewusster Buy-and-Hold-Skip aller Exit-Pushes). Andere Positionen bekommen
@@ -5009,7 +5055,29 @@ nur bei `available=True`.
 
 ## 3) VERIFIKATION (nächste Handelstage, konkrete Beobachtungspunkte)
 
-### Woche 03.–08.08. — Verifikation ausstehend (nächster Deploy / Digest)
+### Verifikation Stand 14.11.2026 (Bogen 09.–14.11.)
+
+- **Mo 16.11. — erster Postclose mit Fix B (`#701`), Gewinn-Feldern (`#707`)
+  und `oi_stand` (`#702`).** Log: `[earnings_fields]`; Digest Di 17.11. (08:47 UTC):
+  „🧾 Gewinn-Felder“ und „🕳 Halbzeilen …“ (`nan_pct`, ohne Alarm). Neue
+  Backtest-Einträge tragen `letzte_zeile`/`spx_letzte_zeile`; „🧩 N entfallen“
+  nur bei Vortag-Rückfall. Erster neuer Punkt in `options_oi_history.json` mit
+  `oi_abgerufen_*` + `oi_stand` (Abendlauf → `vortag`, Lauf nach 00:00 ET →
+  `nacht_aktualisiert`).
+- **Di 17.11., ~23:07 UTC (truth_check) frühestens — Fix-B-Wirkungsbeleg.** Der
+  erste `score_abgleich` für D = 16.11. braucht den endgültigen Schlusskurs (ab
+  17.11. 07:00 ET). Erwartung: 0 Zeilen mit |Δ| ≥ 0,5. Danach Cleanup Probe 1
+  (`probe_halbzeile_score.yml` + Skript + Test; open_item `fixb-wirkungsbeleg`).
+- **Erster echter Nachtlauf** (Postclose-Start nach 00:00 ET): `nacht_lauf_et`
+  gesetzt, kein Vintage-Verwurf, S15 still (open_item
+  `berichtsdatum-wurzelloesung-nacht-probe`).
+- **Laufend:** Digest-Zeilen „📈 Kursverlauf“ (`outcome_path`) und
+  „🕐 Minutenkurse“.
+- **healthchecks.io:** Daily-Check von Hand auf `17,37 6,21 * * 1-5` UTC
+  umstellen (seit `#656`); ob das geschehen ist, ist im Repo nicht belegt —
+  Easy fragen.
+
+### Woche 03.–08.08. — (Stand 08.08., seither nicht nachgeführt; Historie)
 
 - **★★ inst_ownership-Zeile erscheint (#512).** Nach dem nächsten Daily-Deploy zeigt
   die Karten-Zeile „Institutioneller Anteil" **echte %-Werte** (war seit jeher stumm,
@@ -5187,23 +5255,43 @@ neu getestet.
 
 ## 4) GEPLANTE AUFGABEN + WIEDERVORLAGEN (mit Daten)
 
-### Wiedervorlagen Stand 08.11.2026 (Bogen 04.–08.11.)
+### Wiedervorlagen Stand 14.11.2026 (Bogen 09.–14.11.)
 
 | Datum / Auslöser | Was | open_item |
 |---|---|---|
-| ab 09.11.2026 (Einstieg) · Auslöser n = 500 | **Exit-B.1-Nachfolger** sammelt (gepaart, Wilcoxon); Schätzung Einstiege bis ~Mitte/Ende Mai 2027 + Reife | `exit-b1-nachfolger-sammelphase` |
-| **16.11.2026** | **ApeWisdom-Abdeckung** prüfen (Treffer-Quote 4,5–12,5 % seit 23.10.) | `apewisdom-abdeckung` |
-| **~20./21.11.2026** (nach 10 Werktags-Läufen) | **Wahrheits-Abgleich Einlaufphase**: erste 10 Läufe von `truth_check.yml` auf Fehlalarme prüfen (Dividenden-Nachadjustierung, Präfix-Fenster max_gain, vix/regime, Backfill-Zeilen) | `wahrheits-abgleich-einlaufphase` |
-| nächste Woche (offen; Probe `#666` gebaut, läuft ab Merge, ≥ 2 Handelsnächte) | **Berichtsdatum-Wurzellösung + Nacht-Probe** (Mitternachts-Falle 27.08., Postclose-Ausfall 04.11.; S15 meldet nur das Symptom) | `berichtsdatum-wurzelloesung-nacht-probe` |
-| Prüfpunkt (kein Termin) | **`entry_past_return_5d`: gemeinsamer Index vs. eigene Handelstage** — Produktion rechnet auf dem Mehr-Ticker-Index ohne dropna, der Wahrheits-Abgleich auf den eigenen Handelstagen des Tickers; Abweichungen in S16 bewerten, bevor die Replikation läuft | `epr-gemeinsamer-index-vs-eigene-handelstage` |
-| **03.12.2026** | **Sammel-Wiedervorlage** (geparkte Punkte bis nach den Freeze-Auswertungen): NaN-Baseline Gruppe 1, FINRA-SSR-UTC-Cache-Schlüssel, KI-Score-Edge-Freeze, Options-Rohketten, PR-#532-Sibling-Bugs | `nan-bypass-baseline-70`, `finra-ssr-utc-cache-key`, `ki-score-edge-freeze`, `options-chain-raw-sammelfeld`, `pr532-or0-sibling-bugs` |
-| **~21./22.12.2026** · Auslöser n ≥ 300 | **Paper C Replikation** (nur Gipfel, Einstieg ≥ 24.10.2026); vorher Skript parametrisieren | `paper-c-replikation-sammelphase`, `paper-c-replikations-skript` |
+| **Mo 16.11.2026** | **ApeWisdom-Abdeckung** prüfen (Treffer-Quote, `coverage_history.jsonl` `n_mit_daten`, seit 02.11. mit 5 Seiten; FetchFailed-Läufe getrennt zählen) | `apewisdom-abdeckung` |
+| **Mo 16.11. (Postclose) / Di 17.11. (Digest)** | **Gewinn-Felder** (`earnings_surprise_pit`, `material_8k_events_14d`; Log `[earnings_fields]`, Digest „🧾 Gewinn-Felder“) · **`oi_stand`** am ersten Postclose-Punkt · `letzte_zeile` in neuen Einträgen | `earnings-surprise-nicht-persistiert`, `material-8k-rueckblick-zu-kurz`, `oi-stand-kennzeichen` |
+| **Di 17.11., ~23:07 UTC** (erster `score_abgleich` für D = 16.11.) | **Fix-B-Wirkungsbeleg:** 0 Zeilen mit |Δ| ≥ 0,5 erwartet → Easy melden → Cleanup Probe 1 | `fixb-wirkungsbeleg` |
+| erster Nachtlauf | **Berichtsdatum Variante A** belegen (`nacht_lauf_et`, kein Verwurf) | `berichtsdatum-wurzelloesung-nacht-probe` |
+| **~20./21.11.2026** (nach 10 Werktags-Läufen) | **Wahrheits-Abgleich Einlaufphase**: Fehlalarme prüfen (Rundungsschranke, Dividende im Fenster) | `wahrheits-abgleich-einlaufphase` |
+| **Easy-Entscheid offen** | **Tiingo-Probe ausgewertet 14.11.2026** (Lauf 43626657445): Abdeckung der Verschwundenen **97/140 = 69 %** (KI 61–76 %) < 90 % → Regel vorab: **nicht bauen in dieser Form**; Kontrolle 20/20 gültig. Nächster Schritt: Easy-Entscheid (andere Quelle / Ersatzrendite mit Sensitivität / keine Rückrechnung), danach Cleanup `probe_rueckrechnung.yml`/`probe_tiingo.yml` | `rueckrechnung-survivorship-delisting`, `mehrjahres-rueckrechnung-probe`, `rueckrechnung-datenablage`, `rueckrechnung-zeitraeume-freeze` |
+| vor dem Bau-Entscheid Rückrechnung | **Hypothesen Gewinnzahlen/Sprungtag** (ENTWURF H-EA1/H-EA2/H-JUMP) — Freeze erst mit dem Bau-Entscheid, vor jedem Blick in Mehrjahres-Renditen | `rueckrechnung-hypothesen-gewinnzahlen` |
+| ab 01.12.2026 | **Glättung:** erster echter Monatswechsel-Nachweis | `score-smoothing-textsortierung-monatswechsel` |
+| **03.12.2026** | **Sammel-Wiedervorlage** (unverändert): NaN-Baseline Gruppe 1, FINRA-SSR-UTC-Cache-Schlüssel, KI-Score-Edge-Freeze, Options-Rohketten, PR-#532-Sibling-Bugs | `nan-bypass-baseline-70`, `finra-ssr-utc-cache-key`, `ki-score-edge-freeze`, `options-chain-raw-sammelfeld`, `pr532-or0-sibling-bugs` |
+| **~21./22.12.2026** · Auslöser n ≥ 300 (Einstieg ≥ 24.10.) | **Paper C Replikation** (nur Gipfel); vorher Skript parametrisieren | `paper-c-replikation-sammelphase`, `paper-c-replikations-skript` |
+| direkt nach der Replikation · n ≥ 500 (Schätzung **~Ende Jan. 2027**, nicht bindend) | **Paper C handelbar** (Ziel ab **Eröffnung Tag 1**, `outcome_path`-bars); Skript fehlt | `paper-c-handelbar-zusatzfamilie` |
+| danach · n ≥ 500 (frühestens ~Ende Jan. 2027) | **H-I Stufe 2** (`hyp_nov26_s2`, k = 1) → **H-I Rendite** (`hi_r_f1`/`hi_r_f2`) → **Landkarte K1/K2** — Reihenfolge laut Freeze-Blöcken | `hypothesen-runde-nov26-skript`, `hi-rendite-skript`, `landkarte-k1k2-skript` |
+| ab 09.11.2026 · n = 500 | **Exit-B.1-Nachfolger** sammelt (Schätzung ~Mitte/Ende Mai 2027) | `exit-b1-nachfolger-sammelphase` |
+| kein Bau ohne Entscheid | Handelskosten-Auswertung (Minutenkurse) | `handelskosten-messung` |
+
+*(Vorgänger-Tabelle „Stand 08.11.2026“ ersetzt; erledigt seither:
+Berichtsdatum-Wurzellösung gebaut `#698`, `entry_past_return_5d`-Prüfpunkt
+`#693`.)*
 
 ### Wiedervorlagen Postclose-Halbzeile (Stand 02.11.2026, Reihenfolge = Easy-Entscheid)
 
 Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
 **jetzt** repariert (systematisch, 15/22 Abendläufe im Oktober), nicht bis
 03.12. geparkt. Ein PR zur Zeit, in dieser Reihenfolge:
+
+**Status 14.11.2026:** (a) ✅ Nacht-Probe-Endbericht `#694` + Probe 1
+(`#698`/`#700`, Lauf 43578382904: 76/149 Zeilen |Δ| ≥ 0,5) · (b) ✅
+Protokolleinträge in den laufenden Blöcken (`#698`, Naht = Merge `#701`) ·
+(c) ✅ Fix B `#701` (nur Postclose), Wirkungsbeleg offen (`fixb-wirkungsbeleg`) ·
+(d) teilweise: `nan_pct` ✅ `#699` (abweichend vom Plan nur Hinweis-Zeile, keine
+Schwelle); `price_asof` = Bar-Datum **offen** (`_fetch_position_market_data`
+nutzt einen eigenen Abruf, Fix B greift dort nicht; open_item
+`exit-current-price-postclose-vortag`) · (e) unverändert offen.
 
 - **(a) Auswertung `[halfrow_probe]`** nach dem nächsten Postclose- **und**
   dem folgenden Premarket-Lauf: Probe-Zeilen (`.info`-Kurs/-Hoch/-Tief/
@@ -5224,7 +5312,7 @@ Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
   nach 00:00 UTC Volumen/RVOL auf dem Vortag. Ein Fix dort bräuchte einen
   KI-Score-Freeze-Eintrag — **Entscheidung offen (Easy)**.
 
-### RE-TEST-KALENDER (kanonisch, Stand 05.08.2026)
+### RE-TEST-KALENDER (kanonisch, Stand 14.11.2026)
 
 | Datum | Was | n-Ziel | Notiz |
 |---|---|---|---|
@@ -5236,6 +5324,9 @@ Easy-Entscheid 02.11.2026: Die halbe yfinance-Tageszeile im Postclose wird
 | **AUSGEWERTET 07.11.2026** | **Paper C (Momentum → Gipfel)** — vorabregistriert, eingefroren 07.11.2026 | 668 verwendet (21.07.–23.10.2026) | Ziel 1 Gipfel **Beleg**, Ziel 2 `return_10d` **Unklar** — „PROTOKOLLEINTRAG Paper C 07.11.2026“. |
 | **datumsfrei · Auslöser n≥300** | **Paper C Replikation (Gipfel)** — vorabregistriert, eingefroren 07.11.2026 | n ≥ 300 · forward ∧ Einstieg ≥ 24.10.2026 | Schätzung (nicht bindend): ~10 Zeilen/Handelstag ab 26.10. → 300 Einstiege etwa bis 07.12.2026, plus ~14 Tage Reife → **~21./22.12.2026**. |
 | **datumsfrei · Auslöser n≥500** | **Exit-B.1-Nachfolger (gepaart, Wilcoxon)** — vorabregistriert, eingefroren 07.11.2026 | n ≥ 500 · `score≥70` ∧ `provenance=forward` ∧ Einstieg ≥ 09.11.2026 | Block „VORABREGISTRIERUNG — Exit-B.1-Nachfolger“. Schätzung (nicht bindend): Einstiege bis ~Mitte/Ende Mai 2027, plus ~2 Wochen Reife. |
+| **AUSGEWERTET 13.11.2026** | Hypothesen-Runde Stufe 1 (`hyp_nov26_s1`, k = 3) | Einstiege 21.07.–23.10.2026 | H-I **Beleg** (1 Fenster), H-G/H-K „Unklar“ (`eval_results.jsonl`) |
+| **datumsfrei · Auslöser n≥500** | **Paper C handelbar** — eingefroren 12.11.2026 | nach der Replikation | Schätzung ~Ende Jan. 2027 |
+| **datumsfrei · Auslöser n≥500** | **H-I Stufe 2** → **H-I Rendite** → **Landkarte K1/K2** — eingefroren 12./13.11.2026 | Einstieg ≥ 24.10.2026 | Reihenfolge laut Freeze-Blöcken, jeweils einmaliger Lauf |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
 
@@ -8292,7 +8383,8 @@ werden nie gepoolt. Erfolgs-Definition unverändert (oben).
 | **Svoboda `squeeze_event`** | **Kein Freeze vor 2027.** Erst Definitionen festlegen: Attention-Spike-Schwelle **nur aus der Literatur**, eigenes Feld für das **5-Tage-Hoch** (`max_gain_pct` misst 10 Handelstage). Näherungszählung seit 13.07. im einstelligen Bereich (Obergrenze), Ziel n ≥ 40 weit entfernt. |
 | **FTD** (Fails-to-Deliver) | Nicht im Export, eigene Datei `ftd_history.json` (ab 11.08.2026). **Stichtags-Regel festgehalten:** nur Werte mit `first_available ≤ Einstiegsdatum` verwenden, **nie** `settlement_date` (Veröffentlichung im Median ~25 Tage nach dem Stichtag). Noch keine Hypothese, kein Freeze. |
 | **Reg-SHO-Threshold** | Seit 11.08.2026 **0 Positivfälle** (`restricted = true` nie) — derzeit **nicht testbar**. |
-| Inst-Ownership, Options-OI/Gamma, ApeWisdom | **Nur sammeln** (ab 11.08. bzw. 23.10.2026). Keine Hypothese, kein Freeze. |
+| Inst-Ownership | **H-I** registriert (`#684`), Stufe 1 **Beleg** (1 Fenster, 13.11.2026); H-I Rendite registriert (`#686`). |
+| Options-OI/Gamma, ApeWisdom | **Nur sammeln** (ab 11.08. bzw. 23.10.2026). Keine Hypothese, kein Freeze. |
 
 **Edge-Status (Stand 07.11.2026):** **4** Bestätigungstests gelaufen
 (`eval_results.jsonl`: `exit_b1_a`, `exit_b1_b`, `paper_c_gipfel`,
@@ -8308,6 +8400,12 @@ und Stand:
 | Setup-Edge/Conviction (10.10.) | sammelt (n/250) |
 | KI-Score (13.10.) | sammelt (n/250) |
 | H5 (12.09.) | sammelt, realistisch ~2028 |
+
+**Nachtrag 14.11.2026:** **7** Bestätigungstests (+ `hg_s1`, `hi_s1`, `hk_s1`),
+**2** Belege (`paper_c_gipfel` = Spanne inkl. Einstiegstag; `hi_s1` = Treffer
+≥ 30 %, je 1 Fenster). Neue Freezes: Paper C handelbar (12.11.), Hypothesen-Runde
+Nov. (12.11., Stufe 1 ausgewertet 13.11.), H-I Rendite (12.11.), Landkarte K1/K2
+(13.11.) — alle Folgeläufe auf Einstiegen ≥ 24.10.2026, n ≥ 500.
 
 **Holm über Familien:** Paper C (2 Ziele) + Exit-Nachfolger bilden eine gemeinsame
 Familie k = 3; Alt-Familien bleiben unverändert. Jeder Ergebnisbericht nennt die
@@ -8680,7 +8778,9 @@ Umbau, kein Trading-Wert — Easy-Entscheid 07.10.2026: nicht angehen.
 ### 6g. Institutional-Ownership-Faktor (Paper-Dämpfer) — Anzeige-Key-Fix + Sammelfeld DURCH, Hypothesen-Runde offen
 **Status: Anzeige-Key-Fix ERLEDIGT (#510–#512, 07.08.); Sammelfeld LIVE seit
 10.08.2026 (korrigiert 06.10.2026); Hypothesen-Runde NACH Paper C weiterhin
-OFFEN.** Svoboda et al.: hoher Institutional-Ownership
+OFFEN.** **Nachtrag 14.11.2026:** Hypothesen-Runde registriert (`#684`), H-I
+Stufe 1 **Beleg** (1 Fenster); Karten-Zeile seit `#697` neutral mit Hinweis
+(`INST_OWNERSHIP_HINT`). Svoboda et al.: hoher Institutional-Ownership
 **dämpft** (**−6 % je +1 %**) — der erste Faktor, der GEGEN einen Squeeze spräche.
 Datenquelle yfinance **`heldPercentInstitutions`** (ein BRUCH); die früher
 verdrahteten Keys (`institutionHeldPercentOutstanding`/`institutionsPercentHeld`)
@@ -9106,7 +9206,63 @@ Projekt-Ehrlichkeitsregel.
 
 *(Neueste zuerst: 8z7 vom 17.07.; 8z4–8z6 vom 16.–17.07.; 8z1–8z3 vom 15.07.-Abend; 8v–8y vom
 15.07.; 8s–8u vom 14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag; 8n–8p vom 13.07.;
-8j–8m vom 11.–12.07.; etablierte 8a–8i darunter; 8z9 vom 12.11. und 8z8 vom 06.11. ganz oben.)*
+8j–8m vom 11.–12.07.; etablierte 8a–8i darunter; 8z10–8z14 vom 11.–14.11., 8z9 vom 12.11. und 8z8 vom 06.11. ganz oben.)*
+
+### 8z14. Rückrechnung: Kursquellen kennen keine Toten (14.11.2026)
+
+Probe Rückrechnung (`#704`/`#705`, Läufe 43612810901/43612813369): Von gelisteten
+Stammaktien verschwinden laut FINRA **9–16 % in 12 Monaten** (18–27 % in 24
+Monaten, am Nasdaq Capital Market etwa doppelt so viele). Für die Verschwundenen
+liefert yfinance 0–3 % der Kurse, Stooq nichts. Ohne diese Titel sind absolute
+Renditen zu hoch, und Gruppenvergleiche kippen, wenn die Lücke je Gruppe
+verschieden ist (Titel mit niedrigen Days to Cover verschwinden häufiger). Die
+übernommene Annahme „SI frei ab 06/2021“ war falsch: frei ab **29.12.2017**.
+**Regel:** keine Rückrechnung ohne Delisting-Kurse (Tiingo-Probe `#706`, Regel
+≥ 90 % vorab) oder Ersatzrendite mit Sensitivität; Kontrollgruppe vorab
+festschreiben; Quellen-Annahmen messen statt übernehmen.
+
+### 8z13. Kurs richtig ≠ Zeile richtig — die halbe Abend-Tageszeile (14.11.2026)
+
+yfinance liefert im Postclose für die meisten Ticker die letzte Tageszeile halb
+leer (Volumen da, Open/High/Low/Close leer). Der angezeigte Kurs stimmte trotzdem,
+deshalb blieb der Fehler wochenlang unsichtbar; Gap & Hold, RS vs. SPY, rvol und
+Late-Runner rechneten aber falsch: Probe 1 (Lauf 43578382904) fand **76/149
+Zeilen mit |Δ Score| ≥ 0,5** und 3–9 Rangwechsel je Abend. Fix B (`#701`): die
+letzte Zeile **einmal** entscheiden (vollständig / aus `.info` gefüllt bei
+gleichem ET-Datum / Vortag-Rückfall mit Verwurf), Score-Abgleich als Wächter.
+**Regel:** Vollständigkeit der letzten Zeile prüfen, nie annehmen; Wirkung auf
+abgeleitete Größen messen, nicht nur auf den Kurs.
+
+### 8z12. Handelbar ist erst die Eröffnung von Tag 1 (12.11.2026)
+
+Der Bericht liegt immer erst nach Börsenschluss D vor. Ein Einstieg „zum Schluss
+D“ ist mit dem Bericht nicht handelbar. Seit `#684` ist der bindende Einstieg in
+Hypothesen-Runde, H-I Rendite, K1/K2 und „Paper C handelbar“ die **Eröffnung Tag
+1**; „ab Schluss D“ wird nur noch zur Einordnung berichtet (so auch H-JUMP-E im
+Entwurf `rueckrechnung-hypothesen-gewinnzahlen`). **Regel:** bei jedem Ziel
+prüfen, ob der Einstiegszeitpunkt mit der Information tatsächlich handelbar ist.
+
+### 8z11. Der Schlusskurs ist erst am Folgemorgen endgültig (12.11.2026)
+
+„Final ab 16:20 ET“ reichte nicht: S16 fand Werte, die am Zieltag abends aus einem
+vorläufigen Close gefüllt und nie überschrieben wurden. Die Nacht-Probe zeigte:
+Kurse von D gleichen der Tag-Referenz erst am Folgetag. Fix:
+`trading_date.last_settled_close_date` (ab **07:00 ET des Folgetags**) für die
+Einmal-Felder (`#680`), `outcome_path` (`#681`) und den Wahrheits-Abgleich
+(`#682`); Altfälle als „bekannt (geprüft)“ (`#690`). **Regel:** Felder, die
+einmal geschrieben und nie überschrieben werden, nur aus endgültigen Daten
+füllen; neu geschriebene Felder dürfen vorläufig lesen.
+
+### 8z10. Zielfeld im Code lesen, bevor ein Beleg angezeigt wird (11./12.11.2026)
+
+Paper C bekam am 08.11. das erste GRÜN für „Gipfel ≥ 30 %“. Der Gipfel-Bericht
+(11.11.) zeigte: `max_gain_pct` misst die **Spanne laufendes Tief → Hoch
+inklusive Einstiegstag D**, nicht den Gewinn ab Einstiegskurs. Das Verdikt gilt
+weiter für das registrierte Ziel, die Anzeige ging aber zurück auf **blau**
+(`#675`); handelbares Feld ist `outcome_path.jsonl` mit eigenem Freeze „Paper C
+handelbar“ (`#674`). **Regel:** vor jeder Freigabe die Definition des Zielfelds
+am Code prüfen und in Klartext benennen — „Beleg fürs registrierte Ziel“ ist
+nicht dasselbe wie „handelbarer Gewinn“.
 
 ### 8z9. Lösch-Befehl an eine Push-Zeile angehängt (12.11.2026)
 
