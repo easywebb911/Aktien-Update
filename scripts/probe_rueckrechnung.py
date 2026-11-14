@@ -80,7 +80,7 @@ PROXY_FROM = date(2026, 7, 1)
 PUB_LAG_BUSINESS_DAYS = 8        # Annahme ~7 Werktage + 1 Reserve; P1 prüft gegen FINRA-Seite
 YF_BATCH = 20
 YF_PAUSE_S = 2.0
-TIME_BUDGET_S = 125 * 60         # Workflow-Timeout 150 min; danach P2Y-Jahre überspringen
+TIME_BUDGET_S = 140 * 60         # Workflow-Timeout 150 min; P2Y-Jahr nur bei ≥ 30 min Rest bis hier
 
 FINRA_API = "https://api.finra.org/data/group/otcMarket/name/{ds}"
 FINRA_META = "https://api.finra.org/metadata/group/otcMarket/name/{ds}"
@@ -743,7 +743,7 @@ def probe_p2f(result, sdates):
             if label == "12m":
                 vanished[y] = (base, sorted(s for s, f in fates.items() if f == "verschwunden"))
         out[str(y)] = res_y
-        log(f"P2F {y}: {json.dumps(res_y.get('12m', {}) and res_y['12m']['gesamt'], default=str)}")
+        log(f"P2F {y}: {json.dumps((res_y.get('12m') or {}).get('gesamt'), default=str)}")
     out["hinweis"] = ("verschwunden = Delisting ODER Übernahme ODER Namens-/Kürzeländerung ohne "
                       "Namenstreffer; kein CUSIP-Feld, Trennung nur über issueName (erste 3 Wörter, "
                       "nur gegen Stammaktien); neu_vergeben enthält auch Namenswechsel unter gleichem "
@@ -776,7 +776,7 @@ def probe_p2y(result, sdates, deadline=None):
     log(f"P2Y Kontrolle: {json.dumps(out['kontrolle'], default=str)}")
     split_cands = []
     for y in YEARS_Y:
-        if deadline is not None and time.monotonic() > deadline:
+        if deadline is not None and time.monotonic() > deadline - 30 * 60:   # ein Jahr ≈ 20 min
             out[str(y)] = {"uebersprungen": "zeitbudget"}
             log(f"P2Y {y}: übersprungen (Zeitbudget)")
             continue
@@ -936,7 +936,7 @@ def probe_p6(result, sdates, yf_cands):
             tally[k] = tally.get(k, 0) + v
     out["flag_gesamt"] = tally
     out["beispiele"] = examples
-    out["yfinance_splits_im_p2y_fenster"] = len(yf_cands)
+    out["yfinance_splits_im_p2y_fenster"] = len(yf_cands) if yf_cands else None   # P2Y läuft danach
     result["P6"] = out
 
 
