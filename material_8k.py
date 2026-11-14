@@ -56,6 +56,8 @@ _FALLBACK = {
     "http_timeout": 10,
     "max_docs": 3,
     "sleep_s": 0.3,
+    "extra_lookback_days": 14,
+    "extra_cap_n": 16,
 }
 
 
@@ -235,6 +237,72 @@ def scan_terms_in_text(text, core_terms) -> list:
 
 
 # ── Orchestrierung ───────────────────────────────────────────────────────────
+def select_last_item_8k(submissions_json, *, now_utc, item_code) -> dict | None:
+    """Pure: jüngstes 8-K mit ``item_code`` (z. B. ``"2.02"`` = Results of
+    Operations) und ``acceptance_datetime <= now_utc`` aus ``filings.recent``
+    — OHNE Alters-Untergrenze (Datum des LETZTEN Gewinn-Termins, Easy-Entscheid
+    14.11.2026). ``None`` wenn keines in ``recent`` steht. Gleiche Point-in-
+    time-Regel wie ``select_windowed_8k`` (nie nach dem Report-Zeitpunkt)."""
+    rec = (((submissions_json or {}).get("filings") or {}).get("recent")
+           or {})
+    forms = rec.get("form") or []
+    items = rec.get("items") or []
+    accs = rec.get("acceptanceDateTime") or []
+    adsh = rec.get("accessionNumber") or []
+    best = None
+    for i in range(len(forms)):
+        if not str(forms[i]).startswith("8-K"):
+            continue
+        acc_dt = _parse_acc_dt(accs[i] if i < len(accs) else None)
+        if acc_dt is None or acc_dt > now_utc:
+            continue
+        raw_items = str(items[i]) if i < len(items) else ""
+        codes = [c.strip() for c in raw_items.split(",") if c.strip()]
+        if item_code not in codes:
+            continue
+        acc = str(adsh[i]) if i < len(adsh) else ""
+        key = (acc_dt, acc)
+        if best is None or key > best[0]:
+            best = (key, {"acceptance_datetime": str(accs[i]), "accession": acc})
+    return best[1] if best else None
+
+
+def _extras_from_submissions(sub, *, now_utc, cik, lookback_days,
+                             qualifying_items, cap_n) -> dict:
+    """Pure: die zwei additiven Zusatzwerte (Easy-Entscheid 14.11.2026) aus
+    DEMSELBEN submissions-JSON — kein zusätzlicher EDGAR-Abruf:
+
+    * ``window``: Wrapper wie ``material_8k_events``, aber mit
+      ``lookback_days`` (14) und OHNE matured-terms-Doc-Scan (Rohdaten
+      accession/item_codes/acceptance; ``matched_terms`` später aus der
+      accession ableitbar). Gleiche item_codes, gleiche Point-in-time-Regel.
+    * ``last_2_02``: jüngstes 8-K Item 2.02 ``<= now_utc`` (oder None).
+    """
+    events = select_windowed_8k(
+        sub, now_utc=now_utc, lookback_days=lookback_days,
+        qualifying_items=qualifying_items, cik=cik)
+    truncated = len(events) > cap_n
+    events = events[:cap_n]
+    for ev in events:
+        ev.pop("_primary_document", None)
+        ev.pop("matched_terms", None)
+    return {
+        "window": {"collected": True, "reason": None, "cik": cik,
+                   "truncated": truncated, "lookback_days": lookback_days,
+                   "events": events},
+        "last_2_02": select_last_item_8k(sub, now_utc=now_utc,
+                                         item_code="2.02"),
+        "reason": None,
+    }
+
+
+def _empty_extras(reason, cik=None, lookback_days=None) -> dict:
+    return {"window": {"collected": False, "reason": reason, "cik": cik,
+                       "truncated": False, "lookback_days": lookback_days,
+                       "events": []},
+            "last_2_02": None, "reason": reason}
+
+
 def _empty_wrapper(reason=None, cik=None) -> dict:
     return {"collected": False, "reason": reason, "cik": cik,
             "truncated": False, "events": []}
@@ -243,12 +311,22 @@ def _empty_wrapper(reason=None, cik=None) -> dict:
 def collect_for_ticker(ticker, *, now_utc, cik_index, ua, timeout,
                        lookback_days, qualifying_items, core_terms, cap_n,
                        max_docs, get_json, get_text,
-                       deadline=None, sleep_s=0.0) -> dict:
+                       deadline=None, sleep_s=0.0, extras_out=None,
+                       extra_lookback_days=None, extra_cap_n=None) -> dict:
     """Fail-soft: liefert das ``material_8k_events``-Wrapper-Dict für EINEN
-    Ticker. Raise nie."""
+    Ticker. Raise nie.
+
+    ``extras_out`` (optional, 14.11.2026): wenn ein Dict übergeben wird, legt
+    die Funktion dort unter ``ticker`` die Zusatzwerte ab (14-Tage-Fenster +
+    letztes 8-K Item 2.02) — aus DEMSELBEN submissions-JSON, ohne weiteren
+    Abruf. Der Rückgabewert (``material_8k_events``) bleibt unverändert."""
+    def _put_extras(value):
+        if extras_out is not None:
+            extras_out[ticker] = value
     cik = resolve_cik(ticker, cik_index)
     if cik is None:
         log.info("material_8k %s: keine eindeutige CIK — leer (no_cik)", ticker)
+        _put_extras(_empty_extras("no_cik", None, extra_lookback_days))
         return _empty_wrapper(reason="no_cik")
 
     try:
@@ -259,7 +337,20 @@ def collect_for_ticker(ticker, *, now_utc, cik_index, ua, timeout,
                     ticker, exc)
         sub = None
     if sub is None:
+        _put_extras(_empty_extras("fetch_failed", cik, extra_lookback_days))
         return _empty_wrapper(reason="fetch_failed", cik=cik)
+
+    if extras_out is not None:
+        try:
+            _put_extras(_extras_from_submissions(
+                sub, now_utc=now_utc, cik=cik,
+                lookback_days=extra_lookback_days,
+                qualifying_items=qualifying_items,
+                cap_n=extra_cap_n))
+        except Exception as exc:  # pragma: no cover — reine Absicherung
+            log.warning("material_8k %s: Zusatzwerte fehlgeschlagen: %s",
+                        ticker, exc)
+            _put_extras(_empty_extras("error", cik, extra_lookback_days))
 
     events = select_windowed_8k(
         sub, now_utc=now_utc, lookback_days=lookback_days,
@@ -320,12 +411,19 @@ def collect_material_8k_events(tickers, *, now_utc=None, ua=None,
                                core_terms=None, cap_n=None, max_docs=None,
                                run_budget_s=None, http_timeout=None,
                                sleep_s=None, get_json=None, get_text=None,
-                               company_tickers=None) -> dict:
+                               company_tickers=None, extras_out=None,
+                               extra_lookback_days=None,
+                               extra_cap_n=None) -> dict:
     """Sammelt für ``tickers`` (Top-10) je das ``material_8k_events``-Wrapper-
     Dict. ``company_tickers.json`` wird EINMAL geholt (geteilt). Fail-soft
     über den gesamten Pfad — einzelne Ticker-Fehler nullen nur diesen Ticker.
 
     Rückgabe: ``{ticker: wrapper}``.
+
+    ``extras_out`` (optional, 14.11.2026): Dict, in das je Ticker die
+    Zusatzwerte (14-Tage-Fenster + letztes 8-K Item 2.02) geschrieben werden
+    — aus demselben submissions-JSON, KEIN weiterer EDGAR-Abruf. Ohne das
+    Argument ist das Verhalten byte-gleich wie vorher.
     """
     if now_utc is None:
         # NUR Fallback wenn der Aufrufer keinen Report-Zeitpunkt reicht. Der
@@ -355,6 +453,11 @@ def collect_material_8k_events(tickers, *, now_utc=None, ua=None,
                               _FALLBACK["http_timeout"]))
     sleep_s = (sleep_s if sleep_s is not None
                else _cfg("MATERIAL_8K_SLEEP_S", _FALLBACK["sleep_s"]))
+    extra_lookback_days = (extra_lookback_days if extra_lookback_days is not None
+                           else _cfg("MATERIAL_8K_14D_LOOKBACK_DAYS",
+                                     _FALLBACK["extra_lookback_days"]))
+    extra_cap_n = (extra_cap_n if extra_cap_n is not None
+                   else _cfg("MATERIAL_8K_14D_CAP_N", _FALLBACK["extra_cap_n"]))
 
     result: dict[str, dict] = {}
     if not tickers:
@@ -372,6 +475,10 @@ def collect_material_8k_events(tickers, *, now_utc=None, ua=None,
     if not cik_index:
         log.warning("material_8k: leerer CIK-Index → alle Ticker leer "
                     "(fetch_failed)")
+        if extras_out is not None:
+            for t in tickers:
+                extras_out[t] = _empty_extras("fetch_failed", None,
+                                              extra_lookback_days)
         return {t: _empty_wrapper(reason="fetch_failed") for t in tickers}
 
     deadline = (time.monotonic() + run_budget_s) if run_budget_s else None
@@ -386,6 +493,9 @@ def collect_material_8k_events(tickers, *, now_utc=None, ua=None,
             log.warning("material_8k: Gesamt-Zeitbudget erschöpft — Ticker %s "
                         "(und ggf. weitere) übersprungen (budget_skip)", t)
             result[t] = _empty_wrapper(reason="budget_skip")
+            if extras_out is not None:
+                extras_out[t] = _empty_extras("budget_skip", None,
+                                              extra_lookback_days)
             continue
         try:
             result[t] = collect_for_ticker(
@@ -393,11 +503,17 @@ def collect_material_8k_events(tickers, *, now_utc=None, ua=None,
                 timeout=http_timeout, lookback_days=lookback_days,
                 qualifying_items=qualifying_items, core_terms=core_terms,
                 cap_n=cap_n, max_docs=max_docs, get_json=get_json,
-                get_text=get_text, deadline=deadline, sleep_s=sleep_s)
+                get_text=get_text, deadline=deadline, sleep_s=sleep_s,
+                extras_out=extras_out,
+                extra_lookback_days=extra_lookback_days,
+                extra_cap_n=extra_cap_n)
         except Exception as exc:
             log.warning("material_8k %s: unerwarteter Fehler (fail-soft): %s",
                         t, exc)
             result[t] = _empty_wrapper(reason="error")
+            if extras_out is not None:
+                extras_out[t] = _empty_extras("error", None,
+                                              extra_lookback_days)
     return result
 
 
