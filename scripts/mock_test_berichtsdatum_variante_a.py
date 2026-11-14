@@ -290,6 +290,36 @@ def test_wiring():
           and "'37 21 * * 1-5'" in (ROOT / ".github/workflows/daily-squeeze-report.yml").read_text())
 
 
+def test_reg_sho_anchor():
+    print("9 Reg SHO: NYSE-Abfragetag im Nachtlauf wie abends (D−1)")
+    import reg_sho_history as rs
+    seen = []
+
+    def nyse(url):
+        seen.append(url.split("selectedDate=")[1].split("&")[0])
+        return (200, "Symbol|Security Name|Market Category\n", None)
+
+    def nasdaq(url):
+        return (404, "", None)
+    with tempfile.TemporaryDirectory() as t:
+        kw = dict(run_phase="postclose", get_nasdaq_text_fn=nasdaq, get_nyse_text_fn=nyse,
+                  hist_path=os.path.join(t, "h.json"), state_path=os.path.join(t, "s.json"))
+        uni = [{"ticker": "XX", "exchange": "NYQ"}]
+        # Abend Mi 11.11. 22:00 ET → Liste Di 10.11.
+        rs.collect_and_persist(uni, report_date_iso="2026-11-11", anchor_date_iso="2026-11-11",
+                               now_utc=et(2026, 11, 11, 22, 0).astimezone(timezone.utc), **kw)
+        # Nacht Do 12.11. 01:28 ET, Berichtstag Mi → ebenfalls Di 10.11.
+        rs.collect_and_persist(uni, report_date_iso="2026-11-11", anchor_date_iso="2026-11-11",
+                               now_utc=et(2026, 11, 12, 1, 28).astimezone(timezone.utc), **kw)
+        # ohne Anker (alter Weg): Nacht fragt Mi 11.11. ab
+        rs.collect_and_persist(uni, report_date_iso="2026-11-11",
+                               now_utc=et(2026, 11, 12, 1, 28).astimezone(timezone.utc), **kw)
+    check("Abend und Nacht fragen dieselbe Liste (D−1) ab; ohne Anker wie bisher",
+          seen[:3] == ["2026-11-10", "2026-11-10", "2026-11-11"], seen)
+    check("main() übergibt den Berichts-Handelstag als Anker",
+          "anchor_date_iso=_us_trading_date_iso" in GR_SRC)
+
+
 def test_s15():
     print("8 S15 vintage_guard_log")
     now = datetime(2026, 11, 13, 6, 0, tzinfo=timezone.utc)
@@ -325,7 +355,7 @@ def test_s15():
 
 def main() -> int:
     for fn in (test_report_trading_date, test_determinism, test_resolver, test_guard,
-               test_append_end_to_end, test_hand_start, test_wiring, test_s15):
+               test_append_end_to_end, test_hand_start, test_wiring, test_reg_sho_anchor, test_s15):
         fn()
     print()
     if _fails:

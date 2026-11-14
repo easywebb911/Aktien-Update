@@ -19885,7 +19885,8 @@ def main():
         _rs_universe = [{"ticker": s.get("ticker"), "exchange": s.get("exchange")}
                         for s in top10 if s.get("ticker")]
         reg_sho_history.collect_and_persist(_rs_universe, run_phase=run_phase,
-                                            report_date_iso=_us_trading_date_iso)
+                                            report_date_iso=_us_trading_date_iso,
+                                            anchor_date_iso=_us_trading_date_iso)
     except Exception as _rs_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("reg_sho_history-Sammlung übersprungen: %s", _rs_exc)
 

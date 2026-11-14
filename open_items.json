@@ -917,7 +917,7 @@
       "id": "berichtsdatum-sammler-konsistenz",
       "title": "Sammler desselben Postclose-Laufs auf dem Berichts-Handelstag",
       "opened": "2026-11-14",
-      "description": "Befund Plan 14.11.2026: Sammler (OI, Rohketten, News-, Inst-, ApeWisdom-, Coverage-, FTD-, Reg-SHO-Zeilen) schrieben nach Mitternacht ET das Folgetags-Datum. Mit #698 bekommen sie im Postclose dasselbe Datum wie der Backtest (_us_trading_date_iso = Berichts-Handelstag), alle idempotent pro (Ticker, Datum) bzw. (Datum, Phase). Restkanten (bewusst unverändert, im PR benannt): Reg SHO fragt im Nachtlauf die NYSE-Liste vom Tag D statt D−1 ab (Anker = Laufzeit; Test verlangt das so); Exit-Shadow schreibt nach Mitternacht weiterhin nicht (eigenes 16:20-Uhrzeit-Gate).",
+      "description": "Befund Plan 14.11.2026: Sammler (OI, Rohketten, News-, Inst-, ApeWisdom-, Coverage-, FTD-, Reg-SHO-Zeilen) schrieben nach Mitternacht ET das Folgetags-Datum. Mit #698 bekommen sie im Postclose dasselbe Datum wie der Backtest (_us_trading_date_iso = Berichts-Handelstag), alle idempotent pro (Ticker, Datum) bzw. (Datum, Phase). Reg SHO bekommt den Berichts-Handelstag zusätzlich als NYSE-Anker (anchor_date_iso) → Nachtlauf fragt wie abends die Liste von D−1 ab (Guardian-Befund #698). Restkante (bewusst unverändert, im PR benannt): Exit-Shadow schreibt nach Mitternacht weiterhin nicht (eigenes 16:20-Uhrzeit-Gate). Ein Nachtlauf überschreibt den score_history-Eintrag für D mit seinem Rohwert (wie jeder zweite Lauf am selben Tag).",
       "status": "erledigt",
       "status_date": "2026-11-14"
     },
