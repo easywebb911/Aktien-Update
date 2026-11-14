@@ -3390,6 +3390,20 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 14.11.2026 — Schritt 2: nan_pct, entry_price im Wahrheits-Abgleich, S17-Plausibilität (1 PR, Manual-Merge)
+
+- `#699` (Branch `claude/schritt2-nanpct-s16-s17-5dlyrd`, Branch-Commit `b639ce72`, kein Merge-Hash —
+  Regel a). `provider_health` `yfinance_batch` trägt `nan_pct` (Halbzeilen-Anteil, Zählung aus
+  `_halfrow_probe_lines`); Digest-Hinweiszeile „🕳 Halbzeilen …“ ohne Alarm. Wahrheits-Abgleich prüft
+  `entry_price` ab `TRUTH_CHECK_ENTRY_PRICE_FROM` (05.11.2026) gegen den Rohkurs-Schluss von D (0,02 %,
+  `abw_pct`). S17 zählt `entry_price` ≠ `close_d` (outcome_path) und Datum an Nicht-Handelstagen, warn
+  nur ab 05.11.2026 (heute 0; Altbestand 54 Preis-Abweichungen → open_item
+  `export-entry-price-altbestand`). Probe 1 (Lauf 43576254047): Kontrolle nicht bestanden, Ergebnis in
+  open_item `halbzeilen-score-wirkung-probe`. Test `mock_test_schritt2_plausibilitaet.py` (CI).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#698`,
+  höchste in Block 1 erwähnte PR = `#699` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 14.11.2026 — Berichtsdatum Variante A + S15-Verwurf-Wächter + Wegwerf-Probe 1 (1 PR, Manual-Merge, neuer Workflow)
 
 - Easy-Entscheid 14.11. zum Plan Berichtsdatum: A → Schritt 2 → Entscheid Fix B nach Probe 1 → OI;
