@@ -3390,6 +3390,19 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 14.11.2026 — Probe Rückrechnung Lauf 2: Abgangsrate aus FINRA, Kontrollgruppe (1 PR, Self-Merge nach Easy-Freigabe)
+
+- `#705` (Branch `claude/rueckrechnung-probe-fix-k7q2`, Branch-Commit `33462c88`, kein Merge-Hash —
+  Regel a). Nach Lauf 43606294489 (P1 trägt: `consolidatedShortInterest` NYSE/Nasdaq ab 29.12.2017;
+  yfinance-Survivorship unplausibel; Abbruch an Stooq-Timeout): P2F Abgangsrate ohne Kursquelle
+  (2018–2025, 12/24 Monate, Verbleibs-Klassen), P2Y yfinance mit vorab festgeschriebener
+  Kontrollgruppe (≥ 97 %), Pakete à 20, Fehlergründe, Einzel-Gegenprobe; P2K Kurse für Verschwundene;
+  Stammaktien-Zuordnungsregel; P1 Füllgrad/Flags/FINRA-Kalender; P6 über `stockSplitFlag`. Nur Skript
+  + Test, Workflow unverändert. Keine Renditen.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#704`,
+  höchste in Block 1 erwähnte PR = `#705` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 14.11.2026 — Wegwerf-Probe Mehrjahres-Rückrechnung, Schritt 1 (1 PR, Manual-Merge, neuer Workflow)
 
 - `#704` (Branch `claude/rueckrechnung-probe-k7q2`, Branch-Commit `b8c8acae`, kein Merge-Hash —
