@@ -1,0 +1,63 @@
+name: Probe Mehrjahres-Rückrechnung (Wegwerf)
+
+# WEGWERF-PROBE Schritt 1 (Easy-Entscheid 14.11.2026, open_item
+# mehrjahres-rueckrechnung-probe): misst mit Zahlen, ob ein Mehrjahres-Prüffeld
+# mit freien Daten ehrlich nutzbar ist — FINRA Short Interest (ab wann
+# NYSE/Nasdaq), Survivorship-Lücke bei yfinance, SEC-XBRL-Deckung, Stooq,
+# Nähe Proxy-Liste ↔ echte Top-10 (nur Zugehörigkeit), Splits, Hochrechnung.
+# NUR Hand-Start, NUR lesen (contents: read), kein Commit, kein Push, keine
+# Secrets (SEC-User-Agent: generische .invalid-Kennung). Ergebnis: Log + Artifact.
+# BLINDHEIT: keine Rendite, kein Gipfel, kein Ergebnisfeld; aus den
+# Backtest-Dateien nur ticker/date. Ab 31.12.2026 no-op.
+# Rückweg: Workflow + Skript + Test per Commit entfernen; keine Daten im Repo.
+
+on:
+  workflow_dispatch:
+    inputs:
+      nur:
+        description: "alle | survivorship (P2/P3/P4/P6) | proxy (P5) — P1 und P7 laufen immer"
+        required: true
+        default: alle
+        type: choice
+        options: [alle, survivorship, proxy]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-rueckrechnung
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - name: Checkout (nur lesen)
+        uses: actions/checkout@v5
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Probe (Rate-Limit → Abbruch, Exit 3; fertige Abschnitte bleiben Befund)
+        env:
+          NUR: ${{ inputs.nur }}
+        run: python scripts/probe_rueckrechnung.py --nur "$NUR" --out "$RUNNER_TEMP/rueck_probe/rueck_probe.json"
+
+      - name: Artifact hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rueck-probe-${{ github.run_id }}
+          path: ${{ runner.temp }}/rueck_probe/rueck_probe.json
+          if-no-files-found: ignore
+          retention-days: 30

@@ -960,6 +960,38 @@
       "description": "Nach dem Merge von PR #701: der erste Wahrheits-Abgleich nach dem ersten Postclose mit Fix (Zeilen mit letzte_zeile) muss im Block score_abgleich 0 Zeilen mit |Δ| ≥ 0,5 zeigen (Easy-Erwartung). Ergebnis an Easy melden. Danach den Wegwerf-Workflow probe_halbzeile_score.yml + scripts/probe_halbzeile_score.py + Test per Cleanup-PR entfernen (Easy: sobald der Wächter läuft). Nachweis vor Merge (Lauf 43586256511, echte .info-Werte aus 7 Lauf-Logs): siehe PR #701.",
       "status": "offen",
       "status_date": "2026-11-14"
+    },
+    {
+      "id": "mehrjahres-rueckrechnung-probe",
+      "title": "Mehrjahres-Rückrechnung: Wegwerf-Probe (Schritt 1)",
+      "opened": "2026-11-14",
+      "description": "Easy-Entscheid 14.11.2026: Rückrechnung JA, zuerst Probe. Workflow probe_rueckrechnung.yml + scripts/probe_rueckrechnung.py (nur Hand-Start, contents: read, keine Secrets, Log + Artifact, ab 31.12.2026 no-op). Misst: FINRA Short Interest ab wann NYSE/Nasdaq frei (Juni-2021-Annahme aus Sekundärquelle; Proben #420/#421 fanden die EquityShortInterest-API OTC-only — Widerspruch zu klären), Survivorship-Lücke yfinance je Jahr 2021–2025 (Stichprobe n = 2401, Seed 20261114) nach DTC-Hälfte und Preisklasse, SEC-XBRL-Deckung (point-in-time über filed), Stooq ohne Key, Nähe Proxy-Liste ↔ echte Top-10 ab 01.07.2026 (nur Zugehörigkeit), Splits in FINRA-Stückzahlen, Laufzeit/Datenmenge. Keine Renditen/Gipfel. Nach dem Bericht: Entscheid Easy (Datenablage, Tiingo-Key), Probe per Cleanup entfernen.",
+      "status": "offen",
+      "status_date": "2026-11-14"
+    },
+    {
+      "id": "rueckrechnung-survivorship-delisting",
+      "title": "Rückrechnung: Survivorship-Lücke und Delisting-Kurse",
+      "opened": "2026-11-14",
+      "description": "Fehlende Kurse delisteter Small Caps machen absolute Renditen zu hoch (Shumway 1997; Shumway/Warther 1999: −55 % Ersatzrendite Nasdaq) und können Gruppenvergleiche verschieben, wenn die Lücke je Gruppe verschieden ist. Probe misst die Lücke je Jahr und nach DTC-Hälfte/Preisklasse. Entscheid Easy nach der Probe: Tiingo-Gratis-Key (Delistete laut Doku, solange Symbol nicht neu vergeben) oder Shumway-Ersatzrendite mit Sensitivität (0 / −30 / −55 %).",
+      "status": "offen",
+      "status_date": "2026-11-14"
+    },
+    {
+      "id": "rueckrechnung-datenablage",
+      "title": "Rückrechnung: Datenablage außerhalb des Haupt-Repos",
+      "opened": "2026-11-14",
+      "description": "Kurse ~5–8 Tsd. Symbole × 5 Jahre (grob 100–200 MB komprimiert) und FINRA-SI-Stichtage sollen das Haupt-Repo nicht aufblähen. Optionen: Release-Assets, eigenes Daten-Repo. Entscheid Easy nach der Probe (Datenmenge aus P7).",
+      "status": "offen",
+      "status_date": "2026-11-14"
+    },
+    {
+      "id": "rueckrechnung-zeitraeume-freeze",
+      "title": "Rückrechnung: Entwicklungs-/Prüfzeitraum, Vorabregistrierung",
+      "opened": "2026-11-14",
+      "description": "Vorläufig (Easy 14.11.2026): Entwicklung 06/2021–12/2023, Prüfung 01/2024–04/2026 (endet vor dem ersten Export-Datum 06.05.2026; unabhängig vom alten Fenster 21.07.–23.10. und vom blinden Fenster ≥ 24.10.). Im Prüfzeitraum keine Rendite/kein Gipfel vor der Vorabregistrierung (Freeze-Block, Hash). Kosten: apply_round_trip_haircut + Sensitivität; Splits in SI-Stückzahlen umrechnen; Ergebnisse je Jahr/Marktphase.",
+      "status": "offen",
+      "status_date": "2026-11-14"
     }
   ]
 }
