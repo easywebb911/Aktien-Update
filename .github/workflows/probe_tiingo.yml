@@ -1,0 +1,57 @@
+name: Probe Tiingo Delisting-Kurse (Wegwerf)
+
+# WEGWERF-PROBE (Easy-Entscheid 14.11.2026, open_item
+# rueckrechnung-survivorship-delisting): liefert Tiingo (Gratis-Konto) Kurse
+# für die laut FINRA verschwundenen US-Stammaktien 2018–2024? Nur Hand-Start,
+# NUR lesen (contents: read), kein Commit, kein Push. Ergebnis: Log + Artifact.
+# Secret TIINGO_API_KEY (legt Easy an): nur als Header, maskiert, nie in URL/Log.
+# Höchstens 181 Kursabrufe, ≤ 45 je Stunde (Gratis-Grenze 50/h, 1 000/Tag,
+# 500 Symbole/Monat). BLINDHEIT: keine Rendite, kein Gipfel. Ab 31.12.2026 no-op.
+# Rückweg: Workflow + Skript + Test per Commit entfernen; Easy kann das Secret
+# jederzeit löschen.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-tiingo
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: Checkout (nur lesen)
+        uses: actions/checkout@v5
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Probe (Schlüssel maskiert; Rate-Limit → Abbruch, Exit 3)
+        env:
+          TIINGO_API_KEY: ${{ secrets.TIINGO_API_KEY }}
+        run: |
+          if [ -n "$TIINGO_API_KEY" ]; then echo "::add-mask::$TIINGO_API_KEY"; fi
+          python scripts/probe_tiingo.py --out "$RUNNER_TEMP/tiingo_probe/tiingo_probe.json"
+
+      - name: Artifact hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiingo-probe-${{ github.run_id }}
+          path: ${{ runner.temp }}/tiingo_probe/tiingo_probe.json
+          if-no-files-found: ignore
+          retention-days: 30
