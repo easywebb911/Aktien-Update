@@ -3390,6 +3390,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 14.11.2026 — Einmal-Korrektur max_gain-Export, zweiter Lauf + Protokoll-Zahlen (1 PR, protected-ok Regel b)
+
+- `#703` (Branch `claude/maxgain-korrektur-doku-k7q2`, Branch-Commit `bcdb6eb3`, kein Merge-Hash —
+  Regel a). Easy-Entscheid Variante b: Workflow `maxgain_export_correction.yml` apply, Run
+  `43592800418` → Commit `6dfab3a` auf main: 10 Zeilen (Einstiege 28.10.: 5, 29.10.: 5), max_gain 6 /
+  max_drawdown 5, 0 Gegenprobe-Abweichungen, 1 397 Zeilen hash-gleich, S17 alt 10 → 0 (wie Probelauf
+  `43583809289`). Nachträge (nur angehängt) im Paper-C-Protokoll und im Replikations-Block; open_item
+  `max-gain-rolling-fenster-abgeschnitten` → erledigt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#702`,
+  höchste in Block 1 erwähnte PR = `#703` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 14.11.2026 — Schritt 4: Options-OI Abrufzeit + `oi_stand` (1 PR, Manual-Merge)
 
 - `#702` (Branch `claude/oi-stand-zeitstempel-k7q2`, Branch-Commit `71609304`, kein Merge-Hash —
