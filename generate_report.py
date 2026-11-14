@@ -4558,10 +4558,58 @@ def _fetch_next_expiry_chain(ticker: str, *, raw_sink: list | None = None):
     return ("ok", expiry, _extract_oi_rows(oc.calls), _extract_oi_rows(oc.puts))
 
 
+# OI-Stand-Kennzeichen (Schritt 4, 14.11.2026, forward-only). Yahoo zeigt das
+# Open Interest des Vortags-Settlements; der neue Stand kommt über Nacht. Seit
+# #698 kann ein Postclose-Nachtlauf (00:00–09:30 ET) noch mit Datum D schreiben —
+# dann trägt der Punkt womöglich schon den über Nacht aktualisierten OI-Stand.
+# Das Kennzeichen macht das sichtbar; es ändert KEINEN Wert und entscheidet nichts.
+OI_STAND_VORTAG = "vortag"                    # Abruf ET-Tag D, 09:30–24:00
+OI_STAND_NACHT = "nacht_aktualisiert"         # nach 00:00 ET, vor 09:30 ET des nächsten Handelstags
+OI_STAND_UNKLAR = "unklar"                    # sonst (z. B. vor 09:30 ET am Tag D)
+
+
+def _oi_stand(report_date_iso, fetched_utc, holidays=frozenset()) -> str:
+    """Pure: Abrufzeitpunkt (tz-aware UTC) relativ zum Berichtstag D → Kennzeichen.
+
+    ``vortag``: Abruf am ET-Kalendertag D zwischen 09:30 und 24:00.
+    ``nacht_aktualisiert``: ab 00:00 ET nach D bis vor 09:30 ET des nächsten
+    US-Handelstags (dasselbe Fenster-Ende wie der Vintage-Guard,
+    ``trading_date.postclose_window_end``). Sonst / bei unlesbaren Eingaben
+    ``unklar``. Nie raise."""
+    try:
+        d = date.fromisoformat(str(report_date_iso))
+        if fetched_utc is None or fetched_utc.tzinfo is None:
+            return OI_STAND_UNKLAR
+        et = fetched_utc.astimezone(_NY_TZ)
+        start = datetime(d.year, d.month, d.day, 9, 30, tzinfo=_NY_TZ)
+        nd = d + timedelta(days=1)
+        midnight = datetime(nd.year, nd.month, nd.day, 0, 0, tzinfo=_NY_TZ)
+        if start <= et < midnight:
+            return OI_STAND_VORTAG
+        if midnight <= et < trading_date.postclose_window_end(d, holidays):
+            return OI_STAND_NACHT
+        return OI_STAND_UNKLAR
+    except Exception:
+        return OI_STAND_UNKLAR
+
+
+def _oi_fetch_stamp(report_date_iso, fetched_utc) -> dict:
+    """Additive Felder je OI-Punkt: Abrufzeit UTC + ET (Sekunden) + ``oi_stand``."""
+    try:
+        utc = fetched_utc.astimezone(timezone.utc)
+        return {"oi_abgerufen_utc": utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "oi_abgerufen_et": utc.astimezone(_NY_TZ).isoformat(timespec="seconds"),
+                "oi_stand": _oi_stand(report_date_iso, utc, US_MARKET_HOLIDAYS)}
+    except Exception:
+        return {"oi_abgerufen_utc": None, "oi_abgerufen_et": None,
+                "oi_stand": OI_STAND_UNKLAR}
+
+
 def _persist_options_oi_history(top10, *, report_date_iso: str | None = None,
                                 run_phase: str | None = None,
                                 fetch_fn=None, now_fn=None,
-                                time_budget_s: float | None = None) -> int:
+                                time_budget_s: float | None = None,
+                                wall_now_fn=None) -> int:
     """Forward-only Options-OI-Zeitreihe je Top-10-Ticker — NUR postclose.
 
     Pro ``(ticker, postclose-Tag)`` EINE Zeile mit dem nächsten Verfall (Calls +
@@ -4588,6 +4636,7 @@ def _persist_options_oi_history(top10, *, report_date_iso: str | None = None,
         return 0
     fetch_fn = fetch_fn or _fetch_next_expiry_chain
     now_fn = now_fn or time.monotonic
+    wall_now_fn = wall_now_fn or (lambda: datetime.now(timezone.utc))
     budget = OPTIONS_OI_TIME_BUDGET_S if time_budget_s is None else time_budget_s
     t_iso = report_date_iso or trading_date.us_trading_date_iso()
     hist = _load_options_oi_history()
@@ -4622,6 +4671,8 @@ def _persist_options_oi_history(top10, *, report_date_iso: str | None = None,
                 n_fetchfail += 1
                 log.info("[options_oi] FETCH-FAIL %s: %s", ticker, fexc)
                 continue
+            # Abrufzeitpunkt direkt nach dem Fetch (Schritt 4, forward-only).
+            stamp = _oi_fetch_stamp(t_iso, wall_now_fn())
             if status == "no_chain":
                 # LEER/unbeobachtbar: expiry/calls/puts = null (NIE oi 0).
                 point = {"date": t_iso, "expiry": None, "spot": spot,
@@ -4633,6 +4684,7 @@ def _persist_options_oi_history(top10, *, report_date_iso: str | None = None,
                          "shares_outstanding": shares,
                          "calls": calls if calls is not None else [],
                          "puts":  puts if puts is not None else []}
+            point.update(stamp)
             series.append(point)
             added += 1
         except Exception as exc:   # pragma: no cover — nie den Daily-Run brechen

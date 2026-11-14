@@ -243,8 +243,11 @@ def main() -> int:
     gr.OPTIONS_OI_HISTORY_FILE = os.path.join(d_oi1, "oi.json")
     gr.OPTIONS_OI_HISTORY_ENABLED = True
     top_oi = [_stock("TNXP", price=4.47)]
+    from datetime import datetime as _dt, timezone as _tzu
+    _fixed_wall = lambda: _dt(2026, 8, 11, 21, 50, tzinfo=_tzu.utc)  # noqa: E731
     gr._persist_options_oi_history(top_oi, report_date_iso="2026-08-11",
-                                   run_phase="postclose", fetch_fn=_fetch_ok)
+                                   run_phase="postclose", fetch_fn=_fetch_ok,
+                                   wall_now_fn=_fixed_wall)
     out_plain = open(gr.OPTIONS_OI_HISTORY_FILE, encoding="utf-8").read()
 
     d_oi2 = tempfile.mkdtemp()
@@ -259,7 +262,8 @@ def main() -> int:
         return result
 
     gr._persist_options_oi_history(top_oi, report_date_iso="2026-08-11",
-                                   run_phase="postclose", fetch_fn=_fetch_with_capture)
+                                   run_phase="postclose", fetch_fn=_fetch_with_capture,
+                                   wall_now_fn=_fixed_wall)
     out_wrapped = open(gr.OPTIONS_OI_HISTORY_FILE, encoding="utf-8").read()
     _check("08 options_oi_history.json byte-identisch mit/ohne raw-capture-Wrapper",
            out_plain == out_wrapped)

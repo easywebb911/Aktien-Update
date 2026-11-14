@@ -3390,6 +3390,19 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 14.11.2026 — Schritt 4: Options-OI Abrufzeit + `oi_stand` (1 PR, Manual-Merge)
+
+- `#702` (Branch `claude/oi-stand-zeitstempel-k7q2`, Branch-Commit `71609304`, kein Merge-Hash —
+  Regel a). Je neuem Punkt in `options_oi_history.json`: `oi_abgerufen_utc`/`_et` +
+  `oi_stand` (`vortag` ET-Tag D 09:30–24:00 · `nacht_aktualisiert` ab 00:00 ET bis vor 09:30 ET
+  des nächsten Handelstags, Fenster-Ende wie Vintage-Guard · sonst `unklar`), pure
+  `generate_report._oi_stand`. Forward-only, kein Wert geändert, kein Konsument. Test Fall 12 in
+  `mock_test_options_oi_history.py`; chain_raw-Byte-Test mit fester Uhr. open_item
+  `oi-stand-kennzeichen` → beobachtet.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#701`,
+  höchste in Block 1 erwähnte PR = `#702` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 14.11.2026 — Fix B: Halbzeile im Postclose + Score-Abgleich (Wächter) + Freeze-Naht (1 PR, Manual-Merge)
 
 - `#701` (Branch `claude/fix-b-halbzeile-5dlyrd`, Branch-Commit `afd7873b`, kein Merge-Hash —

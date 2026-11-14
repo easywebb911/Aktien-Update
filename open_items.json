@@ -941,8 +941,8 @@
       "id": "oi-stand-kennzeichen",
       "title": "Options-OI: Abrufzeit + Kennzeichen vor/nach nächtlichem Update",
       "opened": "2026-11-14",
-      "description": "Plan 14.11.2026, Schritt 4 (forward-only): je Punkt in options_oi_history oi_abgerufen_utc/_et und oi_stand (vortag: Abruf ET-Tag D 09:30–24:00; nacht_aktualisiert: 00:00–09:30 ET des Folgetags; sonst unklar). Bestand ohne Feld = unbekannt. Neues Schema-Feld → Easy-Merge. Seit #698 kann ein Nachtlauf OI mit Datum D schreiben, das schon den Nacht-Stand trägt — das Kennzeichen macht das sichtbar. Nicht gebaut.",
-      "status": "offen",
+      "description": "Plan 14.11.2026, Schritt 4 (forward-only): je Punkt in options_oi_history oi_abgerufen_utc/_et und oi_stand (vortag: Abruf ET-Tag D 09:30–24:00; nacht_aktualisiert: 00:00–09:30 ET des Folgetags; sonst unklar). Bestand ohne Feld = unbekannt. Neues Schema-Feld → Easy-Merge. Seit #698 kann ein Nachtlauf OI mit Datum D schreiben, das schon den Nacht-Stand trägt — das Kennzeichen macht das sichtbar. Nicht gebaut. GEBAUT 14.11.2026 (Schritt 4): Felder oi_abgerufen_utc/_et + oi_stand je neuem Punkt (generate_report._oi_stand); nacht_aktualisiert reicht bis 09:30 ET des nächsten Handelstags (wie Vintage-Guard), nicht nur des Kalender-Folgetags. Offen bis zum ersten Postclose-Punkt mit Feld (Beleg: Feld in options_oi_history.json vorhanden, oi_stand plausibel zur Laufzeit).",
+      "status": "beobachtet",
       "status_date": "2026-11-14"
     },
     {

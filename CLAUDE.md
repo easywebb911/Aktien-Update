@@ -4564,6 +4564,22 @@ Singleton-Fallback `get_yfinance_data`.
 Freeze-Naht = Merge-Datum PR #701 (Protokolleinträge in allen laufenden Blöcken). Test
 `scripts/mock_test_fix_b_halbzeile.py`.
 
+## Options-OI: Abrufzeit und `oi_stand` (seit 14.11.2026, Schritt 4)
+
+Jeder neue Punkt in `options_oi_history.json` trägt `oi_abgerufen_utc`,
+`oi_abgerufen_et` (Abrufzeit direkt nach dem Ketten-Abruf, Sekunden) und
+`oi_stand` (`generate_report._oi_stand`, pure):
+
+| `oi_stand` | Abrufzeit (ET) relativ zum Berichtstag D |
+|---|---|
+| `vortag` | Kalendertag D, 09:30–24:00 (Yahoo zeigt das OI vor dem nächtlichen Update) |
+| `nacht_aktualisiert` | ab 00:00 nach D bis vor 09:30 des nächsten US-Handelstags (Fenster-Ende wie Vintage-Guard, `trading_date.postclose_window_end`; Nachtlauf seit #698, OI kann schon den neuen Stand tragen) |
+| `unklar` | sonst, oder Eingabe unlesbar |
+
+Forward-only; Bestand ohne Feld = unbekannt. Kein Wert wird geändert, kein
+Konsument, kein Score-/Filter-/Push-/Anzeige-Effekt. Test
+`scripts/mock_test_options_oi_history.py` (Fall 12).
+
 ## Endgültiger Schlusskurs für Einmal-Felder (seit 12.11.2026)
 
 `return_*`/`_t1`/`_net`/`_vs_spy` (`ki_agent.update_backtest_returns`) und Exit-Shadow
