@@ -121,6 +121,22 @@ def main() -> int:
         check("18 nach PROBE_END no-op", pt.main(["--out", "/nonexistent/x.json"]) == 0)
     finally:
         pt.PROBE_END = old_end
+    pop60 = [f"S{i:02d}" for i in range(60)]
+    sub = pt.sub_sample(pop60, 2019)
+    check("19 Teilstichprobe: 20, fest, nicht die alphabetisch ersten",
+          len(sub) == pt.VANISHED_N and sub == pt.sub_sample(pop60, 2019) and sub != sorted(pop60)[:20])
+    check("20 Kontrolle ungültig → unbestimmt", pt.decide(100, 100, False) == "unbestimmt"
+          and pt.decide(100, 100, True) == "bauen")
+    outp2 = pathlib.Path(tempfile.mkdtemp()) / "z" / "t.json"
+    pt.OUT["p"] = str(outp2)
+    try:
+        r = {"finra": {"x": 1}}
+        with redirect_stdout(io.StringIO()):
+            pt.section_done(r, "finra")
+        check("21 Zwischenstand nach Abschnitt geschrieben",
+              outp2.exists() and json.loads(outp2.read_text())["abschnitte_vollstaendig"] == ["finra"])
+    finally:
+        pt.OUT["p"] = ""
     if FAILS:
         print(f"{len(FAILS)} FAIL: {FAILS}")
         return 1

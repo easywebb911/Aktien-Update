@@ -28,7 +28,10 @@ SCHLÜSSEL: nur aus der Umgebung (``TIINGO_API_KEY``), nur im Header
 ``Authorization: Token …``, nie in einer URL; jede Log-/Artifact-Ausgabe läuft
 durch ``scrub``. Fehlt der Schlüssel → Exit 2 mit Hinweis, kein Abruf.
 Rate-Limit (HTTP 429 oder „exceed“ im Text) → Abbruch (Exit 3); vollständig
-abgeschlossene Abschnitte bleiben Befund. Kein automatischer Neustart.
+abgeschlossene Abschnitte bleiben Befund, in T1/T2 auch jedes fertige Jahr
+(``T1_T2_teil_jahre``); das JSON wird nach jedem Abschnitt/Jahr neu geschrieben.
+Kein automatischer Neustart. Das Verdikt „bauen“ gilt NUR bei gültiger Kontrolle
+T3 (sonst „unbestimmt“); T2 und Volumen-Plausibilität sind Zusatzbefund.
 Ab ``PROBE_END`` no-op. Wird nach der Auswertung per Cleanup-PR entfernt.
 """
 from __future__ import annotations
@@ -37,6 +40,7 @@ import argparse
 import io
 import json
 import os
+import random
 import pathlib
 import sys
 import time
@@ -93,6 +97,10 @@ def log(msg):
 def section_done(result, key):
     result.setdefault("abschnitte_vollstaendig", []).append(key)
     log(f"ABSCHNITT {key} vollständig " + json.dumps(result.get(key), default=str))
+    write_out(result)
+
+
+OUT: dict = {"p": ""}
 
 
 def tiingo_ticker(sym: str) -> str:
@@ -119,8 +127,29 @@ def ctrl_match(tiingo_rows, yf_closes: dict) -> bool:
     return ok >= CTRL_DAY_FRAC * len(common)
 
 
-def decide(k: int, n: int) -> str:
-    if n <= 0:
+def sub_sample(p2k_60: list, year: int) -> list:
+    """Zufällige Teilmenge (``VANISHED_N``) der P2K-Stichprobe, fester Seed —
+    nicht die alphabetisch ersten (Guardian 14.11.2026, kein Buchstaben-Bias)."""
+    pop = sorted(p2k_60)
+    if len(pop) <= VANISHED_N:
+        return pop
+    return sorted(random.Random(pr.SEED + year + 900).sample(pop, VANISHED_N))
+
+
+def write_out(result) -> None:
+    """Zwischenstand schreiben (nach jedem Abschnitt / T1-Jahr), damit ein Timeout
+    oder Runner-Abbruch abgeschlossene Teile nicht verliert."""
+    if not OUT.get("p"):
+        return
+    out = pathlib.Path(OUT["p"])
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(scrub(json.dumps(result, indent=1, default=str)), encoding="utf-8")
+
+
+def decide(k: int, n: int, kontrolle_gueltig: bool = True) -> str:
+    """Regel VORAB: ≥ DECISION_MIN Abdeckung → bauen — nur wenn die Kontrolle T3
+    gültig ist; sonst unbestimmt (Guardian 14.11.2026)."""
+    if n <= 0 or not kontrolle_gueltig:
         return "unbestimmt"
     return "bauen" if k / n >= DECISION_MIN else "nicht_bauen_in_dieser_form"
 
@@ -176,7 +205,7 @@ def finra_lists():
         reis = sorted(s for s, f in fates.items() if f == "neu_vergeben")
         out[y] = {"base": base, "later": later, "verschwunden": van, "neu_vergeben": reis,
                   "adv": {s: uni[s]["adv"] for s in uni},
-                  "stichprobe_v": pr.draw_sample(van, y + 700, 60)[:VANISHED_N],
+                  "stichprobe_v": sub_sample(pr.draw_sample(van, y + 700, 60), y),
                   "stichprobe_n": pr.draw_sample(reis, y + 800, REISSUED_N)}
     return sdates, out
 
@@ -264,7 +293,11 @@ def probe_t1_t2(result, lists):
             except (TypeError, ValueError):
                 pass
         t2[str(y)] = r2
-    t1["gesamt"] = {"abdeckung": pr.wilson(tot_k, tot_n), "entscheidung": decide(tot_k, tot_n),
+        # abgeschlossene Jahre als Teilbefund (bleibt bei Abbruch erhalten)
+        result["T1_T2_teil_jahre"] = {"T1": dict(t1), "T2": dict(t2), "jahre": sorted(t1)}
+        write_out(result)
+    t1["gesamt"] = {"abdeckung": pr.wilson(tot_k, tot_n), "entscheidung": decide(tot_k, tot_n, bool((result.get("T3") or {}).get("gueltig"))),
+                    "kontrolle_gueltig": bool((result.get("T3") or {}).get("gueltig")),
                     "regel_min": DECISION_MIN}
     result["T1"] = t1
     result["T2"] = t2
@@ -306,6 +339,7 @@ def main(argv=None) -> int:
         log("ABBRUCH: Secret TIINGO_API_KEY fehlt oder ist leer — Easy legt es unter "
             "Settings → Secrets and variables → Actions an. Kein Abruf.")
         return 2
+    OUT["p"] = args.out
     t0 = time.monotonic()
     result = {"seed": pr.SEED, "max_anfragen": MAX_REQUESTS, "takt_s": PACE_S,
               "regel_min": DECISION_MIN, "start_utc": datetime.now(timezone.utc).isoformat()}
