@@ -3390,6 +3390,25 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 14.11.2026 — Berichtsdatum Variante A + S15-Verwurf-Wächter + Wegwerf-Probe 1 (1 PR, Manual-Merge, neuer Workflow)
+
+- Easy-Entscheid 14.11. zum Plan Berichtsdatum: A → Schritt 2 → Entscheid Fix B nach Probe 1 → OI;
+  Variante C nicht. `#698` (Branch `claude/berichtsdatum-variante-a-n4p2`, Branch-Commit `9bb6cf01`,
+  kein Merge-Hash — Regel a). `trading_date.report_trading_date`/`postclose_window_end`,
+  `generate_report._resolve_report_day`: nur Postclose, vor 09:30 ET → letzter abgeschlossener
+  Handelstag D (Abendläufe byte-gleich, Test + Golden); Sammler, Health-Check-Tag und Earnings-Tage
+  auf demselben Tag; Vintage-Guard-Fenster bis 09:30 ET Folgehandelstag (`after_window`); Backtest-
+  Feld `nacht_lauf_et` nur bei Nachtlauf (S10 OBSERVED); S15 meldet zeitbedingte Postclose-Verwürfe
+  aus `vintage_guard_log.jsonl`. Wegwerf-Probe 1 `probe_halbzeile_score.yml` +
+  `scripts/probe_halbzeile_score.py` (Hand-Start, read-only, blind). Freeze-Protokolleinträge in 10
+  laufenden Blöcken (Setup-Edge, KI-Edge, Exit-B.1-Nachfolger, Holm-Familie Nov., Replikation,
+  „Paper C handelbar“, Hypothesen-Runde, H-I Rendite, K1/K2, H5), Pins nachgezogen
+  (`hypothesen_nov26_eval`, `mock_test_outcome_path`). Tests `mock_test_berichtsdatum_variante_a.py`,
+  `mock_test_probe_halbzeile_score.py` (CI). open_items: 6 neu, 4 ergänzt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#697`,
+  höchste in Block 1 erwähnte PR = `#698` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 13.11.2026 — Anzeige-PR Teil B: Inst neutral, H-I blau, H-G/H-K Unklar, Testzahl gezählt, K1 explorativ (1 PR, Manual-Merge)
 
 - `#697` (Branch `claude/anzeige-teil-b-h7m4`, Branch-Commit `71166e05`, kein Merge-Hash — Regel a).
@@ -5616,6 +5635,8 @@ beim Eintrag n=60/250, kein Ergebnis erzeugt oder gelesen. Details:
 
 **Protokolleintrag 12.11.2026 (abends) — Punkt 8c — Zielgröße aus vorläufigem Abend-Schlusskurs.** **Fehler:** Seit `#647` (03.11.2026) füllten `update_backtest_returns` (`return_3d/5d/10d`, `_t1`, `_net`, `_vs_spy`) und `update_exit_shadow_forwards` (`forward_3d/5d/10d`) ab 16:20 ET am Zieltag. Yahoo liefert dort teils noch einen vorläufigen Schlusskurs; das Feld wird danach nie überschrieben (Beleg Wahrheits-Abgleich S16: 3 Abweichungen, alle am Zieltag 17:40 bzw. 18:23 ET gefüllt; open_item `rendite-forward-abendzeile-nicht-final`). **Fix:** `#680` — Füllung erst ab 07:00 ET des folgenden Kalendertags (`trading_date.last_settled_close_date`; Grenze aus den Nacht-Probe-Messwerten 10.–12.11.2026). Bereits gefüllte Werte bleiben unverändert. **Naht:** Merge-Datum von `#680` — Werte davor nach alter Regel, danach nach neuer. **Bestandskorrektur: Entscheid offen bis Messlauf** (`settled_close_measure.yml`, read-only). **Umfang (Git-Historie, nur Zählung, Obergrenze ohne Score-/Herkunfts-Filter):** Einstieg > 10.10.2026, am Zieltag-Abend gefüllt: `return_10d` 20 (Einstieg < 24.10.) + 30 (Replikationsfenster, blind), `return_5d` 0 + 40 (blind). Population und Score unberührt, kein Neustart. Kein Ergebnis erzeugt oder gelesen.
 
+**Protokolleintrag 14.11.2026 — Berichtsdatum nach Mitternacht (Variante A, PR #698):** Kriterien dieses Blocks **unverändert**; Naht = Merge-Datum von #698. Ab dann schreibt ein Postclose-Lauf, der zwischen 00:00 und 09:30 ET des Folgetags startet, die Einträge für den letzten abgeschlossenen Handelstag D, statt sie zu verwerfen (bisher verloren: 27.08. und 04.11.2026). Nur bisher verlorene Tage bekommen Einträge; Läufe vor Mitternacht ET bleiben byte-gleich (Test + Golden). Solche Zeilen tragen `nacht_lauf_et` (Laufzeit ET); ihre KI-/News-/OI-/VIX-Werte stammen aus der Nacht vor der Eröffnung von Tag 1 (kein Wert nach 09:30 ET).
+
 ### VORABREGISTRIERUNG — KI-Score-Edge-Test (ki_signal_score), eingefroren 13.10.2026
 
 **Verhältnis zum Setup-Edge-Re-Test oben.** Dieser Block prüft eine **andere
@@ -5868,6 +5889,8 @@ nicht korrigierbare Felder leer), ausgewertet wird erst danach. Stand beim
 Eintrag n=60/250, kein Ergebnis erzeugt oder gelesen.
 
 **Protokolleintrag 12.11.2026 (abends) — Regel 8c-Erweiterung (e) — Zielgröße aus vorläufigem Abend-Schlusskurs.** **Fehler:** Seit `#647` (03.11.2026) füllten `update_backtest_returns` (`return_3d/5d/10d`, `_t1`, `_net`, `_vs_spy`) und `update_exit_shadow_forwards` (`forward_3d/5d/10d`) ab 16:20 ET am Zieltag. Yahoo liefert dort teils noch einen vorläufigen Schlusskurs; das Feld wird danach nie überschrieben (Beleg Wahrheits-Abgleich S16: 3 Abweichungen, alle am Zieltag 17:40 bzw. 18:23 ET gefüllt; open_item `rendite-forward-abendzeile-nicht-final`). **Fix:** `#680` — Füllung erst ab 07:00 ET des folgenden Kalendertags (`trading_date.last_settled_close_date`; Grenze aus den Nacht-Probe-Messwerten 10.–12.11.2026). Bereits gefüllte Werte bleiben unverändert. **Naht:** Merge-Datum von `#680` — Werte davor nach alter Regel, danach nach neuer. **Bestandskorrektur: Entscheid offen bis Messlauf** (`settled_close_measure.yml`, read-only). `ki_signal_score` und die in (e) genannten Stellen bleiben unverändert. **Umfang:** wie im Setup-Edge-Eintrag vom selben Tag (gleiche Zeilen, Obergrenze). Population unberührt, kein Neustart. Kein Ergebnis erzeugt oder gelesen.
+
+**Protokolleintrag 14.11.2026 — Berichtsdatum nach Mitternacht (Variante A, PR #698):** Kriterien dieses Blocks **unverändert**; Naht = Merge-Datum von #698. Ab dann schreibt ein Postclose-Lauf, der zwischen 00:00 und 09:30 ET des Folgetags startet, die Einträge für den letzten abgeschlossenen Handelstag D, statt sie zu verwerfen (bisher verloren: 27.08. und 04.11.2026). Nur bisher verlorene Tage bekommen Einträge; Läufe vor Mitternacht ET bleiben byte-gleich (Test + Golden). Solche Zeilen tragen `nacht_lauf_et` (Laufzeit ET); ihre KI-/News-/OI-/VIX-Werte stammen aus der Nacht vor der Eröffnung von Tag 1 (kein Wert nach 09:30 ET).
 
 ### ERRATUM 22.10.2026 — Bootstrap-Verfahrensdetails für beide Edge-Test-Freezes (Setup-Edge/Conviction UND KI-Score)
 
@@ -6931,6 +6954,8 @@ festhält.
 
 **Protokolleintrag 12.11.2026 (abends) — Punkt 11 — Zielgrößen `return_3d`/`return_10d` aus vorläufigem Abend-Schlusskurs.** **Fehler:** Seit `#647` (03.11.2026) füllten `update_backtest_returns` (`return_3d/5d/10d`, `_t1`, `_net`, `_vs_spy`) und `update_exit_shadow_forwards` (`forward_3d/5d/10d`) ab 16:20 ET am Zieltag. Yahoo liefert dort teils noch einen vorläufigen Schlusskurs; das Feld wird danach nie überschrieben (Beleg Wahrheits-Abgleich S16: 3 Abweichungen, alle am Zieltag 17:40 bzw. 18:23 ET gefüllt; open_item `rendite-forward-abendzeile-nicht-final`). **Fix:** `#680` — Füllung erst ab 07:00 ET des folgenden Kalendertags (`trading_date.last_settled_close_date`; Grenze aus den Nacht-Probe-Messwerten 10.–12.11.2026). Bereits gefüllte Werte bleiben unverändert. **Naht:** Merge-Datum von `#680` — Werte davor nach alter Regel, danach nach neuer. **Bestandskorrektur: Entscheid offen bis Messlauf** (`settled_close_measure.yml`, read-only). **Umfang:** Einstieg ≥ 09.11.2026 mit Score ≥ 70: bisher **0** Felder am Zieltag-Abend gefüllt (noch nichts gereift) — die Sammlung läuft ab der Naht nach der neuen Regel. Kriterien unverändert. Kein Ergebnis erzeugt oder gelesen.
 
+**Protokolleintrag 14.11.2026 — Berichtsdatum nach Mitternacht (Variante A, PR #698):** Kriterien dieses Blocks **unverändert**; Naht = Merge-Datum von #698. Ab dann schreibt ein Postclose-Lauf, der zwischen 00:00 und 09:30 ET des Folgetags startet, die Einträge für den letzten abgeschlossenen Handelstag D, statt sie zu verwerfen (bisher verloren: 27.08. und 04.11.2026). Nur bisher verlorene Tage bekommen Einträge; Läufe vor Mitternacht ET bleiben byte-gleich (Test + Golden). Solche Zeilen tragen `nacht_lauf_et` (Laufzeit ET); ihre KI-/News-/OI-/VIX-Werte stammen aus der Nacht vor der Eröffnung von Tag 1 (kein Wert nach 09:30 ET).
+
 ### VORABREGISTRIERUNG — Holm-Familie Runde November 2026 (Paper C + Exit-B.1-Nachfolger, k = 3), eingefroren 07.11.2026
 
 **Easy-Entscheid 07.11.2026.** Gegen die Mehrfachtest-Inflation über mehrere
@@ -6985,6 +7010,8 @@ prüfbar“, nie Widerlegung.
 **Änderungs-Protokoll (bindend ab 07.11.2026, analog §4):** Keine Änderung an
 diesem Block ohne datierten Protokolleintrag, der die Änderung und ihren Grund
 festhält.
+
+**Protokolleintrag 14.11.2026 — Berichtsdatum nach Mitternacht (Variante A, PR #698):** Kriterien dieses Blocks **unverändert**; Naht = Merge-Datum von #698. Ab dann schreibt ein Postclose-Lauf, der zwischen 00:00 und 09:30 ET des Folgetags startet, die Einträge für den letzten abgeschlossenen Handelstag D, statt sie zu verwerfen (bisher verloren: 27.08. und 04.11.2026). Nur bisher verlorene Tage bekommen Einträge; Läufe vor Mitternacht ET bleiben byte-gleich (Test + Golden). Solche Zeilen tragen `nacht_lauf_et` (Laufzeit ET); ihre KI-/News-/OI-/VIX-Werte stammen aus der Nacht vor der Eröffnung von Tag 1 (kein Wert nach 09:30 ET).
 
 ### PAPER-PLAN-STATUS (Svoboda et al. 2026 — 4 Schritte A–C + Ausblick D, je 1/Tag)
 
@@ -7264,6 +7291,8 @@ Halbzeilen-Schutz:** Kriterien dieses Blocks unverändert.
   Nachtrag eingetragen, **bevor** dieser Block ausgewertet wird. **Naht:** Zeilen, deren
   Gegenprobe scheitert, bleiben unverändert und zählen bei der Auswertung wie bisher.
 
+**Protokolleintrag 14.11.2026 — Berichtsdatum nach Mitternacht (Variante A, PR #698):** Kriterien dieses Blocks **unverändert**; Naht = Merge-Datum von #698. Ab dann schreibt ein Postclose-Lauf, der zwischen 00:00 und 09:30 ET des Folgetags startet, die Einträge für den letzten abgeschlossenen Handelstag D, statt sie zu verwerfen (bisher verloren: 27.08. und 04.11.2026). Nur bisher verlorene Tage bekommen Einträge; Läufe vor Mitternacht ET bleiben byte-gleich (Test + Golden). Solche Zeilen tragen `nacht_lauf_et` (Laufzeit ET); ihre KI-/News-/OI-/VIX-Werte stammen aus der Nacht vor der Eröffnung von Tag 1 (kein Wert nach 09:30 ET).
+
 ### VORABREGISTRIERUNG — Paper C handelbar (Gipfel ab Einstiegskurs), eingefroren 12.11.2026
 
 **Easy-Entscheid 12.11.2026** nach dem Gipfel-Bericht vom 11.11.2026: `max_gain_pct`
@@ -7463,6 +7492,8 @@ kann unter dem Tief von D liegen); die beiden Tests bleiben trotzdem nicht unabh
 Frage, Prädiktor, Stichprobe, Verfahren, Floor, Familie, Erfolgskriterium und Reihenfolge
 (nie vor dem Replikationslauf) unverändert. Der Replikations-Block bleibt byte-unverändert.
 Kein Ergebnis zur Momentum-Frage erzeugt oder gelesen.
+
+**Protokolleintrag 14.11.2026 — Berichtsdatum nach Mitternacht (Variante A, PR #698):** Kriterien dieses Blocks **unverändert**; Naht = Merge-Datum von #698. Ab dann schreibt ein Postclose-Lauf, der zwischen 00:00 und 09:30 ET des Folgetags startet, die Einträge für den letzten abgeschlossenen Handelstag D, statt sie zu verwerfen (bisher verloren: 27.08. und 04.11.2026). Nur bisher verlorene Tage bekommen Einträge; Läufe vor Mitternacht ET bleiben byte-gleich (Test + Golden). Solche Zeilen tragen `nacht_lauf_et` (Laufzeit ET); ihre KI-/News-/OI-/VIX-Werte stammen aus der Nacht vor der Eröffnung von Tag 1 (kein Wert nach 09:30 ET).
 
 ### VORABREGISTRIERUNG — Hypothesen-Runde November 2026 (H-G, H-I, H-K), eingefroren mit dem Merge
 
@@ -7705,6 +7736,8 @@ nichts festlegt, gilt (`scripts/hypothesen_nov26_eval.py`):
 Klarstellung (keine Änderung): „bedingt“ heißt nach A.8 „kein Regime prüfbar“; ist genau ein
 Regime prüfbar und plausibel, lautet das Verdikt „Beleg“. Alle übrigen Vorgaben unverändert.
 
+**Protokolleintrag 14.11.2026 — Berichtsdatum nach Mitternacht (Variante A, PR #698):** Kriterien dieses Blocks **unverändert**; Naht = Merge-Datum von #698. Ab dann schreibt ein Postclose-Lauf, der zwischen 00:00 und 09:30 ET des Folgetags startet, die Einträge für den letzten abgeschlossenen Handelstag D, statt sie zu verwerfen (bisher verloren: 27.08. und 04.11.2026). Nur bisher verlorene Tage bekommen Einträge; Läufe vor Mitternacht ET bleiben byte-gleich (Test + Golden). Solche Zeilen tragen `nacht_lauf_et` (Laufzeit ET); ihre KI-/News-/OI-/VIX-Werte stammen aus der Nacht vor der Eröffnung von Tag 1 (kein Wert nach 09:30 ET).
+
 ### VORABREGISTRIERUNG — H-I Rendite (Inst-Beteiligung → Netto-Rendite), eingefroren mit dem Merge
 
 **Easy-Auftrag 12.11.2026.** Anlass: H-I Stufe 1 = „Beleg, 1 Fenster“ für Treffer ≥ 30 % im
@@ -7859,6 +7892,8 @@ gelaufener Bestätigungstests (`eval_results.jsonl`).
 **Änderungs-Protokoll (bindend ab Merge):** Keine Änderung an diesem Block ohne datierten
 Protokolleintrag, der Änderung und Grund festhält. Ein Revert wird ebenfalls als
 Protokolleintrag festgehalten.
+
+**Protokolleintrag 14.11.2026 — Berichtsdatum nach Mitternacht (Variante A, PR #698):** Kriterien dieses Blocks **unverändert**; Naht = Merge-Datum von #698. Ab dann schreibt ein Postclose-Lauf, der zwischen 00:00 und 09:30 ET des Folgetags startet, die Einträge für den letzten abgeschlossenen Handelstag D, statt sie zu verwerfen (bisher verloren: 27.08. und 04.11.2026). Nur bisher verlorene Tage bekommen Einträge; Läufe vor Mitternacht ET bleiben byte-gleich (Test + Golden). Solche Zeilen tragen `nacht_lauf_et` (Laufzeit ET); ihre KI-/News-/OI-/VIX-Werte stammen aus der Nacht vor der Eröffnung von Tag 1 (kein Wert nach 09:30 ET).
 
 ### VORABREGISTRIERUNG — Landkarte K1/K2 (Grundvorsprung brutto, Short Float), eingefroren mit dem Merge
 
@@ -8015,6 +8050,8 @@ Score- oder Filter-Änderung (Easy entscheidet).
 **Änderungs-Protokoll (bindend ab Merge):** Keine Änderung an diesem Block ohne datierten
 Protokolleintrag, der Änderung und Grund festhält. Ein Revert wird ebenfalls als
 Protokolleintrag festgehalten.
+
+**Protokolleintrag 14.11.2026 — Berichtsdatum nach Mitternacht (Variante A, PR #698):** Kriterien dieses Blocks **unverändert**; Naht = Merge-Datum von #698. Ab dann schreibt ein Postclose-Lauf, der zwischen 00:00 und 09:30 ET des Folgetags startet, die Einträge für den letzten abgeschlossenen Handelstag D, statt sie zu verwerfen (bisher verloren: 27.08. und 04.11.2026). Nur bisher verlorene Tage bekommen Einträge; Läufe vor Mitternacht ET bleiben byte-gleich (Test + Golden). Solche Zeilen tragen `nacht_lauf_et` (Laufzeit ET); ihre KI-/News-/OI-/VIX-Werte stammen aus der Nacht vor der Eröffnung von Tag 1 (kein Wert nach 09:30 ET).
 
 ### ✅ STATUS-PANEL — 6. Eintrag `si_position_history` — ERLEDIGT (PR #430, 14.07.)
 
@@ -8335,6 +8372,8 @@ der die Änderung und ihren Grund festhält.
 **Protokolleintrag 10.11.2026 (Berichtigung zum Glättungs-Eintrag vom 09.11.2026).** Der Eintrag oben bleibt unverändert stehen; er nennt noch die erste Schätzung. **Belegte Zahlen:** über die 672 Forward-Zeilen weichen **62** gespeicherte Scores ab, **6** wechseln die Stufe (≥ 70 / < 70), nicht 65 und 7. **Grund der Differenz:** die Schätzung nahm für alle Zeilen ein 14-Tage-Fenster an; der Load-Prune (`generate_report.py:3768`) rechnet vom UTC-Datum des Laufs, Postclose-Läufe nach UTC-Mitternacht sehen dadurch nur 13 Tage. Exakte Nachrechnung je Zeile wie im „§4-Protokolleintrag 09.11.2026 — Glättungs-Fehler“ (`#668`). Im Bericht auszuweisen sind die berichtigten Zahlen. Keine Zeile umgeschrieben, kein Ergebnis erzeugt oder gelesen. Easy-Entscheid 09.11.2026.
 
 **Protokolleintrag 12.11.2026 (abends) — Zielgröße `return_10d` aus vorläufigem Abend-Schlusskurs.** **Fehler:** Seit `#647` (03.11.2026) füllten `update_backtest_returns` (`return_3d/5d/10d`, `_t1`, `_net`, `_vs_spy`) und `update_exit_shadow_forwards` (`forward_3d/5d/10d`) ab 16:20 ET am Zieltag. Yahoo liefert dort teils noch einen vorläufigen Schlusskurs; das Feld wird danach nie überschrieben (Beleg Wahrheits-Abgleich S16: 3 Abweichungen, alle am Zieltag 17:40 bzw. 18:23 ET gefüllt; open_item `rendite-forward-abendzeile-nicht-final`). **Fix:** `#680` — Füllung erst ab 07:00 ET des folgenden Kalendertags (`trading_date.last_settled_close_date`; Grenze aus den Nacht-Probe-Messwerten 10.–12.11.2026). Bereits gefüllte Werte bleiben unverändert. **Naht:** Merge-Datum von `#680` — Werte davor nach alter Regel, danach nach neuer. **Bestandskorrektur: Entscheid offen bis Messlauf** (`settled_close_measure.yml`, read-only). **Umfang (Git-Historie, nur Zählung, Obergrenze):** `return_10d` am Zieltag-Abend gefüllt: 20 (Einstieg < 24.10.) + 30 (Replikationsfenster, blind). Feld-Kombis und Kriterien unverändert. Kein Ergebnis erzeugt oder gelesen.
+
+**Protokolleintrag 14.11.2026 — Berichtsdatum nach Mitternacht (Variante A, PR #698):** Kriterien dieses Blocks **unverändert**; Naht = Merge-Datum von #698. Ab dann schreibt ein Postclose-Lauf, der zwischen 00:00 und 09:30 ET des Folgetags startet, die Einträge für den letzten abgeschlossenen Handelstag D, statt sie zu verwerfen (bisher verloren: 27.08. und 04.11.2026). Nur bisher verlorene Tage bekommen Einträge; Läufe vor Mitternacht ET bleiben byte-gleich (Test + Golden). Solche Zeilen tragen `nacht_lauf_et` (Laufzeit ET); ihre KI-/News-/OI-/VIX-Werte stammen aus der Nacht vor der Eröffnung von Tag 1 (kein Wert nach 09:30 ET).
 
 ### PAPER-BEFUND (Svoboda/Kapounek/Albrecht 2026, ausgewertet 12.07.)
 

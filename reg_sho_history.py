@@ -54,7 +54,7 @@ import json
 import logging
 import os
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from urllib.error import HTTPError
 from urllib.parse import urlencode, urljoin
 from urllib.request import Request, urlopen
@@ -435,7 +435,8 @@ def _evaluate_ticker(ticker, exchange, sources, *, date_iso):
 # ── Orchestrierung ────────────────────────────────────────────────────────────
 def collect_and_persist(universe, *, report_date_iso=None, run_phase=None,
                         now_utc=None, get_nasdaq_text_fn=None, get_nyse_text_fn=None,
-                        time_budget_s=None, hist_path=None, state_path=None):
+                        time_budget_s=None, hist_path=None, state_path=None,
+                        anchor_date_iso=None):
     """Sammelt TÄGLICH (postclose) je Universums-Ticker den Reg-SHO-Threshold-
     Status. ``universe`` = Liste von Dicts mit ``ticker`` + ``exchange``.
 
@@ -459,6 +460,15 @@ def collect_and_persist(universe, *, report_date_iso=None, run_phase=None,
     # `trading_date.us_trading_date` ersetzt `now.date()` an beiden
     # Stellen durch das US/Eastern-Handelstag-Datum.
     _anchor_date = trading_date.us_trading_date(now)
+    # Variante A (14.11.2026): der Daily-Run übergibt den Berichts-Handelstag als
+    # Anker. Ein Postclose nach Mitternacht ET fragt so wie abends die Liste von
+    # D−1 ab (nicht die von D, die dann evtl. noch leer ist). Abends ist der
+    # Anker = ET-Kalenderdatum → unverändert. Ohne Argument: alter Anker (Tests).
+    if anchor_date_iso:
+        try:
+            _anchor_date = date.fromisoformat(anchor_date_iso)
+        except (TypeError, ValueError):
+            pass
     t_iso = report_date_iso or _anchor_date.isoformat()
     # NYSE-API verlangt ein Datum VOR heute (siehe _resolve_nyse-Docstring) —
     # basiert bewusst auf dem ET-Handelstag-Anker (`_anchor_date`), NICHT

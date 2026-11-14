@@ -1,0 +1,54 @@
+name: Probe Halbzeile → Score (Wegwerf)
+
+# WEGWERF-PROBE 1 (Easy-Entscheid 14.11.2026, open_item
+# halbzeilen-score-wirkung-probe): rechnet für die Postclose-Abende in
+# score_inflation_log.jsonl die von der Halbzeile betroffenen Score-Eingaben
+# (Gap & Hold, RS vs. SPY, rvol, rsi14/change_2d → Late-Runner) aus
+# endgültigen Tageszeilen nach. NUR Hand-Start, NUR lesen (contents: read),
+# kein Commit, kein Push, keine Secrets. Ergebnis: Log + Artifact.
+# BLINDHEIT: liest nur Eingaben/Scores und Kurse bis einschließlich D — kein
+# Ergebnisfeld. Wird nach der Auswertung per Cleanup-PR entfernt.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-halbzeile-score
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout main (nur lesen)
+        uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Halbzeile → Score nachrechnen (Rate-Limit → Abbruch ohne Ergebnis)
+        run: python scripts/probe_halbzeile_score.py --out "$RUNNER_TEMP/halbzeile_probe/halbzeile_probe.json"
+
+      - name: Artifact hochladen
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: halbzeile-probe-${{ github.run_id }}
+          path: ${{ runner.temp }}/halbzeile_probe/halbzeile_probe.json
+          if-no-files-found: ignore
+          retention-days: 14

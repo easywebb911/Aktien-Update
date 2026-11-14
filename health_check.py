@@ -381,6 +381,46 @@ def _last_us_trading_day_before(et_day: date) -> date:
     return d
 
 
+# S15-Zusatz (Variante A, 14.11.2026, open_item s15-vintage-skip-waechter):
+# ein Postclose-Lauf, dessen Backtest-Append der Vintage-Guard wegen der
+# UHRZEIT verwirft (pre_open / before_close / after_window), ist genau das
+# Rückfall-Signal der Berichtsdatum-Falle (27.08./04.11.2026). Holiday-/
+# Vortags-Bar-Skips je Eintrag (holiday_or_prior_bar) sind erwartet → kein Fail.
+_S15_VINTAGE_TIME_REASONS = ("pre_open", "before_close", "after_window")
+_S15_VINTAGE_LOOKBACK_H = 26
+
+
+def _postclose_vintage_time_skips(path: str, now_utc: datetime,
+                                  lookback_h: int = _S15_VINTAGE_LOOKBACK_H) -> list[dict]:
+    """Zeit-bedingte Postclose-Verwürfe aus ``vintage_guard_log.jsonl`` der
+    letzten ``lookback_h`` Stunden. Nur lesend, fail-soft (fehlende/kaputte
+    Datei oder Zeile → ignoriert). Das Log schreibt nur der Postclose-Append."""
+    out: list[dict] = []
+    if now_utc.tzinfo is None:
+        now_utc = now_utc.replace(tzinfo=timezone.utc)
+    cutoff = now_utc - timedelta(hours=lookback_h)
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            lines = fh.readlines()
+    except (OSError, UnicodeDecodeError):
+        return out
+    for line in lines:
+        try:
+            rec = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(rec, dict) or rec.get("reason") not in _S15_VINTAGE_TIME_REASONS:
+            continue
+        try:
+            ts = datetime.strptime(str(rec.get("ts_utc")), "%Y-%m-%dT%H:%M:%SZ").replace(
+                tzinfo=timezone.utc)
+        except (TypeError, ValueError):
+            continue
+        if cutoff <= ts <= now_utc + timedelta(minutes=5):
+            out.append(rec)
+    return out
+
+
 def _postclose_missing_last_trading_day(now_utc: datetime,
                                         backtest_path: str) -> str | None:
     """Datum (``DD.MM.YYYY``) des letzten Handelstags VOR dem heutigen ET-Tag,
@@ -1052,6 +1092,7 @@ def evaluate_state_invariants(
     truth_check_log_path: str | None = None,
     matured_export_path: str | None = None,
     outcome_path_path: str | None = None,
+    vintage_guard_log_path: str | None = None,
 ) -> list[dict]:
     """Bewertet die State-Invariants S1–S17. Returnt Liste von Fail-Dicts.
 
@@ -1457,6 +1498,19 @@ def evaluate_state_invariants(
                 "detail": (f"Postclose für {s15_day} fehlt (keine Backtest-"
                            f"Einträge mit diesem Datum) — Datenlücke, "
                            f"Nachholen nicht mehr möglich"),
+            })
+    if not ki_agent_only and vintage_guard_log_path:
+        _vg = _postclose_vintage_time_skips(vintage_guard_log_path, now_for_s8)
+        if _vg:
+            _last = _vg[-1]
+            _et = str(_last.get("now_et") or "")[11:16]
+            fails.append({
+                "id": "S15", "severity": "warn",
+                "detail": (f"Postclose-Append vom Vintage-Guard verworfen "
+                           f"({len(_vg)}× in {_S15_VINTAGE_LOOKBACK_H} h, zuletzt "
+                           f"{_last.get('reason')}, Berichtsdatum "
+                           f"{_last.get('report_date')}, Lauf {_et} ET) — "
+                           f"Berichtsdatum-Rückfall prüfen"),
             })
 
     # === S16 (warn/crit) — Wahrheits-Abgleich (08.11.2026) =================

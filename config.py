@@ -2539,6 +2539,12 @@ S10_OBSERVED_FIELDS = frozenset({
     # der finalen Tageszeilen, aus denen max_gain_pct/max_drawdown_pct zuletzt
     # gerechnet wurden (≤ 11). None bis zum ersten Rolling-Update → nur OBSERVED.
     "rolling_window_n",
+    # Variante A Berichtsdatum (14.11.2026): Laufzeit (ET, ISO) eines
+    # Postclose-Laufs NACH Mitternacht ET, der für den letzten Handelstag D
+    # schreibt. Nur auf solchen Zeilen gesetzt (KI-/News-/OI-/VIX-Werte aus
+    # der Nacht vor der Eröffnung von Tag 1); Abendläufe: Feld fehlt → nur
+    # OBSERVED, KEIN MUSS/LAG-Check. Schema bleibt v4 (additiv).
+    "nacht_lauf_et",
     # Hypothese-A-Vorbau (05.07.2026, Stufe A — Live-Vorwärts-Erhebung):
     # 5-Trading-Day-Past-Return VOR Entry, aus yfinance-Adj-Close beidseitig
     # (Split-Konsistenz, Reverse-Splits bei Squeeze-Small-Caps häufig).

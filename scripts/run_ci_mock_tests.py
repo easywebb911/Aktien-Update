@@ -56,6 +56,8 @@ ALLOWLIST = [
     "truth_check_epr_def",
     "minute_bars",
     "display_teil_b",
+    "berichtsdatum_variante_a",
+    "probe_halbzeile_score",
     "maxgain_none_not_zero",
     "postclose_gap_s15",
     "digest_warn_visible",
