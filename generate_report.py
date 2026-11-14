@@ -2131,6 +2131,11 @@ def fetch_ibkr_borrow_rate(ticker: str) -> float | None:
         return None
 
 
+# Berichts-Handelstag des laufenden main() (Variante A, 14.11.2026); None =
+# ET-Kalenderdatum (Tests/Aufrufe außerhalb main). Gesetzt in main().
+_REPORT_DAY_ET: date | None = None
+
+
 def get_earnings_date(ticker: str) -> tuple[int | None, str | None]:
     """Return (days_until_earnings, date_str_DE) from yfinance calendar.
 
@@ -2150,7 +2155,9 @@ def get_earnings_date(ticker: str) -> tuple[int | None, str | None]:
             if not isinstance(raw, list):
                 raw = [raw]
             dates = raw
-        today = datetime.now(ZoneInfo("America/New_York")).date()
+        # Variante A (14.11.2026): Tage bis Earnings ab dem Berichts-Handelstag
+        # (Postclose nach Mitternacht → D, nicht der Kalender-Folgetag).
+        today = _REPORT_DAY_ET or datetime.now(ZoneInfo("America/New_York")).date()
         for d in dates:
             try:
                 edate = _pd.Timestamp(d).date()
@@ -18889,6 +18896,17 @@ def _cap_within_limit(c: dict) -> bool:
     return cap <= MAX_MARKET_CAP
 
 
+def _resolve_report_day(run_phase: str, now_utc: datetime) -> date:
+    """Berichts-Handelstag des Laufs (Variante A, Easy-Entscheid 14.11.2026).
+
+    Postclose → ``trading_date.report_trading_date`` (vor 09:30 ET: letzter
+    abgeschlossener Handelstag D; sonst ET-Kalenderdatum). Jede andere Phase
+    (premarket) → ET-Kalenderdatum wie bisher. Pure, nur ET-Uhrzeit zählt."""
+    if run_phase == "postclose":
+        return trading_date.report_trading_date(now_utc, US_MARKET_HOLIDAYS)
+    return trading_date.us_trading_date(now_utc)
+
+
 def main():
     t_run_start = time.time()
     # report_date an den US-HANDELSTAG (Eastern) koppeln, NICHT an die
@@ -18899,7 +18917,23 @@ def main():
     # (28.05.-Kohorte landete als 29.05.). ET-Kopplung heilt das an der Wurzel.
     # Die Header-Timestamp-Anzeige (Z. ~6254) nutzt weiterhin Berlin-Zeit
     # (eigene ZoneInfo-Instanz, von dieser Datums-Achse unabhängig).
-    report_date = datetime.now(ZoneInfo("America/New_York")).strftime("%d.%m.%Y")
+    # Variante A (Easy-Entscheid 14.11.2026, open_item berichtsdatum-wurzel-
+    # loesung-nacht-probe): ein POSTCLOSE-Lauf, der vor 09:30 ET startet (GitHub-
+    # Verzug nach Mitternacht), berichtet für den letzten abgeschlossenen
+    # Handelstag D statt für den Folgetag — sonst verwarf der Vintage-Guard
+    # den Append (27.08., 04.11.2026). Premarket behält das ET-Kalenderdatum;
+    # Läufe ab 09:30 ET (also jeder Abendlauf vor Mitternacht) sind unverändert.
+    run_phase   = _resolve_run_phase()
+    # Anzeige-Gate „Momentum 5T“ (Easy-Entscheid 09.11.2026): dieselbe Quelle
+    # wie die Kopfzeilen-Kennung (app_data["run_phase"] aus diesem Lauf).
+    globals()["_REPORT_RUN_PHASE"] = run_phase
+    _run_now_utc = datetime.now(timezone.utc)
+    _report_day = _resolve_report_day(run_phase, _run_now_utc)
+    report_date = _report_day.strftime("%d.%m.%Y")
+    if _report_day != trading_date.us_trading_date(_run_now_utc):
+        log.info("Berichts-Handelstag %s (Lauf %s ET, vor 09:30 ET — Variante A)",
+                 report_date, _run_now_utc.astimezone(ZoneInfo("America/New_York"))
+                 .strftime("%d.%m.%Y %H:%M"))
     # Trading-Date-Fix (Wächter 26.10.2026): dieselbe ET-Kopplung wie
     # report_date oben, nur als ISO-String fuer die Sammel-/Persistenz-
     # Pfade, die bisher unabhaengig `date.today()` (UTC-Kalenderdatum)
@@ -18909,12 +18943,11 @@ def main():
     # durchgereicht -- verhindert, dass zwei Calls im selben Lauf durch
     # getrennte `trading_date.us_trading_date_iso()`-Aufrufe zufaellig auf
     # verschiedenen Seiten einer Tagesgrenze landen.
-    _us_trading_date_iso = trading_date.us_trading_date_iso()
-    run_phase   = _resolve_run_phase()
+    # Sammler desselben Postclose-Laufs bekommen DASSELBE Datum wie der
+    # Backtest (open_item berichtsdatum-sammler-konsistenz).
+    _us_trading_date_iso = _report_day.isoformat()
+    globals()["_REPORT_DAY_ET"] = _report_day
     log.info("=== Squeeze Report %s (run_phase=%s) ===", report_date, run_phase)
-    # Anzeige-Gate „Momentum 5T“ (Easy-Entscheid 09.11.2026): dieselbe Quelle
-    # wie die Kopfzeilen-Kennung (app_data["run_phase"] aus diesem Lauf).
-    globals()["_REPORT_RUN_PHASE"] = run_phase
     # Health-Check Phase 2 — Provider-Aggregatoren zurücksetzen, damit
     # wiederholte main()-Aufrufe (Tests) sauber starten.
     _finviz_acct_reset()
@@ -20056,7 +20089,7 @@ def main():
     # bleibt für eine spätere Re-Aktivierung stehen.
     _t_earn = time.time()
     log.info("Step 3c – Fetching earnings dates for %d US stocks …", len(us_top10))
-    _today_et = datetime.now(EASTERN).date() if 'EASTERN' in globals() else datetime.now(ZoneInfo("America/New_York")).date()
+    _today_et = _report_day   # Variante A: Berichts-Handelstag (sonst ET-Kalenderdatum)
     _ew_applied = 0
     _ew_tickers = [s for s in us_top10 if s["ticker"] in ew_calendar]
     for s in _ew_tickers:
@@ -20526,7 +20559,9 @@ def main():
         # speist S1 (score_history-Vergleich, gestempelt mit report_date) und
         # das S4-Wochenend-Gate. Bliebe es Berlin während report_date ET ist,
         # bräche an Drift-Tagen S1 (crit-Fehlalarm) + S4 durch Achsen-Divergenz.
-        _today_iso = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
+        # Variante A (14.11.2026): derselbe Berichts-Handelstag wie report_date
+        # (ET-Kalenderdatum, außer Postclose vor 09:30 ET → D).
+        _today_iso = _us_trading_date_iso
         _top10_tickers = [s["ticker"] for s in top10 if s.get("ticker")]
         try:
             with open(SCORE_HISTORY_FILE, "r", encoding="utf-8") as _fh:
@@ -20567,6 +20602,7 @@ def main():
             truth_check_log_path=TRUTH_CHECK_LOG_FILE,   # S16: Wahrheits-Abgleich (nur Log lesen)
             matured_export_path=MATURED_EXPORT_FILE,     # S17: Rolling-Fenster abgeschnitten
             outcome_path_path=OUTCOME_PATH_FILE,         # S17: nur Zählungen
+            vintage_guard_log_path="vintage_guard_log.jsonl",  # S15: Postclose-Verwurf (Uhrzeit)
         )
     except Exception as exc:
         log.warning("health_check (Daily-Run) fehlgeschlagen: %s", exc)

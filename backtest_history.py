@@ -1129,6 +1129,8 @@ def _vintage_gate_decision(report_date: str, bar_date, now_et: datetime
     - ``now_et < report_date@16:20 ET`` (``_VINTAGE_MKT_CLOSE`` =
       ``trading_date.US_CLOSE_FINAL_ET``) → skip (``pre_open`` falls vor
       Markt-Open bzw. report_date noch nicht erreicht, sonst ``before_close``).
+    - ``now_et >= 09:30 ET des Folgehandelstags`` nach report_date → skip
+      (``after_window``, Variante A 14.11.2026).
     - Zeit OK, ``bar_date`` fehlt/unparsbar → **append** (Missing-Regel,
       konservativ: lieber unsicherer Eintrag als stiller Datenverlust).
     - Zeit OK, ``bar_date != report_date`` → skip (``holiday_or_prior_bar``).
@@ -1147,6 +1149,11 @@ def _vintage_gate_decision(report_date: str, bar_date, now_et: datetime
         if now_et.date() < rd or now_et.time() < _VINTAGE_MKT_OPEN:
             return "skip", "pre_open"
         return "skip", "before_close"
+    # Fenster-Ende (Variante A, 14.11.2026): ab 09:30 ET des Folgehandelstags
+    # nach report_date kein Append mehr (Werte des neuen Handelstags). Für
+    # Läufe vor Mitternacht ET nie erreicht (report_date = heute).
+    if now_et >= trading_date.postclose_window_end(rd, US_MARKET_HOLIDAYS):
+        return "skip", "after_window"
     if bar_date is None:
         return "append", "missing_bar"
     try:
@@ -1601,6 +1608,13 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             # dieses Argument verhält sich exakt wie vorher).
             fresh_ki=(fresh_ki_signals or {}).get(s["ticker"]),
         ))
+        # Variante A (14.11.2026): Lauf NACH Mitternacht ET schreibt für den
+        # letzten Handelstag D — Kennzeichen mit der Laufzeit (ET), damit diese
+        # Zeilen erkennbar bleiben (KI-/News-/OI-/VIX-Werte aus der Nacht vor
+        # der Eröffnung von Tag 1). Läufe am Tag D selbst: kein Feld
+        # (byte-gleich wie vorher).
+        if _rd is not None and now_et.date() != _rd:
+            entry["nacht_lauf_et"] = now_et.isoformat(timespec="seconds")
         history.append(entry)
         n_added += 1
 

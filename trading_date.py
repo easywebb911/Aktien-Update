@@ -180,3 +180,50 @@ def nth_trading_day_after(d: date, n: int, holidays) -> date:
         if is_us_trading_day(out, holidays):
             k += 1
     return out
+
+
+# ── Berichts-Handelstag eines Postclose-Laufs (Variante A, 14.11.2026) ─────
+# Befund (open_item berichtsdatum-wurzelloesung-nacht-probe): ein Postclose-
+# Lauf, den GitHub erst nach 00:00 ET startet, bekam bisher den FOLGETAG als
+# Berichtsdatum; der Vintage-Guard verwarf dann den Backtest-Append (27.08.,
+# 04.11.2026), die Sammler schrieben das Folgetags-Datum. Easy-Entscheid
+# 14.11.2026: Berichtsdatum = letzter abgeschlossener Handelstag D, wenn der
+# Lauf VOR 09:30 ET startet; Guard-Fenster 16:20 ET D bis 09:30 ET des
+# Folgehandelstags. NUR im Postclose-Pfad (Premarket behält das Kalenderdatum).
+# Ab 09:30 ET ist das Ergebnis unverändert das ET-Kalenderdatum (Läufe vor
+# Mitternacht: byte-gleich wie vorher).
+
+
+def report_trading_date(now_utc: datetime | None = None, holidays=frozenset()) -> date:
+    """Berichts-Handelstag eines POSTCLOSE-Laufs zum Zeitpunkt ``now_utc``.
+
+    - ET-Uhrzeit ab 09:30 → das ET-Kalenderdatum (unverändert wie
+      ``us_trading_date``; auch an Wochenend-/Feiertagen — deren Schutz bleibt
+      bei den Aufrufern).
+    - ET-Uhrzeit vor 09:30 → der letzte US-Handelstag STRIKT VOR dem
+      ET-Kalenderdatum (Mo–Fr ohne ``holidays``), also der zuletzt
+      abgeschlossene Handelstag (Mo 01:00 → Fr; Sa 00:30 → Fr).
+
+    Nur die ET-Uhrzeit zählt (unabhängig vom UTC-Datum, deterministisch).
+    ``holidays`` = Menge ISO-Strings (``config.US_MARKET_HOLIDAYS``).
+    ``now_utc`` injizierbar; naiv = UTC."""
+    if now_utc is None:
+        now_utc = datetime.now(timezone.utc)
+    elif now_utc.tzinfo is None:
+        now_utc = now_utc.replace(tzinfo=timezone.utc)
+    et = now_utc.astimezone(_NY)
+    if et.time() >= US_SESSION_OPEN_ET:
+        return et.date()
+    d = et.date() - timedelta(days=1)
+    while not is_us_trading_day(d, holidays):
+        d -= timedelta(days=1)
+    return d
+
+
+def postclose_window_end(d: date, holidays=frozenset()) -> datetime:
+    """Ende des Schreib-Fensters für Berichts-Handelstag ``d``: 09:30 ET des
+    nächsten US-Handelstags nach ``d`` (tz-aware ET). Danach würde ein Lauf
+    Werte aus dem neuen Handelstag sehen → kein Append mehr."""
+    nxt = nth_trading_day_after(d, 1, holidays)
+    return datetime(nxt.year, nxt.month, nxt.day, US_SESSION_OPEN_ET.hour,
+                    US_SESSION_OPEN_ET.minute, tzinfo=_NY)

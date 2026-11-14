@@ -52,19 +52,22 @@ def test_today_iso_same_et_axis():
 
 # === 3-5 — Source-Inspektion ============================================
 def test_report_date_uses_eastern():
-    m = re.search(r'report_date\s*=\s*datetime\.now\(\s*ZoneInfo\(\s*"([^"]+)"\s*\)\s*\)'
-                  r'\.strftime\("%d\.%m\.%Y"\)', GR)
-    assert m is not None, "report_date-Zuweisung nicht im erwarteten Muster gefunden"
-    assert m.group(1) == "America/New_York", \
-        f"report_date nutzt {m.group(1)!r}, erwartet America/New_York"
+    # Seit Variante A (14.11.2026): report_date kommt aus _resolve_report_day,
+    # das ausschließlich trading_date (US/Eastern) nutzt — nie Berlin.
+    assert re.search(r'report_date\s*=\s*_report_day\.strftime\("%d\.%m\.%Y"\)', GR), \
+        "report_date-Zuweisung nicht im erwarteten Muster gefunden"
+    assert "_report_day = _resolve_report_day(run_phase, _run_now_utc)" in GR
+    start = GR.index("def _resolve_report_day(")
+    body = GR[start:GR.index("\n\n\ndef ", start)]
+    assert "trading_date.report_trading_date" in body and "trading_date.us_trading_date" in body
+    assert "Europe/Berlin" not in body, "Berichtsdatum darf nicht an Berlin hängen"
 
 
 def test_today_iso_uses_eastern():
-    m = re.search(r'_today_iso\s*=\s*datetime\.now\(\s*ZoneInfo\(\s*"([^"]+)"\s*\)\s*\)'
-                  r'\.strftime\("%Y-%m-%d"\)', GR)
-    assert m is not None, "_today_iso-Zuweisung nicht im erwarteten Muster gefunden"
-    assert m.group(1) == "America/New_York", \
-        f"_today_iso nutzt {m.group(1)!r}, erwartet America/New_York"
+    # _today_iso folgt DERSELBEN Achse wie report_date (Variante A, 14.11.2026).
+    assert "_today_iso = _us_trading_date_iso" in GR, \
+        "_today_iso-Zuweisung nicht im erwarteten Muster gefunden"
+    assert "_us_trading_date_iso = _report_day.isoformat()" in GR
 
 
 def test_backtest_has_today_compares_report_date():
