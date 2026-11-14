@@ -3401,7 +3401,9 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Log `[earnings_fields]`. Golden byte-gleich. open_items: 3 neu (Hypothesen-ENTWURF H-EA1/H-EA2/H-JUMP).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#706`, höchste in Block 1 erwähnte
   PR = `#707` (eigene) — kein Rückstand.
-- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Guardian-Lauf vor Ready:** ✅ OK, zwei niedrige Hinweise (14-T-Fenster ohne `matched_terms`;
+  `…_pit` = Stand zum Abruf, Zeitanker `abgerufen_utc`/`letzter_termin_8k`), dokumentiert.
+  `protected-ok` nach Regel b von Easy freigegeben (14.11.2026).
 
 ### 14.11.2026 — Wegwerf-Probe Tiingo (Delisting-Kurse) (1 PR, Manual-Merge, neuer Workflow mit Secret)
 
