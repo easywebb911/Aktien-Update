@@ -1125,6 +1125,24 @@ def get_yfinance_data(ticker: str) -> dict:
         return {}
 
 
+# Halbzeilen-Zählung des letzten get_yfinance_batch-Aufrufs: (anzahl_ticker_mit_
+# nicht-endlichem Close in der letzten Batch-Zeile, anzahl_ticker) oder None
+# (Download fehlgeschlagen / Zählung nicht möglich). Quelle für nan_pct im
+# provider_health-Eintrag yfinance_batch (Schritt 2, 14.11.2026).
+_YF_BATCH_HALFROW_COUNT: tuple[int, int] | None = None
+
+
+def _batch_nan_pct(count) -> float | None:
+    """``count`` = (halbzeilen, ticker) → Prozent auf 1 Stelle, sonst None."""
+    try:
+        n_half, n_all = count
+        if not n_all or n_half is None or n_half < 0:
+            return None
+        return round(n_half / n_all * 100.0, 1)
+    except (TypeError, ValueError):
+        return None
+
+
 def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
     """Batch-fetch yfinance data for all tickers at once.
 
@@ -1148,6 +1166,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
 
     # ── Phase A: Batch OHLCV history (single HTTP request for all tickers) ──
     hist_batch = None
+    globals()["_YF_BATCH_HALFROW_COUNT"] = None
     try:
         hist_batch = yf.download(
             tickers, period="1y", group_by="ticker",
@@ -1469,8 +1488,14 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
     # [halfrow_probe] REINE LOG-PROBE (02.11.2026) — nur stdout, fail-soft,
     # kein Einfluss auf Score/Felder/Dateien/Pushes. Entfernen oder in Fix B
     # überführen (open_items postclose-halbe-tageszeile-preis-score-pfad).
+    # ACHTUNG: nan_pct (provider_health yfinance_batch) nutzt die Zählung
+    # _probe_n — beim Entfernen der Log-Zeilen die Zählung behalten.
     try:
         _probe_lines, _probe_n = _halfrow_probe_lines(hist_batch, tickers, info_map)
+        # nan_pct (Schritt 2, 14.11.2026): Halbzeilen-Anteil für provider_health
+        # (yfinance_batch). Nur Zählung, kein Score-/Daten-Effekt.
+        if hist_batch is not None and not getattr(hist_batch, "empty", True):
+            globals()["_YF_BATCH_HALFROW_COUNT"] = (_probe_n, len(tickers))
         print(f"[halfrow_probe] run_utc={datetime.now(timezone.utc).isoformat()} "
               f"yfinance={getattr(yf, '__version__', 'None')} "
               f"halfrow_tickers={_probe_n} of {len(tickers)} "
@@ -19346,6 +19371,8 @@ def main():
                              else (200 if _yfb_err is None else None)),
                 item_count=_yfb_ok_items,
                 coverage_pct=round(_yfb_cov, 1) if _yfb_cov is not None else None,
+                nan_pct=(None if _yfb_err is not None
+                         else _batch_nan_pct(_YF_BATCH_HALFROW_COUNT)),
                 error=_yfb_err,
                 run_phase=run_phase,
             )

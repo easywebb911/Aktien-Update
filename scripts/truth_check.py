@@ -37,7 +37,13 @@ nachgerechnet nach den Produktionsregeln:
   umgerechnet) gegen den Schluss 5 eigene Handelstage davor; Stufe-B-Backfill
   davor (und bei Dividende seit dem Nenner) Schluss gegen Schluss.
 
-KEINE Preis-Felder (``entry_price``, ``entry_price_t1``). Bootstrap-Zeilen
+* ``entry_price`` (seit 14.11.2026, Schritt 2) — nur Einstiege ab
+  ``config.TRUTH_CHECK_ENTRY_PRICE_FROM``: gespeicherter Wert gegen den
+  Rohkurs-Schluss von D (bereinigter Schluss / Split-Faktor nach D), relative
+  Abweichung in Prozent, Toleranz ``TRUTH_CHECK_ENTRY_PRICE_TOL_PCT`` (0,02 %);
+  Dividende nach D → ``neu_adjustiert`` wie bei den anderen Feldern.
+
+KEIN ``entry_price_t1``, kein ``rvol``. Bootstrap-Zeilen
 werden übersprungen. Toleranz ``config.TRUTH_CHECK_TOLERANCE_PP`` (0,02).
 Abweichung → Blick auf Dividenden/Splits im Fenster (aus derselben Kurs-
 Abfrage, ``actions=True``): vorhanden → Klasse ``neu_adjustiert``, sonst
@@ -100,6 +106,9 @@ MAX_FIELDS = ("max_gain_pct", "max_drawdown_pct")
 # stammen alle Werte aus dem Stufe-B-Backfill (Schluss/Schluss, Manifest). Beleg:
 # Manifest-Daten 14.05.–10.07.; erste Nicht-Manifest-Werte 13.07.2026 (Test).
 EPR_LIVE_FROM = date(2026, 7, 13)
+# entry_price-Prüfung erst ab diesem Einstiegstag (config, Schritt 2 14.11.2026).
+ENTRY_PRICE_FROM = date.fromisoformat(config.TRUTH_CHECK_ENTRY_PRICE_FROM)
+ENTRY_PRICE_TOL_PCT = float(config.TRUTH_CHECK_ENTRY_PRICE_TOL_PCT)
 SHADOW_FIELDS = tuple(f"forward_{n}d" for n in SHADOW_HORIZONS)
 
 
@@ -259,6 +268,12 @@ def recompute_backtest(row: dict, s: Series | None, spy: Series | None,
                     out["entry_past_return_5d"] = (
                         round((num / den - 1.0) * 100.0, 2), (dden, edate), (tk,))
                     out["_epr_def"] = "laufzeitkurs" if live else "schluss"
+            # entry_price (Schritt 2, 14.11.2026): Rohkurs-Schluss von D =
+            # bereinigter Schluss / F (Splits nach D). Dividende nach D →
+            # Klassierung über span (D .. Reihenende) wie bei den anderen Feldern.
+            if edate >= ENTRY_PRICE_FROM and c0 and c0 > 0:
+                out["entry_price"] = (round(c0 / _split_factor_after(s, edate), 4),
+                                      (edate, s.rows[-1]["d"]), (tk,))
         # max_gain / max_drawdown nur bei Einträgen > 14 Kalendertage.
         if (today - edate).days > 14:
             win = [r for r in s.own if edate <= r["d"] <= final_cut][:11]
@@ -359,7 +374,8 @@ def recompute_shadow(row: dict, s: Series | None, final_cut: date) -> dict:
 def _fields_of(datei: str, row: dict) -> tuple:
     if datei == "exit_shadow":
         return SHADOW_FIELDS
-    return RETURN_FIELDS + MAX_FIELDS + ("vix_level", "market_regime", "entry_past_return_5d")
+    return RETURN_FIELDS + MAX_FIELDS + ("vix_level", "market_regime", "entry_past_return_5d",
+                                         "entry_price")
 
 
 def compare_row(datei: str, row: dict, rec: dict, series: dict, tol: float,
@@ -413,6 +429,17 @@ def compare_row(datei: str, row: dict, rec: dict, series: dict, tol: float,
             continue
         if neu is None:
             continue
+        if f == "entry_price":
+            # relative Abweichung in Prozent (nicht pp), eigene Toleranz.
+            if neu <= 0:
+                continue
+            n_cmp += 1
+            delta = abs(neu - a) / neu * 100.0
+            if delta > ENTRY_PRICE_TOL_PCT + 1e-9:
+                # max_abs_delta bleibt in pp (Verhältnis-Felder) — entry_price
+                # trägt seine Prozent-Abweichung in ``abw_pct`` der Abweichung.
+                devs.append((f, alt, neu, span, srcs, delta))
+            continue
         n_cmp += 1
         delta = abs(neu - a)
         if delta > tol + 1e-9:
@@ -420,7 +447,10 @@ def compare_row(datei: str, row: dict, rec: dict, series: dict, tol: float,
             max_d = delta if max_d is None else max(max_d, delta)
     out = []
     for f, alt, neu, span, srcs, delta in devs:
-        out.append(_classify_dev(datei, row, rec, series, f, alt, neu, span, srcs, delta))
+        d = _classify_dev(datei, row, rec, series, f, alt, neu, span, srcs, delta)
+        if f == "entry_price" and delta is not None:
+            d["abw_pct"] = round(delta, 4)
+        out.append(d)
     return n_cmp, out, max_d
 
 
@@ -436,10 +466,11 @@ def _classify_dev(datei, row, rec, series, f, alt, neu, span, srcs, delta) -> di
          "feld": f, "alt": alt, "neu": neu, "klasse": "abweichung"}
     if f == "entry_past_return_5d" and rec.get("_epr_def"):
         d["definition"] = rec["_epr_def"]
+    is_ep = f == "entry_price"   # delta in % (abw_pct), keine Rundungsschranke
     if any(series.get(t) is not None and series[t].has_dividend(span[0], span[1]) for t in srcs):
         d["klasse"] = "neu_adjustiert"
         d["regel"] = "dividende_im_fenster"
-        if delta is not None:
+        if delta is not None and not is_ep:
             d["abs_delta"] = round(delta, 4)
         return d
     split_in = any(series.get(t) is not None and series[t].has_split(span[0], span[1]) for t in srcs)
@@ -462,7 +493,7 @@ def _classify_dev(datei, row, rec, series, f, alt, neu, span, srcs, delta) -> di
             d["regel"] = "rundung_split_im_fenster" if split_in else "rundung_nach_aktion"
             return d
     if split_in:
-        d["regel"] = "split_im_fenster_ueber_schranke"
+        d["regel"] = "split_nach_d" if is_ep else "split_im_fenster_ueber_schranke"
     return d
 
 
@@ -639,12 +670,18 @@ def apply_known(devs: list, known: list, tol: float) -> list:
     eingetragenen Werten passen. Sonst unverändert (voller Alarm)."""
     idx = {(e["datei"], e["ticker"], e["date"], e["feld"]): e for e in known}
     out = []
+    def _close(x, ref):
+        # entry_price: relative Toleranz in Prozent (ENTRY_PRICE_TOL_PCT), sonst pp.
+        if d.get("feld") == "entry_price":
+            return ref != 0 and abs(x - ref) / abs(ref) * 100.0 <= ENTRY_PRICE_TOL_PCT + 1e-9
+        return abs(x - ref) <= tol + 1e-9
+
     for d in devs:
         e = idx.get((d.get("datei"), d.get("ticker"), d.get("date"), d.get("feld")))
         a, n = _num(d.get("alt")), _num(d.get("neu"))
         if (d.get("klasse") == "abweichung" and e is not None and a is not None and n is not None
-                and abs(a - float(e["alt"])) <= tol + 1e-9
-                and abs(n - float(e["vergleich"])) <= tol + 1e-9):
+                and _close(a, float(e["alt"]))
+                and _close(n, float(e["vergleich"]))):
             d = dict(d, klasse="bekannt", verweis=e["verweis"])
         out.append(d)
     return out

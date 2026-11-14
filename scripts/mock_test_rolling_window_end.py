@@ -199,7 +199,9 @@ def test_s17_watchdog():
                {"ticker": "OK", "date": "13.11.2026", "max_gain_pct": full, "max_drawdown_pct": dd_full,
                 "rolling_window_n": 11}])
         c = hc.s17_rolling_window_counts(ex, op, d_new)
-        check("Altbestand gezählt, kein Rückfall", c == {"geprueft": 2, "neu": 0, "alt": 1, "unvollstaendig": 0}, c)
+        check("Altbestand gezählt, kein Rückfall",
+              {k: c.get(k) for k in ("geprueft", "neu", "alt", "unvollstaendig")}
+              == {"geprueft": 2, "neu": 0, "alt": 1, "unvollstaendig": 0}, c)
         check("Altbestand allein → kein warn", hc.evaluate_s17_rolling_window(ex, op, d_new) == [])
         write([{"ticker": "NEW", "date": "13.11.2026", "max_gain_pct": cut7, "max_drawdown_pct": dd_full,
                 "rolling_window_n": 11}])

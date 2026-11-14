@@ -410,6 +410,14 @@ def main(*, now_ts: datetime | None = None,
         log.warning("minute_bars_liveness_line unerwartet: %r", _mb_exc)
         minute_bars_line = None
 
+    # Halbzeilen-Anteil Kurs-Batch (nan_pct, Schritt 2 14.11.2026): Hinweis-
+    # Zeile, kein Alarm. raise-frei; try/except ist reine Absicherung.
+    try:
+        halfrow_line = hc.batch_halfrow_line(prov_entries)
+    except Exception as _hr_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("batch_halfrow_line unerwartet: %r", _hr_exc)
+        halfrow_line = None
+
     # options_chain_raw-Liveness (17.10.2026): analog options_oi, eigene Datei
     # (JSONL). raise-frei; try/except ist reine Absicherung.
     try:
@@ -669,6 +677,7 @@ def main(*, now_ts: datetime | None = None,
         chain_raw_line=chain_raw_line,
         outcome_path_line=outcome_path_line,
         minute_bars_line=minute_bars_line,
+        halfrow_line=halfrow_line,
         ftd_line=ftd_line,
         reg_sho_line=reg_sho_line,
         news_coverage_line=news_coverage_line,

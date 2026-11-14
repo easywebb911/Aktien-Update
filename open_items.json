@@ -445,8 +445,8 @@
       "id": "provider-health-nan-pct-fehlt",
       "title": "provider_health zählt keine leeren Zellen (nan_pct immer null)",
       "opened": "2026-11-02",
-      "description": "Diagnose 02.11.2026: yfinance_batch meldet in Postclose-Läufen coverage_pct 100.0 und nan_pct null, obwohl 50–80 Ticker eine halbe Tageszeile (Close NaN) hatten. Deshalb fiel die Halbzeile keinem Wächter auf (hist_5d_gap_log ist nur ein Protokoll ohne Alarm; S3 prüft nur Existenz, nicht Alter des Positionspreises). Vorschlag: nan_pct für den Batch messen (Anteil Ticker mit nicht-endlichem Close in der letzten Zeile) und im Digest ausweisen. Nicht gebaut. 14.11.2026: eingeplant als Schritt 2 (mit S16-entry_price und S17-Zusätzen).",
-      "status": "offen",
+      "description": "Diagnose 02.11.2026: yfinance_batch meldet in Postclose-Läufen coverage_pct 100.0 und nan_pct null, obwohl 50–80 Ticker eine halbe Tageszeile (Close NaN) hatten. Deshalb fiel die Halbzeile keinem Wächter auf (hist_5d_gap_log ist nur ein Protokoll ohne Alarm; S3 prüft nur Existenz, nicht Alter des Positionspreises). Vorschlag: nan_pct für den Batch messen (Anteil Ticker mit nicht-endlichem Close in der letzten Zeile) und im Digest ausweisen. Nicht gebaut. 14.11.2026: eingeplant als Schritt 2 (mit S16-entry_price und S17-Zusätzen). ERLEDIGT 14.11.2026 (Schritt 2): yfinance_batch trägt nan_pct (Anteil Ticker mit nicht-endlichem Close in der letzten Batch-Zeile, Zählung aus _halfrow_probe_lines); Digest zeigt je Phase den jüngsten Wert als Hinweis-Zeile ohne Alarm.",
+      "status": "erledigt",
       "status_date": "2026-11-14"
     },
     {
@@ -901,7 +901,7 @@
       "id": "halbzeilen-score-wirkung-probe",
       "title": "Probe 1: Score-Wirkung der Postclose-Halbzeile messen",
       "opened": "2026-11-14",
-      "description": "Easy-Entscheid 14.11.2026 (Plan Berichtsdatum, Schritt 3 erst nach dieser Probe): Wegwerf-Workflow probe_halbzeile_score.yml + scripts/probe_halbzeile_score.py (#698, Hand-Start, read-only). Rechnet für die Postclose-Abende in score_inflation_log.jsonl Gap & Hold, RS vs. SPY, rvol und rsi14/change_2d (Late-Runner) aus endgültigen Tageszeilen nach und führt sie durch dieselbe Kette (score_raw → Glättung → Late-Runner → Boost); Kontrolle: Abende ohne Halbzeile müssen ~0 ergeben (lokal vorab: Modell reproduziert 210/210 gespeicherte score_total). Ausgabe: geänderte Zeilen, Δ-Verteilung, Wechsel über/unter 70, Rang-Wechsel. Top-10-Zusammensetzung NICHT rekonstruierbar (Pool-Scores außerhalb der Top-10 nicht gespeichert). Blind: nur Eingaben/Scores, Kurse bis D. Start durch Code nach dem Merge; danach Cleanup-PR.",
+      "description": "Easy-Entscheid 14.11.2026 (Plan Berichtsdatum, Schritt 3 erst nach dieser Probe): Wegwerf-Workflow probe_halbzeile_score.yml + scripts/probe_halbzeile_score.py (#698, Hand-Start, read-only). Rechnet für die Postclose-Abende in score_inflation_log.jsonl Gap & Hold, RS vs. SPY, rvol und rsi14/change_2d (Late-Runner) aus endgültigen Tageszeilen nach und führt sie durch dieselbe Kette (score_raw → Glättung → Late-Runner → Boost); Kontrolle: Abende ohne Halbzeile müssen ~0 ergeben (lokal vorab: Modell reproduziert 210/210 gespeicherte score_total). Ausgabe: geänderte Zeilen, Δ-Verteilung, Wechsel über/unter 70, Rang-Wechsel. Top-10-Zusammensetzung NICHT rekonstruierbar (Pool-Scores außerhalb der Top-10 nicht gespeichert). Blind: nur Eingaben/Scores, Kurse bis D. Start durch Code nach dem Merge; danach Cleanup-PR. ERGEBNIS Probe 1 (14.11.2026, Lauf 43576254047): Kontrolle NICHT bestanden — 16 von 70 Zeilen der 'vollständigen' Abende geändert (Grenze 10 %), Modell reproduziert 210/210. Ursachen laut Log: (1) sechs Abende mit 11 Zeilen und |Δ| ≤ 0,24 (Volumen-Nachträge; Probe-Toleranz 0,05); (2) Abend 13.11. (20:43 ET) als 'voll' eingestuft, weil nicht ALLE Ticker eine Halbzeile hatten, zeigt aber Δ −7,0..+6,0, Gap/RS-Wechsel, 2× Late-Runner neu, 4 Rangwechsel — Einteilung je Abend zu grob. Halbzeilen-Abende (14, 140 Zeilen): 78 geändert, Δ −12,65..+10,05 (Mittel −0,92), 5× neu über 70, 6× neu unter 70, Late-Runner 30× neu an / 0× aus, Gap 36× / RS 32× anders, 3–9 Rangwechsel je Abend. Keine Empfehlung zu Schritt 3, solange die Kontrolle nicht besteht; Vorschlag an Easy: Probe mit Halbzeile je Zeile und |Δ| ≥ 0,5 als 'geändert' erneut laufen lassen.",
       "status": "offen",
       "status_date": "2026-11-14"
     },
@@ -933,8 +933,8 @@
       "id": "s16-entry-price-pruefen",
       "title": "S16: entry_price gegen den endgültigen Schluss von D prüfen",
       "opened": "2026-11-14",
-      "description": "Plan 14.11.2026, Schritt 2: Wahrheits-Abgleich um entry_price (0,02 %, Split/Dividende wie bisher) ergänzen — fängt Datumsverschiebung und falsche Kurse. rvol bewusst nicht (Volumen wird bis zu 17 % nachgezogen). Dazu S17: Export-Zeilen mit close_d (outcome_path) ≠ entry_price und Zeilen mit Datum an Nicht-Handelstagen zählen. Mit nan_pct im selben PR. Nicht gebaut.",
-      "status": "offen",
+      "description": "Plan 14.11.2026, Schritt 2: Wahrheits-Abgleich um entry_price (0,02 %, Split/Dividende wie bisher) ergänzen — fängt Datumsverschiebung und falsche Kurse. rvol bewusst nicht (Volumen wird bis zu 17 % nachgezogen). Dazu S17: Export-Zeilen mit close_d (outcome_path) ≠ entry_price und Zeilen mit Datum an Nicht-Handelstagen zählen. Mit nan_pct im selben PR. Nicht gebaut. ERLEDIGT 14.11.2026 (Schritt 2): Wahrheits-Abgleich prüft entry_price ab TRUTH_CHECK_ENTRY_PRICE_FROM (05.11.2026) gegen den Rohkurs-Schluss von D (0,02 %); S17 zählt entry_price ≠ close_d (outcome_path) und Datum an Nicht-Handelstagen, warn nur ab 05.11.2026. Altbestand siehe export-entry-price-altbestand.",
+      "status": "erledigt",
       "status_date": "2026-11-14"
     },
     {
@@ -942,6 +942,14 @@
       "title": "Options-OI: Abrufzeit + Kennzeichen vor/nach nächtlichem Update",
       "opened": "2026-11-14",
       "description": "Plan 14.11.2026, Schritt 4 (forward-only): je Punkt in options_oi_history oi_abgerufen_utc/_et und oi_stand (vortag: Abruf ET-Tag D 09:30–24:00; nacht_aktualisiert: 00:00–09:30 ET des Folgetags; sonst unklar). Bestand ohne Feld = unbekannt. Neues Schema-Feld → Easy-Merge. Seit #698 kann ein Nachtlauf OI mit Datum D schreiben, das schon den Nacht-Stand trägt — das Kennzeichen macht das sichtbar. Nicht gebaut.",
+      "status": "offen",
+      "status_date": "2026-11-14"
+    },
+    {
+      "id": "export-entry-price-altbestand",
+      "title": "Export-Altbestand: entry_price ≠ Schluss D",
+      "opened": "2026-11-14",
+      "description": "Schritt-2-Zählung 14.11.2026 (S17-Zusatz, nur Zählung): 54 von 709 gereiften Export-Zeilen (Einstiege 07.–10.2026, keine ab 05.11.) haben entry_price mehr als 0,02 % neben close_d aus outcome_path.jsonl, ohne Split/Dividende im Fenster; 21 davon > 1 %. Verteilung nach Monat: 07: 12, 08: 22, 09: 17, 10: 3. Mögliche Ursachen (nicht geprüft): Kapitalmaßnahme NACH Tag 10 (outcome_path bereinigt, Kennzeichen nur im Fenster), Postclose-Läufe vor endgültigem Schluss, Datumsverschiebung. Nichts geändert; S17 warnt nur ab 05.11.2026. Klärung (read-only) ist Easys Entscheidung. Gegenprobe 14.11.2026 (Guardian-Befund #699): 89 von 89 Einstiegen 14.–23.10. haben entry_price exakt gleich dem UNBEREINIGTEN Schluss D (minute_bars tageszeile_d, auto_adjust=False) — der Laufzeitkurs des Postclose ist also nicht die Ursache; wahrscheinlich ist es die Bereinigung von close_d (Maßnahme nach Tag 10). Der Wahrheits-Abgleich klassiert Dividenden bis heute als neu_adjustiert und rechnet Splits zurück.",
       "status": "offen",
       "status_date": "2026-11-14"
     }
