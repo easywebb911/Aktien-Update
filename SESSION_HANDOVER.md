@@ -3390,6 +3390,19 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 14.11.2026 — Gewinn-Felder im Backtest (1 PR, Manual-Merge, neue Schema-Felder, protected-ok Regel b)
+
+- `#707` (Branch `claude/earnings-felder-r4t8`, Branch-Commit `76f412a4`, kein Merge-Hash — Regel a).
+  Vorerkundung „Gewinnzahlen als Auslöser“ (altes Fenster, 15 Vergleiche): kein belastbarer Befund —
+  so festgehalten. Easy-Entscheid 14.11.: zwei additive Felder, forward-only, S10_OBSERVED, kein
+  Score-/Filter-/Push-Effekt: `earnings_surprise_pit` (Karten-Wert zum Laufzeitpunkt + Quelle,
+  Quartalsende, Abrufzeit + jüngstes SEC-8-K Item 2.02) und `material_8k_events_14d` (14 Tage,
+  `material_8k_events` unverändert). Beides aus bestehenden Abrufen; Digest-Zeile „🧾 Gewinn-Felder“,
+  Log `[earnings_fields]`. Golden byte-gleich. open_items: 3 neu (Hypothesen-ENTWURF H-EA1/H-EA2/H-JUMP).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#706`, höchste in Block 1 erwähnte
+  PR = `#707` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 14.11.2026 — Wegwerf-Probe Tiingo (Delisting-Kurse) (1 PR, Manual-Merge, neuer Workflow mit Secret)
 
 - `#706` (Branch `claude/tiingo-probe-k7q2`, Branch-Commit `3c5a640f`, kein Merge-Hash — Regel a).
