@@ -259,7 +259,9 @@ def test_s10_and_schema():
            '"backtest_schema_version": 4' in src and
            '"backtest_schema_version": 5' not in src)
     _check("G6 Sammlung mit now_utc=_now_dt (Report-Zeit) verdrahtet",
-           "collect_material_8k_events(_m8k_tickers, now_utc=_now_dt)"
+           # 14.11.2026: zusätzlich extras_out=… (Gewinn-Felder) — now_utc
+           # bleibt der Report-Zeitpunkt, deshalb Präfix-Prüfung.
+           "collect_material_8k_events(_m8k_tickers, now_utc=_now_dt,"
            in re.sub(r"\s+", " ", src).replace("\\", ""))
     _check("G7 config-Konstanten vorhanden",
            config.MATERIAL_8K_CAP_N == 8 and

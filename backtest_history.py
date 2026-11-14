@@ -1100,6 +1100,75 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
     }
 
 
+# ── Gewinn-Felder (Easy-Entscheid 14.11.2026, forward-only, S10_OBSERVED) ────
+# Zwei ADDITIVE Felder je neuem Backtest-Eintrag. REINE Analyse-Persistenz —
+# KEIN Score-/Filter-/Push-/Anzeige-Effekt; NIEMALS als Score-Feature lesen
+# (Look-Ahead-Konvention wie entry_past_return_5d). Schema bleibt v4.
+#   • earnings_surprise_pit: die Gewinn-Überraschung so, wie sie zum Laufzeit-
+#     punkt vorliegt (Wert = Karten-Wert, Quelle, Quartalsende, Abrufzeit) plus
+#     das jüngste 8-K Item 2.02 (acceptance <= Report-Zeitpunkt) als Datum des
+#     LETZTEN Gewinn-Termins. Unbekannt ≠ 0 (None + Grund).
+#   • material_8k_events_14d: zweites 8-K-Fenster, 14 Kalendertage, gleiche
+#     item_codes/Point-in-time-Regel; ``material_8k_events`` bleibt unverändert.
+_EARNINGS_PIT_NOT_FETCHED = {
+    "collected": False, "reason": "nicht_abgefragt", "quelle": None,
+    "abgerufen_utc": None, "surprise_pct": None, "beat": None,
+    "eps_actual": None, "eps_estimate": None, "quartalsende": None,
+    "neuestes_quartalsende": None, "methodik": None,
+}
+
+
+def _build_earnings_fields(s: dict, m8k_extras: dict | None,
+                           material_8k_enabled: bool) -> dict:
+    """Pure: ``{"earnings_surprise_pit": …, "material_8k_events_14d": …}``.
+
+    ``s["earnings_surprise_record"]`` kommt aus ``generate_report.
+    get_earnings_surprise_full`` (nur US-Top-10 abgefragt; sonst Grund
+    ``nicht_abgefragt``). ``m8k_extras`` aus ``material_8k.
+    collect_material_8k_events(extras_out=…)`` — None, wenn der Ticker in
+    diesem Lauf nicht gesammelt wurde (Re-Run-Dedup) oder 8-K aus ist.
+    Deterministisch: gleiche Eingabe → gleiches Dict (keine Uhr hier).
+    """
+    rec = s.get("earnings_surprise_record")
+    pit = dict(rec) if isinstance(rec, dict) else dict(_EARNINGS_PIT_NOT_FETCHED)
+    if not material_8k_enabled:
+        pit["letzter_termin_8k"] = None
+        pit["letzter_termin_8k_grund"] = "edgar_aus"
+        window = None
+    elif not isinstance(m8k_extras, dict):
+        pit["letzter_termin_8k"] = None
+        pit["letzter_termin_8k_grund"] = "edgar_nicht_gesammelt"
+        window = None
+    else:
+        last = m8k_extras.get("last_2_02")
+        pit["letzter_termin_8k"] = (
+            {"acceptance_datetime": last.get("acceptance_datetime"),
+             "accession": last.get("accession")}
+            if isinstance(last, dict) else None)
+        if last is None:
+            pit["letzter_termin_8k_grund"] = (
+                m8k_extras.get("reason") or "kein_2_02_in_recent")
+        else:
+            pit["letzter_termin_8k_grund"] = None
+        window = m8k_extras.get("window")
+    return {"earnings_surprise_pit": pit, "material_8k_events_14d": window}
+
+
+def _earnings_fields_log_line(entries: list[dict]) -> str:
+    """Log-Beleg der Herkunft (Zählungen über die in DIESEM Lauf angehängten
+    Einträge, keine Werte)."""
+    n = len(entries)
+    n_sp = sum(1 for e in entries
+               if (e.get("earnings_surprise_pit") or {}).get("surprise_pct") is not None)
+    n_lt = sum(1 for e in entries
+               if (e.get("earnings_surprise_pit") or {}).get("letzter_termin_8k"))
+    n_w = sum(1 for e in entries
+              if (e.get("material_8k_events_14d") or {}).get("collected"))
+    return (f"[earnings_fields] {n} neue Einträge: Überraschung {n_sp}/{n} "
+            f"(Quelle yfinance earnings_history), letzter 8-K-2.02-Termin "
+            f"{n_lt}/{n} (SEC submissions), 8-K-14T gesammelt {n_w}/{n}")
+
+
 # ── Vintage-Guard (M1) — Backtest-Append-Schutz gegen stale Captures ────────
 # Empirie 09.06.2026: 11/11 Cluster-Tage entstanden durch PRE-OPEN-Runs, die
 # vor Session-Schluss des report_date die Vortags-Bar capturen und via
@@ -1445,17 +1514,20 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
     # = _now_dt = Report-Zeitpunkt → Point-in-time-Obergrenze (acceptance <=
     # _now_dt). Fail-soft: bei Ausfall bleibt der Wrapper leer (collected=False).
     material_8k_by_ticker: dict[str, dict] = {}
+    m8k_extras_by_ticker: dict[str, dict] = {}   # 14.11.2026: 14T + letztes 2.02
     if MATERIAL_8K_ENABLED:
         _m8k_tickers = [s["ticker"] for s in top10
                         if (s["ticker"], report_date) not in existing_keys]
         if _m8k_tickers:
             try:
                 material_8k_by_ticker = material_8k_module.\
-                    collect_material_8k_events(_m8k_tickers, now_utc=_now_dt)
+                    collect_material_8k_events(_m8k_tickers, now_utc=_now_dt,
+                                               extras_out=m8k_extras_by_ticker)
             except Exception as _exc_m8k:
                 log.warning("material_8k: Sammlung fehlgeschlagen "
                             "(fail-soft): %s", _exc_m8k)
                 material_8k_by_ticker = {}
+                m8k_extras_by_ticker = {}
 
     # attention_wiki (24.07.2026): Wikipedia-Pageviews-Attention. Auflösung
     # EINMALIG + eingefroren in wiki_ticker_map.json (nie täglich neu, Spec §7).
@@ -1515,6 +1587,7 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
              market_regime, vix_level)
 
     n_added = 0
+    _new_entries: list[dict] = []   # nur für den Gewinn-Felder-Log-Beleg
     for pos, s in enumerate(top10, start=1):
         key = (s["ticker"], report_date)
         if key in existing_keys:
@@ -1631,8 +1704,16 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             entry["letzte_zeile"] = s.get("letzte_zeile")
         if s.get("spx_letzte_zeile") is not None:
             entry["spx_letzte_zeile"] = s.get("spx_letzte_zeile")
+        # Gewinn-Felder (14.11.2026, forward-only, S10_OBSERVED, kein Score-/
+        # Filter-/Push-Einfluss): Überraschung zum Laufzeitpunkt + letztes 8-K
+        # Item 2.02 + zweites 8-K-Fenster (14 Tage).
+        entry.update(_build_earnings_fields(
+            s, m8k_extras_by_ticker.get(s["ticker"]), MATERIAL_8K_ENABLED))
         history.append(entry)
+        _new_entries.append(entry)
         n_added += 1
+    if _new_entries:
+        log.info(_earnings_fields_log_line(_new_entries))
 
     # Rolling Drawdown-Aktualisierung: die Ticker-History seit Entry holen und
     # max_drawdown/max_gain neu berechnen, bis Tag 10 final ist (+ Nachfrist,

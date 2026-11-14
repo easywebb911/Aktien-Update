@@ -410,6 +410,14 @@ def main(*, now_ts: datetime | None = None,
         log.warning("minute_bars_liveness_line unerwartet: %r", _mb_exc)
         minute_bars_line = None
 
+    # Gewinn-Felder (14.11.2026): Abdeckungszeile, nur Zählungen.
+    try:
+        earnings_fields_line = hc.earnings_fields_digest_line(
+            ROOT / hc.BACKTEST_FILE)
+    except Exception as _ef_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("earnings_fields_digest_line unerwartet: %r", _ef_exc)
+        earnings_fields_line = None
+
     # Halbzeilen-Anteil Kurs-Batch (nan_pct, Schritt 2 14.11.2026): Hinweis-
     # Zeile, kein Alarm. raise-frei; try/except ist reine Absicherung.
     try:
@@ -683,6 +691,7 @@ def main(*, now_ts: datetime | None = None,
         chain_raw_line=chain_raw_line,
         outcome_path_line=outcome_path_line,
         minute_bars_line=minute_bars_line,
+        earnings_fields_line=earnings_fields_line,
         halfrow_line=halfrow_line,
         unfillable_line=unfillable_line,
         ftd_line=ftd_line,

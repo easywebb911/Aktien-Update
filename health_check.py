@@ -70,6 +70,7 @@ from config import (
     KI_SCORE_FREEZE_N_TARGET,
     EVAL_RESULTS_FILE,
     BACKTEST_FILE,
+    EARNINGS_FIELDS_DIGEST_KEYS,
     OPTIONS_CHAIN_RAW_FILE,
     OPTIONS_CHAIN_RAW_DIGEST_ATM_RANGE,
     NEWS_COVERAGE_LOG_FILE,
@@ -4682,6 +4683,49 @@ MINUTE_BARS_DIR = config.MINUTE_BARS_DIR
 MINUTE_BARS_STATE_FILE = config.MINUTE_BARS_STATE_FILE
 
 
+def earnings_fields_digest_line(bh_path=None) -> str:
+    """Digest-Abdeckungszeile der Gewinn-Felder (14.11.2026): nur Zählungen
+    über die Einträge des JÜNGSTEN Berichtstags, der die Felder trägt
+    (Feldnamen aus ``config.EARNINGS_FIELDS_DIGEST_KEYS``). Keine Werte.
+    Raise nie."""
+    try:
+        path = bh_path or BACKTEST_FILE
+        try:
+            with open(path, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+        except FileNotFoundError:
+            return "🧾 Gewinn-Felder: Datei fehlt"
+        # Feldnamen aus config (kein Feldname-Literal hier — Look-Ahead-
+        # Isolations-Wächter H1 in mock_test_material_8k, Präzedenz
+        # MATERIAL_8K_STATUS_ROW).
+        k_pit, k_14d = EARNINGS_FIELDS_DIGEST_KEYS
+        rows = [e for e in (data if isinstance(data, list) else [])
+                if isinstance(e, dict) and k_pit in e]
+        if not rows:
+            return "🧾 Gewinn-Felder: sammelt ab dem nächsten Postclose (noch kein Eintrag)"
+
+        def _k(e):
+            try:
+                d, m, y = str(e.get("date", "")).split(".")
+                return (int(y), int(m), int(d))
+            except Exception:
+                return (0, 0, 0)
+        last = max(_k(e) for e in rows)
+        day = [e for e in rows if _k(e) == last]
+        n = len(day)
+        n_sp = sum(1 for e in day
+                   if (e.get(k_pit) or {}).get("surprise_pct") is not None)
+        n_lt = sum(1 for e in day
+                   if (e.get(k_pit) or {}).get("letzter_termin_8k"))
+        n_w = sum(1 for e in day
+                  if (e.get(k_14d) or {}).get("collected"))
+        return (f"🧾 Gewinn-Felder (letzter Bericht {last[2]:02d}.{last[1]:02d}.): "
+                f"Überraschung {n_sp}/{n} · letzter 8-K-Termin {n_lt}/{n} · "
+                f"8-K 14 Tage {n_w}/{n}")
+    except Exception:
+        return "🧾 Gewinn-Felder: Status nicht ermittelbar"
+
+
 def minute_bars_liveness_line(data_dir=None, state_path=None, *, now_ts=None) -> str:
     """Eine Zeile, drei Zustände (fail-soft, nie Exception):
       a) **läuft** — State frisch → „läuft · N Einstiege · jüngster Tag 1 … ·
@@ -4817,6 +4861,7 @@ def format_digest_body(state_fails: list[dict],
                        chain_raw_line: str | None = None,
                        outcome_path_line: str | None = None,
                        minute_bars_line: str | None = None,
+                       earnings_fields_line: str | None = None,
                        halfrow_line: str | None = None,
                        unfillable_line: str | None = None,
                        ftd_line: str | None = None,
@@ -4871,6 +4916,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{outcome_path_line}"
         if minute_bars_line:
             body += f"\n{minute_bars_line}"
+        if earnings_fields_line:
+            body += f"\n{earnings_fields_line}"
         if halfrow_line:
             body += f"\n{halfrow_line}"
         if unfillable_line:
@@ -4955,6 +5002,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(outcome_path_line)
         if minute_bars_line:
             body_lines.append(minute_bars_line)
+        if earnings_fields_line:
+            body_lines.append(earnings_fields_line)
         if halfrow_line:
             body_lines.append(halfrow_line)
         if unfillable_line:
@@ -5036,6 +5085,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(outcome_path_line)
     if minute_bars_line:
         lines.append(minute_bars_line)
+    if earnings_fields_line:
+        lines.append(earnings_fields_line)
     if halfrow_line:
         lines.append(halfrow_line)
     if unfillable_line:

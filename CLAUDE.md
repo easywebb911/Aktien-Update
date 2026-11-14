@@ -4663,6 +4663,35 @@ Hoch/Tief passen zur Tageszeile, der letzte Minutenkurs ist NICHT der Schlusskur
   `scripts/mock_test_minute_bars.py`. **Rückweg:** Workflow per PR entfernen; Daten können
   gelöscht werden, keine Bestandsdatei berührt.
 
+## Gewinn-Felder im Backtest (seit 14.11.2026)
+
+Zwei additive Felder je neuem `backtest_history.json`-Eintrag (Easy-Entscheid
+14.11.2026, forward-only, S10_OBSERVED, Schema v4). **Kein** Score-/Filter-/Push-/
+Anzeige-Effekt; nie als Score-Feature lesen.
+
+- **`earnings_surprise_pit`**: die Gewinn-Überraschung so, wie sie zum Laufzeitpunkt
+  vorliegt — `surprise_pct`/`beat` = exakt der Karten-Wert
+  (`generate_report._earnings_surprise_from_hist`, Quelle yfinance `earnings_history`
+  = Yahoo quoteSummary earningsHistory), dazu `eps_actual`, `eps_estimate`,
+  `quartalsende` (Quartalsende der verwendeten Zeile — Yahoo liefert **kein**
+  Meldedatum), `neuestes_quartalsende` (≠ `quartalsende` → jüngste Zeile war
+  unvollständig), `methodik`, `quelle`, `abgerufen_utc`; plus `letzter_termin_8k`
+  = jüngstes SEC-8-K Item 2.02 mit `acceptance <= Report-Zeitpunkt` (Datum des
+  letzten Gewinn-Termins). Nur US-Top-10 werden abgefragt; sonst `reason` =
+  `nicht_abgefragt`. Unbekannt ≠ 0 (None + Grund).
+- **`material_8k_events_14d`**: zweites 8-K-Fenster, 14 Kalendertage, gleiche
+  item_codes, gleiche Point-in-time-Regel, ohne `matched_terms`-Scan
+  (`MATERIAL_8K_14D_*`). `material_8k_events` (5 Tage) bleibt **unverändert** —
+  eingefrorene Blöcke nennen seine Sammeldefinition.
+
+Beide Werte kommen aus bestehenden Abrufen (`get_earnings_surprise_full` ersetzt den
+Karten-Abruf, `material_8k.collect_material_8k_events(extras_out=…)` liest dasselbe
+submissions-JSON) — kein zusätzlicher Netzabruf. Beleg: Log-Zeile `[earnings_fields]`
+im Postclose, Digest-Zeile „🧾 Gewinn-Felder“ (Feldnamen aus
+`config.EARNINGS_FIELDS_DIGEST_KEYS`). Test `scripts/mock_test_earnings_fields.py`.
+Rückweg: Revert; die Keys lassen sich je Eintrag poppen (analog
+`scripts/purge_material_8k_events.py`).
+
 ## Totmann-Signal an healthchecks.io (seit 02.11.2026)
 
 **Zweck:** Ein Wächter, der selbst per GitHub-Zeitplan läuft (Health-Digest,

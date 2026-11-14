@@ -1352,6 +1352,18 @@ MATERIAL_8K_RUN_BUDGET_S     = 45.0
 MATERIAL_8K_HTTP_TIMEOUT     = 10
 MATERIAL_8K_MAX_DOCS_PER_FILING = 3   # primaryDocument + bis zu 2 EX-99*-Exhibits
 MATERIAL_8K_SLEEP_S          = 0.3    # höfliches Pacing zwischen EDGAR-Calls
+# Zweites, ADDITIVES Feld ``material_8k_events_14d`` (Easy-Entscheid 14.11.2026,
+# open_item material-8k-rueckblick-zu-kurz): gleiche item_codes, gleiche Point-
+# in-time-Regel (acceptance <= Report-Zeitpunkt), aber 14 Kalendertage Rückblick
+# und OHNE matched_terms-Doc-Scan (aus demselben submissions-JSON, KEIN weiterer
+# EDGAR-Abruf). ``material_8k_events`` (5 Tage) bleibt UNVERÄNDERT — die
+# eingefrorenen Blöcke nennen dessen Sammeldefinition. Forward-only, S10_OBSERVED,
+# kein Score-/Filter-/Push-/Anzeige-Effekt.
+MATERIAL_8K_14D_LOOKBACK_DAYS = 14
+MATERIAL_8K_14D_CAP_N         = 16    # Bloat-Schutz (doppeltes 5-Tage-Cap)
+# Feldnamen der Gewinn-Felder für die Digest-Abdeckungszeile (health_check
+# zählt nur; kein Feldname-Literal in health_check.py — Isolations-Wächter H1).
+EARNINGS_FIELDS_DIGEST_KEYS = ("earnings_surprise_pit", "material_8k_events_14d")
 
 # ── SSR-Sammelfeld (Rule-201 Short-Sale-Restriction, 28.07.2026) ─────────────
 # Erhebt pro postclose-Top-10-Record den SSR-Status am Entry-Tag T aus dem
@@ -2712,6 +2724,13 @@ S10_OBSERVED_FIELDS = frozenset({
     # die Population für einen späteren KI-Freeze, Records ohne bleiben
     # explorativ (siehe SESSION_HANDOVER.md).
     "ki_signal_ts",
+    # Gewinn-Felder (Easy-Entscheid 14.11.2026, forward-only, additiv): die
+    # Gewinn-Überraschung so, wie sie zum Laufzeitpunkt vorliegt (+ Quelle,
+    # Quartalsende, Abrufzeit, letztes 8-K Item 2.02) und ein zweites 8-K-
+    # Fenster mit 14 Kalendertagen. LEGITIM leer (Wrapper mit collected=False /
+    # None) → nur OBSERVED, KEIN MUSS/LAG. Kein Score-/Filter-/Push-Effekt,
+    # NIEMALS als Score-Feature lesen. Schema bleibt v4 (additiv).
+    "earnings_surprise_pit", "material_8k_events_14d",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check

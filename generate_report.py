@@ -2241,35 +2241,49 @@ def get_earnings_date(ticker: str) -> tuple[int | None, str | None]:
     return None, None
 
 
-def get_earnings_surprise(ticker: str) -> dict | None:
-    """Feature 3 — Letzte gemeldete Earnings: Beat/Miss + %-Abweichung vom Konsens.
+EARNINGS_SURPRISE_PIT_QUELLE = "yfinance earnings_history (Yahoo quoteSummary earningsHistory)"
 
-    Nutzt ``yfinance.Ticker.earnings_history`` (DataFrame mit Spalten
-    ``epsActual`` und ``epsEstimate``). Gibt ``{"beat": bool, "pct": float}``
-    zurück oder ``None`` falls keine Daten verfügbar.
+
+def _earnings_surprise_from_hist(hist, fetched_utc: str | None = None):
+    """Pure: ``(karte, record)`` aus einem ``earnings_history``-DataFrame.
+
+    ``karte`` = exakt der bisherige Karten-Wert ``{"beat", "pct"}`` (oder None)
+    — jüngste Zeile mit Ist UND Schätzung (Schätzung != 0), wie vor diesem PR.
+    ``record`` (Easy-Entscheid 14.11.2026, Backtest-Feld ``earnings_surprise_
+    pit``): derselbe Wert so, wie er zum Abrufzeitpunkt vorliegt, plus EPS-Ist/
+    -Schätzung, Quartalsende DIESER Zeile (Yahoo liefert KEIN Meldedatum, nur
+    das Quartalsende), Quartalsende der NEUESTEN Tabellenzeile (Abweichung =
+    jüngste Zeile war unvollständig und wurde übersprungen), Methodik, Quelle,
+    Abrufzeit. Unbekannt ≠ 0: fehlt etwas, steht None. Raise nie.
     """
-    try:
-        hist = yf.Ticker(ticker).earnings_history
-    except Exception as exc:
-        _coverage_record_error("earnings_surprise", exc)
-        log.debug("earnings_history failed for %s: %s", ticker, exc)
-        return None
-    if hist is None:
-        return None
+    rec = {"collected": False, "reason": "keine_daten",
+           "quelle": EARNINGS_SURPRISE_PIT_QUELLE, "abgerufen_utc": fetched_utc,
+           "surprise_pct": None, "beat": None, "eps_actual": None,
+           "eps_estimate": None, "quartalsende": None,
+           "neuestes_quartalsende": None, "methodik": None}
+
+    def _qdate(idx):
+        try:
+            return idx.date().isoformat()
+        except Exception:
+            return None
+
     try:
         import pandas as _pd
-        if not isinstance(hist, _pd.DataFrame) or hist.empty:
-            return None
+        if hist is None or not isinstance(hist, _pd.DataFrame) or hist.empty:
+            return None, rec
         # Spaltennamen sind case-insensitive; sowohl "epsActual" als auch
         # "Reported EPS" kommen in freier Wildbahn vor
         lower = {c.lower().replace(" ", ""): c for c in hist.columns}
         col_act = lower.get("epsactual") or lower.get("reportedeps") or lower.get("actual")
         col_est = lower.get("epsestimate") or lower.get("estimate") or lower.get("estimateeps")
         if not col_act or not col_est:
-            return None
+            return None, rec
         # jüngste Zeile — yfinance liefert chronologisch sortiert
         hist_sorted = hist.sort_index(ascending=False)
-        for _, row in hist_sorted.iterrows():
+        col_meth = lower.get("methodology")
+        rec["neuestes_quartalsende"] = _qdate(hist_sorted.index[0])
+        for idx, row in hist_sorted.iterrows():
             actual   = row.get(col_act)
             estimate = row.get(col_est)
             if actual is None or estimate is None:
@@ -2281,11 +2295,52 @@ def get_earnings_surprise(ticker: str) -> dict | None:
             if e == 0:
                 continue
             pct = (a - e) / abs(e) * 100
-            return {"beat": a >= e, "pct": round(pct, 1)}
+            karte = {"beat": a >= e, "pct": round(pct, 1)}
+            if not (math.isfinite(a) and math.isfinite(e) and math.isfinite(pct)):
+                rec["reason"] = "nicht_endlich"
+                return karte, rec
+            meth = row.get(col_meth) if col_meth else None
+            # Einzelzuweisungen statt dict-update: ein Quelltext-Wächter
+            # (mock_test_watchlist_uoa_price_nan_hardening A5) sucht das erste
+            # dict-update-Muster im File.
+            rec["collected"], rec["reason"] = True, None
+            rec["surprise_pct"], rec["beat"] = karte["pct"], bool(karte["beat"])
+            rec["eps_actual"], rec["eps_estimate"] = a, e
+            rec["quartalsende"] = _qdate(idx)
+            rec["methodik"] = str(meth) if isinstance(meth, str) else None
+            return karte, rec
     except Exception as exc:
         _coverage_record_error("earnings_surprise", exc)
-        log.debug("earnings_surprise parse failed for %s: %s", ticker, exc)
-    return None
+        log.debug("earnings_surprise parse failed: %s", exc)
+        rec["reason"] = "fehler"
+    return None, rec
+
+
+def get_earnings_surprise_full(ticker: str, now_fn=None):
+    """``(karte, record)`` — EIN Abruf; ``karte`` ist der bisherige Karten-Wert
+    (siehe ``get_earnings_surprise``), ``record`` das Backtest-Feld
+    ``earnings_surprise_pit`` (Abrufzeit = Zeitpunkt direkt nach dem Abruf)."""
+    try:
+        hist = yf.Ticker(ticker).earnings_history
+    except Exception as exc:
+        _coverage_record_error("earnings_surprise", exc)
+        log.debug("earnings_history failed for %s: %s", ticker, exc)
+        _, rec = _earnings_surprise_from_hist(None, None)
+        rec["reason"] = "fehler"
+        return None, rec
+    fetched = (now_fn or (lambda: datetime.now(timezone.utc)))()
+    return _earnings_surprise_from_hist(
+        hist, fetched.astimezone(timezone.utc).isoformat(timespec="seconds"))
+
+
+def get_earnings_surprise(ticker: str) -> dict | None:
+    """Feature 3 — Letzte gemeldete Earnings: Beat/Miss + %-Abweichung vom Konsens.
+
+    Nutzt ``yfinance.Ticker.earnings_history`` (DataFrame mit Spalten
+    ``epsActual`` und ``epsEstimate``). Gibt ``{"beat": bool, "pct": float}``
+    zurück oder ``None`` falls keine Daten verfügbar.
+    """
+    return get_earnings_surprise_full(ticker)[0]
 
 
 def fetch_stockanalysis_borrow(ticker: str) -> dict:
@@ -20463,10 +20518,13 @@ def main():
         log.info("Step 3c2 – Fetching earnings surprise for %d US stocks …", len(us_top10))
         _COVERAGE_ACCT["earnings_surprise"]["n_erwartet"] += len(us_top10)
         with ThreadPoolExecutor(max_workers=5) as _es_ex:
-            _es_futures = {_es_ex.submit(get_earnings_surprise, s["ticker"]): s for s in us_top10}
+            _es_futures = {_es_ex.submit(get_earnings_surprise_full, s["ticker"]): s for s in us_top10}
             try:
                 for _fut in as_completed(_es_futures, timeout=_POOL_STEP3_TIMEOUT):
-                    _es_futures[_fut]["earnings_surprise"] = _fut.result()
+                    # Karten-Wert unverändert; zusätzlich der Zeitpunkt-Datensatz
+                    # fürs Backtest-Feld earnings_surprise_pit (14.11.2026).
+                    (_es_futures[_fut]["earnings_surprise"],
+                     _es_futures[_fut]["earnings_surprise_record"]) = _fut.result()
             except TimeoutError:
                 print(f"Earnings-Surprise: Pool-Timeout nach {_POOL_STEP3_TIMEOUT}s — verbleibende Ticker übersprungen",
                       flush=True)

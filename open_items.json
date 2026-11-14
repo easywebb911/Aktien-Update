@@ -992,6 +992,30 @@
       "description": "Vorläufig (Easy 14.11.2026): Entwicklung 06/2021–12/2023, Prüfung 01/2024–04/2026 (endet vor dem ersten Export-Datum 06.05.2026; unabhängig vom alten Fenster 21.07.–23.10. und vom blinden Fenster ≥ 24.10.). Im Prüfzeitraum keine Rendite/kein Gipfel vor der Vorabregistrierung (Freeze-Block, Hash). Kosten: apply_round_trip_haircut + Sensitivität; Splits in SI-Stückzahlen umrechnen; Ergebnisse je Jahr/Marktphase. NACHTRAG 14.11.2026: Start freier NYSE/Nasdaq-SI ist 29.12.2017 (consolidatedShortInterest, nicht 06/2021). Easy-Entscheid: Entwicklung 01/2018–12/2022, Prüfung 01/2023–04/2026. Das Prüffeld ist KEIN Abbild der Top-10 (Proxy trifft 2,6/10), sondern prüft Literatur-Hypothesen am Kleinwerte-Universum.",
       "status": "offen",
       "status_date": "2026-11-14"
+    },
+    {
+      "id": "earnings-surprise-nicht-persistiert",
+      "title": "Gewinn-Überraschung je Backtest-Eintrag speichern (earnings_surprise_pit)",
+      "opened": "2026-11-14",
+      "description": "Vorerkundung „Gewinnzahlen als Auslöser“ (14.11.2026, altes Fenster 21.07.–23.10., 15 Vergleiche): kein belastbarer Befund — so festgehalten. Befund dabei: der Karten-Wert earnings_surprise wurde je Zeile NICHT gespeichert (Maß 2a unmöglich). Easy-Entscheid 14.11.2026: ab sofort forward-only, additiv, S10_OBSERVED speichern — Wert wie zum Laufzeitpunkt (= Karten-Wert), Quelle, Quartalsende (Yahoo liefert KEIN Meldedatum), Abrufzeit, dazu das jüngste SEC-8-K Item 2.02 (acceptance <= Report-Zeitpunkt) als Datum des LETZTEN Gewinn-Termins. Unbekannt ≠ 0. Umsetzung: PR feat/earnings-felder. Prüfen nach dem ersten Postclose: Log-Zeile [earnings_fields] + Digest-Zeile „🧾 Gewinn-Felder“.",
+      "status": "beobachtet",
+      "status_date": "2026-11-14"
+    },
+    {
+      "id": "material-8k-rueckblick-zu-kurz",
+      "title": "Zweites 8-K-Feld mit 14 Tagen Rückblick (material_8k_events_14d)",
+      "opened": "2026-11-14",
+      "description": "material_8k_events schaut nur 5 Kalendertage zurück → Abstände 4–10 Handelstage zum Gewinn-Termin nicht messbar (Vorerkundung 14.11.2026). Easy-Entscheid 14.11.2026: material_8k_events NICHT umdefinieren (eingefrorene Blöcke nennen seine Sammeldefinition); stattdessen zweites additives Feld material_8k_events_14d (14 Kalendertage, gleiche item_codes, gleiche Point-in-time-Regel, ohne matched_terms-Scan, aus demselben SEC-Abruf), forward-only. Umsetzung: PR feat/earnings-felder (gemeinsam mit earnings-surprise-nicht-persistiert).",
+      "status": "beobachtet",
+      "status_date": "2026-11-14"
+    },
+    {
+      "id": "rueckrechnung-hypothesen-gewinnzahlen",
+      "title": "Rückrechnung: Hypothesen Gewinnzahlen/Sprungtag (ENTWURF, nicht eingefroren)",
+      "opened": "2026-11-14",
+      "description": "Vorerkundung 14.11.2026 (altes Fenster, 669 Zeilen, 15 Vergleiche): kein belastbarer Befund; nichts davon ist ein Beleg. ENTWURF (Easy-Entscheid 14.11.2026) — Festschreiben (Freeze) erst mit dem Bau-Entscheid nach der Tiingo-Probe, im selben PR wie der Sammel-/Entwicklungs-Schritt, vor jedem Blick in Mehrjahres-Renditen. Gemeinsame Definitionen: Ereignis = SEC-8-K mit Item 2.02; Termin-Tag T = erste reguläre US-Sitzung ab der SEC-Annahmezeit (Annahme vor 16:00 ET an einem Handelstag → derselbe Tag, sonst nächster Handelstag). „Gute Zahlen“ = bereinigter Schluss T / Schluss T−1 − 1 > 0, „schlechte“ ≤ 0. Short-Anteil = FINRA Days to Cover des letzten Stichtags, der vor T veröffentlicht war (Stichtag + 8 Werktage); Hälften niedrig/hoch am Median je Kalenderjahr der Ereignisse. Kosten netto 4 % Round-Trip (apply_round_trip_haircut), Bootstrap-CI 95 % mit Clustern nach Ticker. H-EA1 (Hong/Kubik/Fishman 2012): bei guten Zahlen hat die DTC-hoch-Hälfte eine höhere Rendite Eröffnung T+1 → Schluss T+3 als die DTC-niedrig-Hälfte, und von Schluss T+3 → Schluss T+10 eine niedrigere (Rückfall). Hinweis: die Vorerkundung zeigte für den zweiten Teil eher die Gegenrichtung (n=29/29, nur beschreibend). H-EA2 (Drift, Subrahmanyam 2025): Rendite Eröffnung T+1 → Schluss T+10 ist bei guten Zahlen höher als bei schlechten; zusätzlich je DTC-Hälfte berichtet. H-JUMP (Xu/Liu): Tag D mit Schluss D / Schluss D−1 − 1 ≥ +15 %; Variante JUMP-H (handelbar): Rendite Eröffnung D+1 → Schluss D+1 und → Schluss D+2 > 0; Variante JUMP-E (nicht handelbar, nur zur Einordnung): Schluss D → Schluss D+1 und → Schluss D+2; beide je DTC-Hälfte. Die Vorerkundung zeigte ab Eröffnung keine Fortsetzung (Mittel −1,5 %/−1,8 %, n=102).",
+      "status": "offen",
+      "status_date": "2026-11-14"
     }
   ]
 }
