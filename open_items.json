@@ -973,7 +973,7 @@
       "id": "rueckrechnung-survivorship-delisting",
       "title": "Rückrechnung: Survivorship-Lücke und Delisting-Kurse",
       "opened": "2026-11-14",
-      "description": "Fehlende Kurse delisteter Small Caps machen absolute Renditen zu hoch (Shumway 1997; Shumway/Warther 1999: −55 % Ersatzrendite Nasdaq) und können Gruppenvergleiche verschieben, wenn die Lücke je Gruppe verschieden ist. Probe misst die Lücke je Jahr und nach DTC-Hälfte/Preisklasse. Entscheid Easy nach der Probe: Tiingo-Gratis-Key (Delistete laut Doku, solange Symbol nicht neu vergeben) oder Shumway-Ersatzrendite mit Sensitivität (0 / −30 / −55 %).",
+      "description": "Fehlende Kurse delisteter Small Caps machen absolute Renditen zu hoch (Shumway 1997; Shumway/Warther 1999: −55 % Ersatzrendite Nasdaq) und können Gruppenvergleiche verschieben, wenn die Lücke je Gruppe verschieden ist. Probe misst die Lücke je Jahr und nach DTC-Hälfte/Preisklasse. Entscheid Easy nach der Probe: Tiingo-Gratis-Key (Delistete laut Doku, solange Symbol nicht neu vergeben) oder Shumway-Ersatzrendite mit Sensitivität (0 / −30 / −55 %). NACHTRAG 14.11.2026 (Läufe 43612810901/43612813369): FINRA-Abgangsrate gelisteter Stammaktien 9–16 % nach 12 Mon., 18–27 % nach 24 Mon. (Nasdaq Capital Market etwa doppelt), niedrige DTC-Hälfte verschwindet häufiger; yfinance liefert für Verschwundene 0–3 %, Stooq nichts (404 bzw. nicht erreichbar). Easy-Entscheid: Tiingo-Probe (Gratis-Key, Secret TIINGO_API_KEY), Regel vorab: ≥ 90 % Abdeckung der Verschwundenen → bauen. Zeiträume: Entwicklung 01/2018–12/2022, Prüfung 01/2023–04/2026.",
       "status": "offen",
       "status_date": "2026-11-14"
     },
@@ -989,7 +989,7 @@
       "id": "rueckrechnung-zeitraeume-freeze",
       "title": "Rückrechnung: Entwicklungs-/Prüfzeitraum, Vorabregistrierung",
       "opened": "2026-11-14",
-      "description": "Vorläufig (Easy 14.11.2026): Entwicklung 06/2021–12/2023, Prüfung 01/2024–04/2026 (endet vor dem ersten Export-Datum 06.05.2026; unabhängig vom alten Fenster 21.07.–23.10. und vom blinden Fenster ≥ 24.10.). Im Prüfzeitraum keine Rendite/kein Gipfel vor der Vorabregistrierung (Freeze-Block, Hash). Kosten: apply_round_trip_haircut + Sensitivität; Splits in SI-Stückzahlen umrechnen; Ergebnisse je Jahr/Marktphase.",
+      "description": "Vorläufig (Easy 14.11.2026): Entwicklung 06/2021–12/2023, Prüfung 01/2024–04/2026 (endet vor dem ersten Export-Datum 06.05.2026; unabhängig vom alten Fenster 21.07.–23.10. und vom blinden Fenster ≥ 24.10.). Im Prüfzeitraum keine Rendite/kein Gipfel vor der Vorabregistrierung (Freeze-Block, Hash). Kosten: apply_round_trip_haircut + Sensitivität; Splits in SI-Stückzahlen umrechnen; Ergebnisse je Jahr/Marktphase. NACHTRAG 14.11.2026: Start freier NYSE/Nasdaq-SI ist 29.12.2017 (consolidatedShortInterest, nicht 06/2021). Easy-Entscheid: Entwicklung 01/2018–12/2022, Prüfung 01/2023–04/2026. Das Prüffeld ist KEIN Abbild der Top-10 (Proxy trifft 2,6/10), sondern prüft Literatur-Hypothesen am Kleinwerte-Universum.",
       "status": "offen",
       "status_date": "2026-11-14"
     }

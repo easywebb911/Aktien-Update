@@ -3390,6 +3390,21 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 14.11.2026 — Wegwerf-Probe Tiingo (Delisting-Kurse) (1 PR, Manual-Merge, neuer Workflow mit Secret)
+
+- `#706` (Branch `claude/tiingo-probe-k7q2`, Branch-Commit `3c5a640f`, kein Merge-Hash — Regel a).
+  Easy-Entscheid 14.11.: Tiingo-Probe, Zeiträume Entwicklung 01/2018–12/2022 / Prüfung 01/2023–04/2026.
+  `probe_tiingo.yml` (Hand-Start, contents: read, Secret `TIINGO_API_KEY` nur als Header, maskiert) +
+  `scripts/probe_tiingo.py`: T0 supported_tickers.zip, T1 Abdeckung Verschwundener (zufällige 20 der 60 P2K-Symbole je Jahr,
+  Seed 20261114), T2 neu vergebene Kürzel, T3 Kontrolle gegen yfinance; höchstens 181 Abrufe, ≤ 45/h
+  (Gratis 50/h, 1 000/Tag, 500 Symbole/Monat). Regel vorab ≥ 90 % → bauen. Keine Renditen.
+  Ergebnis Läufe 43612810901/43612813369 (Probe Rückrechnung): SI frei ab 29.12.2017; Abgang 9–16 %/12 Mon.;
+  yfinance/Stooq ohne Delisting-Kurse. open_items: 2 Nachträge.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#705`,
+  höchste in Block 1 erwähnte PR = `#706` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** 3 Hinweise behoben (Teil-JSON je Jahr, Zufalls-Teilstichprobe statt
+  alphabetisch erste 20, „bauen“ nur bei gültiger Kontrolle T3); Tests 19–21.
+
 ### 14.11.2026 — Probe Rückrechnung Lauf 2: Abgangsrate aus FINRA, Kontrollgruppe (1 PR, Self-Merge nach Easy-Freigabe)
 
 - `#705` (Branch `claude/rueckrechnung-probe-fix-k7q2`, Branch-Commit `33462c88`, kein Merge-Hash —
