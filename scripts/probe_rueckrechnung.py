@@ -1,31 +1,39 @@
 #!/usr/bin/env python3
 """WEGWERF-PROBE Mehrjahres-Rückrechnung, Schritt 1 (read-only, nur Zählungen).
 
-Easy-Entscheid 14.11.2026 (open_item ``mehrjahres-rueckrechnung-probe``). Klärt mit
-ZAHLEN, ob ein Mehrjahres-Prüffeld (Entwicklung 06/2021–12/2023, Prüfung
-01/2024–04/2026, vorläufig) mit freien Daten ehrlich nutzbar ist:
+Easy-Entscheid 14.11.2026 (open_item ``mehrjahres-rueckrechnung-probe``); Fix 2
+nach Lauf 43606294489 (Easy-Freigabe 14.11.2026, Self-Merge). Klärt mit ZAHLEN,
+ob ein Mehrjahres-Prüffeld mit freien Daten ehrlich nutzbar ist:
 
-  P1  FINRA Short Interest: ab welchem Stichtag NYSE-/Nasdaq-Werte frei abrufbar
-      sind; Felder; Symbolzahl je Stichtag; Lücken; Veröffentlichungsdatum.
-  P2  Survivorship: Anteil der damaligen Symbole (Zufallsstichprobe, fester Seed)
-      mit heutigen yfinance-Tageskursen über den damaligen Zeitraum, getrennt nach
-      Days-to-Cover-Hälfte und Preisklasse.
-  P3  Ausstehende Aktien aus SEC XBRL: Deckung, point-in-time über ``filed``.
-  P4  Stooq (ohne Key) für delistete Symbole.
-  P5  Nähe Proxy-Liste ↔ echte Top-10 ab 01.07.2026 — NUR Zugehörigkeit.
-  P6  Splits: sind die FINRA-Stückzahlen roh oder bereinigt?
-  P7  Laufzeit-/Datenmengen-Hochrechnung.
+  P1   FINRA ``consolidatedShortInterest``: Start, Felder, Füllgrad je Quartal ab
+       12/2017, Bedeutung stockSplitFlag/revisionFlag (FINRA-Metadaten),
+       Veröffentlichungs-Kalender (FINRA-Seite), Symbol-Schreibweisen.
+  P2F  Abgangsrate OHNE Kursquelle: Stammaktien an einem Juli-Stichtag J
+       (2018–2025) — wie viele fehlen 12 / 24 Monate später in den FINRA-Dateien
+       (getrennt: weiter gelistet / nach OTC / Kürzel gewechselt (gleicher Name) /
+       Kürzel neu vergeben / verschwunden), nach DTC-Hälfte und Marktkennzeichen.
+  P2Y  yfinance-Verfügbarkeit (2021–2025, Stichprobe) mit KONTROLLGRUPPE heute
+       gelisteter Stammaktien (Gültigkeitskriterium unten, vorab festgeschrieben),
+       Pakete à 20, Fehlergründe gezählt, Einzel-Gegenprobe der Fehlenden.
+  P2K  Kurse für die laut P2F verschwundenen Symbole: yfinance Einzelabruf,
+       Stooq (falls erreichbar) — Teilstichprobe.
+  P3   SEC XBRL ausstehende Aktien (Deckung, point-in-time über ``filed``).
+  P5   Nähe Proxy-Liste ↔ echte Top-10 ab 01.07.2026 — NUR Zugehörigkeit.
+  P6   Splits: stockSplitFlag in aufeinanderfolgenden Dateien — Vorperiode
+       angepasst oder roh?
+  P7   Laufzeit-/Datenmengen-Hochrechnung (nur Gesamtlauf).
 
-BLINDHEIT / TRENNUNG: es wird KEIN Ergebnisfeld berechnet oder gelesen (keine
-Rendite, kein Gipfel, keine Kursveränderung nach einem Stichtag). Kurse werden
-nur auf Verfügbarkeit, Zeilenzahl, Volumen-Plausibilität und — für die
-Proxy-Liste — als Eingaben bis einschließlich Tag D genutzt. Aus den
-Backtest-Dateien werden ausschließlich die Schlüssel ``ticker`` und ``date``
-gelesen.
+BLINDHEIT / TRENNUNG: es wird in KEINEM Zeitraum ein Ergebnisfeld berechnet oder
+gelesen (keine Rendite, kein Gipfel, keine Kursveränderung nach einem Stichtag).
+Kurse nur auf Verfügbarkeit, Zeilenzahl, Volumen-Plausibilität, Preis am
+Stichtag (Preisklasse) und — für die Proxy-Liste — als Eingaben bis
+einschließlich Tag D. Aus den Backtest-Dateien NUR ``ticker`` / ``date``.
 
-Schreibt NUR stdout (``[rueck_probe]``) und ``--out`` (Artifact). Keine
-Secrets; SEC-User-Agent ist eine generische Wegwerf-Kennung (.invalid).
-Rate-Limit (HTTP 429 / yfinance) → Abbruch (Exit 3) OHNE Teilbefund.
+Schreibt NUR stdout (``[rueck_probe]``) und ``--out`` (Artifact). Keine Secrets;
+SEC-User-Agent generisch (.invalid). Rate-Limit (HTTP 429 / yfinance / Stooq-
+Tageslimit) → Abbruch (Exit 3); vollständig abgeschlossene Abschnitte davor
+bleiben Befund (Log „ABSCHNITT Pn vollständig“), kein automatischer Neustart.
+Verbindungsfehler zu Stooq sind ein Befund („nicht erreichbar“), kein Abbruch.
 Ab ``PROBE_END`` no-op. Wird nach der Auswertung per Cleanup-PR entfernt.
 """
 from __future__ import annotations
@@ -48,27 +56,36 @@ import config  # noqa: E402
 
 PROBE_END = date(2026, 12, 31)
 SEED = 20261114
-YEARS = (2021, 2022, 2023, 2024, 2025)
-# Stichprobengröße je Jahr: 95-%-Konfidenzhalbbreite ±2 pp ohne Annahme über den
-# Anteil (schlechtester Fall p = 0,5): n = 1,96² · 0,25 / 0,02² = 2 401. Ist die
-# Grundgesamtheit kleiner, wird sie vollständig erhoben.
+DS = "consolidatedShortInterest"   # Lauf 43606294489: NYSE/Nasdaq ab 29.12.2017
+YEARS_Y = (2021, 2022, 2023, 2024, 2025)          # yfinance-Messung
+YEARS_F = tuple(range(2018, 2026))               # Abgangsrate aus FINRA
+# Stichprobe yfinance je Jahr: ±2 pp (95 %) ohne Annahme über den Anteil:
+# n = 1,96² · 0,25 / 0,02² = 2 401 (kleinere Grundgesamtheit → Vollerhebung).
 SAMPLE_N = math.ceil(1.96 ** 2 * 0.25 / 0.02 ** 2)
-AVAIL_WINDOW_DAYS = 60          # Kalendertage ab Stichtag: „damaliger Zeitraum“
-FULL_COVERAGE_FRAC = 0.8        # „voll“ = ≥ 80 % der erwarteten Handelstage
-VOL_PLAUS_BAND = (0.2, 5.0)     # yfinance-Ø-Volumen / FINRA-ADV (gleiches Papier?)
-SEC_PIT_SUBSAMPLE = 100         # companyfacts-Abrufe je Jahr (filed-Datum prüfen)
-STOOQ_CONTROL_N = 10
-STOOQ_MISSING_N = 150           # je Jahr 2021 und 2022
+CONTROL_N = 400
+# GÜLTIGKEITSKRITERIUM — VORAB FESTGESCHRIEBEN (14.11.2026, vor Lauf 2):
+# heute gelistete Stammaktien müssen mit derselben Abrufmethode zu mindestens
+# 97 % Kurse liefern; sonst gilt die yfinance-Verfügbarkeitsmessung P2Y als
+# UNGÜLTIG (misst die Abrufmethode, nicht das Überleben).
+CONTROL_MIN = 0.97
+AVAIL_WINDOW_DAYS = 60
+FULL_COVERAGE_FRAC = 0.8
+VOL_PLAUS_BAND = (0.2, 5.0)
+SINGLE_RECHECK_N = 50            # Einzel-Gegenprobe je Jahr (bei Paketen fehlend)
+VANISHED_CHECK_N = 60            # P2K: verschwundene Symbole je Basisjahr (yfinance)
+STOOQ_CHECK_N = 20               # P2K: davon an Stooq (falls erreichbar)
+SEC_PIT_SUBSAMPLE = 100
 SPLIT_EXAMPLES_MAX = 30
 PROXY_FROM = date(2026, 7, 1)
-PUB_LAG_BUSINESS_DAYS = 8       # ANNAHME FINRA-Kalender (~7 Werktage) + 1 Tag Reserve
-YF_BATCH = 100
+PUB_LAG_BUSINESS_DAYS = 8        # Annahme ~7 Werktage + 1 Reserve; P1 prüft gegen FINRA-Seite
+YF_BATCH = 20
+YF_PAUSE_S = 2.0
 
 FINRA_API = "https://api.finra.org/data/group/otcMarket/name/{ds}"
 FINRA_META = "https://api.finra.org/metadata/group/otcMarket/name/{ds}"
-FINRA_DATASETS = ("consolidatedShortInterest", "ConsolidatedShortInterest",
-                  "equityShortInterest", "EquityShortInterest")
-FINRA_CATALOG = "https://www.finra.org/finra-data/browse-catalog/equity-short-interest/files"
+FINRA_PAGES = ("https://www.finra.org/filing-reporting/short-interest",
+               "https://www.finra.org/filing-reporting/short-interest-reporting",
+               "https://www.finra.org/finra-data/browse-catalog/equity-short-interest/glossary")
 CNMS_URL = "https://cdn.finra.org/equity/regsho/daily/CNMSshvol{d}.txt"
 SEC_UA = "SqueezeReportProbe/1.0 (throwaway contact squeeze-report-rueckrechnung-probe@example.invalid)"
 SEC_TICKERS = "https://www.sec.gov/files/company_tickers.json"
@@ -76,18 +93,43 @@ SEC_FRAME = "https://data.sec.gov/api/xbrl/frames/dei/EntityCommonStockSharesOut
 SEC_FACTS = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json"
 STOOQ_URL = "https://stooq.com/q/d/l/?s={s}.us&d1={a}&d2={b}&i=d"
 ANCHORS = ("AAPL", "MSFT", "AMC", "GME", "F", "BAC", "KO", "XOM", "PFE", "T")
-NON_COMMON = re.compile(r"\b(ETF|FUND|TRUST|NOTES?|PFD|PREFERRED|WARRANTS?|RIGHTS?|UNITS?|DEP(OSITARY)? SH|ETN)\b", re.I)
+LISTED_CODES = frozenset({"NYSE", "NNM", "SC", "AMEX", "ARCA", "BZX", "NMS", "NGM", "NCM", "IEX", "BATS"})
+
+# ── Zuordnungsregel FINRA → Kategorie / yfinance (vorab festgeschrieben) ─────
+# Reihenfolge: Test → ETF/Fonds → Vorzug → Optionsschein → Unit → Right → Anleihe
+# → Klassen-Aktie → Stammaktie → sonstiges. STAMMAKTIEN = „stamm“ + „klasse“.
+# Kriterium Stammaktie: Kürzel aus 1–5 Großbuchstaben (Klasse: 1–5 Buchstaben,
+# Trenner [ ./-], ein Buchstabe) UND Name ohne die Muster der übrigen Kategorien.
+# yfinance-Schreibweise: Trenner [ ./] → „-“ (BRK.B / BRK B / BRK/B → BRK-B).
+TEST_SYMBOLS = frozenset({"ZVZZT", "ZWZZT", "ZXZZT", "ZBZZT", "ZJZZT", "ZVV", "NTEST",
+                          "ATEST", "CTEST", "PTEST", "MTEST", "ZZK", "ZZZ"})
+_RE_ETF = re.compile(r"\b(ETF|ETN|FUND|TRUST|INDEX|ISHARES|SPDR|PROSHARES|PORTFOLIO)\b", re.I)
+_RE_PFD = re.compile(r"\b(PFD|PREFERRED|PREF|DEP(OSITARY)?\s+SH(ARE)?S?)\b|%", re.I)
+_RE_WT = re.compile(r"\b(WARRANTS?|WTS?)\b", re.I)
+_RE_UNIT = re.compile(r"\bUNITS?\b", re.I)
+_RE_RIGHT = re.compile(r"\bRIGHTS?\b", re.I)
+_RE_NOTE = re.compile(r"\b(NOTES?|DEBENTURES?|BONDS?|SENIOR)\b", re.I)
+_RE_COMMON_SYM = re.compile(r"^[A-Z]{1,5}$")
+_RE_CLASS_SYM = re.compile(r"^[A-Z]{1,5}[ ./-][A-Z]$")
+_RE_SYM_SUFFIX = {"vorzug": re.compile(r"([ .-]P[R]?[ .-]?[A-Z]?$|\.PR|p[A-Z]?$)"),
+                  "optionsschein": re.compile(r"([ .-]WS([ .-]?[A-Z])?$|\.W$)"),
+                  "unit": re.compile(r"([ .-]U$|[ .-]UN$)"),
+                  "right": re.compile(r"([ .-]R$|[ .-]RT$)")}
+_NAME_STOP = frozenset({"INC", "CORP", "CORPORATION", "CO", "COMPANY", "LTD", "LIMITED", "PLC",
+                        "HOLDINGS", "HOLDING", "GROUP", "THE", "CLASS", "CL", "A", "B", "C",
+                        "COMMON", "STOCK", "ORDINARY", "SHARES", "SHS", "NEW", "LLC", "LP", "SA",
+                        "NV", "AG", "SE", "ADR", "ADS", "AMERICAN", "DEPOSITARY"})
 
 FIELD_CANDIDATES = {
     "symbol": ("symbolCode", "issueSymbolIdentifier", "symbol"),
     "date": ("settlementDate",),
-    "current": ("currentShortPositionQuantity", "currentShortShareNumber", "currentShortPosition"),
-    "previous": ("previousShortPositionQuantity", "previousShortShareNumber", "previousShortPosition"),
-    "adv": ("averageDailyVolumeQuantity", "averageDailyShareVolume", "averageDailyVolume"),
-    "dtc": ("daysToCoverQuantity", "daysToCover"),
-    "name": ("issueName", "securityName"),
-    "market": ("marketClassCode", "marketCategoryCode", "marketCode"),
-    "split": ("stockSplitFlag", "splitFlag"),
+    "current": ("currentShortPositionQuantity", "currentShortShareNumber"),
+    "previous": ("previousShortPositionQuantity", "previousShortShareNumber"),
+    "adv": ("averageDailyVolumeQuantity", "averageShortShareNumber"),
+    "dtc": ("daysToCoverQuantity", "daysToCoverNumber"),
+    "name": ("issueName",),
+    "market": ("marketClassCode", "marketCategoryCode"),
+    "split": ("stockSplitFlag",),
     "revision": ("revisionFlag",),
 }
 
@@ -115,14 +157,14 @@ class Stats:
 STATS = Stats()
 LAST_ERR: dict[str, str] = {}
 FALLBACK_USED: dict[str, int] = {}
-YF_BATCH_ERRORS: list[str] = []
+YF_ERR_CATS: dict[str, int] = {}
+YF_ERR_EXAMPLES: dict[str, list] = {}
+CURRENT = {"abschnitt": None}
+FILE_CACHE: dict = {}
 
 
 def log(msg):
     print(f"[rueck_probe] {msg}", flush=True)
-
-
-CURRENT = {"abschnitt": None}
 
 
 def start_section(key):
@@ -155,12 +197,51 @@ def pick(rec: dict, role: str):
     return None
 
 
+def category(sym, name) -> str:
+    """Kategorie nach der Zuordnungsregel oben (Kürzel + Name)."""
+    s = (sym or "").strip().upper()
+    n = name if isinstance(name, str) else ""
+    if not s:
+        return "sonstiges"
+    if s in TEST_SYMBOLS or re.search(r"\bTEST\b", n, re.I):
+        return "test"
+    if _RE_ETF.search(n):
+        return "etf_fonds"
+    if _RE_PFD.search(n) or _RE_SYM_SUFFIX["vorzug"].search(sym or ""):
+        return "vorzug"
+    if _RE_WT.search(n) or _RE_SYM_SUFFIX["optionsschein"].search(s):
+        return "optionsschein"
+    if _RE_UNIT.search(n) or _RE_SYM_SUFFIX["unit"].search(s):
+        return "unit"
+    if _RE_RIGHT.search(n) or _RE_SYM_SUFFIX["right"].search(s):
+        return "right"
+    if _RE_NOTE.search(n):
+        return "anleihe"
+    if _RE_CLASS_SYM.match(s):
+        return "klasse"
+    if _RE_COMMON_SYM.match(s):
+        return "stamm"
+    return "sonstiges"
+
+
+def is_stock(sym, name) -> bool:
+    return category(sym, name) in ("stamm", "klasse")
+
+
 def yf_symbol(sym: str) -> str:
-    return sym.replace(".", "-").replace("/", "-")
+    return re.sub(r"[ ./]", "-", (sym or "").strip().upper())
 
 
-def is_common(name) -> bool:
-    return not (isinstance(name, str) and NON_COMMON.search(name))
+def symbol_pattern(sym: str) -> str:
+    return re.sub(r"[A-Z]", "A", re.sub(r"[a-z]", "a", re.sub(r"[0-9]", "9", sym or "")))
+
+
+def name_key(name) -> str:
+    """Normalisierter Firmenname (erste zwei bedeutungstragende Wörter)."""
+    if not isinstance(name, str):
+        return ""
+    toks = [t for t in re.sub(r"[^A-Z0-9 ]", " ", name.upper()).split() if t not in _NAME_STOP]
+    return " ".join(toks[:2])
 
 
 def draw_sample(population, year: int, n: int = SAMPLE_N) -> list:
@@ -170,14 +251,12 @@ def draw_sample(population, year: int, n: int = SAMPLE_N) -> list:
     return sorted(random.Random(SEED + year).sample(pop, n))
 
 
-def dtc_value(rec: dict):
-    v = pick(rec, "dtc")
+def dtc_of(cur, adv, dtc):
     try:
-        if v is not None and math.isfinite(float(v)):
-            return float(v)
+        if dtc is not None and math.isfinite(float(dtc)):
+            return float(dtc)
     except (TypeError, ValueError):
         pass
-    cur, adv = pick(rec, "current"), pick(rec, "adv")
     try:
         cur, adv = float(cur), float(adv)
     except (TypeError, ValueError):
@@ -185,8 +264,7 @@ def dtc_value(rec: dict):
     return cur / adv if adv > 0 else None
 
 
-def split_halves(values: dict) -> tuple[set, set, float | None]:
-    """values: sym → dtc (None erlaubt). Gibt (niedrig, hoch, median)."""
+def split_halves(values: dict):
     known = {s: v for s, v in values.items() if v is not None}
     if not known:
         return set(), set(), None
@@ -204,41 +282,51 @@ def business_days_after(d: date, n: int, holidays=frozenset()) -> date:
     return cur
 
 
+def business_days_between(a: date, b: date, holidays=frozenset()) -> int:
+    k, cur = 0, a
+    while cur < b:
+        cur += timedelta(days=1)
+        if cur.weekday() < 5 and cur.isoformat() not in holidays:
+            k += 1
+    return k
+
+
 def latest_usable_settlement(d: date, settlements, holidays=frozenset()):
     usable = [s for s in settlements if business_days_after(s, PUB_LAG_BUSINESS_DAYS, holidays) <= d]
     return max(usable) if usable else None
 
 
-def classify_split(cur0, cur1, prev1, factor):
-    """FINRA-Stückzahlen um einen Split zwischen zwei Stichtagen.
+def fate(sym, base_rec, later_file, later_names) -> str:
+    """Verbleib eines Stammaktien-Symbols vom Basis- zum späteren Stichtag.
 
-    factor = yfinance „Stock Splits“ (neue/alte Stücke, 0,1 = Reverse 1:10).
-    Rückgabe: (stueck, vorperiode) mit stueck ∈ {folgt_split, unveraendert,
-    unklar} und vorperiode ∈ {unbereinigt, bereinigt, unklar}."""
+    later_file: sym → Kurzsatz; later_names: name_key → set(sym).
+    gelistet / otc / neu_vergeben (Kürzel da, anderer Name) /
+    kuerzel_gewechselt (Name unter anderem Kürzel) / verschwunden."""
+    nk = name_key(base_rec["name"])
+    rec = later_file.get(sym)
+    if rec is not None:
+        if nk and name_key(rec["name"]) and name_key(rec["name"]) != nk:
+            return "neu_vergeben"
+        return "gelistet" if rec["market"] in LISTED_CODES else "otc"
+    if nk and later_names.get(nk, set()) - {sym}:
+        return "kuerzel_gewechselt"
+    return "verschwunden"
+
+
+def classify_split_flag(prev_later, cur_earlier):
+    """Vorperiode im späteren Satz vs. aktuelle Position im früheren Satz."""
     try:
-        cur0, cur1, prev1, factor = float(cur0), float(cur1), float(prev1), float(factor)
+        a, b = float(prev_later), float(cur_earlier)
     except (TypeError, ValueError):
-        return "unklar", "unklar"
-    if cur0 <= 0 or factor <= 0 or 0.67 < factor < 1.5:
-        return "unklar", "unklar"
-    r = cur1 / cur0
-    if 0.8 <= r <= 1.25:
-        stueck = "unveraendert"
-    elif 0.67 * factor <= r <= 1.5 * factor:
-        stueck = "folgt_split"
-    else:
-        stueck = "unklar"
-    if abs(prev1 - cur0) <= 0.01 * cur0:
-        vor = "unbereinigt"
-    elif abs(prev1 - cur0 * factor) <= 0.05 * cur0 * factor:
-        vor = "bereinigt"
-    else:
-        vor = "unklar"
-    return stueck, vor
+        return "unklar"
+    if b <= 0:
+        return "unklar"
+    if abs(a - b) <= 0.01 * b:
+        return "vorperiode_roh"
+    return "vorperiode_angepasst"
 
 
 def overlap_stats(pairs):
-    """pairs: list of (real_set, proxy_set) → Kennzahlen der Überschneidung."""
     ov = [len(r & p) for r, p in pairs if r]
     if not ov:
         return None
@@ -283,6 +371,21 @@ def proxy_score(si_pct, dtc, rvol, rel_chg, gap, rs, si_up):
     return round(sf + sr + rv + mom + gap + rs + bonus, 2)
 
 
+def yf_err_category(msg: str) -> str:
+    m = (msg or "").lower()
+    if "too many requests" in m or "rate limit" in m:
+        return "rate_limit"
+    if "delisted" in m:
+        return "possibly_delisted"
+    if "no data found" in m or "no price data" in m:
+        return "keine_daten"
+    if "timezone" in m:
+        return "keine_zeitzone"
+    if "timed out" in m or "timeout" in m or "connection" in m:
+        return "netz"
+    return "sonstiges"
+
+
 # ── Netz ─────────────────────────────────────────────────────────────────────
 def _req():
     import requests
@@ -298,12 +401,12 @@ def http(method, url, src, **kw):
     return r
 
 
-def finra_query(ds, body, src="finra_api"):
+def finra_query(body):
     hdr = {"Accept": "application/json", "Content-Type": "application/json"}
-    r = http("POST", FINRA_API.format(ds=ds), src, headers=hdr, data=json.dumps(body))
+    r = http("POST", FINRA_API.format(ds=DS), "finra_api", headers=hdr, data=json.dumps(body))
     time.sleep(0.3)
     if r.status_code != 200:
-        LAST_ERR[ds] = f"HTTP {r.status_code}: {r.text[:300]}"
+        LAST_ERR[DS] = f"HTTP {r.status_code}: {r.text[:300]}"
         return r.status_code, [], r.headers
     try:
         data = r.json()
@@ -312,25 +415,18 @@ def finra_query(ds, body, src="finra_api"):
     return 200, data if isinstance(data, list) else [], r.headers
 
 
-def finra_all(ds, filters, page=5000, max_pages=20):
-    st, rows = _finra_all(ds, filters, page, max_pages)
-    dr = (filters.get("dateRangeFilters") or [None])[0]
-    if st not in (200, 429) and not rows and dr and dr["startDate"] == dr["endDate"]:
-        # Ersatz: einzelner Stichtag über compareFilters EQUAL (falls dateRange abgelehnt)
-        alt = {k: v for k, v in filters.items() if k != "dateRangeFilters"}
-        alt["compareFilters"] = [{"compareType": "EQUAL", "fieldName": "settlementDate",
-                                  "fieldValue": dr["startDate"]}]
-        FALLBACK_USED[ds] = FALLBACK_USED.get(ds, 0) + 1
-        st, rows = _finra_all(ds, alt, page, max_pages)
-    return st, rows
-
-
-def _finra_all(ds, filters, page=5000, max_pages=20):
+def finra_all(filters, page=5000, max_pages=20):
     rows, off = [], 0
     for _ in range(max_pages):
-        body = dict(filters, limit=page, offset=off)
-        st, data, _ = finra_query(ds, body)
+        st, data, _ = finra_query(dict(filters, limit=page, offset=off))
         if st != 200:
+            dr = (filters.get("dateRangeFilters") or [None])[0]
+            if not rows and dr and dr["startDate"] == dr["endDate"] and "compareFilters" not in filters:
+                FALLBACK_USED[DS] = FALLBACK_USED.get(DS, 0) + 1
+                alt = {k: v for k, v in filters.items() if k != "dateRangeFilters"}
+                alt["compareFilters"] = [{"compareType": "EQUAL", "fieldName": "settlementDate",
+                                          "fieldValue": dr["startDate"]}]
+                return finra_all(alt, page, max_pages)
             return st, rows
         rows += data
         if len(data) < page:
@@ -344,36 +440,77 @@ def date_filter(start, end):
                                   "startDate": start.isoformat(), "endDate": end.isoformat()}]}
 
 
+def get_file(d: date) -> dict:
+    """Ganze Stichtags-Datei als sym → Kurzsatz (gecacht)."""
+    if d in FILE_CACHE:
+        return FILE_CACHE[d]
+    st, rows = finra_all(date_filter(d, d))
+    out = {}
+    for x in rows:
+        s = pick(x, "symbol")
+        if not s:
+            continue
+        out[s] = {"name": pick(x, "name"), "market": str(pick(x, "market")),
+                  "cur": pick(x, "current"), "prev": pick(x, "previous"), "adv": pick(x, "adv"),
+                  "dtc": pick(x, "dtc"), "split": pick(x, "split"), "rev": pick(x, "revision")}
+    FILE_CACHE[d] = out if st == 200 else {}
+    if st != 200:
+        log(f"FINRA-Datei {d} HTTP {st}: {LAST_ERR.get(DS, '')[:160]}")
+    return FILE_CACHE[d]
+
+
+def first_on_or_after(sdates, d: date):
+    c = [x for x in sdates if x >= d]
+    return min(c) if c else None
+
+
 def cnms_symbols(d: date):
     for back in range(0, 6):
         dd = d - timedelta(days=back)
         r = http("GET", CNMS_URL.format(d=dd.strftime("%Y%m%d")), "finra_cnms")
         if r.status_code == 200 and "|" in r.text:
-            syms = set()
-            for ln in r.text.splitlines()[1:]:
-                parts = ln.split("|")
-                if len(parts) >= 2 and parts[1]:
-                    syms.add(parts[1].strip())
-            return dd, syms
+            return dd, {ln.split("|")[1].strip() for ln in r.text.splitlines()[1:]
+                        if len(ln.split("|")) >= 2 and ln.split("|")[1]}
     return None, set()
 
 
 def sec_get(url):
     r = http("GET", url, "sec", headers={"User-Agent": SEC_UA, "Accept-Encoding": "gzip"})
-    time.sleep(0.12)  # < 10 Anfragen/s
+    time.sleep(0.12)
     return r
 
 
-BATCH_ERR = object()   # Abruf-Fehler ≠ „nicht vorhanden“
+BATCH_ERR = object()   # Paket-Abruf-Fehler ≠ „nicht vorhanden“
 
 
-def yf_download(symbols, start, end, src="yfinance", auto_adjust=True):
-    """{yf_symbol: DataFrame|None|BATCH_ERR}. Rate-Limit → RateLimited."""
+def _yf_errors_reset(yf):
+    try:
+        yf.shared._ERRORS.clear()
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _yf_errors_take(yf, batch):
+    errs = dict(getattr(getattr(yf, "shared", None), "_ERRORS", {}) or {})
+    for t, msg in errs.items():
+        cat = yf_err_category(str(msg))
+        if cat == "rate_limit":
+            raise RateLimited(f"yfinance: {str(msg)[:160]}")
+        YF_ERR_CATS[cat] = YF_ERR_CATS.get(cat, 0) + 1
+        ex = YF_ERR_EXAMPLES.setdefault(cat, [])
+        if len(ex) < 3:
+            ex.append(f"{t}: {str(msg)[:120]}")
+    return errs
+
+
+def yf_download(symbols, start, end, src="yfinance", auto_adjust=False):
+    """{yf_symbol: DataFrame|None|BATCH_ERR}. Pakete à YF_BATCH. Rate-Limit → RateLimited."""
     import yfinance as yf
     out = {}
     for i in range(0, len(symbols), YF_BATCH):
         batch = symbols[i:i + YF_BATCH]
         t0 = time.monotonic()
+        _yf_errors_reset(yf)
         try:
             df = yf.download(batch, start=start.isoformat(), end=end.isoformat(), interval="1d",
                              auto_adjust=auto_adjust, actions=True, group_by="ticker",
@@ -381,15 +518,13 @@ def yf_download(symbols, start, end, src="yfinance", auto_adjust=True):
         except Exception as exc:  # noqa: BLE001
             if "RateLimit" in type(exc).__name__ or "Too Many Requests" in str(exc):
                 raise RateLimited(str(exc)) from exc
-            YF_BATCH_ERRORS.append(f"{type(exc).__name__}: {str(exc)[:120]}")
+            YF_ERR_CATS["paket_ausnahme"] = YF_ERR_CATS.get("paket_ausnahme", 0) + 1
             for s in batch:
                 out[s] = BATCH_ERR
             STATS.add(src, time.monotonic() - t0, 0)
-            time.sleep(2.0)
+            time.sleep(YF_PAUSE_S)
             continue
-        errs = getattr(getattr(yf, "shared", None), "_ERRORS", {}) or {}
-        if any("Too Many Requests" in str(v) or "Rate limit" in str(v) for v in errs.values()):
-            raise RateLimited("yfinance: " + "; ".join(list(map(str, errs.values()))[:3]))
+        _yf_errors_take(yf, batch)
         nbytes = 0
         for s in batch:
             sub = None
@@ -410,175 +545,295 @@ def yf_download(symbols, start, end, src="yfinance", auto_adjust=True):
                 sub = None
             out[s] = sub
         STATS.add(src, time.monotonic() - t0, nbytes)
-        time.sleep(2.0)   # Schonung gegen Yahoo-Rate-Limit
+        time.sleep(YF_PAUSE_S)
     return out
 
 
-# ── P1 ───────────────────────────────────────────────────────────────────────
-def probe_finra(result):
-    p1 = {"datensaetze": {}}
-    chosen = None
-    for ds in FINRA_DATASETS:
-        info = {}
-        r = http("GET", FINRA_META.format(ds=ds), "finra_api")
-        info["metadata_http"] = r.status_code
-        if r.status_code == 200:
-            try:
-                meta = r.json()
-                fields = meta.get("fields") if isinstance(meta, dict) else None
-                info["felder"] = [f.get("name") for f in fields] if isinstance(fields, list) else str(meta)[:800]
-            except ValueError:
-                info["felder"] = r.text[:800]
-        st, rows = finra_all(ds, {"domainFilters": [{"fieldName": "symbolCode", "values": list(ANCHORS)}],
-                                  **date_filter(date(2016, 1, 1), date(2026, 12, 31))}, max_pages=4)
-        info["anker_http"] = st
-        info["anker_zeilen"] = len(rows)
-        if st != 200:
-            info["anker_fehlertext"] = LAST_ERR.get(ds)
-        if rows:
-            info["beispiel_schluessel"] = sorted(rows[0].keys())
-            dates = sorted({pick(x, "date") for x in rows if pick(x, "date")})
-            info["anker_erster_stichtag"] = dates[0] if dates else None
-            info["anker_letzter_stichtag"] = dates[-1] if dates else None
-            per = {}
-            for x in rows:
-                per.setdefault(pick(x, "symbol"), []).append(pick(x, "date"))
-            info["anker_erster_stichtag_je_symbol"] = {k: min(v) for k, v in sorted(per.items())}
-            mk = {}
-            for x in rows:
-                mk[str(pick(x, "market"))] = mk.get(str(pick(x, "market")), 0) + 1
-            info["anker_marktcode"] = mk
-            if chosen is None:
-                chosen = (ds, rows)
-        p1["datensaetze"][ds] = info
+def yf_single(sym, start, end):
+    """Einzelabruf über Ticker().history — True/False, Rate-Limit → RateLimited."""
+    import yfinance as yf
+    t0 = time.monotonic()
+    _yf_errors_reset(yf)
     try:
-        r = http("GET", FINRA_CATALOG, "finra_web")
-        links = sorted(set(re.findall(r"https?://[^\"'\s>]+?\.(?:csv|txt|zip)", r.text)))
-        p1["katalog"] = {"http": r.status_code, "datei_links": links[:20], "anzahl_links": len(links)}
+        h = yf.Ticker(sym).history(start=start.isoformat(), end=end.isoformat(), auto_adjust=False)
+    except Exception as exc:  # noqa: BLE001
+        if "RateLimit" in type(exc).__name__ or "Too Many Requests" in str(exc):
+            raise RateLimited(str(exc)) from exc
+        h = None
+    _yf_errors_take(yf, [sym])
+    STATS.add("yfinance_einzel", time.monotonic() - t0, 0)
+    time.sleep(1.0)
+    return h is not None and not h.empty and not h["Close"].dropna().empty
+
+
+def stooq_hit(sym, start, end):
+    """'daten' / 'leer' / 'key_noetig' / 'http_N' / 'nicht_erreichbar'."""
+    url = STOOQ_URL.format(s=sym.lower().replace(".", "-"), a=start.strftime("%Y%m%d"),
+                           b=end.strftime("%Y%m%d"))
+    try:
+        r = http("GET", url, "stooq")
     except RateLimited:
         raise
-    except Exception as exc:  # noqa: BLE001
-        p1["katalog"] = {"fehler": str(exc)[:200]}
-    if chosen is None:
-        p1["verdikt_hinweis"] = "kein Datensatz mit NYSE/Nasdaq-Ankern"
-        result["P1"] = p1
-        return None
-    ds, rows = chosen
-    p1["gewaehlt"] = ds
-    aapl = sorted({pick(x, "date") for x in rows if pick(x, "symbol") == "AAPL"})
-    sdates = [date.fromisoformat(d[:10]) for d in aapl]
-    gaps = [(a.isoformat(), b.isoformat(), (b - a).days) for a, b in zip(sdates, sdates[1:]) if (b - a).days > 20]
-    p1["stichtage_aapl"] = {"anzahl": len(sdates), "erster": aapl[0] if aapl else None,
-                            "letzter": aapl[-1] if aapl else None, "luecken_ueber_20_tage": gaps}
-    # Symbolzahl je Stichtag (Record-Total bzw. Zählung) für alle Stichtage ab 06/2021
-    counts = {}
-    for d in sdates:
-        if d < date(2021, 1, 1):
-            continue
-        st, data, hdr = finra_query(ds, {"limit": 1, **date_filter(d, d)})
-        tot = None
-        for k, v in (hdr or {}).items():
-            if k.lower() == "record-total":
-                tot = int(v)
-        counts[d.isoformat()] = tot if tot is not None else (len(data) if st == 200 else f"HTTP {st}")
-    p1["zeilen_je_stichtag"] = counts
-    p1["veroeffentlichungsdatum_feld"] = [k for k in (p1["datensaetze"][ds].get("beispiel_schluessel") or [])
-                                         if "publi" in k.lower() or "dissem" in k.lower() or "report" in k.lower()]
+    except Exception:  # noqa: BLE001  Verbindungsfehler sind ein Befund
+        return "nicht_erreichbar"
+    finally:
+        time.sleep(1.0)
+    body = r.text.strip()
+    if r.status_code != 200:
+        return f"http_{r.status_code}"
+    low = body.lower()
+    if "limit" in low and "exceed" in low:
+        raise RateLimited("Stooq: Tageslimit")
+    if low.startswith("date,") and len(body.splitlines()) > 1:
+        return "daten"
+    if "apikey" in low or "api key" in low:
+        return "key_noetig"
+    return "leer"
+
+
+# ── P1 ───────────────────────────────────────────────────────────────────────
+def settlement_dates():
+    st, rows = finra_all({"domainFilters": [{"fieldName": "symbolCode", "values": list(ANCHORS)}],
+                          **date_filter(date(2016, 1, 1), date(2026, 12, 31))}, max_pages=4)
+    return st, rows
+
+
+def probe_p1(result):
+    p1 = {"datensatz": DS}
+    r = http("GET", FINRA_META.format(ds=DS), "finra_api")
+    p1["metadata_http"] = r.status_code
+    if r.status_code == 200:
+        try:
+            fields = r.json().get("fields") or []
+            p1["felder"] = {f.get("name"): {k: v for k, v in f.items() if k != "name"} for f in fields}
+        except (ValueError, AttributeError):
+            p1["felder"] = r.text[:1500]
+    st, rows = settlement_dates()
+    p1["anker_http"] = st
+    sdates = sorted({date.fromisoformat(pick(x, "date")[:10]) for x in rows
+                     if pick(x, "symbol") == "AAPL" and pick(x, "date")})
+    p1["stichtage"] = {"anzahl": len(sdates), "erster": str(sdates[0]) if sdates else None,
+                       "letzter": str(sdates[-1]) if sdates else None,
+                       "luecken_ueber_20_tage": [(str(a), str(b)) for a, b in zip(sdates, sdates[1:])
+                                                 if (b - a).days > 20]}
+    # Füllgrad je Quartal (erster Stichtag ab Quartalsbeginn), nur gelistete Stammaktien
+    fill = {}
+    flags_split, flags_rev = {}, {}
+    patterns = {}
+    cats_total = {}
+    for y in range(2017, 2027):
+        for m in (1, 4, 7, 10):
+            d = first_on_or_after(sdates, date(y, m, 1))
+            if d is None or (y == 2017 and m < 10) or d.year != y:
+                continue
+            f = get_file(d)
+            stocks = {s: v for s, v in f.items() if v["market"] in LISTED_CODES and is_stock(s, v["name"])}
+            n = len(stocks)
+            fill[str(d)] = {
+                "zeilen": len(f), "gelistet_stamm": n,
+                "cur": round(sum(v["cur"] is not None for v in stocks.values()) / n, 4) if n else None,
+                "adv": round(sum(v["adv"] is not None for v in stocks.values()) / n, 4) if n else None,
+                "adv_gt0": round(sum(_pos(v["adv"]) for v in stocks.values()) / n, 4) if n else None,
+                "dtc": round(sum(v["dtc"] is not None for v in stocks.values()) / n, 4) if n else None,
+            }
+            for v in f.values():
+                flags_split[str(v["split"])] = flags_split.get(str(v["split"]), 0) + 1
+                flags_rev[str(v["rev"])] = flags_rev.get(str(v["rev"]), 0) + 1
+            if m == 7:
+                for s, v in f.items():
+                    if v["market"] in LISTED_CODES:
+                        c = category(s, v["name"])
+                        cats_total.setdefault(str(y), {})
+                        cats_total[str(y)][c] = cats_total[str(y)].get(c, 0) + 1
+                        if not _RE_COMMON_SYM.match(s):
+                            pt = symbol_pattern(s)
+                            e = patterns.setdefault(pt, {"n": 0, "beispiele": []})
+                            e["n"] += 1
+                            if len(e["beispiele"]) < 4:
+                                e["beispiele"].append(f"{s} | {str(v['name'])[:40]} → {c}")
+    p1["fuellgrad_je_quartal"] = fill
+    p1["stockSplitFlag_werte"] = flags_split
+    p1["revisionFlag_werte"] = flags_rev
+    p1["kategorien_gelistet_juli"] = cats_total
+    p1["symbol_muster_nicht_einfach"] = dict(sorted(patterns.items(), key=lambda kv: -kv[1]["n"])[:15])
+    # Veröffentlichungs-Kalender / Glossar (FINRA-Seiten, Text um Schlüsselwörter)
+    pages = {}
+    for url in FINRA_PAGES:
+        try:
+            rr = http("GET", url, "finra_web", headers={"User-Agent": "Mozilla/5.0"})
+            txt = re.sub(r"<[^>]+>", " ", rr.text)
+            txt = re.sub(r"\s+", " ", txt)
+            hits = []
+            for m in re.finditer(r"(Split|Revision|Publication|Dissemination|Due Date|Settlement Date)", txt):
+                hits.append(txt[max(0, m.start() - 160):m.start() + 240])
+                if len(hits) >= 8:
+                    break
+            dates = re.findall(r"\b(?:\d{1,2}/\d{1,2}/20(?:2[5-7])|(?:January|February|March|April|May|June|"
+                               r"July|August|September|October|November|December) \d{1,2}, 20(?:2[5-7]))\b", txt)
+            pages[url] = {"http": rr.status_code, "ausschnitte": hits, "datumsangaben": dates[:120]}
+        except RateLimited:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            pages[url] = {"fehler": str(exc)[:160]}
+    p1["finra_seiten"] = pages
     result["P1"] = p1
-    return ds, sdates
+    return sdates
 
 
-# ── P2/P3/P4/P6 ──────────────────────────────────────────────────────────────
-def year_anchor(sdates, year):
-    c = [d for d in sdates if d >= date(year, 7, 1) and d.year == year]
-    return min(c) if c else None
+def _pos(v):
+    try:
+        return float(v) > 0
+    except (TypeError, ValueError):
+        return False
 
 
-def probe_survivorship(result, ds, sdates):
-    p2, p6_cands = {}, []
-    sec_map = sec_ticker_map(result)
-    p3 = {"ticker_map_http": result.get("_sec_map_http"), "jahre": {}}
-    for year in YEARS:
-        sd = year_anchor(sdates, year)
-        if sd is None:
-            p2[str(year)] = {"fehlt": "kein Stichtag ab Juli"}
+# ── P2F: Abgangsrate ohne Kursquelle ─────────────────────────────────────────
+def probe_p2f(result, sdates):
+    out = {}
+    vanished = {}
+    for y in YEARS_F:
+        base = first_on_or_after(sdates, date(y, 7, 1))
+        if base is None:
             continue
-        st, rows = finra_all(ds, date_filter(sd, sd))
-        cn_day, listed = cnms_symbols(sd)
-        recs = {}
-        for x in rows:
-            s = pick(x, "symbol")
-            if s and s in listed and is_common(pick(x, "name")):
-                recs[s] = x
-        sample = draw_sample(recs, year)
-        dtcs = {s: dtc_value(recs[s]) for s in sample}
+        bf = get_file(base)
+        universe = {s: v for s, v in bf.items() if v["market"] in LISTED_CODES and is_stock(s, v["name"])}
+        dtcs = {s: dtc_of(v["cur"], v["adv"], v["dtc"]) for s, v in universe.items()}
         low, high, med = split_halves(dtcs)
-        data = yf_download([yf_symbol(s) for s in sample], sd, sd + timedelta(days=AVAIL_WINDOW_DAYS),
-                           auto_adjust=False)   # Rohkurse: Preisklasse/Volumen wie damals
+        res_y = {"stichtag": str(base), "stammaktien_gelistet": len(universe), "dtc_median": med}
+        for label, days in (("12m", 365), ("24m", 730)):
+            later = first_on_or_after(sdates, base + timedelta(days=days))
+            if later is None:
+                res_y[label] = None
+                continue
+            lf = get_file(later)
+            names = {}
+            for s, v in lf.items():
+                nk = name_key(v["name"])
+                if nk:
+                    names.setdefault(nk, set()).add(s)
+            fates = {s: fate(s, v, lf, names) for s, v in universe.items()}
+
+            def tally(members):
+                m = [fates[s] for s in members]
+                n = len(m)
+                d = {k: m.count(k) for k in ("gelistet", "otc", "kuerzel_gewechselt",
+                                             "neu_vergeben", "verschwunden")}
+                d["abgang_gelistet"] = wilson(n - d["gelistet"], n)
+                d["verschwunden_anteil"] = wilson(d["verschwunden"] + d["neu_vergeben"], n)
+                return d
+            mk = {}
+            for s, v in universe.items():
+                mk.setdefault(v["market"], []).append(s)
+            res_y[label] = {"stichtag_spaeter": str(later), "gesamt": tally(list(universe)),
+                            "dtc_niedrig": tally(low), "dtc_hoch": tally(high),
+                            "je_marktcode": {k: tally(v) for k, v in sorted(mk.items())}}
+            if label == "12m":
+                vanished[y] = (base, sorted(s for s, f in fates.items()
+                                            if f in ("verschwunden", "neu_vergeben")))
+        out[str(y)] = res_y
+        log(f"P2F {y}: {json.dumps(res_y.get('12m', {}) and res_y['12m']['gesamt'], default=str)}")
+    out["hinweis"] = ("verschwunden = Delisting ODER Übernahme ODER Namens-/Kürzeländerung ohne "
+                      "Namenstreffer; Datensatz hat kein CUSIP-Feld, Trennung nur über issueName")
+    result["P2F"] = out
+    return vanished
+
+
+# ── P2Y: yfinance-Verfügbarkeit mit Kontrollgruppe ───────────────────────────
+def probe_p2y(result, sdates):
+    out = {}
+    today = datetime.now(timezone.utc).date()
+    last = max(d for d in sdates if d <= today)
+    lf = get_file(last)
+    ctrl_pop = [s for s, v in lf.items() if v["market"] in LISTED_CODES and is_stock(s, v["name"])]
+    ctrl = draw_sample(ctrl_pop, 1, CONTROL_N)
+    data = yf_download([yf_symbol(s) for s in ctrl], today - timedelta(days=AVAIL_WINDOW_DAYS), today)
+    ok = [s for s in ctrl if data.get(yf_symbol(s)) is not BATCH_ERR]
+    k = sum(1 for s in ok if data.get(yf_symbol(s)) is not None)
+    w = wilson(k, len(ok))
+    gueltig = bool(w and w["anteil"] >= CONTROL_MIN)
+    miss_ctrl = [s for s in ok if data.get(yf_symbol(s)) is None]
+    rec_ctrl = sum(yf_single(yf_symbol(s), today - timedelta(days=AVAIL_WINDOW_DAYS), today)
+                   for s in miss_ctrl[:SINGLE_RECHECK_N])
+    out["kontrolle"] = {"stichtag": str(last), "vorhanden": w, "kriterium_min": CONTROL_MIN,
+                        "gueltig": gueltig, "fehlend_beispiele": miss_ctrl[:15],
+                        "einzel_gegenprobe": {"geprueft": min(len(miss_ctrl), SINGLE_RECHECK_N),
+                                              "gefunden": rec_ctrl}}
+    log(f"P2Y Kontrolle: {json.dumps(out['kontrolle'], default=str)}")
+    split_cands = []
+    for y in YEARS_Y:
+        base = first_on_or_after(sdates, date(y, 7, 1))
+        bf = get_file(base)
+        pop = {s: v for s, v in bf.items() if v["market"] in LISTED_CODES and is_stock(s, v["name"])}
+        sample = draw_sample(pop, y)
+        dtcs = {s: dtc_of(pop[s]["cur"], pop[s]["adv"], pop[s]["dtc"]) for s in sample}
+        low, high, med = split_halves(dtcs)
+        data = yf_download([yf_symbol(s) for s in sample], base, base + timedelta(days=AVAIL_WINDOW_DAYS))
         errored = {s for s in sample if data.get(yf_symbol(s)) is BATCH_ERR}
-        sample = [s for s in sample if s not in errored]
-        exp_days = sum(1 for k in range(AVAIL_WINDOW_DAYS)
-                       if (sd + timedelta(days=k)).weekday() < 5)
-        avail, full, plaus, price = {}, {}, {}, {}
-        for s in sample:
+        sm = [s for s in sample if s not in errored]
+        avail, price, plaus = {}, {}, {}
+        for s in sm:
             df = data.get(yf_symbol(s))
-            avail[s] = df is not None and len(df) > 0
-            full[s] = avail[s] and len(df) >= FULL_COVERAGE_FRAC * exp_days
-            if avail[s]:
+            avail[s] = df is not None
+            if df is not None:
                 try:
-                    vol = float(df["Volume"].head(20).mean())
-                    adv = float(pick(recs[s], "adv") or 0)
-                    plaus[s] = adv > 0 and VOL_PLAUS_BAND[0] <= vol / adv <= VOL_PLAUS_BAND[1]
                     price[s] = float(df["Close"].dropna().iloc[0])
+                    adv = float(pop[s]["adv"] or 0)
+                    vol = float(df["Volume"].head(20).mean())
+                    plaus[s] = adv > 0 and VOL_PLAUS_BAND[0] <= vol / adv <= VOL_PLAUS_BAND[1]
                 except Exception:  # noqa: BLE001
                     plaus[s] = False
                 if "Stock Splits" in df:
                     spl = df["Stock Splits"]
-                    spl = spl[spl > 0]
-                    for ts, f in spl.items():
-                        p6_cands.append((s, ts.date(), float(f), year))
-
-        mcodes = {}
-        for s in sample:
-            mc = str(pick(recs[s], "market"))
-            a_, n_ = mcodes.get(mc, (0, 0))
-            mcodes[mc] = (a_ + int(avail[s]), n_ + 1)
+                    for ts, f in spl[spl > 0].items():
+                        split_cands.append((s, ts.date(), float(f)))
+        missing = [s for s in sm if not avail[s]]
+        rec = sum(yf_single(yf_symbol(s), base, base + timedelta(days=AVAIL_WINDOW_DAYS))
+                  for s in draw_sample(missing, y + 500, SINGLE_RECHECK_N))
 
         def grp(members):
-            m = [s for s in sample if s in members]
+            m = [s for s in sm if s in members]
             return {"vorhanden": wilson(sum(avail[s] for s in m), len(m)),
-                    "voll": wilson(sum(full[s] for s in m), len(m)),
-                    "plausibel_gleiches_papier": wilson(sum(plaus.get(s, False) for s in m), len(m))}
+                    "plausibel": wilson(sum(plaus.get(s, False) for s in m), len(m))}
         cheap = {s for s, p in price.items() if p < 5}
-        dear = {s for s, p in price.items() if p >= 5}
-        p2[str(year)] = {
-            "stichtag": sd.isoformat(), "cnms_tag": cn_day.isoformat() if cn_day else None,
-            "finra_zeilen": len(rows), "gelistet_stammaktien": len(recs), "stichprobe": len(sample),
-            "dtc_median": med, "ohne_dtc": sum(1 for v in dtcs.values() if v is None),
-            "abruf_fehler_ausgeschlossen": len(errored),
-            "vorhanden_je_marktcode": {k: wilson(*v) for k, v in sorted(mcodes.items())},
-            "gesamt": grp(set(sample)), "dtc_niedrig": grp(low), "dtc_hoch": grp(high),
-            "preis_unter_5_nur_vorhandene": len(cheap), "preis_ab_5_nur_vorhandene": len(dear),
-            "dtc_hoch_unter_5": len(high & cheap), "dtc_niedrig_unter_5": len(low & cheap),
-        }
-        log(f"P2 {year}: {json.dumps(p2[str(year)]['gesamt'])}")
-        p3["jahre"][str(year)] = probe_sec(year, sd, sample, sec_map)
-        if year in (2021, 2022):
-            p2[str(year)]["_fehlend"] = sorted(s for s in sample if not avail[s])
-            p2[str(year)]["_hoch"] = sorted(high)
-            p2[str(year)]["_vorhanden"] = sorted(s for s in sample if avail[s])
-    result["P2"] = {k: {kk: vv for kk, vv in v.items() if not kk.startswith("_")} for k, v in p2.items()}
-    result["P3"] = p3
-    section_done(result, "P2")
-    section_done(result, "P3")
-    start_section("P4")
-    probe_stooq(result, p2)
-    section_done(result, "P4")
-    start_section("P6")
-    probe_splits(result, ds, sdates, p6_cands)
-    section_done(result, "P6")
+        out[str(y)] = {"stichtag": str(base), "grundgesamtheit": len(pop), "stichprobe": len(sample),
+                       "abruf_fehler_ausgeschlossen": len(errored), "dtc_median": med,
+                       "gesamt": grp(set(sm)), "dtc_niedrig": grp(low), "dtc_hoch": grp(high),
+                       "preis_unter_5_vorhanden": len(cheap), "preis_ab_5_vorhanden": len(price) - len(cheap),
+                       "einzel_gegenprobe": {"geprueft": min(len(missing), SINGLE_RECHECK_N), "gefunden": rec}}
+        log(f"P2Y {y}: {json.dumps(out[str(y)]['gesamt'], default=str)}")
+    out["fehlergruende_yfinance"] = {"anzahl": YF_ERR_CATS, "beispiele": YF_ERR_EXAMPLES}
+    out["messung_gueltig"] = gueltig
+    result["P2Y"] = out
+    return split_cands
 
 
+# ── P2K: Kurse für verschwundene Symbole ─────────────────────────────────────
+def probe_p2k(result, vanished):
+    out = {}
+    stooq_state = None
+    for y, (base, syms) in sorted(vanished.items()):
+        if y > 2024:
+            continue
+        s_y = draw_sample(syms, y + 700, VANISHED_CHECK_N)
+        end = base + timedelta(days=AVAIL_WINDOW_DAYS)
+        yf_hits = sum(yf_single(yf_symbol(s), base, end) for s in s_y)
+        st_res = {}
+        if stooq_state != "nicht_erreichbar":
+            for s in s_y[:STOOQ_CHECK_N]:
+                h = stooq_hit(s, base, end)
+                st_res[h] = st_res.get(h, 0) + 1
+                if h == "nicht_erreichbar" and sum(st_res.values()) >= 3 and st_res.get("daten", 0) == 0:
+                    stooq_state = "nicht_erreichbar"
+                    break
+        out[str(y)] = {"verschwunden_gesamt": len(syms), "geprueft": len(s_y),
+                       "yfinance_einzel": wilson(yf_hits, len(s_y)), "stooq": st_res or stooq_state}
+        log(f"P2K {y}: {json.dumps(out[str(y)], default=str)}")
+    out["stooq_status"] = stooq_state or "erreichbar_oder_ungeprueft"
+    out["tiingo_alphavantage"] = "nicht abgerufen (Key nötig)"
+    result["P2K"] = out
+
+
+# ── P3 ───────────────────────────────────────────────────────────────────────
 def sec_ticker_map(result):
     try:
         r = sec_get(SEC_TICKERS)
@@ -593,123 +848,73 @@ def sec_ticker_map(result):
         return {}
 
 
-def probe_sec(year, sd, sample, sec_map):
-    out = {}
-    mapped = {s: sec_map[s.upper().replace(".", "-")] for s in sample if s.upper().replace(".", "-") in sec_map}
-    out["cik_zuordnung_aktuelle_liste"] = wilson(len(mapped), len(sample))
-    try:
-        r = sec_get(SEC_FRAME.format(y=year))
-        out["frame_http"] = r.status_code
-        if r.status_code == 200:
-            ciks = {int(d["cik"]) for d in r.json().get("data", [])}
-            out["frame_deckung"] = wilson(sum(1 for c in mapped.values() if c in ciks), len(sample))
-    except RateLimited:
-        raise
-    except Exception as exc:  # noqa: BLE001
-        out["frame_fehler"] = str(exc)[:160]
-    sub = draw_sample(mapped, year + 1000, SEC_PIT_SUBSAMPLE)
-    pit = 0
-    checked = 0
-    for s in sub:
-        r = sec_get(SEC_FACTS.format(cik=mapped[s]))
-        if r.status_code == 403:
-            out["companyfacts_403"] = True
-            break
-        checked += 1
-        if r.status_code != 200:
-            continue
+def probe_p3(result, sdates):
+    sec_map = sec_ticker_map(result)
+    out = {"ticker_map_http": result.get("_sec_map_http"), "jahre": {}}
+    for y in YEARS_Y:
+        base = first_on_or_after(sdates, date(y, 7, 1))
+        bf = get_file(base)
+        pop = [s for s, v in bf.items() if v["market"] in LISTED_CODES and is_stock(s, v["name"])]
+        sample = draw_sample(pop, y)
+        mapped = {s: sec_map[yf_symbol(s)] for s in sample if yf_symbol(s) in sec_map}
+        res = {"cik_zuordnung_aktuelle_liste": wilson(len(mapped), len(sample))}
         try:
-            units = r.json()["facts"]["dei"]["EntityCommonStockSharesOutstanding"]["units"]["shares"]
-        except (KeyError, ValueError, TypeError):
-            continue
-        ok = any(u.get("filed") and u.get("end") and date.fromisoformat(u["filed"]) <= sd
-                 and date.fromisoformat(u["end"]) >= sd - timedelta(days=200) for u in units)
-        pit += ok
-    out["pit_stichprobe"] = wilson(pit, checked) if checked else None
-    return out
-
-
-def probe_stooq(result, p2):
-    p4 = {"hinweis": "Tiingo/Alpha Vantage nicht abgerufen (Key nötig)"}
-    ctrl = (p2.get("2021", {}).get("_vorhanden") or [])[:STOOQ_CONTROL_N]
-
-    def hit(sym, sd):
-        a, b = sd.strftime("%Y%m%d"), (sd + timedelta(days=AVAIL_WINDOW_DAYS)).strftime("%Y%m%d")
-        r = http("GET", STOOQ_URL.format(s=sym.lower().replace(".", "-"), a=a, b=b), "stooq")
-        time.sleep(1.0)
-        body = r.text.strip()
-        if r.status_code != 200:
-            return f"http_{r.status_code}"
-        if body.lower().startswith("date,") and len(body.splitlines()) > 1:
+            r = sec_get(SEC_FRAME.format(y=y))
+            res["frame_http"] = r.status_code
+            if r.status_code == 200:
+                ciks = {int(d["cik"]) for d in r.json().get("data", [])}
+                res["frame_deckung"] = wilson(sum(1 for c in mapped.values() if c in ciks), len(sample))
+        except RateLimited:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            res["frame_fehler"] = str(exc)[:160]
+        pit = checked = 0
+        for s in draw_sample(mapped, y + 1000, SEC_PIT_SUBSAMPLE):
+            r = sec_get(SEC_FACTS.format(cik=mapped[s]))
+            if r.status_code == 403:
+                res["companyfacts_403"] = True
+                break
+            checked += 1
+            if r.status_code != 200:
+                continue
             try:
-                return "daten", float(body.splitlines()[1].split(",")[4])
-            except (IndexError, ValueError):
-                return "daten", None
-        if "limit" in body.lower() and "exceed" in body.lower():
-            raise RateLimited("Stooq: Tageslimit")
-        if "apikey" in body.lower() or "api key" in body.lower():
-            return "key_noetig", None
-        return "leer", None
-    res = {}
-    sd21 = date.fromisoformat(p2["2021"]["stichtag"]) if "stichtag" in p2.get("2021", {}) else None
-    if sd21:
-        c = [hit(s, sd21)[0] for s in ctrl]
-        res["kontrolle_2021"] = {k: c.count(k) for k in set(c)}
-        if c.count("daten") == 0:
-            p4["ergebnis"] = res
-            p4["abbruch"] = "Kontrolle ohne Daten — fehlende Symbole nicht geprüft"
-            result["P4"] = p4
-            return
-    for y in ("2021", "2022"):
-        if "stichtag" not in p2.get(y, {}):
-            continue
-        sd = date.fromisoformat(p2[y]["stichtag"])
-        miss = draw_sample(p2[y].get("_fehlend") or [], int(y) + 2000, STOOQ_MISSING_N)
-        hoch = set(p2[y].get("_hoch") or [])
-        got = {s: hit(s, sd) for s in miss}
-        c = [v[0] for v in got.values()]
-        tr = {s: v[1] for s, v in got.items() if v[0] == "daten"}
-        res[f"fehlend_{y}"] = {
-            "geprueft": len(miss), **{k: c.count(k) for k in set(c)},
-            "stooq_treffer_dtc_hoch": sum(1 for s in tr if s in hoch),
-            "geprueft_dtc_hoch": sum(1 for s in miss if s in hoch),
-            "stooq_treffer_preis_unter_5": sum(1 for p in tr.values() if p is not None and p < 5),
-            "stooq_treffer_preis_ab_5": sum(1 for p in tr.values() if p is not None and p >= 5),
-        }
-    p4["ergebnis"] = res
-    result["P4"] = p4
+                units = r.json()["facts"]["dei"]["EntityCommonStockSharesOutstanding"]["units"]["shares"]
+            except (KeyError, ValueError, TypeError):
+                continue
+            pit += any(u.get("filed") and u.get("end") and date.fromisoformat(u["filed"]) <= base
+                       and date.fromisoformat(u["end"]) >= base - timedelta(days=200) for u in units)
+        res["pit_stichprobe"] = wilson(pit, checked) if checked else None
+        out["jahre"][str(y)] = res
+    result["P3"] = out
 
 
-def probe_splits(result, ds, sdates, cands):
-    allc = sorted({c for c in cands if not 0.67 < c[2] < 1.5})
-    cands = [allc[i] for i in draw_sample(range(len(allc)), 9999, SPLIT_EXAMPLES_MAX)]
+# ── P6 ───────────────────────────────────────────────────────────────────────
+def probe_p6(result, sdates, yf_cands):
+    out = {"flag_paare": {}}
     tally, examples = {}, []
-    for sym, sday, factor, _y in cands:
-        if 0.67 < factor < 1.5:
+    for y in (2019, 2021, 2023, 2025):
+        a = first_on_or_after(sdates, date(y, 7, 1))
+        b = first_on_or_after(sdates, a + timedelta(days=1)) if a else None
+        if not a or not b:
             continue
-        before = [d for d in sdates if d < sday]
-        after = [d for d in sdates if d >= sday]
-        if not before or not after:
-            continue
-        s0, s1 = max(before), min(after)
-        st, rows = finra_all(ds, {"domainFilters": [{"fieldName": "symbolCode", "values": [sym]}],
-                                  **date_filter(s0, s1)}, max_pages=1)
-        by = {pick(x, "date")[:10]: x for x in rows if pick(x, "date")}
-        r0, r1 = by.get(s0.isoformat()), by.get(s1.isoformat())
-        if not r0 or not r1:
-            continue
-        k = classify_split(pick(r0, "current"), pick(r1, "current"), pick(r1, "previous"), factor)
-        tally["/".join(k)] = tally.get("/".join(k), 0) + 1
-        if len(examples) < 3:
-            examples.append({"symbol": sym, "split_tag": sday.isoformat(), "faktor": factor,
-                             "stichtag_vor": s0.isoformat(), "stichtag_nach": s1.isoformat(),
-                             "si_vor": pick(r0, "current"), "si_nach": pick(r1, "current"),
-                             "vorperiode_im_nach": pick(r1, "previous"),
-                             "split_flag": pick(r1, "split"), "klasse": k})
-    result["P6"] = {"splits_gefunden": len(allc), "gezogen": len(cands),
-                    "faktoren": sorted({c[2] for c in cands}),
-                    "auswertbar": sum(tally.values()), "klassen": tally,
-                    "beispiele": examples}
+        fa, fb = get_file(a), get_file(b)
+        flagged = [s for s, v in fb.items() if str(v["split"]) not in ("None", "0", "", "N")]
+        t = {}
+        for s in flagged:
+            if s in fa:
+                k = classify_split_flag(fb[s]["prev"], fa[s]["cur"])
+                t[k] = t.get(k, 0) + 1
+                if len(examples) < 4:
+                    examples.append({"symbol": s, "stichtag_vor": str(a), "stichtag_nach": str(b),
+                                     "si_vor": fa[s]["cur"], "vorperiode_im_nach": fb[s]["prev"],
+                                     "si_nach": fb[s]["cur"], "flag": fb[s]["split"], "klasse": k})
+        out["flag_paare"][f"{a}→{b}"] = {"mit_flag": len(flagged), **t}
+        for k, v in t.items():
+            tally[k] = tally.get(k, 0) + v
+    out["flag_gesamt"] = tally
+    out["beispiele"] = examples
+    out["yfinance_splits_im_p2y_fenster"] = len(yf_cands)
+    result["P6"] = out
 
 
 # ── P5 ───────────────────────────────────────────────────────────────────────
@@ -740,7 +945,7 @@ def real_top10():
     return out
 
 
-def probe_proxy(result, ds, sdates):
+def probe_p5(result, sdates):
     real = real_top10()
     days = sorted(real)
     if not days:
@@ -748,44 +953,38 @@ def probe_proxy(result, ds, sdates):
         return
     hol = frozenset(getattr(config, "US_MARKET_HOLIDAYS", ()))
     sets_ = [d for d in sdates if date(2026, 4, 15) <= d <= days[-1]]
-    si = {}
-    for d in sets_:
-        st, rows = finra_all(ds, date_filter(d, d))
-        si[d] = {pick(x, "symbol"): x for x in rows if pick(x, "symbol")}
+    si = {d: get_file(d) for d in sets_}
     shares = {}
-    try:
-        r = sec_get(SEC_FRAME.format(y=2026))
-        if r.status_code == 200:
-            frame = {int(x["cik"]): float(x["val"]) for x in r.json().get("data", [])}
-            m = sec_ticker_map(result)
-            shares = {t: frame[c] for t, c in m.items() if c in frame}
-    except RateLimited:
-        raise
-    except Exception:  # noqa: BLE001
-        pass
+    r = sec_get(SEC_FRAME.format(y=2026))
+    if r.status_code == 200:
+        frame = {int(x["cik"]): float(x["val"]) for x in r.json().get("data", [])}
+        shares = {t: frame[c] for t, c in sec_ticker_map(result).items() if c in frame}
     cand = set()
-    for d, recs in si.items():
-        for s, x in recs.items():
-            sh = shares.get(s.upper().replace(".", "-"))
-            cur = pick(x, "current")
-            if sh and cur and float(cur) / sh * 100 >= config.MIN_SHORT_FLOAT and is_common(pick(x, "name")):
+    for f in si.values():
+        for s, v in f.items():
+            sh = shares.get(yf_symbol(s))
+            if (sh and _pos(v["cur"]) and float(v["cur"]) / sh * 100 >= config.MIN_SHORT_FLOAT
+                    and v["market"] in LISTED_CODES and is_stock(s, v["name"])):
                 cand.add(s)
     real_us = {d: {t for t in ts if "." not in t} for d, ts in real.items()}
-    start = days[0] - timedelta(days=45)
-    syms = sorted(cand | {"^GSPC"})
-    data = yf_download([yf_symbol(s) for s in syms], start, days[-1] + timedelta(days=1), src="yfinance_proxy")
+    data = yf_download([yf_symbol(s) for s in sorted(cand)] + ["^GSPC"], days[0] - timedelta(days=45),
+                       days[-1] + timedelta(days=1), src="yfinance_proxy", auto_adjust=True)
     spx = data.get("^GSPC")
-    if spx is BATCH_ERR:
-        spx = None
-    pairs, in_universe = [], []
+    spx = None if spx is BATCH_ERR else spx
+    pairs, in_uni = [], []
     for d in days:
         sd = latest_usable_settlement(d, sets_, hol)
         if sd is None or spx is None:
             continue
         prev = [x for x in sets_ if x < sd]
+        sp = spx[spx.index.date <= d]
+        if len(sp) < 22:
+            continue
+        spx_chg = (float(sp["Close"].iloc[-1]) / float(sp["Close"].iloc[-2]) - 1) * 100
+        spx20 = (float(sp["Close"].iloc[-1]) / float(sp["Close"].iloc[-21]) - 1) * 100
         scored = []
         for s in cand:
-            x = si.get(sd, {}).get(s)
+            x = si[sd].get(s)
             df = data.get(yf_symbol(s))
             if x is None or df is None or df is BATCH_ERR:
                 continue
@@ -793,63 +992,61 @@ def probe_proxy(result, ds, sdates):
             if len(h) < 22 or h.index[-1].date() != d:
                 continue
             close, opn, pc = float(h["Close"].iloc[-1]), float(h["Open"].iloc[-1]), float(h["Close"].iloc[-2])
-            sh = shares.get(s.upper().replace(".", "-"))
+            sh = shares.get(yf_symbol(s))
             if close < config.MIN_PRICE or not sh or close * sh > config.MAX_MARKET_CAP_B * 1e9:
                 continue
-            cur = float(pick(x, "current") or 0)
+            cur = float(x["cur"] or 0)
             si_pct = cur / sh * 100
             if si_pct < config.MIN_SHORT_FLOAT:
                 continue
             vol20 = float(h["Volume"].iloc[-21:-1].mean())
             rvol = float(h["Volume"].iloc[-1]) / vol20 if vol20 > 0 else 0.0
-            sp = spx[spx.index.date <= d]
-            spx_chg = (float(sp["Close"].iloc[-1]) / float(sp["Close"].iloc[-2]) - 1) * 100
             chg = (close / pc - 1) * 100
             perf20 = (close / float(h["Close"].iloc[-21]) - 1) * 100
-            spx20 = (float(sp["Close"].iloc[-1]) / float(sp["Close"].iloc[-21]) - 1) * 100
-            px = si.get(max(prev), {}).get(s) if prev else None
-            si_up = px is not None and cur > float(pick(px, "current") or 0)
-            sc = proxy_score(si_pct, dtc_value(x), rvol, chg - spx_chg,
+            px = si[max(prev)].get(s) if prev else None
+            si_up = px is not None and cur > float(px["cur"] or 0)
+            sc = proxy_score(si_pct, dtc_of(x["cur"], x["adv"], x["dtc"]), rvol, chg - spx_chg,
                              gap_pts(opn, pc, close), rs_pts(perf20 - spx20), si_up)
             scored.append((sc, rvol >= config.MIN_REL_VOLUME, s))
         pref = sorted([t for t in scored if t[1]], reverse=True)
         rest = sorted([t for t in scored if not t[1]], reverse=True)
-        top = {s for _, _, s in (pref + rest)[:10]}
-        pairs.append((real_us[d], top))
-        in_universe.append((len(real_us[d] & {s for _, _, s in scored}), len(real_us[d])))
+        pairs.append((real_us[d], {s for _, _, s in (pref + rest)[:10]}))
+        in_uni.append((len(real_us[d] & {s for _, _, s in scored}), len(real_us[d])))
     result["P5"] = {
-        "tage_echt": len(days), "tage_ausgewertet": len(pairs),
-        "kandidaten_universum": len(cand), "aktien_aus_sec_frame": len(shares),
-        "ueberschneidung_top10": overlap_stats(pairs),
-        "echte_ticker_im_proxy_universum": {"treffer": sum(a for a, _ in in_universe),
-                                           "von": sum(b for _, b in in_universe)},
+        "tage_echt": len(days), "tage_ausgewertet": len(pairs), "kandidaten_universum": len(cand),
+        "aktien_aus_sec_frame": len(shares), "ueberschneidung_top10": overlap_stats(pairs),
+        "echte_ticker_im_proxy_universum": {"treffer": sum(a for a, _ in in_uni),
+                                           "von": sum(b for _, b in in_uni)},
         "nicht_us_ausgeschlossen": sum(len(real[d]) - len(real_us[d]) for d in days),
-        "annahmen": "SI ab Stichtag + 8 Werktage; Aktienzahl aus Frame CY2026Q2I (Nähe dadurch eher optimistisch); Short-Anteil = SI / ausstehende Aktien (SEC CY2026Q2I); "
-                    "ohne Float, Turnover, News, KI, Malus, Glättung",
+        "annahmen": "SI ab Stichtag + 8 Werktage; Aktienzahl aus Frame CY2026Q2I (Nähe dadurch eher "
+                    "optimistisch); Short-Anteil = SI / ausstehende Aktien; ohne Float, Turnover, News, "
+                    "KI, Malus, Glättung",
     }
 
 
 # ── P7 ───────────────────────────────────────────────────────────────────────
-def extrapolate(result):
+def probe_p7(result):
     st = STATS.as_dict()
     yf = st.get("yfinance", {})
-    n_sym = sum(v.get("stichprobe", 0) for v in result.get("P2", {}).values() if isinstance(v, dict))
+    n_sym = sum(v.get("stichprobe", 0) for v in result.get("P2Y", {}).values() if isinstance(v, dict))
+    n_sym += CONTROL_N
     per_sym = yf["sekunden"] / n_sym if n_sym and yf else None
-    bytes_per_sym_win = yf["bytes"] / n_sym if n_sym and yf else None
-    uni = max((v.get("gelistet_stammaktien", 0) for v in result.get("P2", {}).values()
+    b_per = yf["bytes"] / n_sym if n_sym and yf else None
+    uni = max((v.get("stammaktien_gelistet", 0) for v in result.get("P2F", {}).values()
                if isinstance(v, dict)), default=0)
-    trading_days_5y = 252 * 5
-    win_days = AVAIL_WINDOW_DAYS * 5 / 7
+    fin = st.get("finra_api", {})
     result["P7"] = {
         "messung": st,
         "yfinance_sekunden_je_symbol_fenster": round(per_sym, 3) if per_sym else None,
-        "hochrechnung_kurse_5_jahre": {
-            "symbole_geschaetzt": uni,
-            "minuten_bei_einem_abruf_je_symbol": round(per_sym * uni / 60, 1) if per_sym else None,
-            "mb_im_speicher": round(bytes_per_sym_win * uni * trading_days_5y / win_days / 1e6, 1)
-            if bytes_per_sym_win else None,
+        "hochrechnung_kurse_2018_2026": {
+            "stammaktien_je_stichtag": uni,
+            "symbole_ueber_9_jahre_geschaetzt_faktor_1_6": int(uni * 1.6),
+            "minuten_bei_einem_abruf_je_symbol": round(per_sym * uni * 1.6 / 60, 1) if per_sym else None,
+            "mb_im_speicher": round(b_per * uni * 1.6 * 252 * 9 / (AVAIL_WINDOW_DAYS * 5 / 7) / 1e6, 1)
+            if b_per else None,
         },
-        "finra_stichtage_ab_06_2021": len(result.get("P1", {}).get("zeilen_je_stichtag", {})),
+        "finra_mb_je_stichtag_abruf": round(fin.get("bytes", 0) / max(1, len(FILE_CACHE)) / 1e6, 2) if fin else None,
+        "finra_stichtage_gesamt": result.get("P1", {}).get("stichtage", {}).get("anzahl"),
     }
 
 
@@ -857,40 +1054,48 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
     ap.add_argument("--nur", choices=("alle", "survivorship", "proxy"), default="alle",
-                    help="survivorship = P2/P3/P4/P6, proxy = P5 (P1 und P7 immer)")
+                    help="survivorship = P2F/P2Y/P2K/P3/P6, proxy = P5 (P1 immer, P7 nur bei alle)")
     args = ap.parse_args(argv)
-    today = datetime.now(timezone.utc).date()
-    if today > PROBE_END:
+    if datetime.now(timezone.utc).date() > PROBE_END:
         log(f"no-op: nach {PROBE_END}")
         return 0
     t0 = time.monotonic()
-    result = {"seed": SEED, "stichprobe_n": SAMPLE_N, "nur": args.nur,
+    result = {"seed": SEED, "stichprobe_n": SAMPLE_N, "kontrolle_min": CONTROL_MIN, "nur": args.nur,
               "start_utc": datetime.now(timezone.utc).isoformat()}
     out = pathlib.Path(args.out)
     rc = 0
     try:
         start_section("P1")
-        got = probe_finra(result)
+        sdates = probe_p1(result)
         section_done(result, "P1")
-        if got:
-            ds, sdates = got
-            if args.nur in ("alle", "survivorship"):
-                start_section("P2")
-                probe_survivorship(result, ds, sdates)
-            if args.nur in ("alle", "proxy"):
-                start_section("P5")
-                probe_proxy(result, ds, sdates)
-                section_done(result, "P5")
-        if args.nur == "alle":   # Hochrechnung braucht P1–P5 desselben Laufs
+        if sdates and args.nur in ("alle", "survivorship"):
+            start_section("P2F")
+            vanished = probe_p2f(result, sdates)
+            section_done(result, "P2F")
+            start_section("P2Y")
+            cands = probe_p2y(result, sdates)
+            section_done(result, "P2Y")
+            start_section("P2K")
+            probe_p2k(result, vanished)
+            section_done(result, "P2K")
+            start_section("P3")
+            probe_p3(result, sdates)
+            section_done(result, "P3")
+            start_section("P6")
+            probe_p6(result, sdates, cands)
+            section_done(result, "P6")
+        if sdates and args.nur in ("alle", "proxy"):
+            start_section("P5")
+            probe_p5(result, sdates)
+            section_done(result, "P5")
+        if args.nur == "alle":
             start_section("P7")
-            extrapolate(result)
+            probe_p7(result)
             section_done(result, "P7")
     except RateLimited as exc:
-        # Lockerung Easy 14.11.2026: vollständige Abschnitte davor gelten als Befund;
-        # der abgebrochene Abschnitt zählt nicht. Kein automatischer Neustart.
         result["abgebrochen_in"] = CURRENT["abschnitt"]
         result["abbruch_grund"] = str(exc)[:300]
-        for k in ("P1", "P2", "P3", "P4", "P5", "P6", "P7"):
+        for k in ("P1", "P2F", "P2Y", "P2K", "P3", "P5", "P6", "P7"):
             if k not in result.get("abschnitte_vollstaendig", []):
                 result.pop(k, None)
         log(f"ABBRUCH Rate-Limit in {CURRENT['abschnitt']} — nicht gezählt; "
@@ -899,11 +1104,9 @@ def main(argv=None) -> int:
     result.pop("_sec_map_http", None)
     result["finra_ersatzfilter_genutzt"] = FALLBACK_USED
     result["finra_letzte_fehler"] = LAST_ERR
-    result["yfinance_batch_fehler"] = {"anzahl": len(YF_BATCH_ERRORS), "beispiele": YF_BATCH_ERRORS[:5]}
     result["laufzeit_s"] = round(time.monotonic() - t0, 1)
     log("meta " + json.dumps({k: result.get(k) for k in (
-        "finra_ersatzfilter_genutzt", "finra_letzte_fehler", "yfinance_batch_fehler", "laufzeit_s")},
-        default=str))
+        "finra_ersatzfilter_genutzt", "finra_letzte_fehler", "laufzeit_s")}, default=str))
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=1, default=str), encoding="utf-8")
     log(f"{'abgebrochen' if rc else 'fertig'} in {result['laufzeit_s']} s → {out}")
