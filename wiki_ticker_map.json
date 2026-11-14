@@ -179,6 +179,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "AQST": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-14T01:43:41Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Aquestive Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "ARCT": {
     "qid": "Q98713358",
     "title": "Arcturus_Therapeutics",
@@ -1799,6 +1808,15 @@
     "substrate": "en",
     "reason": null
   },
+  "TNDM": {
+    "qid": "Q22121872",
+    "title": "Tandem_Diabetes_Care",
+    "resolved_at": "2026-11-14T01:43:41Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Tandem Diabetes Care, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "TNON": {
     "qid": null,
     "title": null,
@@ -1949,6 +1967,15 @@
     "resolved_at": "2026-07-27T22:29:48Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Twin Vee Powercats Co.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "VISN": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-14T01:43:41Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Vistance Networks, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },

@@ -336,6 +336,12 @@
       "shares_short": 16882889,
       "short_pct_float": 31.69,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 16879896,
+      "short_pct_float": 31.69,
+      "pub_date": "2026-11-10"
     }
   ],
   "FUBO": [
@@ -1164,6 +1170,12 @@
       "shares_short": 18767117,
       "short_pct_float": 19.33,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 18496688,
+      "short_pct_float": 19.05,
+      "pub_date": "2026-11-10"
     }
   ],
   "RXT": [
@@ -3183,6 +3195,12 @@
       "shares_short": 10625661,
       "short_pct_float": 39.13,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 10196188,
+      "short_pct_float": 37.55,
+      "pub_date": "2026-11-10"
     }
   ],
   "AMCX": [
@@ -5133,6 +5151,12 @@
       "shares_short": 12248958,
       "short_pct_float": 27.03,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 12864438,
+      "short_pct_float": 28.43,
+      "pub_date": "2026-11-10"
     }
   ],
   "RGNX": [
@@ -6456,6 +6480,12 @@
       "shares_short": 574507,
       "short_pct_float": 32.11,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 577768,
+      "short_pct_float": 29.87,
+      "pub_date": "2026-11-10"
     }
   ],
   "LEG": [
@@ -9009,6 +9039,12 @@
       "shares_short": 13953611,
       "short_pct_float": 32.44,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 14084108,
+      "short_pct_float": 33.35,
+      "pub_date": "2026-11-10"
     }
   ],
   "VIVK": [
