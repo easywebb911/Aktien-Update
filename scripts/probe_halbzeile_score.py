@@ -351,7 +351,8 @@ def run(log_path=LOG_FILE, fetch=fetch_evening, rsi_fn=_rsi_pandas_ta) -> dict:
         "modell_reproduziert": ctl.get("modell_reproduziert"),
         "kriterium": f"geaendert_ab_05 <= {CONTROL_MAX_SHARE:.0%} UND modell_reproduziert >= "
                      f"{1 - CONTROL_MAX_SHARE:.0%} der vollständigen Zeilen",
-        "bestanden": bool(n) and ctl.get("geaendert_ab_05", 0) <= CONTROL_MAX_SHARE * n
+        "bestanden": bool(n) and sum(1 for e in groups["voll"] if abs(e["delta"]) >= CONTROL_TOL)
+                     <= CONTROL_MAX_SHARE * n
                      and ctl.get("modell_reproduziert", 0) >= (1 - CONTROL_MAX_SHARE) * n,
     }
     res["freeze_wirkung"] = freeze_impact(res["abende"])
