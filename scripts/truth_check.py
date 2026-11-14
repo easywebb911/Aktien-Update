@@ -466,10 +466,11 @@ def _classify_dev(datei, row, rec, series, f, alt, neu, span, srcs, delta) -> di
          "feld": f, "alt": alt, "neu": neu, "klasse": "abweichung"}
     if f == "entry_past_return_5d" and rec.get("_epr_def"):
         d["definition"] = rec["_epr_def"]
+    is_ep = f == "entry_price"   # delta in % (abw_pct), keine Rundungsschranke
     if any(series.get(t) is not None and series[t].has_dividend(span[0], span[1]) for t in srcs):
         d["klasse"] = "neu_adjustiert"
         d["regel"] = "dividende_im_fenster"
-        if delta is not None:
+        if delta is not None and not is_ep:
             d["abs_delta"] = round(delta, 4)
         return d
     split_in = any(series.get(t) is not None and series[t].has_split(span[0], span[1]) for t in srcs)
@@ -492,7 +493,7 @@ def _classify_dev(datei, row, rec, series, f, alt, neu, span, srcs, delta) -> di
             d["regel"] = "rundung_split_im_fenster" if split_in else "rundung_nach_aktion"
             return d
     if split_in:
-        d["regel"] = "split_im_fenster_ueber_schranke"
+        d["regel"] = "split_nach_d" if is_ep else "split_im_fenster_ueber_schranke"
     return d
 
 
@@ -669,12 +670,18 @@ def apply_known(devs: list, known: list, tol: float) -> list:
     eingetragenen Werten passen. Sonst unverändert (voller Alarm)."""
     idx = {(e["datei"], e["ticker"], e["date"], e["feld"]): e for e in known}
     out = []
+    def _close(x, ref):
+        # entry_price: relative Toleranz in Prozent (ENTRY_PRICE_TOL_PCT), sonst pp.
+        if d.get("feld") == "entry_price":
+            return ref != 0 and abs(x - ref) / abs(ref) * 100.0 <= ENTRY_PRICE_TOL_PCT + 1e-9
+        return abs(x - ref) <= tol + 1e-9
+
     for d in devs:
         e = idx.get((d.get("datei"), d.get("ticker"), d.get("date"), d.get("feld")))
         a, n = _num(d.get("alt")), _num(d.get("neu"))
         if (d.get("klasse") == "abweichung" and e is not None and a is not None and n is not None
-                and abs(a - float(e["alt"])) <= tol + 1e-9
-                and abs(n - float(e["vergleich"])) <= tol + 1e-9):
+                and _close(a, float(e["alt"]))
+                and _close(n, float(e["vergleich"]))):
             d = dict(d, klasse="bekannt", verweis=e["verweis"])
         out.append(d)
     return out

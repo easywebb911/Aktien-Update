@@ -135,7 +135,22 @@ def test_truth_entry_price():
     s_dv = _series(dv)
     _, devs, _ = _cmp(dict(ok_row, ticker="DIV"), s_dv)
     ep = [d for d in devs if d["feld"] == "entry_price"]
-    check("Dividende nach D → neu_adjustiert", ep and ep[0]["klasse"] == "neu_adjustiert", ep)
+    check("Dividende nach D → neu_adjustiert, ohne pp-abs_delta",
+          ep and ep[0]["klasse"] == "neu_adjustiert" and "abs_delta" not in ep[0]
+          and "abw_pct" in ep[0], ep)
+    _, devs, _ = _cmp(dict(ok_row, ticker="SPL", entry_price=11.0), s_sp)
+    ep = [d for d in devs if d["feld"] == "entry_price"]
+    check("Split nach D + echte Abweichung → abweichung, regel split_nach_d",
+          ep and ep[0]["klasse"] == "abweichung" and ep[0].get("regel") == "split_nach_d", ep)
+    known = [{"datei": "export", "ticker": "AAA", "date": "06.11.2026", "feld": "entry_price",
+              "alt": 10.4, "vergleich": 10.5}]
+    dev = {"datei": "export", "ticker": "AAA", "date": "06.11.2026", "feld": "entry_price",
+           "alt": 10.4, "neu": 10.501, "klasse": "abweichung"}
+    check("apply_known: entry_price relativ (0,01 % neben Vergleich) → bekannt",
+          tc.apply_known([dev], [dict(known[0], verweis="x")], 0.02)[0]["klasse"] == "bekannt")
+    check("apply_known: entry_price 0,1 % neben Vergleich → bleibt Alarm",
+          tc.apply_known([dict(dev, neu=10.52)], [dict(known[0], verweis="x")], 0.02)[0]["klasse"]
+          == "abweichung")
     rec = tc.recompute_backtest(dict(ok_row, date="13.11.2026"), s, None, None, date(2026, 11, 10), TODAY)
     check("D nach letzter endgültiger Zeile → nicht nachgerechnet", "entry_price" not in rec, rec)
 
