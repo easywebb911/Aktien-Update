@@ -1525,6 +1525,9 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         _e_act, _e_reason = _vintage_gate_decision(
             report_date, s.get("bar_date"), now_et)
         if _e_act == "skip":
+            # Vertrag: Zeit-Skips (pre_open/before_close/after_window) fängt das
+            # Run-Level-Gate VOR dieser Schleife ab — hier kommt nur
+            # holiday_or_prior_bar an; Fix B unterscheidet davon den Rückfall.
             if s.get("letzte_zeile") == "vortag_rueckfall":
                 _vg_skip_unfillable.append((s["ticker"], str(s.get("bar_date"))))
             else:

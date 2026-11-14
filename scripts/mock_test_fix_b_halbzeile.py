@@ -101,6 +101,9 @@ def test_wiring():
     check("^GSPC-Reparatur nur im Postclose",
           'if run_phase == "postclose":\n                _spx_close, _spx_hk = _spx_close_with_repair(_spx_hist)'
           in main)
+    check("Nachtlauf (#698): leere Zeile NACH dem Berichtstag zuerst verwerfen",
+          "report_day=_REPORT_DAY_ET" in body and "if last_day > report_day and incomplete" in GR)
+    check("^GSPC-.info mit Timeout", ".result(timeout=15)" in GR[GR.find("def _spx_close_with_repair"):])
     check("Kartenhinweis in v1 und v2", GR.count("_momentum_5t_row_html(s) + _last_bar_note_row_html(s)") == 2)
 
 

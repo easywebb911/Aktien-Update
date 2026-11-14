@@ -1456,6 +1456,9 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         except Exception:
             pass
         # Fallback: individual history call for this ticker
+        # Fix B (Guardian #701, Grenze): dieser Einzelabruf ist NICHT repariert —
+        # greift nur bei < 5 Zeilen (z. B. junge Ticker, oder wenn der Vortag-
+        # Rückfall den Batch-Frame unter 5 Zeilen kürzt). Selten; dokumentiert.
         try:
             df2 = yf.Ticker(ticker).history(period="1y")
             _req_counts["yfinance"] += 1
@@ -1573,7 +1576,8 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         _d0 = _raw_df_for(_t)
         if _repair_on and _d0 is not None:
             try:
-                _d1, _hk = _apply_last_bar_repair(_d0, info_map.get(_t))
+                _d1, _hk = _apply_last_bar_repair(_d0, info_map.get(_t),
+                                                  report_day=_REPORT_DAY_ET)
             except Exception as _rep_exc:  # noqa: BLE001 — nie den Lauf brechen
                 log.warning("Fix B: Reparatur %s fehlgeschlagen (%s) — Zeile unverändert",
                             _t, _rep_exc)
@@ -3506,9 +3510,14 @@ def _spx_close_with_repair(spx_hist, info_fetch=None):
         last_ok = True
     if last_ok:
         return close.dropna(), LAST_BAR_COMPLETE
+    def _default_fetch():
+        # Timeout wie der ^GSPC-Download (Guardian-Befund #701): ein Hänger
+        # darf main() nicht blockieren.
+        with ThreadPoolExecutor(max_workers=1) as _ex:
+            return _ex.submit(lambda: yf.Ticker("^GSPC").info or {}).result(timeout=15)
     try:
-        info = (info_fetch or (lambda: yf.Ticker("^GSPC").info or {}))()
-    except Exception as exc:  # noqa: BLE001
+        info = (info_fetch or _default_fetch)()
+    except Exception as exc:  # noqa: BLE001 — inkl. TimeoutError
         log.warning("Fix B: ^GSPC-.info nicht abrufbar (%s)", exc)
         info = {}
     try:
@@ -3525,11 +3534,27 @@ def _spx_close_with_repair(spx_hist, info_fetch=None):
     return close.dropna(), "unvollstaendig_wie_bisher"
 
 
-def _apply_last_bar_repair(df, info: dict | None, cols: tuple | None = None):
+def _apply_last_bar_repair(df, info: dict | None, cols: tuple | None = None,
+                           report_day=None):
     """Wendet ``_last_bar_decision`` auf einen Ticker-DataFrame an (pandas).
-    Returns ``(df, herkunft)``; ``df`` ist eine Kopie, wenn geändert."""
+    Returns ``(df, herkunft)``; ``df`` ist eine Kopie, wenn geändert.
+
+    ``report_day`` (Berichtstag D, Variante A #698): eine UNVOLLSTÄNDIGE Zeile
+    mit Datum NACH D (Nachtlauf: Yahoo legt den neuen Kalendertag schon an)
+    gehört nicht zum Bericht — sie wird zuerst verworfen, danach wird die
+    neue letzte Zeile (D) wie üblich entschieden (Guardian-Befund #701)."""
     if df is None or getattr(df, "empty", True):
         return df, LAST_BAR_COMPLETE
+    if report_day is not None:
+        try:
+            last_day = df.index[-1].date()
+            last = df.iloc[-1]
+            incomplete = any(_halfrow_probe_num(last[c] if c in df.columns else None) is None
+                             for c, _ in _LAST_BAR_CELLS if cols is None or c in cols)
+            if last_day > report_day and incomplete and len(df) > 1:
+                df = df.iloc[:-1]
+        except Exception:
+            pass
     try:
         row_date = df.index[-1].date()
     except Exception:
