@@ -58,6 +58,7 @@ ALLOWLIST = [
     "display_teil_b",
     "berichtsdatum_variante_a",
     "probe_halbzeile_score",
+    "schritt2_plausibilitaet",
     "maxgain_none_not_zero",
     "postclose_gap_s15",
     "digest_warn_visible",

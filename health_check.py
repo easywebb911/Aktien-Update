@@ -507,6 +507,21 @@ def _finite_num(x) -> bool:
             and math.isfinite(float(x)))
 
 
+def _s17_price_from() -> date | None:
+    try:
+        return date.fromisoformat(str(config.TRUTH_CHECK_ENTRY_PRICE_FROM))
+    except (AttributeError, ValueError, TypeError):
+        return None
+
+
+def _is_us_trading_day_s17(d: date) -> bool:
+    """Mo–Fr und kein Eintrag in ``config.US_MARKET_HOLIDAYS`` (wie S4/S15)."""
+    if d.weekday() >= 5:
+        return False
+    hol = getattr(config, "US_MARKET_HOLIDAYS", frozenset())
+    return d not in hol and d.isoformat() not in hol
+
+
 def s17_rolling_window_counts(export_path: str, outcome_path: str,
                               fix_from: date | None = None) -> dict | None:
     """Zählt abgeschnittene Rolling-Fenster. Returnt ``{"geprueft", "neu",
@@ -516,6 +531,7 @@ def s17_rolling_window_counts(export_path: str, outcome_path: str,
     full_n = int(getattr(config, "ROLLING_WINDOW_TRADING_DAYS", 10)) + 1
     try:
         bars_by = {}
+        close_by = {}
         with open(outcome_path, "r", encoding="utf-8") as fh:
             for ln in fh:
                 try:
@@ -528,6 +544,12 @@ def s17_rolling_window_counts(export_path: str, outcome_path: str,
                                 and _finite_num(b.get("l")) and float(b["l"]) > 0
                                 for b in bars[:full_n])):
                     bars_by[(r.get("ticker"), r.get("date"))] = bars[:full_n]
+                if isinstance(r, dict):
+                    cd = r.get("close_d")
+                    if _finite_num(cd) and float(cd) > 0:
+                        close_by[(r.get("ticker"), r.get("date"))] = (
+                            float(cd),
+                            bool(r.get("split_im_fenster")) or bool(r.get("dividende_im_fenster")))
         rows = []
         with open(export_path, "r", encoding="utf-8") as fh:
             for ln in fh:
@@ -540,7 +562,12 @@ def s17_rolling_window_counts(export_path: str, outcome_path: str,
     except OSError:
         return None
     seen = set()
-    out = {"geprueft": 0, "neu": 0, "alt": 0, "unvollstaendig": 0}
+    out = {"geprueft": 0, "neu": 0, "alt": 0, "unvollstaendig": 0,
+           # Schritt 2 (14.11.2026): Preis- und Datums-Plausibilität.
+           "preis_geprueft": 0, "preis_neu": 0, "preis_alt": 0, "preis_aktion": 0,
+           "kein_handelstag_neu": 0, "kein_handelstag_alt": 0}
+    price_from = _s17_price_from()
+    tol_pct = float(getattr(config, "TRUTH_CHECK_ENTRY_PRICE_TOL_PCT", 0.02))
     for r in rows:
         key = (r.get("ticker"), r.get("date"))
         if key in seen:
@@ -551,6 +578,19 @@ def s17_rolling_window_counts(export_path: str, outcome_path: str,
         except (ValueError, TypeError):
             continue
         is_new = fix_from is not None and d >= fix_from
+        p_new = price_from is not None and d >= price_from
+        if not _is_us_trading_day_s17(d):
+            out["kein_handelstag_neu" if p_new else "kein_handelstag_alt"] += 1
+        ep = r.get("entry_price")
+        cinfo = close_by.get(key)
+        if cinfo is not None and _finite_num(ep) and float(ep) > 0:
+            out["preis_geprueft"] += 1
+            cd, action = cinfo
+            if abs(float(ep) - cd) / cd * 100.0 > tol_pct + 1e-9:
+                if action:
+                    out["preis_aktion"] += 1
+                else:
+                    out["preis_neu" if p_new else "preis_alt"] += 1
         n_win = r.get("rolling_window_n")
         if "rolling_window_n" in r and not (isinstance(n_win, int) and n_win >= full_n):
             out["unvollstaendig"] += 1
@@ -576,14 +616,26 @@ def evaluate_s17_rolling_window(export_path: str, outcome_path: str,
         return []
     if not c:
         return []
-    if c["neu"] == 0 and c["unvollstaendig"] == 0:
-        return []
-    return [{"id": "S17", "severity": "warn",
-             "detail": (f"Rolling-Fenster max_gain/max_drawdown vor Tag 10 "
-                        f"eingefroren: {c['neu']} Zeile(n) ab Fix-Naht abgeschnitten, "
-                        f"{c['unvollstaendig']} mit unvollständigem Fenster markiert "
-                        f"(geprüft {c['geprueft']}, Altbestand {c['alt']}) — nur "
-                        f"Zählung, keine Werte")}]
+    fails = []
+    if c["neu"] or c["unvollstaendig"]:
+        fails.append({"id": "S17", "severity": "warn",
+                      "detail": (f"Rolling-Fenster max_gain/max_drawdown vor Tag 10 "
+                                 f"eingefroren: {c['neu']} Zeile(n) ab Fix-Naht abgeschnitten, "
+                                 f"{c['unvollstaendig']} mit unvollständigem Fenster markiert "
+                                 f"(geprüft {c['geprueft']}, Altbestand {c['alt']}) — nur "
+                                 f"Zählung, keine Werte")})
+    # Schritt 2 (14.11.2026): Preis-/Datums-Plausibilität des Exports. warn nur
+    # für Einstiege ab TRUTH_CHECK_ENTRY_PRICE_FROM; ältere stehen als Altbestand.
+    if c.get("preis_neu") or c.get("kein_handelstag_neu"):
+        fails.append({"id": "S17", "severity": "warn",
+                      "detail": (f"Export-Plausibilität: {c['preis_neu']} Zeile(n) mit "
+                                 f"entry_price ≠ Schluss D (outcome_path), "
+                                 f"{c['kein_handelstag_neu']} mit Datum an einem "
+                                 f"Nicht-Handelstag (Preis geprüft {c['preis_geprueft']}, "
+                                 f"mit Kapitalmaßnahme {c['preis_aktion']}, Altbestand "
+                                 f"Preis {c['preis_alt']} / Datum {c['kein_handelstag_alt']}) "
+                                 f"— nur Zählung, keine Werte")})
+    return fails
 
 
 # ── S16 — Wahrheits-Abgleich (08.11.2026) ─────────────────────────────────
@@ -4626,6 +4678,51 @@ def minute_bars_liveness_line(data_dir=None, state_path=None, *, now_ts=None) ->
         return "🕐 Minutenkurse: Status nicht ermittelbar"
 
 
+def batch_halfrow_line(provider_entries) -> str:
+    """Eine Hinweis-Zeile zum Halbzeilen-Anteil des Kurs-Batches (Schritt 2,
+    14.11.2026; open_item ``provider-health-nan-pct-fehlt``).
+
+    Liest aus den übergebenen ``provider_health``-Einträgen (Digest-Fenster)
+    je Lauf-Phase den jüngsten ``yfinance_batch``-Eintrag mit ``nan_pct``
+    (= Anteil Ticker, deren letzte Batch-Zeile keinen Schlusskurs hat).
+    REIN ANZEIGE — kein Alarm, keine Schwelle (Halbzeilen sind im Postclose
+    vor ~21:30 ET bekannt und Gegenstand von Fix B). Fail-soft, nie Exception."""
+    try:
+        latest: dict[str, dict] = {}
+        for e in provider_entries or []:
+            if not isinstance(e, dict) or e.get("provider") != "yfinance_batch":
+                continue
+            v = e.get("nan_pct")
+            if isinstance(v, bool) or not isinstance(v, (int, float)) or v != v:
+                continue
+            ph = str(e.get("run_phase") or "?")
+            ts = str(e.get("run_ts") or "")
+            if ph not in latest or ts > str(latest[ph].get("run_ts") or ""):
+                latest[ph] = e
+        if not latest:
+            return "🕳 Halbzeilen (Kurs-Batch): keine Messung im Fenster"
+        parts = []
+        for ph in ("postclose", "premarket"):
+            e = latest.pop(ph, None)
+            if e is None:
+                continue
+            ts = str(e.get("run_ts") or "")
+            when = ts[8:10] + "." + ts[5:7] + ". " + ts[11:16] + " UTC" if len(ts) >= 16 else "?"
+            name = "Postclose" if ph == "postclose" else "Premarket"
+            parts.append(f"{name} {when} {_de_pct(e['nan_pct'])}")
+        for ph, e in sorted(latest.items()):
+            parts.append(f"{ph} {_de_pct(e['nan_pct'])}")
+        return ("🕳 Halbzeilen (Kurs-Batch, letzte Zeile ohne Schluss): "
+                + " · ".join(parts) + " — Hinweis, kein Alarm")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "🕳 Halbzeilen (Kurs-Batch): Status nicht ermittelbar"
+
+
+def _de_pct(v) -> str:
+    """12.5 → „12,5 %“."""
+    return f"{float(v):.1f}".replace(".", ",") + "\u00a0%"
+
+
 def format_digest_body(state_fails: list[dict],
                        provider_fails: list[dict],
                        *,
@@ -4639,6 +4736,7 @@ def format_digest_body(state_fails: list[dict],
                        chain_raw_line: str | None = None,
                        outcome_path_line: str | None = None,
                        minute_bars_line: str | None = None,
+                       halfrow_line: str | None = None,
                        ftd_line: str | None = None,
                        reg_sho_line: str | None = None,
                        news_coverage_line: str | None = None,
@@ -4691,6 +4789,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{outcome_path_line}"
         if minute_bars_line:
             body += f"\n{minute_bars_line}"
+        if halfrow_line:
+            body += f"\n{halfrow_line}"
         if ftd_line:
             body += f"\n{ftd_line}"
         if reg_sho_line:
@@ -4771,6 +4871,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(outcome_path_line)
         if minute_bars_line:
             body_lines.append(minute_bars_line)
+        if halfrow_line:
+            body_lines.append(halfrow_line)
         if ftd_line:
             body_lines.append(ftd_line)
         if reg_sho_line:
@@ -4848,6 +4950,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(outcome_path_line)
     if minute_bars_line:
         lines.append(minute_bars_line)
+    if halfrow_line:
+        lines.append(halfrow_line)
     if ftd_line:
         lines.append(ftd_line)
     if reg_sho_line:

@@ -138,6 +138,16 @@ TRUTH_CHECK_MAX_WORKERS   = 2      # max. parallele Yahoo-Abrufe
 # Bekannt delistete Ticker (Yahoo liefert nichts mehr) → Zähler
 # "nicht_pruefbar", kein Abruf. Pflege: neuen Ticker nur mit Beleg ergänzen.
 TRUTH_CHECK_DELISTED      = frozenset({"BNRG", "PRA", "SNBR", "SNSE", "YYGH"})
+# entry_price-Prüfung (Schritt 2, Plan 14.11.2026, open_item
+# s16-entry-price-pruefen): gespeicherter entry_price gegen den Schlusskurs von
+# D (Rohkurs; Split nach D über den Split-Faktor zurückgerechnet), relative
+# Abweichung in Prozent. Fängt Datumsverschiebung und falsche Kurse. rvol
+# bewusst NICHT (Volumen wird bis zu 17 % nachgezogen). Geprüft nur Einstiege ab
+# TRUTH_CHECK_ENTRY_PRICE_FROM (erster Postclose nach dem Cron-Wechsel auf
+# 21:37 UTC, #656) — ältere Läufe lagen im Winter teils vor 16:20 ET; ein
+# früheres Startdatum ist Easys Entscheidung.
+TRUTH_CHECK_ENTRY_PRICE_FROM    = "2026-11-05"
+TRUTH_CHECK_ENTRY_PRICE_TOL_PCT = 0.02   # |alt − neu| / neu × 100 darüber = Abweichung
 
 # Kursverlauf ab Einstieg (scripts/outcome_path_update.py, Easy-Auftrag
 # 12.11.2026): je Forward-Einstieg OHLC Tag 0–10 (nur finale Tageszeilen,
