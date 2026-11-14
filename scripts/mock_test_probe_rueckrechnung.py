@@ -82,6 +82,31 @@ def main() -> int:
     check("28 nur Hand-Start", "workflow_dispatch" in WF and "schedule" not in WF and "push:" not in WF)
     check("29 contents: read, keine Schreibrechte", "contents: read" in WF and "write" not in WF)
     check("30 keine Secrets, kein Push", "secrets." not in WF and "git push" not in WF)
+    # Lockerung 14.11.2026: Abbruch in P2 → P1 bleibt Befund, P2 zählt nicht, Datei geschrieben
+    import json as _json
+    import tempfile
+    saved = (pr.probe_finra, pr.probe_survivorship, pr.probe_proxy, pr.extrapolate)
+
+    def _p1(result):
+        result["P1"] = {"ok": 1}
+        return "ds", []
+
+    def _p2(result, ds, sdates):
+        result["P2"] = {"halb": 1}
+        raise pr.RateLimited("simuliert")
+    pr.probe_finra, pr.probe_survivorship = _p1, _p2
+    pr.probe_proxy = lambda *a: (_ for _ in ()).throw(AssertionError("darf nicht laufen"))
+    try:
+        outp = pathlib.Path(tempfile.mkdtemp()) / "r.json"
+        rc = pr.main(["--out", str(outp)])
+        res = _json.loads(outp.read_text(encoding="utf-8"))
+        check("32 Abbruch: Exit 3, abgebrochen_in P2, P1 bleibt, P2 verworfen",
+              rc == 3 and res["abgebrochen_in"] == "P2" and res["P1"] == {"ok": 1}
+              and "P2" not in res and res["abschnitte_vollstaendig"] == ["P1"])
+    finally:
+        pr.probe_finra, pr.probe_survivorship, pr.probe_proxy, pr.extrapolate = saved
+    check("33 Workflow: Abschnitt wählbar, Artifact auch bei Abbruch",
+          "options: [alle, survivorship, proxy]" in WF and "if: always()" in WF)
     # no-op
     old = pr.PROBE_END
     pr.PROBE_END = date(2000, 1, 1)

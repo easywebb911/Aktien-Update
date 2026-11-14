@@ -122,6 +122,20 @@ def log(msg):
     print(f"[rueck_probe] {msg}", flush=True)
 
 
+CURRENT = {"abschnitt": None}
+
+
+def start_section(key):
+    CURRENT["abschnitt"] = key
+    log(f"ABSCHNITT {key} beginnt")
+
+
+def section_done(result, key):
+    """Abschnitt vollständig: Ergebnis sofort ins Log (Befund auch bei späterem Abbruch)."""
+    result.setdefault("abschnitte_vollstaendig", []).append(key)
+    log(f"ABSCHNITT {key} vollständig " + json.dumps(result.get(key), default=str))
+
+
 # ── reine Hilfsfunktionen (getestet) ─────────────────────────────────────────
 def wilson(k: int, n: int, z: float = 1.96):
     if n <= 0:
@@ -555,8 +569,14 @@ def probe_survivorship(result, ds, sdates):
             p2[str(year)]["_vorhanden"] = sorted(s for s in sample if avail[s])
     result["P2"] = {k: {kk: vv for kk, vv in v.items() if not kk.startswith("_")} for k, v in p2.items()}
     result["P3"] = p3
+    section_done(result, "P2")
+    section_done(result, "P3")
+    start_section("P4")
     probe_stooq(result, p2)
+    section_done(result, "P4")
+    start_section("P6")
     probe_splits(result, ds, sdates, p6_cands)
+    section_done(result, "P6")
 
 
 def sec_ticker_map(result):
@@ -836,36 +856,57 @@ def extrapolate(result):
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
+    ap.add_argument("--nur", choices=("alle", "survivorship", "proxy"), default="alle",
+                    help="survivorship = P2/P3/P4/P6, proxy = P5 (P1 und P7 immer)")
     args = ap.parse_args(argv)
     today = datetime.now(timezone.utc).date()
     if today > PROBE_END:
         log(f"no-op: nach {PROBE_END}")
         return 0
     t0 = time.monotonic()
-    result = {"seed": SEED, "stichprobe_n": SAMPLE_N, "start_utc": datetime.now(timezone.utc).isoformat()}
+    result = {"seed": SEED, "stichprobe_n": SAMPLE_N, "nur": args.nur,
+              "start_utc": datetime.now(timezone.utc).isoformat()}
+    out = pathlib.Path(args.out)
+    rc = 0
     try:
+        start_section("P1")
         got = probe_finra(result)
-        log("P1 " + json.dumps(result.get("P1"), default=str)[:3000])
+        section_done(result, "P1")
         if got:
             ds, sdates = got
-            probe_survivorship(result, ds, sdates)
-            probe_proxy(result, ds, sdates)
+            if args.nur in ("alle", "survivorship"):
+                start_section("P2")
+                probe_survivorship(result, ds, sdates)
+            if args.nur in ("alle", "proxy"):
+                start_section("P5")
+                probe_proxy(result, ds, sdates)
+                section_done(result, "P5")
+        start_section("P7")
         extrapolate(result)
+        section_done(result, "P7")
     except RateLimited as exc:
-        log(f"ABBRUCH Rate-Limit — kein Befund: {exc}")
-        return 3
+        # Lockerung Easy 14.11.2026: vollständige Abschnitte davor gelten als Befund;
+        # der abgebrochene Abschnitt zählt nicht. Kein automatischer Neustart.
+        result["abgebrochen_in"] = CURRENT["abschnitt"]
+        result["abbruch_grund"] = str(exc)[:300]
+        for k in ("P1", "P2", "P3", "P4", "P5", "P6", "P7"):
+            if k not in result.get("abschnitte_vollstaendig", []):
+                result.pop(k, None)
+        log(f"ABBRUCH Rate-Limit in {CURRENT['abschnitt']} — nicht gezählt; "
+            f"vollständig: {result.get('abschnitte_vollstaendig', [])}; Grund: {exc}")
+        rc = 3
     result.pop("_sec_map_http", None)
     result["finra_ersatzfilter_genutzt"] = FALLBACK_USED
     result["finra_letzte_fehler"] = LAST_ERR
     result["yfinance_batch_fehler"] = {"anzahl": len(YF_BATCH_ERRORS), "beispiele": YF_BATCH_ERRORS[:5]}
     result["laufzeit_s"] = round(time.monotonic() - t0, 1)
-    for k in ("P2", "P3", "P4", "P5", "P6", "P7"):
-        log(f"{k} " + json.dumps(result.get(k), default=str))
-    out = pathlib.Path(args.out)
+    log("meta " + json.dumps({k: result.get(k) for k in (
+        "finra_ersatzfilter_genutzt", "finra_letzte_fehler", "yfinance_batch_fehler", "laufzeit_s")},
+        default=str))
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, indent=1, default=str), encoding="utf-8")
-    log(f"fertig in {result['laufzeit_s']} s → {out}")
-    return 0
+    log(f"{'abgebrochen' if rc else 'fertig'} in {result['laufzeit_s']} s → {out}")
+    return rc
 
 
 if __name__ == "__main__":

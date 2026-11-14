@@ -13,6 +13,13 @@ name: Probe Mehrjahres-Rückrechnung (Wegwerf)
 
 on:
   workflow_dispatch:
+    inputs:
+      nur:
+        description: "alle | survivorship (P2/P3/P4/P6) | proxy (P5) — P1 und P7 laufen immer"
+        required: true
+        default: alle
+        type: choice
+        options: [alle, survivorship, proxy]
 
 permissions:
   contents: read
@@ -41,11 +48,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Probe (Rate-Limit → Abbruch ohne Befund, Exit 3)
-        run: python scripts/probe_rueckrechnung.py --out "$RUNNER_TEMP/rueck_probe/rueck_probe.json"
+      - name: Probe (Rate-Limit → Abbruch, Exit 3; fertige Abschnitte bleiben Befund)
+        env:
+          NUR: ${{ inputs.nur }}
+        run: python scripts/probe_rueckrechnung.py --nur "$NUR" --out "$RUNNER_TEMP/rueck_probe/rueck_probe.json"
 
       - name: Artifact hochladen
-        if: success()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: rueck-probe-${{ github.run_id }}
