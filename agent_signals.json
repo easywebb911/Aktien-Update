@@ -1,10 +1,10 @@
 {
-  "updated": "2026-11-14T11:38:30.937049+01:00",
+  "updated": "2026-11-14T18:09:03.232769+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 12.6,
+    "elapsed_s": 11.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -168,7 +168,7 @@
     "SEAT": {
       "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 22.8% + News-KI 8/30: Analyst caution and fair value cuts are bearish signals that reduce short-squeeze potential despite positive earnings hi + FINRA Short-Vol 59%",
+      "drivers": "Spanne 22.8% + News-KI 8/30: Analyst caution and fair value cuts suggest weak sentiment with limited short interest catalysts; debt concerns and mode + FINRA Short-Vol 59%",
       "price": 1.39,
       "chg_pct": -0.0,
       "rvol_4d": 0.78,
@@ -187,9 +187,9 @@
       "uoa_cp_ratio": null
     },
     "TNDM": {
-      "score": 65,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 9.1% + SEC 8-K + News: earnings beat + UOA Call/Put 7.6×",
+      "drivers": "Volumen 1.7× + Spanne 9.1% + News: earnings beat + UOA Call/Put 7.6×",
       "price": 20.07,
       "chg_pct": -0.0,
       "rvol_4d": 1.73,
@@ -207,7 +207,7 @@
         "UOA Call/Put 7.6×"
       ],
       "uoa_atm_ratio": 0.08582834331337326,
-      "uoa_cp_ratio": 7.584033613445378
+      "uoa_cp_ratio": 7.563025210084033
     },
     "UNIT": {
       "score": 35,
@@ -231,13 +231,13 @@
       "uoa_cp_ratio": 1.247191011235955
     },
     "VEEA": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "News: merger",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 12.1% + News: merger",
       "price": 4.49,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.59,
+      "rvol_20d": 0.09,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -252,9 +252,9 @@
       "uoa_cp_ratio": null
     },
     "VISN": {
-      "score": 35,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.8% + News: insider buying + UOA Call/Put 4.3×",
+      "drivers": "Spanne 7.8% + UOA Call/Put 4.3×",
       "price": 4.24,
       "chg_pct": -0.0,
       "rvol_4d": 1.18,
@@ -265,7 +265,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -275,9 +275,9 @@
       "uoa_cp_ratio": 4.326666666666667
     },
     "WOLF": {
-      "score": 25,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 9.2% + News: catalyst",
+      "drivers": "Spanne 9.2% + News-KI 8/30: Earnings focus and sector underperformance suggest weakness rather than squeeze potential; no significant short interest",
       "price": 24.83,
       "chg_pct": -0.0,
       "rvol_4d": 0.75,
@@ -288,8 +288,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.09068677399633177,
