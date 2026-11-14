@@ -3312,7 +3312,9 @@ def _read_options_oi_history(path):
                          (Zustand c).
       ``"ok"``         — ``info`` = ``{n_tickers, n_points, newest_date,
                          tickers_on_newest, chains_on_newest}``.
-    Schema: ``{ticker: [{date, expiry, spot, shares_outstanding, calls, puts}, …]}``.
+    Schema: ``{ticker: [{date, expiry, spot, shares_outstanding, calls, puts}, …]}``
+    (seit 14.11.2026 je neuem Punkt zusätzlich ``oi_abgerufen_utc/_et``, ``oi_stand``;
+    hier nicht gelesen).
     ``chains_on_newest`` zählt Punkte am neuesten Datum mit ``calls is not None``
     (None = keine Kette; ``[]`` = Kette da, kein oi>0-Strike — beide sind gültige
     Beobachtungen, aber nur ``None`` heißt „unbeobachtbar")."""
