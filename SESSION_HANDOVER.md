@@ -3390,6 +3390,21 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 14.11.2026 — Wegwerf-Probe Mehrjahres-Rückrechnung, Schritt 1 (1 PR, Manual-Merge, neuer Workflow)
+
+- `#704` (Branch `claude/rueckrechnung-probe-k7q2`, Branch-Commit `b8c8acae`, kein Merge-Hash —
+  Regel a). Easy-Entscheid 14.11.: Rückrechnung JA, zuerst Probe. `probe_rueckrechnung.yml` (nur
+  Hand-Start, contents: read, keine Secrets, Log + Artifact, ab 31.12.2026 no-op) +
+  `scripts/probe_rueckrechnung.py`: FINRA-SI-Abdeckung (Widerspruch #420/#421 OTC-only vs.
+  „Juni 2021“ prüfen), Survivorship-Lücke yfinance 2021–2025 (n = 2 401/Jahr, Seed 20261114) nach
+  DTC-Hälfte/Preisklasse, SEC-XBRL-Deckung, Stooq, Proxy-Liste ↔ echte Top-10 ab 01.07.2026 (nur
+  Zugehörigkeit), Splits, Hochrechnung. Keine Renditen/Gipfel. Test `mock_test_probe_rueckrechnung.py`
+  (CI). open_items: 4 neu (`mehrjahres-rueckrechnung-probe`, `rueckrechnung-survivorship-delisting`,
+  `rueckrechnung-datenablage`, `rueckrechnung-zeitraeume-freeze`).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#703`,
+  höchste in Block 1 erwähnte PR = `#704` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 14.11.2026 — Einmal-Korrektur max_gain-Export, zweiter Lauf + Protokoll-Zahlen (1 PR, protected-ok Regel b)
 
 - `#703` (Branch `claude/maxgain-korrektur-doku-k7q2`, Branch-Commit `bcdb6eb3`, kein Merge-Hash —
