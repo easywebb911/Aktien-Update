@@ -59,6 +59,9 @@ def main() -> int:
         ("ZVZZT", "NASDAQ TEST STOCK"): "test",
         ("XYZ", "Xyz 5.00% Senior Notes due 2030"): "vorzug",
         ("ABC1", "Weird"): "sonstiges",
+        ("BDN", "Brandywine Realty Trust"): "stamm",
+        ("TSM", "Taiwan Semiconductor American Depositary Shares"): "stamm",
+        ("SOXL", "Direxion Daily Semiconductor Bull 3X Shares"): "etf_fonds",
     }
     bad = {k: pr.category(*k) for k, v in cases.items() if pr.category(*k) != v}
     check(f"07 Kategorie-Regel ({len(cases)} Fälle) {bad or ''}", not bad)
@@ -67,7 +70,8 @@ def main() -> int:
           and pr.yf_symbol("BF/A") == "BF-A")
     check("10 Symbol-Muster", pr.symbol_pattern("BRK.B") == "AAA.A")
     check("11 Name-Schlüssel ohne Rechtsform",
-          pr.name_key("Apple Inc. Common Stock") == "APPLE" and pr.name_key("Acme Holdings Corp") == "ACME")
+          pr.name_key("Apple Inc. Common Stock") == "APPLE" and pr.name_key("Acme Holdings Corp") == "ACME"
+          and pr.name_key("Bank of America Corp") != pr.name_key("Bank of New York Mellon"))
     low, high, med = pr.split_halves({"A": 1.0, "B": 2.0, "C": 3.0, "D": 4.0, "E": None})
     check("12 DTC-Hälften am Median", low == {"A", "B"} and high == {"C", "D"} and med == 2.5)
     check("13 DTC aus Feld / aus SI-ADV / None",
@@ -109,7 +113,7 @@ def main() -> int:
     check("23 kein Ergebnisfeld im Code",
           not re.search(r"return_\d|max_gain|max_drawdown|outcome_path|forward_\d", code))
     check("24 aus Backtest-Dateien nur ticker/date/bootstrap",
-          set(re.findall(r'\be\.get\("(\w+)"\)', SRC)) <= {"ticker", "date", "bootstrap"})
+          set(re.findall(r'\be\.get\("(\w+)"\)', SRC)) <= {"ticker", "date", "bootstrap", "source"})
     check("25 SEC-User-Agent generisch .invalid", "@example.invalid" in pr.SEC_UA)
     # Workflow
     check("26 nur Hand-Start", "workflow_dispatch" in WF and "schedule" not in WF and "push:" not in WF)
@@ -136,6 +140,13 @@ def main() -> int:
         check("30 Abbruch: Exit 3, P1 bleibt, P2F verworfen",
               rc == 3 and res["abgebrochen_in"] == "P2F" and res["P1"] == {"ok": 1}
               and "P2F" not in res and res["abschnitte_vollstaendig"] == ["P1"])
+        def _p2f_err(result, sd):
+            raise ValueError("Netzfehler simuliert")
+        pr.probe_p2f = _p2f_err
+        rc = pr.main(["--out", str(outp)])
+        res = json.loads(outp.read_text(encoding="utf-8"))
+        check("30b anderer Fehler: Exit 4, Teilbefund P1 geschrieben",
+              rc == 4 and res["abgebrochen_in"] == "P2F" and res["P1"] == {"ok": 1})
         calls = []
         pr.probe_p5 = lambda *a: calls.append("P5")
         pr.probe_p7 = lambda *a: calls.append("P7")

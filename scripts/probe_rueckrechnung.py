@@ -80,6 +80,7 @@ PROXY_FROM = date(2026, 7, 1)
 PUB_LAG_BUSINESS_DAYS = 8        # Annahme ~7 Werktage + 1 Reserve; P1 prüft gegen FINRA-Seite
 YF_BATCH = 20
 YF_PAUSE_S = 2.0
+TIME_BUDGET_S = 125 * 60         # Workflow-Timeout 150 min; danach P2Y-Jahre überspringen
 
 FINRA_API = "https://api.finra.org/data/group/otcMarket/name/{ds}"
 FINRA_META = "https://api.finra.org/metadata/group/otcMarket/name/{ds}"
@@ -103,7 +104,9 @@ LISTED_CODES = frozenset({"NYSE", "NNM", "SC", "AMEX", "ARCA", "BZX", "NMS", "NG
 # yfinance-Schreibweise: Trenner [ ./] → „-“ (BRK.B / BRK B / BRK/B → BRK-B).
 TEST_SYMBOLS = frozenset({"ZVZZT", "ZWZZT", "ZXZZT", "ZBZZT", "ZJZZT", "ZVV", "NTEST",
                           "ATEST", "CTEST", "PTEST", "MTEST", "ZZK", "ZZZ"})
-_RE_ETF = re.compile(r"\b(ETF|ETN|FUND|TRUST|INDEX|ISHARES|SPDR|PROSHARES|PORTFOLIO)\b", re.I)
+_RE_ETF = re.compile(r"\b(ETF|ETN|FUND|INDEX|ISHARES|SPDR|PROSHARES|PORTFOLIO|DIREXION|VANECK|WISDOMTREE|"
+                     r"GLOBAL X|VANGUARD|INVESCO|2X|3X|-1X|-2X|-3X|BULL|BEAR|LEVERAGED|INVERSE|"
+                     r"INCOME TRUST|MUNICIPAL|ULTRA(PRO|SHORT)?)\b", re.I)
 _RE_PFD = re.compile(r"\b(PFD|PREFERRED|PREF|DEP(OSITARY)?\s+SH(ARE)?S?)\b|%", re.I)
 _RE_WT = re.compile(r"\b(WARRANTS?|WTS?)\b", re.I)
 _RE_UNIT = re.compile(r"\bUNITS?\b", re.I)
@@ -207,7 +210,8 @@ def category(sym, name) -> str:
         return "test"
     if _RE_ETF.search(n):
         return "etf_fonds"
-    if _RE_PFD.search(n) or _RE_SYM_SUFFIX["vorzug"].search(sym or ""):
+    if (_RE_PFD.search(n) and not re.search(r"AMERICAN\s+DEPOSITARY", n, re.I)) \
+            or _RE_SYM_SUFFIX["vorzug"].search(sym or ""):
         return "vorzug"
     if _RE_WT.search(n) or _RE_SYM_SUFFIX["optionsschein"].search(s):
         return "optionsschein"
@@ -237,11 +241,11 @@ def symbol_pattern(sym: str) -> str:
 
 
 def name_key(name) -> str:
-    """Normalisierter Firmenname (erste zwei bedeutungstragende Wörter)."""
+    """Normalisierter Firmenname (erste drei bedeutungstragende Wörter)."""
     if not isinstance(name, str):
         return ""
     toks = [t for t in re.sub(r"[^A-Z0-9 ]", " ", name.upper()).split() if t not in _NAME_STOP]
-    return " ".join(toks[:2])
+    return " ".join(toks[:3])
 
 
 def draw_sample(population, year: int, n: int = SAMPLE_N) -> list:
@@ -453,10 +457,11 @@ def get_file(d: date) -> dict:
         out[s] = {"name": pick(x, "name"), "market": str(pick(x, "market")),
                   "cur": pick(x, "current"), "prev": pick(x, "previous"), "adv": pick(x, "adv"),
                   "dtc": pick(x, "dtc"), "split": pick(x, "split"), "rev": pick(x, "revision")}
-    FILE_CACHE[d] = out if st == 200 else {}
-    if st != 200:
-        log(f"FINRA-Datei {d} HTTP {st}: {LAST_ERR.get(DS, '')[:160]}")
-    return FILE_CACHE[d]
+    if st != 200 or not out:
+        log(f"FINRA-Datei {d} HTTP {st} / {len(out)} Zeilen: {LAST_ERR.get(DS, '')[:160]}")
+        return {}          # nicht cachen — leere Datei ist kein Befund
+    FILE_CACHE[d] = out
+    return out
 
 
 def first_on_or_after(sdates, d: date):
@@ -583,7 +588,7 @@ def stooq_hit(sym, start, end):
         return f"http_{r.status_code}"
     low = body.lower()
     if "limit" in low and "exceed" in low:
-        raise RateLimited("Stooq: Tageslimit")
+        return "stooq_limit"     # Befund; Stooq-Teil endet, kein Retry
     if low.startswith("date,") and len(body.splitlines()) > 1:
         return "daten"
     if "apikey" in low or "api key" in low:
@@ -696,6 +701,9 @@ def probe_p2f(result, sdates):
         if base is None:
             continue
         bf = get_file(base)
+        if not bf:
+            out[str(y)] = {"stichtag": str(base), "datei_fehlt": True}
+            continue
         universe = {s: v for s, v in bf.items() if v["market"] in LISTED_CODES and is_stock(s, v["name"])}
         dtcs = {s: dtc_of(v["cur"], v["adv"], v["dtc"]) for s, v in universe.items()}
         low, high, med = split_halves(dtcs)
@@ -706,8 +714,13 @@ def probe_p2f(result, sdates):
                 res_y[label] = None
                 continue
             lf = get_file(later)
+            if not lf:
+                res_y[label] = {"stichtag_spaeter": str(later), "datei_fehlt": True}
+                continue
             names = {}
             for s, v in lf.items():
+                if not is_stock(s, v["name"]):
+                    continue
                 nk = name_key(v["name"])
                 if nk:
                     names.setdefault(nk, set()).add(s)
@@ -728,18 +741,19 @@ def probe_p2f(result, sdates):
                             "dtc_niedrig": tally(low), "dtc_hoch": tally(high),
                             "je_marktcode": {k: tally(v) for k, v in sorted(mk.items())}}
             if label == "12m":
-                vanished[y] = (base, sorted(s for s, f in fates.items()
-                                            if f in ("verschwunden", "neu_vergeben")))
+                vanished[y] = (base, sorted(s for s, f in fates.items() if f == "verschwunden"))
         out[str(y)] = res_y
         log(f"P2F {y}: {json.dumps(res_y.get('12m', {}) and res_y['12m']['gesamt'], default=str)}")
     out["hinweis"] = ("verschwunden = Delisting ODER Übernahme ODER Namens-/Kürzeländerung ohne "
-                      "Namenstreffer; Datensatz hat kein CUSIP-Feld, Trennung nur über issueName")
+                      "Namenstreffer; kein CUSIP-Feld, Trennung nur über issueName (erste 3 Wörter, "
+                      "nur gegen Stammaktien); neu_vergeben enthält auch Namenswechsel unter gleichem "
+                      "Kürzel (z. B. Umfirmierung) — Obergrenze")
     result["P2F"] = out
     return vanished
 
 
 # ── P2Y: yfinance-Verfügbarkeit mit Kontrollgruppe ───────────────────────────
-def probe_p2y(result, sdates):
+def probe_p2y(result, sdates, deadline=None):
     out = {}
     today = datetime.now(timezone.utc).date()
     last = max(d for d in sdates if d <= today)
@@ -755,12 +769,17 @@ def probe_p2y(result, sdates):
     rec_ctrl = sum(yf_single(yf_symbol(s), today - timedelta(days=AVAIL_WINDOW_DAYS), today)
                    for s in miss_ctrl[:SINGLE_RECHECK_N])
     out["kontrolle"] = {"stichtag": str(last), "vorhanden": w, "kriterium_min": CONTROL_MIN,
+                        "paket_fehler_ausgeschlossen": len(ctrl) - len(ok),
                         "gueltig": gueltig, "fehlend_beispiele": miss_ctrl[:15],
                         "einzel_gegenprobe": {"geprueft": min(len(miss_ctrl), SINGLE_RECHECK_N),
                                               "gefunden": rec_ctrl}}
     log(f"P2Y Kontrolle: {json.dumps(out['kontrolle'], default=str)}")
     split_cands = []
     for y in YEARS_Y:
+        if deadline is not None and time.monotonic() > deadline:
+            out[str(y)] = {"uebersprungen": "zeitbudget"}
+            log(f"P2Y {y}: übersprungen (Zeitbudget)")
+            continue
         base = first_on_or_after(sdates, date(y, 7, 1))
         bf = get_file(base)
         pop = {s: v for s, v in bf.items() if v["market"] in LISTED_CODES and is_stock(s, v["name"])}
@@ -818,10 +837,13 @@ def probe_p2k(result, vanished):
         end = base + timedelta(days=AVAIL_WINDOW_DAYS)
         yf_hits = sum(yf_single(yf_symbol(s), base, end) for s in s_y)
         st_res = {}
-        if stooq_state != "nicht_erreichbar":
+        if stooq_state not in ("nicht_erreichbar", "stooq_limit"):
             for s in s_y[:STOOQ_CHECK_N]:
                 h = stooq_hit(s, base, end)
                 st_res[h] = st_res.get(h, 0) + 1
+                if h == "stooq_limit":
+                    stooq_state = "stooq_limit"
+                    break
                 if h == "nicht_erreichbar" and sum(st_res.values()) >= 3 and st_res.get("daten", 0) == 0:
                     stooq_state = "nicht_erreichbar"
                     break
@@ -898,7 +920,8 @@ def probe_p6(result, sdates, yf_cands):
         if not a or not b:
             continue
         fa, fb = get_file(a), get_file(b)
-        flagged = [s for s, v in fb.items() if str(v["split"]) not in ("None", "0", "", "N")]
+        flagged = [s for s, v in fb.items()
+                   if str(v["split"]).strip().lower() not in ("none", "0", "", "n", "false", "no")]
         t = {}
         for s in flagged:
             if s in fa:
@@ -931,7 +954,7 @@ def real_top10():
             out.setdefault(dd, set()).add(t)
     try:
         for e in json.loads((ROOT / "backtest_history.json").read_text(encoding="utf-8")):
-            if isinstance(e, dict) and not e.get("bootstrap"):
+            if isinstance(e, dict) and not e.get("bootstrap") and e.get("source") != "bootstrap":
                 add(e.get("ticker"), e.get("date"))
     except (OSError, ValueError):
         pass
@@ -1069,12 +1092,10 @@ def main(argv=None) -> int:
         sdates = probe_p1(result)
         section_done(result, "P1")
         if sdates and args.nur in ("alle", "survivorship"):
+            # Reihenfolge: kurze Abschnitte zuerst, die lange yfinance-Messung zuletzt
             start_section("P2F")
             vanished = probe_p2f(result, sdates)
             section_done(result, "P2F")
-            start_section("P2Y")
-            cands = probe_p2y(result, sdates)
-            section_done(result, "P2Y")
             start_section("P2K")
             probe_p2k(result, vanished)
             section_done(result, "P2K")
@@ -1082,8 +1103,11 @@ def main(argv=None) -> int:
             probe_p3(result, sdates)
             section_done(result, "P3")
             start_section("P6")
-            probe_p6(result, sdates, cands)
+            probe_p6(result, sdates, [])
             section_done(result, "P6")
+            start_section("P2Y")
+            probe_p2y(result, sdates, deadline=t0 + TIME_BUDGET_S)
+            section_done(result, "P2Y")
         if sdates and args.nur in ("alle", "proxy"):
             start_section("P5")
             probe_p5(result, sdates)
@@ -1092,15 +1116,15 @@ def main(argv=None) -> int:
             start_section("P7")
             probe_p7(result)
             section_done(result, "P7")
-    except RateLimited as exc:
+    except (RateLimited, Exception) as exc:  # noqa: BLE001  Teilbefund statt Totalverlust
+        rc = 3 if isinstance(exc, RateLimited) else 4
         result["abgebrochen_in"] = CURRENT["abschnitt"]
-        result["abbruch_grund"] = str(exc)[:300]
+        result["abbruch_grund"] = f"{type(exc).__name__}: {str(exc)[:300]}"
         for k in ("P1", "P2F", "P2Y", "P2K", "P3", "P5", "P6", "P7"):
             if k not in result.get("abschnitte_vollstaendig", []):
                 result.pop(k, None)
-        log(f"ABBRUCH Rate-Limit in {CURRENT['abschnitt']} — nicht gezählt; "
-            f"vollständig: {result.get('abschnitte_vollstaendig', [])}; Grund: {exc}")
-        rc = 3
+        log(f"ABBRUCH ({'Rate-Limit' if rc == 3 else 'Fehler'}) in {CURRENT['abschnitt']} — nicht "
+            f"gezählt; vollständig: {result.get('abschnitte_vollstaendig', [])}; Grund: {exc}")
     result.pop("_sec_map_http", None)
     result["finra_ersatzfilter_genutzt"] = FALLBACK_USED
     result["finra_letzte_fehler"] = LAST_ERR
