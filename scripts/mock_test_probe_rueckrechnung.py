@@ -105,6 +105,18 @@ def main() -> int:
               and "P2" not in res and res["abschnitte_vollstaendig"] == ["P1"])
     finally:
         pr.probe_finra, pr.probe_survivorship, pr.probe_proxy, pr.extrapolate = saved
+    saved = (pr.probe_finra, pr.probe_survivorship, pr.probe_proxy, pr.extrapolate)
+    calls = []
+    pr.probe_finra = _p1
+    pr.probe_survivorship = lambda *a: calls.append("P2")
+    pr.probe_proxy = lambda *a: calls.append("P5")
+    pr.extrapolate = lambda *a: calls.append("P7")
+    try:
+        outp = pathlib.Path(tempfile.mkdtemp()) / "r.json"
+        rc = pr.main(["--out", str(outp), "--nur", "proxy"])
+        check("32b --nur proxy: nur P5, keine P7-Hochrechnung", rc == 0 and calls == ["P5"])
+    finally:
+        pr.probe_finra, pr.probe_survivorship, pr.probe_proxy, pr.extrapolate = saved
     check("33 Workflow: Abschnitt wählbar, Artifact auch bei Abbruch",
           "options: [alle, survivorship, proxy]" in WF and "if: always()" in WF)
     # no-op

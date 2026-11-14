@@ -881,9 +881,10 @@ def main(argv=None) -> int:
                 start_section("P5")
                 probe_proxy(result, ds, sdates)
                 section_done(result, "P5")
-        start_section("P7")
-        extrapolate(result)
-        section_done(result, "P7")
+        if args.nur == "alle":   # Hochrechnung braucht P1–P5 desselben Laufs
+            start_section("P7")
+            extrapolate(result)
+            section_done(result, "P7")
     except RateLimited as exc:
         # Lockerung Easy 14.11.2026: vollständige Abschnitte davor gelten als Befund;
         # der abgebrochene Abschnitt zählt nicht. Kein automatischer Neustart.
