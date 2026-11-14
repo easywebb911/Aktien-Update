@@ -383,10 +383,148 @@ def freeze_impact(abende: list[dict]) -> dict:
     }
 
 
+# ── Nachweis Fix B (14.11.2026): gefüllte Zeile vs. endgültige Zeile ─────────
+# Für Postclose-Abende, deren Lauf-Log die [halfrow_probe]-Zeilen mit den
+# .info-Werten ZUM LAUFZEITPUNKT enthält (seit 02.11.2026): baut die Tageszeile
+# D so, wie Fix B sie gefüllt hätte (Open/Close aus .info, Volumen aus der
+# Batch-Zeile), und vergleicht den Score mit dem aus der endgültigen Zeile.
+# Modell = scripts/score_check.py (dauerhafter Wächter). ^GSPC endgültig in
+# beiden Rechnungen (ob ^GSPC damals halb war, ist nicht protokolliert).
+def parse_halfrow_lines(text: str) -> tuple[str | None, dict]:
+    import re
+    run_utc, out = None, {}
+    for line in text.splitlines():
+        if "[halfrow_probe]" not in line:
+            continue
+        kv = dict(re.findall(r"(\w+)=(\S+)", line))
+        if "run_utc" in kv:
+            run_utc = kv["run_utc"]
+        elif "ticker" in kv:
+            out[kv["ticker"]] = kv
+    return run_utc, out
+
+
+def nachweis(log_dir, log_path=LOG_FILE, fetch=fetch_evening, rsi_fn=_rsi_pandas_ta) -> dict:
+    import score_check as sc
+    rows = []
+    with open(log_path, encoding="utf-8") as fh:
+        for line in fh:
+            try:
+                rows.append(json.loads(line))
+            except ValueError:
+                continue
+    by_ts: dict = {}
+    for r in rows:
+        if r.get("run_phase") == "postclose" and r.get("ticker"):
+            by_ts.setdefault(r["run_ts"], []).append(r)
+    res = {"abende": [], "gesamt": {}}
+    all_rows = []
+    for f in sorted(pathlib.Path(log_dir).glob("*.txt")):
+        run_utc, info = parse_halfrow_lines(f.read_text(encoding="utf-8"))
+        if not run_utc:
+            continue
+        ru = datetime.fromisoformat(run_utc)
+        match = [ts for ts in by_ts
+                 if abs((datetime.fromisoformat(ts.replace("Z", "+00:00")) - ru).total_seconds()) < 900]
+        if not match:
+            res["abende"].append({"lauf": f.stem, "fehler": "kein passender Log-Abend"})
+            continue
+        ts = match[0]
+        ev_rows = by_ts[ts]
+        d = sc.evening_day(ts)
+        try:
+            data, spx = fetch([r["ticker"] for r in ev_rows], d)
+        except Exception as exc:  # noqa: BLE001
+            if _rate(exc):
+                raise RateLimited(str(exc)) from exc
+            res["abende"].append({"lauf": f.stem, "D": d.isoformat(), "fehler": type(exc).__name__})
+            continue
+        n_half, out_rows, nicht = 0, [], []
+        for r in ev_rows:
+            got = data.get(r["ticker"])
+            kv = info.get(r["ticker"])
+            if not got or kv is None:
+                continue
+            n_half += 1
+            closes, opens, vols = (list(x) for x in got)
+            o, c, v = (_f(kv.get("regularMarketOpen")), _f(kv.get("regularMarketPrice")),
+                       _f(kv.get("row_volume")))
+            if (kv.get("regularMarketTime_et_date") != d.isoformat() or o is None or c is None):
+                nicht.append(r["ticker"])
+                continue
+            fin_final = sc.final_inputs(closes, opens, vols, spx, rsi_fn)
+            closes[-1], opens[-1] = c, o
+            if v is not None:
+                vols[-1] = v
+            fin_fill = sc.final_inputs(closes, opens, vols, spx, rsi_fn)
+            e_final = sc.evaluate_row(r, fin_final)
+            e_fill = sc.evaluate_row(r, fin_fill)
+            diff = round(e_fill["score_neu"] - e_final["score_neu"], 2)
+            of, cf = _f(got[1][-1]), _f(got[0][-1])
+            row_out = {"ticker": r["ticker"], "diff": diff,
+                       "open_abw_pct": round((o / of - 1) * 100, 3) if of else None,
+                       "close_abw_pct": round((c / cf - 1) * 100, 3) if cf else None,
+                       "vol_diff_pct": (round((vols[-1] / got[2][-1] - 1) * 100, 2)
+                                        if _f(got[2][-1]) else None)}
+            if abs(diff) >= 0.5:
+                # Aufschlüsselung (nur Eingaben/Kurse bis D, kein Ergebnisfeld)
+                row_out["detail"] = {
+                    "open_info": o, "open_final": _f(got[1][-1]),
+                    "close_info": c, "close_final": _f(got[0][-1]),
+                    "close_vortag": _f(got[0][-2]),
+                    "gap_fill": fin_fill["gap_pts"], "gap_final": fin_final["gap_pts"],
+                    "rs_fill": sc.rs_pts(fin_fill["rs"]), "rs_final": sc.rs_pts(fin_final["rs"]),
+                    "rvol_fill": fin_fill["rvol"], "rvol_final": fin_final["rvol"],
+                    "late_fill": e_fill["late_neu"], "late_final": e_final["late_neu"],
+                }
+            out_rows.append(row_out)
+        diffs = [x["diff"] for x in out_rows]
+        ev = {"lauf": f.stem, "D": d.isoformat(), "halbzeilen_top10": n_half,
+              "nicht_fuellbar": nicht, "verglichen": len(out_rows),
+              "ab_05": sum(1 for x in diffs if abs(x) >= 0.5),
+              "ab_005": sum(1 for x in diffs if abs(x) >= 0.05),
+              "max_abs": max((abs(x) for x in diffs), default=0.0),
+              "zeilen": out_rows}
+        res["abende"].append(ev)
+        all_rows.extend(out_rows)
+    diffs = [x["diff"] for x in all_rows]
+    def _n(key, lim):
+        return sum(1 for x in all_rows if x.get(key) is not None and abs(x[key]) > lim)
+    res["abweichung_quelle"] = {
+        "open_ueber_0_1pct": _n("open_abw_pct", 0.1), "open_ueber_1pct": _n("open_abw_pct", 1.0),
+        "close_ueber_0_1pct": _n("close_abw_pct", 0.1),
+        "volumen_ueber_1pct": _n("vol_diff_pct", 1.0), "volumen_ueber_5pct": _n("vol_diff_pct", 5.0)}
+    res["gesamt"] = {"verglichen": len(diffs), "ab_05": sum(1 for x in diffs if abs(x) >= 0.5),
+                     "ab_005": sum(1 for x in diffs if abs(x) >= 0.05),
+                     "max_abs": max((abs(x) for x in diffs), default=0.0),
+                     "bestanden": bool(diffs) and all(abs(x) < 0.5 for x in diffs)}
+    return res
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="Wegwerf-Probe 1: Halbzeile → Score")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--nachweis-dir", default=None)
     a = ap.parse_args(argv)
+    if a.nachweis_dir:
+        try:
+            res = nachweis(a.nachweis_dir)
+        except RateLimited as exc:
+            print(f"[fixb_nachweis_meta] ABBRUCH: Rate-Limit — kein Retry ({str(exc)[:120]})")
+            return 3
+        for ev in res["abende"]:
+            print("[fixb_nachweis_abend] " + json.dumps(
+                {k: v for k, v in ev.items() if k != "zeilen"}, ensure_ascii=False))
+            for z in ev.get("zeilen") or []:
+                if abs(z["diff"]) >= 0.05:
+                    print("[fixb_nachweis_rest] " + json.dumps({"D": ev.get("D"), **z},
+                                                               ensure_ascii=False))
+        print("[fixb_nachweis_gesamt] " + json.dumps(res["gesamt"], ensure_ascii=False))
+        print("[fixb_nachweis_quelle] " + json.dumps(res.get("abweichung_quelle"), ensure_ascii=False))
+        out = pathlib.Path(a.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(res, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        return 0
     if datetime.now(timezone.utc).astimezone(ET).date() > PROBE_END_ET:
         print("[halbzeile_probe_meta] no-op: Probe-Ende überschritten")
         return 0

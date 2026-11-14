@@ -2555,6 +2555,13 @@ S10_OBSERVED_FIELDS = frozenset({
     # der Nacht vor der Eröffnung von Tag 1); Abendläufe: Feld fehlt → nur
     # OBSERVED, KEIN MUSS/LAG-Check. Schema bleibt v4 (additiv).
     "nacht_lauf_et",
+    # Fix B (14.11.2026, forward-only): Herkunft der letzten Tageszeile im
+    # Postclose ("vollstaendig" / "aus_info_gefuellt"; "vortag_rueckfall"
+    # entsteht nicht, weil der Guard solche Einträge verwirft) und von ^GSPC
+    # ("vollstaendig" / "aus_info_gefuellt" / "unvollstaendig_wie_bisher").
+    # Nur OBSERVED, KEIN MUSS/LAG-Check, kein Score-/Filter-Einfluss.
+    "letzte_zeile",
+    "spx_letzte_zeile",
     # Hypothese-A-Vorbau (05.07.2026, Stufe A — Live-Vorwärts-Erhebung):
     # 5-Trading-Day-Past-Return VOR Entry, aus yfinance-Adj-Close beidseitig
     # (Split-Konsistenz, Reverse-Splits bei Squeeze-Small-Caps häufig).

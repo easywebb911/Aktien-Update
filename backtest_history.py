@@ -1395,6 +1395,10 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
     existing_keys = {(e.get("ticker"), e.get("date")) for e in history}
     # Vintage-Guard per-entry Bar-Datums-Tally (gesammelt, EIN Log nach Loop).
     _vg_skip_prior: list[tuple[str, str]] = []
+    # Fix B (14.11.2026): Einträge, deren letzte Tageszeile im Postclose weder
+    # vollständig noch aus .info füllbar war (Rückfall auf den Vortag) — eigener
+    # Grund im vintage_guard_log (Easy-Entscheid 1A).
+    _vg_skip_unfillable: list[tuple[str, str]] = []
     _vg_missing: list[str] = []
     # Agent-Signals einmalig laden (pro-Ticker-Lookup für perfect_storm_mult).
     try:
@@ -1521,7 +1525,13 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         _e_act, _e_reason = _vintage_gate_decision(
             report_date, s.get("bar_date"), now_et)
         if _e_act == "skip":
-            _vg_skip_prior.append((s["ticker"], str(s.get("bar_date"))))
+            # Vertrag: Zeit-Skips (pre_open/before_close/after_window) fängt das
+            # Run-Level-Gate VOR dieser Schleife ab — hier kommt nur
+            # holiday_or_prior_bar an; Fix B unterscheidet davon den Rückfall.
+            if s.get("letzte_zeile") == "vortag_rueckfall":
+                _vg_skip_unfillable.append((s["ticker"], str(s.get("bar_date"))))
+            else:
+                _vg_skip_prior.append((s["ticker"], str(s.get("bar_date"))))
             continue
         if _e_reason == "missing_bar":
             _vg_missing.append(s["ticker"])
@@ -1615,6 +1625,12 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         # (byte-gleich wie vorher).
         if _rd is not None and now_et.date() != _rd:
             entry["nacht_lauf_et"] = now_et.isoformat(timespec="seconds")
+        # Fix B (14.11.2026, forward-only, S10_OBSERVED, kein Score-/Filter-
+        # Einfluss): Herkunft der letzten Tageszeile des Tickers und von ^GSPC.
+        if s.get("letzte_zeile") is not None:
+            entry["letzte_zeile"] = s.get("letzte_zeile")
+        if s.get("spx_letzte_zeile") is not None:
+            entry["spx_letzte_zeile"] = s.get("spx_letzte_zeile")
         history.append(entry)
         n_added += 1
 
@@ -1715,6 +1731,12 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
     if _vg_missing:
         _log_vintage_skip(report_date, None, now_et,
                           "missing_bar", len(_vg_missing))
+    if _vg_skip_unfillable:
+        _log_vintage_skip(report_date, _vg_skip_unfillable[0][1], now_et,
+                          "zeile_nicht_fuellbar", len(_vg_skip_unfillable))
+        log.warning("Fix B: %d Backtest-Einträge entfallen — letzte Tageszeile "
+                    "nicht füllbar (%s): %s", len(_vg_skip_unfillable), report_date,
+                    ", ".join(t for t, _ in _vg_skip_unfillable))
 
     history = _prune_backtest_history(history)
     # Stabil sortieren: neueste Einträge zuletzt → Git-Diff zeigt nur den Append

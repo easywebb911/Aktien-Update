@@ -226,7 +226,16 @@ def _build_entry(stock: dict, run_ts: datetime,
             "finra_si_trend":        _normalize_si_trend(finra.get("trend")),
             "finra_combo_active":    _finra_combo_active(stock),
             "finra_bonus_pts":       int(_coerce_float(stock.get("finra_bonus_pts"), 0) or 0),
+            # Fix B / Wächter (14.11.2026, additiv in v2): Eingaben der
+            # relativen Tagesbewegung (score(): change − spx_daily_perf), damit
+            # der Score-Abgleich im Wahrheits-Abgleich sie nachrechnen kann.
+            "change":                _coerce_float(stock.get("change")),
+            "spx_daily_perf":        _coerce_float(stock.get("spx_daily_perf")),
         },
+        # Fix B (14.11.2026, additiv in v2): Herkunft der letzten Tageszeile
+        # im Kurs-Batch (vollstaendig / aus_info_gefuellt / vortag_rueckfall;
+        # None außerhalb des Postclose).
+        "letzte_zeile": stock.get("letzte_zeile"),
         "trading_session_phase": _session_phase(run_ts),
     }
 

@@ -112,7 +112,8 @@ def test_root_source_no_bare_float_iloc_on_close():
     würde einen naiven String-Scan über den ganzen Block fälschlich
     triggern.
     """
-    seg = src_gr[src_gr.find('        try:\n            _df = hist_batch if len(tickers) == 1'):
+    # Fix B (14.11.2026): der Block liest über _df_for (reparierte letzte Zeile).
+    seg = src_gr[src_gr.find('        try:\n            _df = _df_for(ticker)'):
                  src_gr.find('# Tages-``change``-Fallback')]
     assert seg, "Root-Block (Code-Teil) nicht gefunden — Struktur geändert?"
     assert '_finite_cell(_df["Close"]' in seg
