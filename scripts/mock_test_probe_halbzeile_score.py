@@ -90,7 +90,16 @@ def test_evaluate():
     ev2 = pr.evaluate_row(row2, fin2)
     check("Halbzeile: Gap +5 → Δ > 0", ev2["d_gap"] == 5.0 and ev2["delta"] > 0, ev2)
     s = pr.summarize([ev, ev2])
-    check("Zusammenfassung zählt geänderte Zeilen", s["geaendert"] == 1 and s["zeilen"] == 2, s)
+    check("Zusammenfassung zählt geänderte Zeilen in beiden Zählweisen",
+          s["geaendert_ab_005"] == 1 and s["geaendert_ab_05"] == 1 and s["zeilen"] == 2, s)
+    check("Halbzeile je Zeile: change_2d gespeichert → voll, leer+berechenbar → halb",
+          ev["art"] == "voll" and ev2["art"] == "halb", (ev["art"], ev2["art"]))
+    ev3 = pr.evaluate_row(dict(row, drivers_raw=dict(row["drivers_raw"], change_2d=None)),
+                          dict(fin, change_2d=None))
+    check("leer in beiden → unklar", ev3["art"] == "unklar", ev3["art"])
+    small = [dict(ev, delta=0.2), dict(ev, delta=0.6)]
+    sm = pr.summarize(small)
+    check("0,2 zählt nur fein, 0,6 in beiden", sm["geaendert_ab_005"] == 2 and sm["geaendert_ab_05"] == 1, sm)
 
 
 def test_run_and_control():
@@ -111,11 +120,19 @@ def test_run_and_control():
         p.write_text("".join(json.dumps(r) + "\n" for r in voll + halb + [
             {"run_ts": "x", "run_phase": "premarket", "ticker": "Z"}]), encoding="utf-8")
         res = pr.run(log_path=p, fetch=fetch, rsi_fn=rsi)
-    arts = {a["D"]: a["art"] for a in res["abende"]}
-    check("D aus ET-Datum: 03:47 UTC = 22:47 ET 09.11., 01:28 UTC = 20:28 ET 10.11.",
-          arts == {"2026-11-09": "voll", "2026-11-10": "halb"}, arts)
-    check("Premarket ignoriert", all(a["art"] in ("voll", "halb") for a in res["abende"]))
+    arts = {a["D"]: (a["zeilen_voll"], a["zeilen_halb"]) for a in res["abende"]}
+    check("D aus ET-Datum, Halbzeile je Zeile gezählt",
+          arts == {"2026-11-09": (2, 0), "2026-11-10": (0, 2)}, arts)
+    check("Premarket ignoriert", len(res["abende"]) == 2)
     check("Kontrolle bestanden (voll ~0)", res["kontrolle"]["bestanden"], res["kontrolle"])
+    check("Kontrolle: Kriterium im Ergebnis festgeschrieben",
+          "geaendert_ab_05" in res["kontrolle"]["kriterium"])
+    fw = res["freeze_wirkung"]
+    check("Freeze-Wirkung: Prädiktor/Population gezählt, Top-10 nicht rekonstruierbar",
+          fw["praediktor_setup_edge_conviction"]["halbzeilen"] == 2
+          and "nicht rekonstruierbar" in fw["top10_zugehoerigkeit_uebrige"], fw)
+    check("Kontroll-Kriterium vorab im Skript: 10 % / ab 0,5",
+          pr.CONTROL_MAX_SHARE == 0.10 and pr.CONTROL_TOL == 0.5)
     check("Abruf nur bis D (Datum = D)", calls == [date(2026, 11, 9), date(2026, 11, 10)], calls)
     src = (ROOT / "scripts" / "probe_halbzeile_score.py").read_text(encoding="utf-8")
     check("Blindheit: kein Ergebnisfeld/-datei im Quelltext",

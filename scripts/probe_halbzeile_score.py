@@ -19,9 +19,11 @@ Agent-Boost) in einen nachgerechneten ``score_total`` überführt. Die übrigen
 Score-Teile (Short Float, DTC, Momentum, Float, Turnover, Kombi-Bonus,
 FINRA-Bonus, Squeeze-Malus, Trend-Bonus, Boost-Faktor) bleiben wie gespeichert.
 
-KONTROLLE: Abende ohne Halbzeile (change_2d gespeichert) müssen ~0 Differenz
-ergeben. Tun sie das nicht, misst die Probe nicht, was sie soll → Verdikt
-„Kontrolle verfehlt“ (melden statt Ergebnis deuten).
+KONTROLLE: Zeilen ohne Halbzeile (change_2d gespeichert) müssen ~0 Differenz
+ergeben (Kriterium siehe CONTROL_*; vorab festgeschrieben). Tun sie das nicht,
+misst die Probe nicht, was sie soll → „Kontrolle verfehlt“ (melden statt
+deuten). KORREKTUR 14.11.2026: Halbzeile je ZEILE statt je Abend (gemischte
+Abende wie 13.11.), „Score geändert“ in beiden Zählweisen (ab 0,05 / ab 0,5).
 
 BLINDHEIT: liest NUR score_inflation_log.jsonl (Eingaben + Scores) und Kurse
 bis einschließlich D. Kein Ergebnisfeld (return_*, max_gain*, outcome_path,
@@ -50,8 +52,21 @@ import config  # noqa: E402
 ET = ZoneInfo("America/New_York")
 PROBE_END_ET = date(2026, 12, 12)
 LOG_FILE = ROOT / "score_inflation_log.jsonl"
-SCORE_TOL = 0.05        # |Δ score_total| unterhalb gilt als „unverändert“
-CONTROL_MAX_SHARE = 0.10  # Kontrolle: höchstens 10 % Zeilen mit Δ ≠ 0
+# Zwei Zählweisen „Score geändert“ (Easy-Entscheid 14.11.2026, beide ausgewiesen,
+# damit die Schwelle nicht nachträglich gewählt ist):
+SCORE_TOL_FEIN = 0.05   # |Δ score_total| ab 0,05 Punkten
+SCORE_TOL_GROB = 0.5    # |Δ score_total| ab 0,5 Punkten
+# KONTROLLE — VORAB FESTGESCHRIEBEN (Korrektur 14.11.2026, vor dem zweiten Lauf):
+# vollständige Zeilen (change_2d im Lauf gespeichert) bestehen, wenn
+#   (a) höchstens 10 % von ihnen |Δ| ≥ 0,5 haben UND
+#   (b) mindestens 90 % vom Modell exakt reproduziert werden.
+# Grund für 0,5 statt 0,05 in (a): nachgereichtes Volumen verschiebt rvol und
+# damit den Score um Bruchteile eines Punkts (erster Lauf 43576254047: alle
+# vollständigen Abende |Δ| ≤ 0,24). Diese Begründung stammt aus dem ersten
+# Lauf und wird im Bericht offen genannt. Die 0,05-Zählung der Kontrolle wird
+# zusätzlich ausgewiesen.
+CONTROL_MAX_SHARE = 0.10
+CONTROL_TOL = SCORE_TOL_GROB
 
 
 class RateLimited(Exception):
@@ -160,6 +175,18 @@ def final_inputs(closes, opens, volumes, spx_closes, rsi_fn) -> dict:
     return out
 
 
+def row_kind(row: dict, fin: dict) -> str:
+    """Halbzeile JE ZEILE (Korrektur 14.11.2026). Im Lauf bleibt ``change_2d``
+    genau dann ungesetzt, wenn der letzte Batch-Schluss nicht endlich ist
+    (``generate_report``: ``_finite_cell(Close, -1)``) — das ist die Halbzeile.
+    'voll'  = change_2d im Lauf gespeichert;
+    'halb'  = im Lauf leer, aus der endgültigen Tageszeile berechenbar;
+    'unklar'= in beiden leer (zu kurze Historie) → weder Probe noch Kontrolle."""
+    if _f((row.get("drivers_raw") or {}).get("change_2d")) is not None:
+        return "voll"
+    return "halb" if fin.get("change_2d") is not None else "unklar"
+
+
 def evaluate_row(row: dict, fin: dict) -> dict:
     """Δ je Top-10-Zeile: gespeichert (Lauf) vs. nachgerechnet (endgültig)."""
     sub, drv = row.get("sub_scores") or {}, row.get("drivers_raw") or {}
@@ -176,7 +203,7 @@ def evaluate_row(row: dict, fin: dict) -> dict:
     t_model_old = pipeline_total(*args[:3], l_old, args[4], 0.0, no_short)
     t_new = pipeline_total(*args[:3], l_new, args[4], d_raw, no_short)
     return {
-        "ticker": row["ticker"], "score_total": row["score_total"],
+        "ticker": row["ticker"], "score_total": row["score_total"], "art": row_kind(row, fin),
         "modell_reproduziert": abs(t_model_old - float(row["score_total"])) <= 0.06,
         "score_neu": t_new, "delta": round(t_new - t_model_old, 2),
         "d_gap": g_new - g_old, "d_rs": r_new - r_old, "d_rv": round(v_new - v_old, 3),
@@ -189,10 +216,11 @@ def evaluate_row(row: dict, fin: dict) -> dict:
 def summarize(rows: list[dict]) -> dict:
     """Zählungen je Abend bzw. gesamt (nur Scores, keine Ergebnisse)."""
     d = [r["delta"] for r in rows]
-    changed = [x for x in d if abs(x) >= SCORE_TOL]
     up70 = sum(1 for r in rows if r["score_total"] < 70 <= r["score_total"] + r["delta"])
     dn70 = sum(1 for r in rows if r["score_total"] >= 70 > r["score_total"] + r["delta"])
-    out = {"zeilen": len(rows), "geaendert": len(changed),
+    out = {"zeilen": len(rows),
+           "geaendert_ab_005": sum(1 for x in d if abs(x) >= SCORE_TOL_FEIN),
+           "geaendert_ab_05": sum(1 for x in d if abs(x) >= SCORE_TOL_GROB),
            "ueber_70": up70, "unter_70": dn70,
            "late_neu_an": sum(1 for r in rows if r["late_neu"] and not r["late_alt"]),
            "late_neu_aus": sum(1 for r in rows if r["late_alt"] and not r["late_neu"]),
@@ -214,7 +242,8 @@ def rank_changes(rows: list[dict]) -> int:
 
 
 def evenings(log_rows: list[dict]) -> list[tuple]:
-    """Postclose-Abende: (run_ts, D, Art 'halb'/'voll', rows)."""
+    """Postclose-Abende: (run_ts, D, rows). Halbzeile wird JE ZEILE bestimmt
+    (``row_kind``), nicht mehr je Abend."""
     by: dict = {}
     for r in log_rows:
         if r.get("run_phase") == "postclose" and r.get("ticker"):
@@ -227,9 +256,7 @@ def evenings(log_rows: list[dict]) -> list[tuple]:
             d -= timedelta(days=1)
             while d.weekday() >= 5 or d.isoformat() in config.US_MARKET_HOLIDAYS:
                 d -= timedelta(days=1)
-        art = "halb" if all((r.get("drivers_raw") or {}).get("change_2d") is None
-                            for r in rows) else "voll"
-        out.append((ts, d, art, rows))
+        out.append((ts, d, rows))
     return out
 
 
@@ -283,15 +310,15 @@ def run(log_path=LOG_FILE, fetch=fetch_evening, rsi_fn=_rsi_pandas_ta) -> dict:
             except ValueError:
                 continue
     res = {"abende": [], "gesamt": {}}
-    groups = {"halb": [], "voll": []}
-    for ts, d, art, ev_rows in evenings(rows):
+    groups = {"halb": [], "voll": [], "unklar": []}
+    for ts, d, ev_rows in evenings(rows):
         tickers = [r["ticker"] for r in ev_rows]
         try:
             data, spx = fetch(tickers, d)
         except Exception as exc:  # noqa: BLE001
             if _rate(exc):
                 raise RateLimited(str(exc)) from exc
-            res["abende"].append({"run_ts": ts, "D": d.isoformat(), "art": art,
+            res["abende"].append({"run_ts": ts, "D": d.isoformat(),
                                   "fehler": f"{type(exc).__name__}"})
             continue
         evald, fehlend = [], []
@@ -302,22 +329,58 @@ def run(log_path=LOG_FILE, fetch=fetch_evening, rsi_fn=_rsi_pandas_ta) -> dict:
                 continue
             evald.append(evaluate_row(r, final_inputs(*got, spx, rsi_fn)))
         summ = summarize(evald)
+        n_halb = sum(1 for e in evald if e["art"] == "halb")
         summ.update(run_ts=ts, run_et=datetime.fromisoformat(ts.replace("Z", "+00:00"))
-                    .astimezone(ET).strftime("%m-%d %H:%M"), D=d.isoformat(), art=art,
+                    .astimezone(ET).strftime("%m-%d %H:%M"), D=d.isoformat(),
+                    zeilen_halb=n_halb,
+                    zeilen_voll=sum(1 for e in evald if e["art"] == "voll"),
+                    zeilen_unklar=sum(1 for e in evald if e["art"] == "unklar"),
+                    halbzeilen_abend=n_halb > 0,
+                    nur_halbzeilen=summarize([e for e in evald if e["art"] == "halb"]),
                     rang_wechsel=rank_changes(evald), ohne_kurse=fehlend, zeilen_detail=evald)
         res["abende"].append(summ)
-        groups[art].extend(evald)
+        for e in evald:
+            groups[e["art"]].append(e)
     for art, rr in groups.items():
         res["gesamt"][art] = summarize(rr)
     ctl = res["gesamt"].get("voll", {})
     n = ctl.get("zeilen", 0)
     res["kontrolle"] = {
-        "zeilen": n, "geaendert": ctl.get("geaendert"),
+        "zeilen": n, "geaendert_ab_005": ctl.get("geaendert_ab_005"),
+        "geaendert_ab_05": ctl.get("geaendert_ab_05"),
         "modell_reproduziert": ctl.get("modell_reproduziert"),
-        "bestanden": bool(n) and ctl.get("geaendert", 0) <= CONTROL_MAX_SHARE * n
+        "kriterium": f"geaendert_ab_05 <= {CONTROL_MAX_SHARE:.0%} UND modell_reproduziert >= "
+                     f"{1 - CONTROL_MAX_SHARE:.0%} der vollständigen Zeilen",
+        "bestanden": bool(n) and sum(1 for e in groups["voll"] if abs(e["delta"]) >= CONTROL_TOL)
+                     <= CONTROL_MAX_SHARE * n
                      and ctl.get("modell_reproduziert", 0) >= (1 - CONTROL_MAX_SHARE) * n,
     }
+    res["freeze_wirkung"] = freeze_impact(res["abende"])
     return res
+
+
+def freeze_impact(abende: list[dict]) -> dict:
+    """Wirkung auf die laufenden Freezes — nur Zählungen aus Scores, keine
+    Ergebnisse. Drei Arten, wie ein Freeze den Score nutzt:
+      * Score als Prädiktor (Setup-Edge, Conviction): jede Halbzeile mit Δ.
+      * Score ≥ 70 als Population (Exit-B.1-Nachfolger): Wechsel über/unter 70.
+      * Top-10-Zugehörigkeit (alle übrigen): NICHT REKONSTRUIERBAR — der Log
+        enthält nur die Top-10 des Laufs, nicht den Kandidaten-Pool; wer mit
+        endgültigen Daten statt der Halbzeile in die Top-10 gekommen wäre, ist
+        unbekannt. Gemessen ist nur der Rangwechsel INNERHALB der Top-10."""
+    halb = [e for a in abende for e in a.get("zeilen_detail", []) if e["art"] == "halb"]
+    return {
+        "praediktor_setup_edge_conviction": {
+            "halbzeilen": len(halb),
+            "score_geaendert_ab_005": sum(1 for e in halb if abs(e["delta"]) >= SCORE_TOL_FEIN),
+            "score_geaendert_ab_05": sum(1 for e in halb if abs(e["delta"]) >= SCORE_TOL_GROB)},
+        "population_score_ab_70_exit_b1": {
+            "neu_ueber_70": sum(1 for e in halb
+                                if e["score_total"] < 70 <= e["score_total"] + e["delta"]),
+            "neu_unter_70": sum(1 for e in halb
+                                if e["score_total"] >= 70 > e["score_total"] + e["delta"])},
+        "top10_zugehoerigkeit_uebrige": "nicht rekonstruierbar (nur Rangwechsel innerhalb der Top-10 gemessen)",
+    }
 
 
 def main(argv=None) -> int:
@@ -337,6 +400,7 @@ def main(argv=None) -> int:
         print("[halbzeile_probe_abend] " + json.dumps(
             {k: v for k, v in a_.items() if k != "zeilen_detail"}, ensure_ascii=False))
     print("[halbzeile_probe_gesamt] " + json.dumps(res["gesamt"], ensure_ascii=False))
+    print("[halbzeile_probe_freeze] " + json.dumps(res["freeze_wirkung"], ensure_ascii=False))
     out = pathlib.Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(res, ensure_ascii=False, indent=1, default=str) + "\n", encoding="utf-8")

@@ -3390,6 +3390,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 14.11.2026 — Probe 1 korrigiert (1 PR, Self-Merge nach Easy-Freigabe)
+
+- `#700` (Branch `claude/probe1-korrektur-5dlyrd`, Branch-Commit `03b424c3`, kein Merge-Hash —
+  Regel a). Wegwerf-Probe `scripts/probe_halbzeile_score.py`: Halbzeile je Zeile (`row_kind`),
+  „Score geändert“ ab 0,05 und ab 0,5, Kontrolle vorab festgeschrieben (≤ 10 % der vollständigen
+  Zeilen |Δ| ≥ 0,5 UND ≥ 90 % reproduziert), Freeze-Wirkung (Prädiktor / Population ≥ 70 /
+  Top-10-Zugehörigkeit nicht rekonstruierbar). Blindheit unverändert. open_item
+  `halbzeilen-score-wirkung-probe` ergänzt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#699`,
+  höchste in Block 1 erwähnte PR = `#700` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 14.11.2026 — Schritt 2: nan_pct, entry_price im Wahrheits-Abgleich, S17-Plausibilität (1 PR, Manual-Merge)
 
 - `#699` (Branch `claude/schritt2-nanpct-s16-s17-5dlyrd`, Branch-Commit `b639ce72`, kein Merge-Hash —
