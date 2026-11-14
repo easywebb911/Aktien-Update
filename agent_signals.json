@@ -1,10 +1,10 @@
 {
-  "updated": "2026-11-14T18:09:03.232769+01:00",
+  "updated": "2026-11-14T22:30:54.310475+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 11.4,
+    "elapsed_s": 21.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 8.222450376454484
     },
     "AQST": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 10.0% + SEC Form 4",
+      "score": 28,
+      "confidence": 70,
+      "drivers": "Spanne 10.0% + News-KI 8/30: Conference presentations and earnings updates are routine corporate events with no indicators of short squeeze catalysts + SEC Form 4",
       "price": 3.91,
       "chg_pct": 0.0,
       "rvol_4d": 1.34,
@@ -46,7 +46,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.13350785340314136,
@@ -168,7 +168,7 @@
     "SEAT": {
       "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 22.8% + News-KI 8/30: Analyst caution and fair value cuts suggest weak sentiment with limited short interest catalysts; debt concerns and mode + FINRA Short-Vol 59%",
+      "drivers": "Spanne 22.8% + News-KI 8/30: Analyst caution and fair value cuts suggest weak investor sentiment with limited short squeeze potential despite positiv + FINRA Short-Vol 59%",
       "price": 1.39,
       "chg_pct": -0.0,
       "rvol_4d": 0.78,
@@ -187,9 +187,9 @@
       "uoa_cp_ratio": null
     },
     "TNDM": {
-      "score": 50,
+      "score": 47,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 9.1% + News: earnings beat + UOA Call/Put 7.6×",
+      "drivers": "Volumen 1.7× + Spanne 9.1% + News-KI 12/30: Positive FDA/regulatory news drives stock up, but established diabetes care company with strong fundamentals and institu + UOA Call/Put 7.6×",
       "price": 20.07,
       "chg_pct": -0.0,
       "rvol_4d": 1.73,
@@ -201,13 +201,13 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.6×"
       ],
       "uoa_atm_ratio": 0.08582834331337326,
-      "uoa_cp_ratio": 7.563025210084033
+      "uoa_cp_ratio": 7.584033613445378
     },
     "UNIT": {
       "score": 35,
@@ -231,9 +231,9 @@
       "uoa_cp_ratio": 1.247191011235955
     },
     "VEEA": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 12.1% + News: merger",
+      "drivers": "Spanne 12.1% + News-KI 12/30: Positive business developments but lack of short interest catalyst indicators, debt concerns, or significant stock momen",
       "price": 4.49,
       "chg_pct": -0.0,
       "rvol_4d": 0.59,
@@ -245,7 +245,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -275,9 +275,9 @@
       "uoa_cp_ratio": 4.326666666666667
     },
     "WOLF": {
-      "score": 18,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 9.2% + News-KI 8/30: Earnings focus and sector underperformance suggest weakness rather than squeeze potential; no significant short interest",
+      "drivers": "Spanne 9.2% + News: catalyst",
       "price": 24.83,
       "chg_pct": -0.0,
       "rvol_4d": 0.75,
@@ -288,8 +288,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.09068677399633177,
