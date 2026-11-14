@@ -4080,8 +4080,8 @@ S2/S3/S6/S8/S14 laufen in BEIDEN Pfaden (Daily-Run + ki_agent-Tick), alle
 | S12 | crit | Daily | kein echter postclose-Run (``run_phase==tsp=='postclose'``) seit > ``HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE`` (2) Werktagen. **crit = NUR-REPORTING** (blockiert NICHT — S9-Exit-Pfad filtert strikt id=="S9") |
 | S13 | warn | Daily | **Doppel-Baustein.** (a) **Daten-Reife-Gate** (#297): laufender Status der 3 30.06.-Auswertungen (Setup-Edge ≥70/schema_v4, Entry-AUC, CTB-Edge) je vorhanden/reif_5d/reif_10d — Status-Zeilen via log.info, kein Fail. (b) **Konsistenz-Wächter** (Projekt C, #298): Soll-Ist-Drift je config-Konstante aus ``CONSISTENCY_EXPECTED_STATE`` — ein warn pro Drift |
 | S14 | warn | beide | ``last_successful_gist_pull`` in ``gist_pull_state.json`` ≤ ``HEALTH_CHECK_S14_MAX_AGE_HOURS`` (26) Stunden alt. **COMPOSITE-Liveness** — Detail-Text sagt „Gist-Pull seit N h nicht erfolgreich", NICHT „Token tot": altert sowohl bei totem ``GIST_TOKEN`` (Gist-Read scheitert über Zeit, Stille-Tod 02.06.) ALS AUCH bei mehrtägigem ki_agent-/daily-Cron-Drop. Marker NUR im HTTP-Gist-Erfolgszweig von ``pull_gist_data.py`` geschrieben (#310). Fehlende Datei / null → SKIP (analog S8). Beide Pfade: im ki_agent-Tick liest der Hook den nicht-aktualisierten alten Working-Tree-Marker → ~1 h Detektionslatenz statt ~1 Tag. **Body-Korruption** (HTTP-200 + kaputtes/leeres/truncated ``squeeze_data.json``) seit dem ``pull_gist_data._extract_data``-Body-Sanity-Gating (``body_ok``, positions-Key-Präsenz vor der ``or "{}"``-Maskierung) MIT erkannt → Marker NICHT gesetzt → S14 fängt es. Restkante (Folge-PR): Recovery-Umleitung bei Korruption (Schadens-Vermeidung statt nur Detektion). |
-| S15 | warn | Daily | Postclose des **letzten US-Handelstags vor dem heutigen ET-Tag** fehlt: keine Nicht-Bootstrap-Einträge mit dessen Datum in ``backtest_history.json`` (Feiertage über ``config.US_MARKET_HOLIDAYS``, wie S4). Nur wenn der Hook ``backtest_path`` übergibt (Daily-Run); Tag älter als der älteste Eintrag (90-Tage-Prune, alte Test-Daten) / Datei fehlt / kaputt → SKIP. Bewusst **warn**, nicht crit: zum Meldezeitpunkt ist der Tag nicht mehr sauber nachholbar (Berichtsdatum = heutiger ET-Tag) — es geht um ehrliche Sichtbarkeit; S12 bleibt der crit-Alarm für mehrtägige Ausfälle. Im OK-Digest als Hinweis-Zeile „🟡 S15: …“ (allgemeine Regel für aktive warns seit 07.11.2026, Titel bleibt OK). Anlass: Postclose 04.11.2026 (Cron-Wechsel #656) und 27.08.2026 (Lauf nach 00:00 ET). Seit 14.11.2026 zusätzlich: zeitbedingter Postclose-Verwurf (pre_open/before_close/after_window) im `vintage_guard_log.jsonl` der letzten 26 h → warn (Rückfall der Berichtsdatum-Falle). |
-| S16 | warn/crit | Daily | **Wahrheits-Abgleich** (08.11.2026): liest nur ``truth_check_log.jsonl`` (kein Netz). warn ab 1 Abweichungs-Zeile; crit ab ``HEALTH_CHECK_S16_CRIT_ROWS`` (3) in einem Lauf oder dieselbe Abweichung in 2 Läufen hintereinander; warn bei > 30 % unbekannt oder derselbe Ticker 5 geprüfte Läufe in Folge unbekannt; warn „läuft nicht“ ohne Log oder Lauf > 2 US-Handelstage alt. ``neu_adjustiert`` ist kein Fail. Details: Abschnitt „Wahrheits-Abgleich“ unten. |
+| S15 | warn | Daily | Postclose des **letzten US-Handelstags vor dem heutigen ET-Tag** fehlt: keine Nicht-Bootstrap-Einträge mit dessen Datum in ``backtest_history.json`` (Feiertage über ``config.US_MARKET_HOLIDAYS``, wie S4). Nur wenn der Hook ``backtest_path`` übergibt (Daily-Run); Tag älter als der älteste Eintrag (90-Tage-Prune, alte Test-Daten) / Datei fehlt / kaputt → SKIP. Bewusst **warn**, nicht crit: zum Meldezeitpunkt ist der Tag nicht mehr sauber nachholbar (Berichtsdatum = heutiger ET-Tag) — es geht um ehrliche Sichtbarkeit; S12 bleibt der crit-Alarm für mehrtägige Ausfälle. Im OK-Digest als Hinweis-Zeile „🟡 S15: …“ (allgemeine Regel für aktive warns seit 07.11.2026, Titel bleibt OK). Anlass: Postclose 04.11.2026 (Cron-Wechsel #656) und 27.08.2026 (Lauf nach 00:00 ET). Seit 14.11.2026 zusätzlich: zeitbedingter Postclose-Verwurf (pre_open/before_close/after_window) im `vintage_guard_log.jsonl` der letzten 26 h → warn (Rückfall der Berichtsdatum-Falle); ebenso entfallene Einträge mit Grund `zeile_nicht_fuellbar` (Fix B, eigener warn). |
+| S16 | warn/crit | Daily | **Wahrheits-Abgleich** (08.11.2026): liest nur ``truth_check_log.jsonl`` (kein Netz). warn ab 1 Abweichungs-Zeile; crit ab ``HEALTH_CHECK_S16_CRIT_ROWS`` (3) in einem Lauf oder dieselbe Abweichung in 2 Läufen hintereinander; warn bei > 30 % unbekannt oder derselbe Ticker 5 geprüfte Läufe in Folge unbekannt; warn „läuft nicht“ ohne Log oder Lauf > 2 US-Handelstage alt. ``neu_adjustiert`` ist kein Fail. Seit 14.11.2026 zusätzlich Score-Abgleich (Fix B): warn ab 1 Zeile |Δ| ≥ 0,5, crit ab 3 oder Wechsel um 70 mit |Δ| ≥ 0,5. Details: Abschnitt „Wahrheits-Abgleich“ unten. |
 | S17 | warn | Daily | **Rolling-Fenster abgeschnitten** (13.11.2026): vergleicht gereifte Zeilen in ``matured_backtest_export.jsonl`` mit der Neuberechnung aus ``outcome_path.jsonl`` (OHLC Tag 0–10). Abgeschnitten = ``max_gain_pct`` kleiner bzw. ``max_drawdown_pct`` weniger negativ als das volle Fenster (> 0,5 pp) UND passend (± 0,3 pp) zu einem kürzeren Fenster D..Tag k. warn nur ab ``ROLLING_WINDOW_FIX_FROM`` (Rückfall) oder bei Export-Zeilen mit ``rolling_window_n`` < 11; ältere Fälle nur als „Altbestand“-Zahl. **Nur Zählungen** (Blindheit Replikation), kein Netz. Nur mit Hook-Pfaden, sonst SKIP. **Seit 14.11.2026 zusätzlich (Schritt 2):** Export-Zeilen mit ``entry_price`` ≠ ``close_d`` aus ``outcome_path.jsonl`` (> ``TRUTH_CHECK_ENTRY_PRICE_TOL_PCT`` 0,02 %; ``close_d`` ist bereinigt — mit Split/Dividende im Fenster Tag 0–10 nur gezählt, eine Maßnahme nach Tag 10 kann als Preis-Fund erscheinen) und Zeilen mit Datum an einem Nicht-Handelstag (Wochenende, ``US_MARKET_HOLIDAYS``); eigenes warn nur für Einstiege ab ``TRUTH_CHECK_ENTRY_PRICE_FROM`` (05.11.2026), ältere als Altbestand (Stand 14.11.: 54 Preis-Abweichungen ohne Kapitalmaßnahme im Fenster, 0 Datums-Funde). |
 
 
@@ -4490,6 +4490,17 @@ jüngsten Wert als Hinweis-Zeile „🕳 Halbzeilen …“ — **kein Alarm, kei
 Gleichzeitigkeit: eigene concurrency-Gruppe, bewusst **nicht** die des
 Daily-Runs (GitHub verwirft in einer Gruppe einen wartenden Lauf).
 
+**Score-Abgleich (seit 14.11.2026, Fix B, Wächter aus Probe 1):** `scripts/score_check.py`, aus
+`truth_check.run` aufgerufen. Je Postclose-Abend mit Fix B (Zeilen tragen `letzte_zeile`), D ≤
+`last_settled_close_date`, je Abend einmal (State `score_abgleich_abende`), max. 5 Abende je Lauf:
+gespeicherter `score_total` jeder Top-10-Zeile gegen Nachrechnung mit endgültigen Kursen (Gap &
+Hold, RS vs. SPY, rvol, Kombi-Bonus, relative Tagesbewegung — nur bei gespeichertem `change`/
+`spx_daily_perf` —, Late-Runner über rsi14/change_2d; Kette Glättung → Trend → Late-Runner →
+Boost). Eigener Log-Block `score_abgleich` (zählt NICHT in die Feld-Abweichungen). **S16:** warn ab
+1 Zeile |Δ| ≥ 0,5; crit ab 3 Zeilen in einem Lauf ODER Wechsel über/unter 70 MIT |Δ| ≥ 0,5;
+Wechsel um 70 bei |Δ| < 0,5 nur Info; Modell reproduziert gespeicherte Scores nicht → warn.
+Blind: nur Eingaben/Scores und Kurse bis D.
+
 **Klasse „bekannt (geprüft)“ (seit 13.11.2026, #690):** `truth_check_known.json` listet geprüfte
 Abweichungen (datei, ticker, date, feld, gespeicherter Wert `alt`, Vergleichswert `vergleich`, Grund,
 Verweis, Entscheid-Datum). Ein Eintrag greift nur, wenn gespeicherter UND neu berechneter Wert innerhalb
@@ -4521,6 +4532,37 @@ ARCT, AMCX, BJDX, TTEC, INR, MNRO, CBRL).
 meldet dann nach 2 Handelstagen „läuft nicht“. Test:
 ``scripts/mock_test_truth_check.py``. Einlaufphase: open_items
 ``wahrheits-abgleich-einlaufphase``.
+
+## Halbzeile im Postclose (Fix B, seit 14.11.2026)
+
+**Befund:** im Postclose liefert der Kurs-Batch (yfinance) für die meisten Ticker eine halbe
+letzte Tageszeile (Volumen da, Open/Hoch/Tief/Schluss leer). Probe 1 (Lauf 43578382904):
+76 von 149 Halbzeilen-Zeilen mit Score-Abweichung ≥ 0,5 Pkt, 3–9 Rangwechsel je Abend.
+
+**Fix (EINE Stelle, `get_yfinance_batch`, nur Postclose):** je Ticker entscheidet
+`_apply_last_bar_repair` / `_last_bar_decision` die letzte Zeile, BEVOR ein Konsument sie liest:
+`vollstaendig` → unverändert; `aus_info_gefuellt` → nicht endliche Zellen aus dem bereits
+geladenen `.info` (`regularMarketOpen/DayHigh/DayLow/Price/Volume`), nur wenn
+`regularMarketTime` (ET) derselbe Handelstag ist und jeder Wert endlich (> 0); sonst
+`vortag_rueckfall` → Zeile verworfen, Bar-Datum ehrlich D−1, der Vintage-Guard verwirft den
+Backtest-Eintrag mit Grund `zeile_nicht_fuellbar` (S15-warn, Digest „🧩 N Einträge entfallen“),
+die Karte zeigt „Tageszeile heute unvollständig — Werte vom …“ (`_last_bar_note_row_html`).
+Alle Konsumenten lesen über `_df_for`: `_hist_stats` (rvol, rsi14, ma21/50/200, perf_20d → RS
+vs. SPY, cur_open/prev_close → Gap & Hold, price, hist_5d, close_5td_before_entry),
+change_2d/3d/5d (→ Late-Runner, Exit-Trigger), Squeeze-Detektor, rel_volume_yesterday,
+bar_date. `^GSPC` (RS vs. SPY, relative Tagesbewegung) über `_spx_close_with_repair` nach
+derselben Regel (nur Schluss; nicht füllbar → wie bisher + Log + Kennzeichen).
+**Volumen** aus `.info`/Batch ist zum Laufzeitpunkt vorläufig (Nacht-Probe: Nachtrag meist
+< 1 %, einzeln bis 17 %). Premarket/Intraday unverändert (Test + Golden). Nicht erfasst:
+Watchlist-Pool-Scan (eigener Download, Filter — Filter unverändert gelassen) und der
+Singleton-Fallback `get_yfinance_data`.
+
+**Kennzeichen (forward-only, S10_OBSERVED):** Backtest-Eintrag `letzte_zeile`
+(`vollstaendig` / `aus_info_gefuellt`), `spx_letzte_zeile`; `score_inflation_log` zusätzlich
+`drivers_raw.change`, `drivers_raw.spx_daily_perf`, `letzte_zeile` (additiv in v2). Keine
+Änderung an Score-Formeln/Gewichten/Schwellen/Filtern; gespeicherte Werte nicht umgeschrieben.
+Freeze-Naht = Merge-Datum PR #701 (Protokolleinträge in allen laufenden Blöcken). Test
+`scripts/mock_test_fix_b_halbzeile.py`.
 
 ## Endgültiger Schlusskurs für Einmal-Felder (seit 12.11.2026)
 
