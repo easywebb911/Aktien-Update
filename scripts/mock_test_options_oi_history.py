@@ -21,6 +21,9 @@ Verriegelt die harten Invarianten:
  10  ISOLATION: options_oi/shares_outstanding NICHT als Score-/Filter-Feature gelesen.
  11  KEIN PRUNE/CAP (Lehre #519): keine Alters-/Anzahl-/Größen-Begrenzung; künstliches
      Cap bricht den Test (Regress-Nachweis); Retention-Konstanten repo-weit abwesend.
+ 12  OI-STAND (Schritt 4, 14.11.2026): je Punkt oi_abgerufen_utc/_et + oi_stand
+     (vortag / nacht_aktualisiert / unklar), Grenzen 09:30 / 00:00 / 09:30 Folge-
+     handelstag (Wochenende, Feiertag), Sommer-/Winterzeit; Werte unverändert.
 
 Kategorie A: stdlib + jinja2 (Golden-Stub-Reuse), deterministisch, env-frei.
 """
@@ -107,7 +110,8 @@ def main() -> int:
     pt = h["TNXP"][0]
     _check("01 added == 1", n == 1)
     _check("01 Punkt-Struktur vollständig",
-           set(pt) == {"date", "expiry", "spot", "shares_outstanding", "calls", "puts"})
+           set(pt) == {"date", "expiry", "spot", "shares_outstanding", "calls", "puts",
+                       "oi_abgerufen_utc", "oi_abgerufen_et", "oi_stand"})
     _check("01 Netto-Delta-Größen da: strike/oi/iv + spot + shares + expiry",
            pt["expiry"] == "2026-08-15" and pt["spot"] == 4.47
            and pt["shares_outstanding"] == 12000000.0
@@ -292,6 +296,65 @@ def main() -> int:
            and "OPTIONS_OI_HISTORY_MAX_POINTS" not in GR_SRC)
 
     print()
+    # ── 12: OI-Stand-Kennzeichen (Schritt 4) ─────────────────────────────────
+    from datetime import datetime, timezone
+    _UTC = timezone.utc
+    st = gr._oi_stand
+    # Winterzeit (EST = UTC-5): D = Mo 16.11.2026
+    _check("12 21:58 UTC (16:58 ET) am Tag D -> vortag",
+           st("2026-11-16", datetime(2026, 11, 16, 21, 58, tzinfo=_UTC)) == "vortag")
+    _check("12 genau 09:30 ET am Tag D -> vortag",
+           st("2026-11-16", datetime(2026, 11, 16, 14, 30, tzinfo=_UTC)) == "vortag")
+    _check("12 09:29 ET am Tag D -> unklar",
+           st("2026-11-16", datetime(2026, 11, 16, 14, 29, tzinfo=_UTC)) == "unklar")
+    _check("12 23:59:59 ET am Tag D -> vortag",
+           st("2026-11-16", datetime(2026, 11, 17, 4, 59, 59, tzinfo=_UTC)) == "vortag")
+    _check("12 genau 00:00 ET Folgetag -> nacht_aktualisiert",
+           st("2026-11-16", datetime(2026, 11, 17, 5, 0, tzinfo=_UTC)) == "nacht_aktualisiert")
+    _check("12 09:29 ET Folgehandelstag -> nacht_aktualisiert",
+           st("2026-11-16", datetime(2026, 11, 17, 14, 29, tzinfo=_UTC)) == "nacht_aktualisiert")
+    _check("12 09:30 ET Folgehandelstag -> unklar",
+           st("2026-11-16", datetime(2026, 11, 17, 14, 30, tzinfo=_UTC)) == "unklar")
+    # Sommerzeit (EDT = UTC-4): D = Do 27.08.2026, Nachtlauf 01:28 ET
+    _check("12 Sommerzeit 01:28 ET Folgetag -> nacht_aktualisiert",
+           st("2026-08-27", datetime(2026, 8, 28, 5, 28, tzinfo=_UTC)) == "nacht_aktualisiert")
+    _check("12 Sommerzeit 20:28 ET am Tag D -> vortag",
+           st("2026-08-27", datetime(2026, 8, 28, 0, 28, tzinfo=_UTC)) == "vortag")
+    # Wochenende: D = Fr 13.11.2026 -> Fenster bis Mo 16.11. 09:30 ET
+    _check("12 Fr-D, Sa 03:00 ET -> nacht_aktualisiert",
+           st("2026-11-13", datetime(2026, 11, 14, 8, 0, tzinfo=_UTC)) == "nacht_aktualisiert")
+    _check("12 Fr-D, Mo 09:31 ET -> unklar",
+           st("2026-11-13", datetime(2026, 11, 16, 14, 31, tzinfo=_UTC)) == "unklar")
+    # Feiertag: D = Mi 25.11.2026, Do 26.11. Thanksgiving -> Fenster bis Fr 27.11. 09:30 ET
+    _hol = frozenset({"2026-11-26"}) | frozenset(gr.US_MARKET_HOLIDAYS)
+    _check("12 Feiertag dazwischen: Do 12:00 ET -> nacht_aktualisiert",
+           st("2026-11-25", datetime(2026, 11, 26, 17, 0, tzinfo=_UTC), _hol)
+           == "nacht_aktualisiert")
+    _check("12 unlesbar (None / naive / kaputtes Datum) -> unklar",
+           st("2026-11-16", None) == "unklar"
+           and st("2026-11-16", datetime(2026, 11, 16, 21, 0)) == "unklar"
+           and st("kaputt", datetime(2026, 11, 16, 21, 0, tzinfo=_UTC)) == "unklar")
+
+    p = _fresh_file()
+    _fixed = datetime(2026, 11, 17, 6, 41, 7, tzinfo=_UTC)   # 01:41:07 ET Folgetag
+    gr._persist_options_oi_history(
+        [_stock("AAA"), _stock("NOCHAIN")], report_date_iso="2026-11-16",
+        run_phase="postclose",
+        fetch_fn=lambda t: (_fetch_nochain(t) if t == "NOCHAIN" else _fetch_ok(t)),
+        wall_now_fn=lambda: _fixed)
+    h = _load(p)
+    a, nc = h["AAA"][0], h["NOCHAIN"][0]
+    _check("12 Punkt traegt Abrufzeit UTC/ET + oi_stand",
+           a["oi_abgerufen_utc"] == "2026-11-17T06:41:07Z"
+           and a["oi_abgerufen_et"] == "2026-11-17T01:41:07-05:00"
+           and a["oi_stand"] == "nacht_aktualisiert")
+    _check("12 auch Punkt ohne Kette bekommt den Abrufzeitpunkt",
+           nc["oi_stand"] == "nacht_aktualisiert" and nc["calls"] is None)
+    _check("12 OI-Werte unveraendert durch das Kennzeichen",
+           [c["oi"] for c in a["calls"]] == [60, 12] and a["date"] == "2026-11-16")
+    _check("12 Kennzeichen nirgends im Report gelesen (nur geschrieben)",
+           not re.search(r"\[\s*[\"']oi_stand[\"']\s*\]|get\(\s*[\"']oi_stand", GR_SRC))
+
     if _fails:
         print(f"{len(_fails)} FAIL: {_fails}")
         return 1

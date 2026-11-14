@@ -922,6 +922,14 @@ INST_OWNERSHIP_HISTORY_FILE = "inst_ownership_history.json"
 # Sammeln ab, loggt das und der Daily-Run läuft normal weiter. Der Report darf NIE
 # wegen der Optionen scheitern oder sich spürbar verzögern (Probe #522: ~19 Abrufe
 # in ~14 s für die Top-10 → 45 s = ~3× Puffer).
+#
+# ABRUFZEIT + OI-STAND (Schritt 4, 14.11.2026, forward-only): jeder neue Punkt
+# trägt ``oi_abgerufen_utc`` / ``oi_abgerufen_et`` (Sekunden) und ``oi_stand``:
+# ``vortag`` (Abruf am ET-Tag D 09:30–24:00 → Yahoo zeigt noch den Stand vor dem
+# nächtlichen OI-Update), ``nacht_aktualisiert`` (ab 00:00 ET nach D bis vor
+# 09:30 ET des nächsten Handelstags — Nachtlauf seit #698, OI kann schon den neuen
+# Stand tragen), sonst ``unklar``. Bestand ohne Feld = unbekannt. Rein Kennzeichen,
+# kein Wert wird geändert, kein Konsument (generate_report._oi_stand).
 OPTIONS_OI_HISTORY_ENABLED = True
 OPTIONS_OI_HISTORY_FILE = "options_oi_history.json"
 OPTIONS_OI_TIME_BUDGET_S = 45.0
