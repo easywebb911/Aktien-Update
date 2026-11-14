@@ -460,9 +460,21 @@ def nachweis(log_dir, log_path=LOG_FILE, fetch=fetch_evening, rsi_fn=_rsi_pandas
             e_final = sc.evaluate_row(r, fin_final)
             e_fill = sc.evaluate_row(r, fin_fill)
             diff = round(e_fill["score_neu"] - e_final["score_neu"], 2)
-            out_rows.append({"ticker": r["ticker"], "diff": diff,
-                             "vol_diff_pct": (round((vols[-1] / got[2][-1] - 1) * 100, 2)
-                                              if _f(got[2][-1]) else None)})
+            row_out = {"ticker": r["ticker"], "diff": diff,
+                       "vol_diff_pct": (round((vols[-1] / got[2][-1] - 1) * 100, 2)
+                                        if _f(got[2][-1]) else None)}
+            if abs(diff) >= 0.5:
+                # Aufschlüsselung (nur Eingaben/Kurse bis D, kein Ergebnisfeld)
+                row_out["detail"] = {
+                    "open_info": o, "open_final": _f(got[1][-1]),
+                    "close_info": c, "close_final": _f(got[0][-1]),
+                    "close_vortag": _f(got[0][-2]),
+                    "gap_fill": fin_fill["gap_pts"], "gap_final": fin_final["gap_pts"],
+                    "rs_fill": sc.rs_pts(fin_fill["rs"]), "rs_final": sc.rs_pts(fin_final["rs"]),
+                    "rvol_fill": fin_fill["rvol"], "rvol_final": fin_final["rvol"],
+                    "late_fill": e_fill["late_neu"], "late_final": e_final["late_neu"],
+                }
+            out_rows.append(row_out)
         diffs = [x["diff"] for x in out_rows]
         ev = {"lauf": f.stem, "D": d.isoformat(), "halbzeilen_top10": n_half,
               "nicht_fuellbar": nicht, "verglichen": len(out_rows),

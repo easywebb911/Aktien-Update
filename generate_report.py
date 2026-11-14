@@ -3383,6 +3383,49 @@ def _halfrow_probe_lines(hist_batch, tickers, info_map,
     return out, n_half
 
 
+def _finite_cell(series, idx):
+    """``float(series.iloc[idx])`` wenn endlich, sonst ``None``.
+
+    NaN-Härtung am QUELL-Rand (Belt, 29.07.2026): yfinance liefert bei
+    Degradation/partiellen Bars eine letzte Zeile mit ``Open``/``Close`` = NaN.
+    ``float(NaN)`` wirft NICHT — der Rohwert lief bisher als NaN bis in
+    ``_gap_hold_pts`` (→ ``NaN < Schwelle`` ist False → falscher weak_hold/
+    fail statt unknown) und ``_rs_spy_pts`` (→ Clamp auf +3). Dieser Helper
+    gibt bei NaN/Inf ``None`` zurück → die ``_finite``-Guards der Konsumenten
+    (Suspender) nehmen dann sauber den ``unknown``/0-Ausgang.
+
+    BEWUSST ``None`` statt „letzte NaN-freie Bar" (dropna-Rückfall): ein
+    stale-aber-endlicher Open erzeugte einen *endlichen, aber falschen* Gap,
+    den der ``_finite``-Guard NICHT fängt — genau den Silent-Shift, den die
+    Härtung beseitigen soll. Fehlen echter Tages-Daten ⇒ ``unknown``/0.
+    """
+    try:
+        v = float(series.iloc[idx])
+    except (IndexError, KeyError, TypeError, ValueError):
+        return None
+    return v if _finite(v) else None
+
+
+# NaN-Dichtigkeit/Sichtbarkeit (27.07.2026): Zähler für die Positions-Singleton-
+# Fetches (``_fetch_position_market_data``). Sie fließen in den bestehenden
+# ``yfinance_singletons``-Provider-Record ein — vorher deckte der NUR ^GSPC/
+# EURUSD=X/^VIX ab und war für einen NaN-Close der Positionen komplett blind.
+_POS_SINGLETON_OK = 0
+_POS_SINGLETON_FAIL = 0
+
+# Ab wann sind Positions-Fehlschläge SYSTEMISCH (= dürfen die harte
+# ``coverage_pct`` drücken)? Tier 1 feuert ohne Consecutive-Fenster —
+# ``n_consec >= 1`` reicht für crit (health_check.py) —, deshalb muss ein
+# einzelner delisteter oder kurz hängender Ticker folgenlos bleiben. Erst
+# BEIDE Bedingungen zusammen gelten als Systemausfall; darunter steht der
+# Fehlschlag nur im ``error``-Text (sichtbar, aber nicht alarmierend).
+# Ohne die absolute Untergrenze würde ein 1-Positions-Portfolio bei EINEM
+# Fehlschlag sofort crit melden ((1+1+0)/(2+1) = 66.7 % < 80 %).
+POS_FAIL_SYSTEMIC_MIN_COUNT = 2     # 1 toter Ticker ist NIE ein Provider-Alarm
+POS_FAIL_SYSTEMIC_MIN_RATIO = 0.5   # … und mind. die Hälfte muss betroffen sein
+
+
+
 # ── Fix B: unvollständige letzte Tageszeile (Halbzeile) im Postclose ───────────
 # Easy-Entscheid 14.11.2026 (open_items postclose-halbe-tageszeile-preis-score-
 # pfad (c), postclose-halbzeilen-2028et; Probe 1 Lauf 43578382904: 76 von 149
@@ -3503,48 +3546,6 @@ def _apply_last_bar_repair(df, info: dict | None, cols: tuple | None = None):
         if col in out.columns:
             out.iloc[-1, out.columns.get_loc(col)] = v
     return out, herkunft
-
-
-def _finite_cell(series, idx):
-    """``float(series.iloc[idx])`` wenn endlich, sonst ``None``.
-
-    NaN-Härtung am QUELL-Rand (Belt, 29.07.2026): yfinance liefert bei
-    Degradation/partiellen Bars eine letzte Zeile mit ``Open``/``Close`` = NaN.
-    ``float(NaN)`` wirft NICHT — der Rohwert lief bisher als NaN bis in
-    ``_gap_hold_pts`` (→ ``NaN < Schwelle`` ist False → falscher weak_hold/
-    fail statt unknown) und ``_rs_spy_pts`` (→ Clamp auf +3). Dieser Helper
-    gibt bei NaN/Inf ``None`` zurück → die ``_finite``-Guards der Konsumenten
-    (Suspender) nehmen dann sauber den ``unknown``/0-Ausgang.
-
-    BEWUSST ``None`` statt „letzte NaN-freie Bar" (dropna-Rückfall): ein
-    stale-aber-endlicher Open erzeugte einen *endlichen, aber falschen* Gap,
-    den der ``_finite``-Guard NICHT fängt — genau den Silent-Shift, den die
-    Härtung beseitigen soll. Fehlen echter Tages-Daten ⇒ ``unknown``/0.
-    """
-    try:
-        v = float(series.iloc[idx])
-    except (IndexError, KeyError, TypeError, ValueError):
-        return None
-    return v if _finite(v) else None
-
-
-# NaN-Dichtigkeit/Sichtbarkeit (27.07.2026): Zähler für die Positions-Singleton-
-# Fetches (``_fetch_position_market_data``). Sie fließen in den bestehenden
-# ``yfinance_singletons``-Provider-Record ein — vorher deckte der NUR ^GSPC/
-# EURUSD=X/^VIX ab und war für einen NaN-Close der Positionen komplett blind.
-_POS_SINGLETON_OK = 0
-_POS_SINGLETON_FAIL = 0
-
-# Ab wann sind Positions-Fehlschläge SYSTEMISCH (= dürfen die harte
-# ``coverage_pct`` drücken)? Tier 1 feuert ohne Consecutive-Fenster —
-# ``n_consec >= 1`` reicht für crit (health_check.py) —, deshalb muss ein
-# einzelner delisteter oder kurz hängender Ticker folgenlos bleiben. Erst
-# BEIDE Bedingungen zusammen gelten als Systemausfall; darunter steht der
-# Fehlschlag nur im ``error``-Text (sichtbar, aber nicht alarmierend).
-# Ohne die absolute Untergrenze würde ein 1-Positions-Portfolio bei EINEM
-# Fehlschlag sofort crit melden ((1+1+0)/(2+1) = 66.7 % < 80 %).
-POS_FAIL_SYSTEMIC_MIN_COUNT = 2     # 1 toter Ticker ist NIE ein Provider-Alarm
-POS_FAIL_SYSTEMIC_MIN_RATIO = 0.5   # … und mind. die Hälfte muss betroffen sein
 
 
 def _pos_fails_are_systemic(fail: int, total: int) -> bool:
