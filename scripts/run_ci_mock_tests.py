@@ -60,6 +60,7 @@ ALLOWLIST = [
     "probe_halbzeile_score",
     "schritt2_plausibilitaet",
     "fix_b_halbzeile",
+    "probe_rueckrechnung",
     "maxgain_none_not_zero",
     "postclose_gap_s15",
     "digest_warn_visible",
