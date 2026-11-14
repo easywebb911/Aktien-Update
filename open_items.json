@@ -445,9 +445,9 @@
       "id": "provider-health-nan-pct-fehlt",
       "title": "provider_health zählt keine leeren Zellen (nan_pct immer null)",
       "opened": "2026-11-02",
-      "description": "Diagnose 02.11.2026: yfinance_batch meldet in Postclose-Läufen coverage_pct 100.0 und nan_pct null, obwohl 50–80 Ticker eine halbe Tageszeile (Close NaN) hatten. Deshalb fiel die Halbzeile keinem Wächter auf (hist_5d_gap_log ist nur ein Protokoll ohne Alarm; S3 prüft nur Existenz, nicht Alter des Positionspreises). Vorschlag: nan_pct für den Batch messen (Anteil Ticker mit nicht-endlichem Close in der letzten Zeile) und im Digest ausweisen. Nicht gebaut.",
+      "description": "Diagnose 02.11.2026: yfinance_batch meldet in Postclose-Läufen coverage_pct 100.0 und nan_pct null, obwohl 50–80 Ticker eine halbe Tageszeile (Close NaN) hatten. Deshalb fiel die Halbzeile keinem Wächter auf (hist_5d_gap_log ist nur ein Protokoll ohne Alarm; S3 prüft nur Existenz, nicht Alter des Positionspreises). Vorschlag: nan_pct für den Batch messen (Anteil Ticker mit nicht-endlichem Close in der letzten Zeile) und im Digest ausweisen. Nicht gebaut. 14.11.2026: eingeplant als Schritt 2 (mit S16-entry_price und S17-Zusätzen).",
       "status": "offen",
-      "status_date": "2026-11-02"
+      "status_date": "2026-11-14"
     },
     {
       "id": "github-schedule-ausgesetzt-2026-11-02",
@@ -629,9 +629,9 @@
       "id": "berichtsdatum-wurzelloesung-nacht-probe",
       "title": "Berichtsdatum-Wurzellösung + Nacht-Probe (Mitternachts-Falle)",
       "opened": "2026-11-08",
-      "description": "Läuft der Postclose erst nach 00:00 ET, gilt der Folgetag als Berichtsdatum; der Vintage-Guard überspringt dann den Backtest-Append (Beleg: 27.08.2026, Lauf 01:28 ET; dazu Ausfall 04.11.2026, siehe postclose-2026-11-04-verloren). Health-Check S15 (#658) meldet nur das Symptom. Offen: Wurzellösung für das Berichtsdatum plus eine Nacht-Probe — für die Woche ab 09.11.2026 vorgesehen (Easy, 08.11.2026). Nichts gebaut. NACHTRAG 08.11.2026: Read-only Nacht-Probe gebaut (Wegwerf-Workflow .github/workflows/diagnose_night_probe.yml + scripts/diagnose_night_probe.py, Manual-Merge). Läuft ab Merge: Nacht-Start 04:41 UTC (Messungen 00:10/01:30/02:50 ET) und Tag-Referenz 14:47 UTC, Di–Sa, mindestens 2 Handelsnächte; Auswertung über die Actions-API, danach Cleanup-PR. Noch keine Wurzellösung, kein Ersatz-Cron. ENDBERICHT 13.11.2026 (Läufe 2–13, 6 Nacht- + 4 Tag-Messungen, D = 09.–12.11.2026, Tag-Referenz D=12.11. per Hand-Start 13.11. 15:01 ET, Lauf 43497660708): Kurse (Open/Hoch/Tief/Schluss) der Zeile D sind nachts um ~01:30 ET bereits endgültig — in allen Ticker-Paaren gleich der Tag-Referenz (auch 07:09/07:37/07:58/08:15 ET); abweichend ist nur das Volumen (nachträgliche Meldungen, bis 17 % bei TTEC 09.11.). Halbzeilen nachts nur vereinzelt im Batch-Download (D=12.11.: GO 01:31 ET, WBTN 07:37 ET; Einzelabruf jeweils vollständig) — gegenüber 74/78 Halbzeilen um 20:28 ET am 10.11. und 76/78 bzw. 77/78 in den Postclose-Läufen 21:28 ET (D=11.11.) / 21:05 ET (D=12.11.). Produktion (Postclose) für D=11./12.11.: entry_price und entry_past_return_5d stimmen mit der Nachtzeile, nur rvol leicht anders (Volumen). Options-OI ändert sich über Nacht (54 von 60 Paaren), nachts noch nicht Tagesstand. Verdikte nach festen Regeln: F1-Zeile NEIN (wegen Volumen), F1-info NEIN, F2-OI NEIN, F3 NEIN (wegen rvol). Wegwerf-Probe per Cleanup-PR entfernt. Wurzellösung Berichtsdatum NICHT gebaut — Entscheidung Easy.",
+      "description": "Läuft der Postclose erst nach 00:00 ET, gilt der Folgetag als Berichtsdatum; der Vintage-Guard überspringt dann den Backtest-Append (Beleg: 27.08.2026, Lauf 01:28 ET; dazu Ausfall 04.11.2026, siehe postclose-2026-11-04-verloren). Health-Check S15 (#658) meldet nur das Symptom. Offen: Wurzellösung für das Berichtsdatum plus eine Nacht-Probe — für die Woche ab 09.11.2026 vorgesehen (Easy, 08.11.2026). Nichts gebaut. NACHTRAG 08.11.2026: Read-only Nacht-Probe gebaut (Wegwerf-Workflow .github/workflows/diagnose_night_probe.yml + scripts/diagnose_night_probe.py, Manual-Merge). Läuft ab Merge: Nacht-Start 04:41 UTC (Messungen 00:10/01:30/02:50 ET) und Tag-Referenz 14:47 UTC, Di–Sa, mindestens 2 Handelsnächte; Auswertung über die Actions-API, danach Cleanup-PR. Noch keine Wurzellösung, kein Ersatz-Cron. ENDBERICHT 13.11.2026 (Läufe 2–13, 6 Nacht- + 4 Tag-Messungen, D = 09.–12.11.2026, Tag-Referenz D=12.11. per Hand-Start 13.11. 15:01 ET, Lauf 43497660708): Kurse (Open/Hoch/Tief/Schluss) der Zeile D sind nachts um ~01:30 ET bereits endgültig — in allen Ticker-Paaren gleich der Tag-Referenz (auch 07:09/07:37/07:58/08:15 ET); abweichend ist nur das Volumen (nachträgliche Meldungen, bis 17 % bei TTEC 09.11.). Halbzeilen nachts nur vereinzelt im Batch-Download (D=12.11.: GO 01:31 ET, WBTN 07:37 ET; Einzelabruf jeweils vollständig) — gegenüber 74/78 Halbzeilen um 20:28 ET am 10.11. und 76/78 bzw. 77/78 in den Postclose-Läufen 21:28 ET (D=11.11.) / 21:05 ET (D=12.11.). Produktion (Postclose) für D=11./12.11.: entry_price und entry_past_return_5d stimmen mit der Nachtzeile, nur rvol leicht anders (Volumen). Options-OI ändert sich über Nacht (54 von 60 Paaren), nachts noch nicht Tagesstand. Verdikte nach festen Regeln: F1-Zeile NEIN (wegen Volumen), F1-info NEIN, F2-OI NEIN, F3 NEIN (wegen rvol). Wegwerf-Probe per Cleanup-PR entfernt. Wurzellösung Berichtsdatum NICHT gebaut — Entscheidung Easy. PLAN-ENTSCHEID 14.11.2026 (Easy): Reihenfolge A → Schritt 2 (nan_pct + S16/S17) → Entscheid Schritt 3 (Fix B) erst nach Probe 1 → Schritt 4 (OI); Variante C nicht. Schritt 1 (Variante A) in #698: Postclose vor 09:30 ET berichtet für den letzten abgeschlossenen Handelstag, Guard-Fenster bis 09:30 ET Folgehandelstag, Kennzeichen nacht_lauf_et, S15 meldet Verwürfe; Freeze-Protokolleinträge in 10 laufenden Blöcken. Offen bis zum ersten echten Nachtlauf nach dem Merge.",
       "status": "offen",
-      "status_date": "2026-11-13"
+      "status_date": "2026-11-14"
     },
     {
       "id": "epr-gemeinsamer-index-vs-eigene-handelstage",
@@ -709,17 +709,17 @@
       "id": "postclose-halbzeilen-2028et",
       "title": "Postclose um ~20:28 ET liefert für fast alle Pool-Ticker eine halbe Tageszeile",
       "opened": "2026-11-11",
-      "description": "Beleg [halfrow_probe] (Easy-Entscheid 11.11.2026, Nacht-Probe-Endauswertung): Postclose D=10.11.2026 (Run 42939138350, 11.11. 01:28 UTC = 20:28 ET) hatte bei 74 von 78 Tickern eine halbe Tageszeile (letzter Close NaN); Postclose D=09.11.2026 (Run 42751625039, 10.11. 03:47 UTC = 22:47 ET) 0 von 77. Folge im Nacht-Probe-Abgleich F3: die Nachtwerte (07:09 ET des Folgetags) waren VOLLSTÄNDIGER als die Produktion (AMRC, TTEC: rvol aus der halben Zeile). Ein früher Postclose liefert damit heute schon schlechtere Daten als ein später. Zusammenhang: postclose-halbe-tageszeile-preis-score-pfad (Fix B), berichtsdatum-wurzelloesung-nacht-probe. Ob die Tageszeile um ~01:30 ET schon fertig ist, klärt die Nacht-Probe Variante (b) (Dispatch-Nächte 12./13.11.2026). Nichts geändert. NACHTRAG 12.11.2026: Wirkung auf das neue Rolling-Fenster (#676) abgefangen — rolling_window_n zählt nur vollständige Zeilen, Fenster gilt erst als fertig, wenn der letzte finale Schluss nach Tag 10 liegt (PR Halbzeilen-Schutz). Die Ursache (Berichtsdatum/Postclose-Zeitpunkt) bleibt offen. NACHTRAG 13.11.2026 (Nacht-Probe-Endbericht): auch die Postclose-Läufe 21:28 ET (D=11.11., 76/78) und 21:05 ET (D=12.11., 77/78) lieferten Halbzeilen ([halfrow_probe]); Schlusskurs/entry_price trotzdem richtig (regularMarketPrice), nur Volumen/rvol leicht anders. Nachts (~01:30 ET) sind die Kurse der Zeile endgültig, das Volumen noch nicht.",
+      "description": "Beleg [halfrow_probe] (Easy-Entscheid 11.11.2026, Nacht-Probe-Endauswertung): Postclose D=10.11.2026 (Run 42939138350, 11.11. 01:28 UTC = 20:28 ET) hatte bei 74 von 78 Tickern eine halbe Tageszeile (letzter Close NaN); Postclose D=09.11.2026 (Run 42751625039, 10.11. 03:47 UTC = 22:47 ET) 0 von 77. Folge im Nacht-Probe-Abgleich F3: die Nachtwerte (07:09 ET des Folgetags) waren VOLLSTÄNDIGER als die Produktion (AMRC, TTEC: rvol aus der halben Zeile). Ein früher Postclose liefert damit heute schon schlechtere Daten als ein später. Zusammenhang: postclose-halbe-tageszeile-preis-score-pfad (Fix B), berichtsdatum-wurzelloesung-nacht-probe. Ob die Tageszeile um ~01:30 ET schon fertig ist, klärt die Nacht-Probe Variante (b) (Dispatch-Nächte 12./13.11.2026). Nichts geändert. NACHTRAG 12.11.2026: Wirkung auf das neue Rolling-Fenster (#676) abgefangen — rolling_window_n zählt nur vollständige Zeilen, Fenster gilt erst als fertig, wenn der letzte finale Schluss nach Tag 10 liegt (PR Halbzeilen-Schutz). Die Ursache (Berichtsdatum/Postclose-Zeitpunkt) bleibt offen. NACHTRAG 13.11.2026 (Nacht-Probe-Endbericht): auch die Postclose-Läufe 21:28 ET (D=11.11., 76/78) und 21:05 ET (D=12.11., 77/78) lieferten Halbzeilen ([halfrow_probe]); Schlusskurs/entry_price trotzdem richtig (regularMarketPrice), nur Volumen/rvol leicht anders. Nachts (~01:30 ET) sind die Kurse der Zeile endgültig, das Volumen noch nicht. 14.11.2026: Score-Wirkung wird mit Probe 1 gemessen (open_item halbzeilen-score-wirkung-probe, #698); Fix B (Schritt 3) erst danach entschieden.",
       "status": "offen",
-      "status_date": "2026-11-13"
+      "status_date": "2026-11-14"
     },
     {
       "id": "options-oi-datierung-vortag",
       "title": "Options-OI: Postclose-Wert von Tag D ist praktisch der Stand des Vortags",
       "opened": "2026-11-11",
-      "description": "Beleg Nacht-Probe-Endauswertung 11.11.2026 (F2, 2 Paare D=09.11./10.11.): bei 18 Ticker-Paaren war der Nachtwert (07–08 ET des Folgetags, nächster gemeinsamer Verfall, gemeinsame Strikes) ≠ dem Postclose-Wert von D (options_chain_raw) — das OI wird über Nacht aktualisiert; bei 4 Paaren (AKTS, AMRC, PCT; SPY mit Verfall am selben Tag) änderte es sich bis 15:09 ET noch einmal. Ein OI-Punkt mit Datum D in options_oi_history/options_chain_raw (Postclose) bedeutet damit faktisch den Stand Ende D−1; kein Look-ahead, aber ein Tag Verzug. Bei einer Wurzellösung Berichtsdatum (Lauf nach Mitternacht schreibt D) würde ein Punkt je nach Laufzeit D−1 oder D bedeuten → Abrufzeit + Kennzeichen vor/nach dem nächtlichen Update mitschreiben. Relevant für Gamma-Kandidat (Baig) der Hypothesen-Runde. Nichts geändert.",
+      "description": "Beleg Nacht-Probe-Endauswertung 11.11.2026 (F2, 2 Paare D=09.11./10.11.): bei 18 Ticker-Paaren war der Nachtwert (07–08 ET des Folgetags, nächster gemeinsamer Verfall, gemeinsame Strikes) ≠ dem Postclose-Wert von D (options_chain_raw) — das OI wird über Nacht aktualisiert; bei 4 Paaren (AKTS, AMRC, PCT; SPY mit Verfall am selben Tag) änderte es sich bis 15:09 ET noch einmal. Ein OI-Punkt mit Datum D in options_oi_history/options_chain_raw (Postclose) bedeutet damit faktisch den Stand Ende D−1; kein Look-ahead, aber ein Tag Verzug. Bei einer Wurzellösung Berichtsdatum (Lauf nach Mitternacht schreibt D) würde ein Punkt je nach Laufzeit D−1 oder D bedeuten → Abrufzeit + Kennzeichen vor/nach dem nächtlichen Update mitschreiben. Relevant für Gamma-Kandidat (Baig) der Hypothesen-Runde. Nichts geändert. 14.11.2026: Vorschlag Kennzeichen → open_item oi-stand-kennzeichen (Schritt 4).",
       "status": "offen",
-      "status_date": "2026-11-11"
+      "status_date": "2026-11-14"
     },
     {
       "id": "max-gain-ab-tief-nicht-ab-einstieg",
@@ -896,6 +896,54 @@
       "description": "S16 13.11.2026: BJDX 14.07. return_10d_t1, 15.07. return_10d, 05.08. return_10d_t1 je |Δ| 0,03 pp (alle drei BJDX-Zeilen im Export). Befund: BJDX hatte nach den Einstiegen mindestens einen Reverse-Split (Export: entry_price 1,25/1,35/1,24 roh gegen entry_price_t1 5,4/5,2/4,6 nach Split-Anpassung); alle drei Werte wurden in der Renditen-Bestandskorrektur (return_corrections_archive_2026-11.jsonl, 03.11.2026) aus den damaligen Yahoo-Kursen neu berechnet. Die heutigen bereinigten Kurse weichen um Rundungsgrößen ab (Penny-Stock, Split-Faktor). truth_check klassiert neu_adjustiert nur bei Split/Dividende INNERHALB des Rechenfensters (has_action(span)) — eine spätere Aktion wird nicht erkannt. Vorschlag (nicht gebaut): Regel 'neu_adjustiert', wenn die abgerufene Reihe eine Aktion zwischen Fensterbeginn und heute hat. Direkt belegt (Yahoo-Aktion mit Datum) erst beim nächsten Lauf mit Netz. Entscheidung Easy. NACHTRAG 13.11.2026 (Easy-Entscheid): Regel ja, aber enger — neu_adjustiert nur bei (a) belegter Aktion (Split/Dividende aus den Aktionsdaten des Laufs) zwischen Fensterbeginn und heute UND (b) |Δ| innerhalb einer aus Kursniveau und Nachkommastellen hergeleiteten Rundungsschranke; darüber weiter Alarm. Schritt 1: Beleg-Lauf scripts/probe_bjdx_actions.py (Split-Datum, Faktor, Nachkommastellen; Wegwerf-Workflow probe_epr_bjdx.yml). Schritt 2 (Folge-PR, nach dem Beleg): Regel + Tests + Cleanup der Probe. Trägt der Beleg die Vermutung nicht: melden, nichts eintragen. ERGEBNIS 13.11.2026 (Beleg-Lauf 43488284245): BJDX Splits 29.01.2026 und 03.11.2026, je Faktor 0,25 (Reverse 1:4); keine Dividenden. Heutige bereinigte Kurse = Rohkurs auf 0,001 gerundet × 4 (Raster 0,004; z. B. 29.07. 3,516 statt damals ≈ 3,514). Vermutung bestätigt. Regel gebaut (Folge-PR, truth_check.rounding_bound): (a) Aktion nach Fensterbeginn bis heute UND (b) |Δ| ≤ S = 100·(b/a)·(h_a/a+h_b/b)+0,01, h = 0,5·10^-k·F. BJDX: S = 0,071/0,071/0,089 pp gegen |Δ| 0,03 → neu_adjustiert; Δ über S → Alarm. Erledigt mit dem Merge.",
       "status": "erledigt",
       "status_date": "2026-11-13"
+    },
+    {
+      "id": "halbzeilen-score-wirkung-probe",
+      "title": "Probe 1: Score-Wirkung der Postclose-Halbzeile messen",
+      "opened": "2026-11-14",
+      "description": "Easy-Entscheid 14.11.2026 (Plan Berichtsdatum, Schritt 3 erst nach dieser Probe): Wegwerf-Workflow probe_halbzeile_score.yml + scripts/probe_halbzeile_score.py (#698, Hand-Start, read-only). Rechnet für die Postclose-Abende in score_inflation_log.jsonl Gap & Hold, RS vs. SPY, rvol und rsi14/change_2d (Late-Runner) aus endgültigen Tageszeilen nach und führt sie durch dieselbe Kette (score_raw → Glättung → Late-Runner → Boost); Kontrolle: Abende ohne Halbzeile müssen ~0 ergeben (lokal vorab: Modell reproduziert 210/210 gespeicherte score_total). Ausgabe: geänderte Zeilen, Δ-Verteilung, Wechsel über/unter 70, Rang-Wechsel. Top-10-Zusammensetzung NICHT rekonstruierbar (Pool-Scores außerhalb der Top-10 nicht gespeichert). Blind: nur Eingaben/Scores, Kurse bis D. Start durch Code nach dem Merge; danach Cleanup-PR.",
+      "status": "offen",
+      "status_date": "2026-11-14"
+    },
+    {
+      "id": "cron-startverzug-nacht-slots",
+      "title": "Probe 2: GitHub-Startverzug für Nacht-/Morgen-Zeitpläne",
+      "opened": "2026-11-14",
+      "description": "Vorschlag aus dem Plan Berichtsdatum (14.11.2026): No-op-Workflow ~1 Woche, misst Startverzug für 2–3 Kandidaten-Zeitpläne (Nacht/Morgen). Nur nötig für Variante B oder C (Morgenlauf); Easy-Entscheid 14.11.2026: Variante C nicht. Deshalb nur Merkposten, kein Bau ohne neuen Entscheid.",
+      "status": "offen",
+      "status_date": "2026-11-14"
+    },
+    {
+      "id": "berichtsdatum-sammler-konsistenz",
+      "title": "Sammler desselben Postclose-Laufs auf dem Berichts-Handelstag",
+      "opened": "2026-11-14",
+      "description": "Befund Plan 14.11.2026: Sammler (OI, Rohketten, News-, Inst-, ApeWisdom-, Coverage-, FTD-, Reg-SHO-Zeilen) schrieben nach Mitternacht ET das Folgetags-Datum. Mit #698 bekommen sie im Postclose dasselbe Datum wie der Backtest (_us_trading_date_iso = Berichts-Handelstag), alle idempotent pro (Ticker, Datum) bzw. (Datum, Phase). Restkanten (bewusst unverändert, im PR benannt): Reg SHO fragt im Nachtlauf die NYSE-Liste vom Tag D statt D−1 ab (Anker = Laufzeit; Test verlangt das so); Exit-Shadow schreibt nach Mitternacht weiterhin nicht (eigenes 16:20-Uhrzeit-Gate).",
+      "status": "erledigt",
+      "status_date": "2026-11-14"
+    },
+    {
+      "id": "s15-vintage-skip-waechter",
+      "title": "S15 meldet zeitbedingten Postclose-Verwurf (vintage_guard_log)",
+      "opened": "2026-11-14",
+      "description": "Mit #698: S15 liest vintage_guard_log.jsonl; ein Postclose-Append, den der Vintage-Guard wegen der Uhrzeit verwirft (pre_open/before_close/after_window) in den letzten 26 h → warn. Erwartete Skips je Eintrag (holiday_or_prior_bar) zählen nicht. Rückfall-Signal der Berichtsdatum-Falle.",
+      "status": "erledigt",
+      "status_date": "2026-11-14"
+    },
+    {
+      "id": "s16-entry-price-pruefen",
+      "title": "S16: entry_price gegen den endgültigen Schluss von D prüfen",
+      "opened": "2026-11-14",
+      "description": "Plan 14.11.2026, Schritt 2: Wahrheits-Abgleich um entry_price (0,02 %, Split/Dividende wie bisher) ergänzen — fängt Datumsverschiebung und falsche Kurse. rvol bewusst nicht (Volumen wird bis zu 17 % nachgezogen). Dazu S17: Export-Zeilen mit close_d (outcome_path) ≠ entry_price und Zeilen mit Datum an Nicht-Handelstagen zählen. Mit nan_pct im selben PR. Nicht gebaut.",
+      "status": "offen",
+      "status_date": "2026-11-14"
+    },
+    {
+      "id": "oi-stand-kennzeichen",
+      "title": "Options-OI: Abrufzeit + Kennzeichen vor/nach nächtlichem Update",
+      "opened": "2026-11-14",
+      "description": "Plan 14.11.2026, Schritt 4 (forward-only): je Punkt in options_oi_history oi_abgerufen_utc/_et und oi_stand (vortag: Abruf ET-Tag D 09:30–24:00; nacht_aktualisiert: 00:00–09:30 ET des Folgetags; sonst unklar). Bestand ohne Feld = unbekannt. Neues Schema-Feld → Easy-Merge. Seit #698 kann ein Nachtlauf OI mit Datum D schreiben, das schon den Nacht-Stand trägt — das Kennzeichen macht das sichtbar. Nicht gebaut.",
+      "status": "offen",
+      "status_date": "2026-11-14"
     }
   ]
 }

@@ -832,6 +832,21 @@ inkl. Edge-Boundary 13:29/13:30/20:00/20:19/20:20 UTC im Sommer,
 14:29/14:30/20:59/21:00/21:19/21:20 UTC im Winter und die Umstellungstage
 März/November) und `scripts/mock_test_postclose_final_boundary.py`.
 
+### Berichts-Handelstag (Variante A, seit 14.11.2026)
+
+Ein **Postclose**-Lauf, der vor 09:30 ET startet (GitHub-Verzug nach
+Mitternacht), berichtet für den **letzten abgeschlossenen Handelstag D**
+(`trading_date.report_trading_date`, über `generate_report._resolve_report_day`)
+statt für den Kalender-Folgetag — vorher verwarf der Vintage-Guard den Append
+(27.08., 04.11.2026). Ab 09:30 ET und in jedem Premarket-Lauf bleibt es beim
+ET-Kalenderdatum (Abendläufe byte-gleich, Test + Golden). Dasselbe Datum gilt
+für die Sammler des Laufs, den Health-Check-Tag (S1/S4) und die Earnings-Tage.
+Guard-Fenster: 16:20 ET D bis 09:30 ET des Folgehandelstags
+(`postclose_window_end`, Skip `after_window`). Einträge aus einem Nachtlauf
+tragen `nacht_lauf_et` (Laufzeit ET; KI-/News-/OI-/VIX-Werte aus der Nacht vor
+der Eröffnung von Tag 1). S15 meldet zeitbedingte Postclose-Verwürfe aus
+`vintage_guard_log.jsonl`. Test `scripts/mock_test_berichtsdatum_variante_a.py`.
+
 ### Felder & Persistenz
 
 - **`app_data.json["run_phase"]`** (`premarket` / `postclose`) — vom
@@ -4065,7 +4080,7 @@ S2/S3/S6/S8/S14 laufen in BEIDEN Pfaden (Daily-Run + ki_agent-Tick), alle
 | S12 | crit | Daily | kein echter postclose-Run (``run_phase==tsp=='postclose'``) seit > ``HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE`` (2) Werktagen. **crit = NUR-REPORTING** (blockiert NICHT — S9-Exit-Pfad filtert strikt id=="S9") |
 | S13 | warn | Daily | **Doppel-Baustein.** (a) **Daten-Reife-Gate** (#297): laufender Status der 3 30.06.-Auswertungen (Setup-Edge ≥70/schema_v4, Entry-AUC, CTB-Edge) je vorhanden/reif_5d/reif_10d — Status-Zeilen via log.info, kein Fail. (b) **Konsistenz-Wächter** (Projekt C, #298): Soll-Ist-Drift je config-Konstante aus ``CONSISTENCY_EXPECTED_STATE`` — ein warn pro Drift |
 | S14 | warn | beide | ``last_successful_gist_pull`` in ``gist_pull_state.json`` ≤ ``HEALTH_CHECK_S14_MAX_AGE_HOURS`` (26) Stunden alt. **COMPOSITE-Liveness** — Detail-Text sagt „Gist-Pull seit N h nicht erfolgreich", NICHT „Token tot": altert sowohl bei totem ``GIST_TOKEN`` (Gist-Read scheitert über Zeit, Stille-Tod 02.06.) ALS AUCH bei mehrtägigem ki_agent-/daily-Cron-Drop. Marker NUR im HTTP-Gist-Erfolgszweig von ``pull_gist_data.py`` geschrieben (#310). Fehlende Datei / null → SKIP (analog S8). Beide Pfade: im ki_agent-Tick liest der Hook den nicht-aktualisierten alten Working-Tree-Marker → ~1 h Detektionslatenz statt ~1 Tag. **Body-Korruption** (HTTP-200 + kaputtes/leeres/truncated ``squeeze_data.json``) seit dem ``pull_gist_data._extract_data``-Body-Sanity-Gating (``body_ok``, positions-Key-Präsenz vor der ``or "{}"``-Maskierung) MIT erkannt → Marker NICHT gesetzt → S14 fängt es. Restkante (Folge-PR): Recovery-Umleitung bei Korruption (Schadens-Vermeidung statt nur Detektion). |
-| S15 | warn | Daily | Postclose des **letzten US-Handelstags vor dem heutigen ET-Tag** fehlt: keine Nicht-Bootstrap-Einträge mit dessen Datum in ``backtest_history.json`` (Feiertage über ``config.US_MARKET_HOLIDAYS``, wie S4). Nur wenn der Hook ``backtest_path`` übergibt (Daily-Run); Tag älter als der älteste Eintrag (90-Tage-Prune, alte Test-Daten) / Datei fehlt / kaputt → SKIP. Bewusst **warn**, nicht crit: zum Meldezeitpunkt ist der Tag nicht mehr sauber nachholbar (Berichtsdatum = heutiger ET-Tag) — es geht um ehrliche Sichtbarkeit; S12 bleibt der crit-Alarm für mehrtägige Ausfälle. Im OK-Digest als Hinweis-Zeile „🟡 S15: …“ (allgemeine Regel für aktive warns seit 07.11.2026, Titel bleibt OK). Anlass: Postclose 04.11.2026 (Cron-Wechsel #656) und 27.08.2026 (Lauf nach 00:00 ET). |
+| S15 | warn | Daily | Postclose des **letzten US-Handelstags vor dem heutigen ET-Tag** fehlt: keine Nicht-Bootstrap-Einträge mit dessen Datum in ``backtest_history.json`` (Feiertage über ``config.US_MARKET_HOLIDAYS``, wie S4). Nur wenn der Hook ``backtest_path`` übergibt (Daily-Run); Tag älter als der älteste Eintrag (90-Tage-Prune, alte Test-Daten) / Datei fehlt / kaputt → SKIP. Bewusst **warn**, nicht crit: zum Meldezeitpunkt ist der Tag nicht mehr sauber nachholbar (Berichtsdatum = heutiger ET-Tag) — es geht um ehrliche Sichtbarkeit; S12 bleibt der crit-Alarm für mehrtägige Ausfälle. Im OK-Digest als Hinweis-Zeile „🟡 S15: …“ (allgemeine Regel für aktive warns seit 07.11.2026, Titel bleibt OK). Anlass: Postclose 04.11.2026 (Cron-Wechsel #656) und 27.08.2026 (Lauf nach 00:00 ET). Seit 14.11.2026 zusätzlich: zeitbedingter Postclose-Verwurf (pre_open/before_close/after_window) im `vintage_guard_log.jsonl` der letzten 26 h → warn (Rückfall der Berichtsdatum-Falle). |
 | S16 | warn/crit | Daily | **Wahrheits-Abgleich** (08.11.2026): liest nur ``truth_check_log.jsonl`` (kein Netz). warn ab 1 Abweichungs-Zeile; crit ab ``HEALTH_CHECK_S16_CRIT_ROWS`` (3) in einem Lauf oder dieselbe Abweichung in 2 Läufen hintereinander; warn bei > 30 % unbekannt oder derselbe Ticker 5 geprüfte Läufe in Folge unbekannt; warn „läuft nicht“ ohne Log oder Lauf > 2 US-Handelstage alt. ``neu_adjustiert`` ist kein Fail. Details: Abschnitt „Wahrheits-Abgleich“ unten. |
 | S17 | warn | Daily | **Rolling-Fenster abgeschnitten** (13.11.2026): vergleicht gereifte Zeilen in ``matured_backtest_export.jsonl`` mit der Neuberechnung aus ``outcome_path.jsonl`` (OHLC Tag 0–10). Abgeschnitten = ``max_gain_pct`` kleiner bzw. ``max_drawdown_pct`` weniger negativ als das volle Fenster (> 0,5 pp) UND passend (± 0,3 pp) zu einem kürzeren Fenster D..Tag k. warn nur ab ``ROLLING_WINDOW_FIX_FROM`` (Rückfall) oder bei Export-Zeilen mit ``rolling_window_n`` < 11; ältere Fälle nur als „Altbestand“-Zahl. **Nur Zählungen** (Blindheit Replikation), kein Netz. Nur mit Hook-Pfaden, sonst SKIP. |
 
