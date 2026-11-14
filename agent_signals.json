@@ -1,10 +1,10 @@
 {
-  "updated": "2026-11-14T04:16:54.565471+01:00",
+  "updated": "2026-11-14T11:38:30.937049+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 10.1,
+    "elapsed_s": 12.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -29,7 +29,7 @@
         "UOA Call/Put 8.2×"
       ],
       "uoa_atm_ratio": 0.2983297926891803,
-      "uoa_cp_ratio": 8.239368998628258
+      "uoa_cp_ratio": 8.222450376454484
     },
     "AQST": {
       "score": 20,
@@ -60,7 +60,7 @@
       "chg_pct": -0.0,
       "rvol_4d": 1.56,
       "rvol_20d": 1.81,
-      "earnings": "in 88 Tagen (09.02.2027)",
+      "earnings": "in 87 Tagen (09.02.2027)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -127,7 +127,7 @@
       "chg_pct": 0.0,
       "rvol_4d": 1.39,
       "rvol_20d": 2.62,
-      "earnings": "in 83 Tagen (04.02.2027)",
+      "earnings": "in 82 Tagen (04.02.2027)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -145,7 +145,7 @@
     "NMAX": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Volumen 6.8× + 🚀 Massives Volumen 6.8×+ + Spanne 16.6% + UOA Call/Put 8.6×",
+      "drivers": "Volumen 6.8× + 🚀 Massives Volumen 6.8×+ + Spanne 16.6% + UOA Call/Put 3.0×",
       "price": 9.58,
       "chg_pct": -0.0,
       "rvol_4d": 6.82,
@@ -160,15 +160,15 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 8.6×"
+        "UOA Call/Put 3.0×"
       ],
-      "uoa_atm_ratio": 1.344776119402985,
-      "uoa_cp_ratio": 8.575581395348838
+      "uoa_atm_ratio": 1.3567164179104478,
+      "uoa_cp_ratio": 2.995983935742972
     },
     "SEAT": {
       "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 22.8% + News-KI 8/30: Analyst downgrades and debt concerns signal negative sentiment with no short squeeze catalysts present. + FINRA Short-Vol 59%",
+      "drivers": "Spanne 22.8% + News-KI 8/30: Analyst caution and fair value cuts are bearish signals that reduce short-squeeze potential despite positive earnings hi + FINRA Short-Vol 59%",
       "price": 1.39,
       "chg_pct": -0.0,
       "rvol_4d": 0.78,
@@ -207,7 +207,7 @@
         "UOA Call/Put 7.6×"
       ],
       "uoa_atm_ratio": 0.08582834331337326,
-      "uoa_cp_ratio": 7.563025210084033
+      "uoa_cp_ratio": 7.584033613445378
     },
     "UNIT": {
       "score": 35,
@@ -231,13 +231,13 @@
       "uoa_cp_ratio": 1.247191011235955
     },
     "VEEA": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Spanne 12.1% + News: merger",
+      "score": 15,
+      "confidence": 17,
+      "drivers": "News: merger",
       "price": 4.49,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.59,
-      "rvol_20d": 0.09,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -254,7 +254,7 @@
     "VISN": {
       "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 7.8% + News: insider buying + UOA Call/Put 4.6×",
+      "drivers": "Spanne 7.8% + News: insider buying + UOA Call/Put 4.3×",
       "price": 4.24,
       "chg_pct": -0.0,
       "rvol_4d": 1.18,
@@ -269,20 +269,20 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 4.6×"
+        "UOA Call/Put 4.3×"
       ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 4.621428571428571
+      "uoa_atm_ratio": 0.0,
+      "uoa_cp_ratio": 4.326666666666667
     },
     "WOLF": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 9.2% + News: covering, catalyst",
+      "drivers": "Spanne 9.2% + News: catalyst",
       "price": 24.83,
       "chg_pct": -0.0,
       "rvol_4d": 0.75,
       "rvol_20d": 0.49,
-      "earnings": "in 82 Tagen (03.02.2027)",
+      "earnings": "in 81 Tagen (03.02.2027)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -293,7 +293,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.09068677399633177,
-      "uoa_cp_ratio": 0.9911646586345382
+      "uoa_cp_ratio": 1.2169625246548323
     }
   }
 }
