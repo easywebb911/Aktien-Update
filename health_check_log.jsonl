@@ -221,3 +221,4 @@
 {"run_ts": "2026-11-13T22:38:32Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-11-14T01:44:17Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S16", "severity": "crit", "detail": "Wahrheits-Abgleich: dieselbe Abweichung in 2 Läufen hintereinander (5×, z. B. GRPN 26.10.2026 return_10d_t1 -24.3→-24.27); 8 Zeilen weichen ab (GRPN 26.10.2026 return_10d_t1 -24.3→-24.27, FRGT 27.10.2026 return_5d_t1 -1.47→-1.5, GRPN 27.10.2026 forward_10d -24.3→-24.27)"}], "provider_fails": []}
 {"run_ts": "2026-11-14T01:45:09Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-11-14T03:16:57Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
