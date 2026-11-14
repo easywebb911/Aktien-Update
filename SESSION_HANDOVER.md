@@ -3390,6 +3390,24 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 14.11.2026 — Fix B: Halbzeile im Postclose + Score-Abgleich (Wächter) + Freeze-Naht (1 PR, Manual-Merge)
+
+- `#701` (Branch `claude/fix-b-halbzeile-5dlyrd`, Branch-Commit `afd7873b`, kein Merge-Hash —
+  Regel a). Easy-Entscheid 14.11. (Mini-Stopp 1A · 2 reparieren · 3 nur Postclose · 4 einverstanden).
+  `generate_report`: letzte Tageszeile je Ticker EINMAL entschieden (`_last_bar_decision`/
+  `_apply_last_bar_repair`, nur Postclose; vollstaendig / aus_info_gefuellt / vortag_rueckfall),
+  alle Konsumenten über `_df_for`; ^GSPC über `_spx_close_with_repair`; Kartenhinweis bei
+  Vortag-Rückfall. `backtest_history`: Felder `letzte_zeile`/`spx_letzte_zeile` (forward-only,
+  S10_OBSERVED), Verwurfsgrund `zeile_nicht_fuellbar`; S15-warn + Digest-Zählung.
+  `score_inflation_log`: `change`, `spx_daily_perf`, `letzte_zeile` (additiv). Wächter
+  `scripts/score_check.py` im Wahrheits-Abgleich (S16: warn ≥ 1 Zeile |Δ| ≥ 0,5; crit ≥ 3 oder
+  Wechsel um 70 mit |Δ| ≥ 0,5). Protokolleinträge in 10 laufenden Freeze-Blöcken (Naht = Merge),
+  MD5-Pins (`hypothesen_nov26_eval`, `mock_test_outcome_path`). Probe: Nachweis-Modus
+  (Lauf 43586256511). Test `mock_test_fix_b_halbzeile.py` (CI). open_items: 1 neu, 4 ergänzt.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#700`,
+  höchste in Block 1 erwähnte PR = `#701` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 14.11.2026 — Probe 1 korrigiert (1 PR, Self-Merge nach Easy-Freigabe)
 
 - `#700` (Branch `claude/probe1-korrektur-5dlyrd`, Branch-Commit `03b424c3`, kein Merge-Hash —
