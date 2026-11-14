@@ -137,8 +137,8 @@ def _abort(fn) -> str | None:
 def test_freeze():
     print("1 Freeze-Block")
     check("MD5-Pin + Gegenprobe auf main-Stand", hy.read_freeze(ROOT / "SESSION_HANDOVER.md") == hy.FREEZE_BLOCK_MD5)
-    check("Pin im Skript = Stand nach Protokolleintrag 14.11.2026 (#698)",
-          hy.FREEZE_BLOCK_MD5 == "380119ab5a9b9d87eb1b00ee652cfa2b", hy.FREEZE_BLOCK_MD5)
+    check("Pin im Skript = Stand nach Protokolleintrag 14.11.2026 (Fix B, #701)",
+          hy.FREEZE_BLOCK_MD5 == "057ba27b995f5f654a1eeb946619f860", hy.FREEZE_BLOCK_MD5)
     with tempfile.TemporaryDirectory() as t:
         tmp = pathlib.Path(t)
         e, o, i = make_dataset()
