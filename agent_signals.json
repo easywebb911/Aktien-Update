@@ -1,10 +1,10 @@
 {
-  "updated": "2026-11-15T10:27:16.574935+01:00",
+  "updated": "2026-11-15T18:12:49.429990+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 13.7,
+    "elapsed_s": 56.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 8.222450376454484
     },
     "AQST": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 10.0% + SEC Form 4",
+      "score": 28,
+      "confidence": 70,
+      "drivers": "Spanne 10.0% + News-KI 8/30: Conference presentations and earnings calls are routine corporate events with no indication of short squeeze catalysts l + SEC Form 4",
       "price": 3.91,
       "chg_pct": 0.0,
       "rvol_4d": 1.34,
@@ -46,16 +46,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.13350785340314136,
       "uoa_cp_ratio": 0.1171071953010279
     },
     "EZPW": {
-      "score": 50,
-      "confidence": 70,
-      "drivers": "Volumen 1.6× + News: earnings beat + SEC Form 4 + UOA Call/Put 2.5×",
+      "score": 40,
+      "confidence": 33,
+      "drivers": "Volumen 1.6× + News: earnings beat + UOA Call/Put 2.5×",
       "price": 27.55,
       "chg_pct": -0.0,
       "rvol_4d": 1.56,
@@ -120,13 +120,13 @@
       "uoa_cp_ratio": 0.5
     },
     "LUCK": {
-      "score": 45,
-      "confidence": 70,
-      "drivers": "Spanne 18.3% + FINRA Short-Vol 86% + UOA Call/Put 4.5×",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "FINRA Short-Vol 86% + UOA Call/Put 4.5×",
       "price": 3.45,
       "chg_pct": 0.0,
-      "rvol_4d": 1.39,
-      "rvol_20d": 2.62,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 81 Tagen (04.02.2027)",
       "fda_date": null,
       "upcoming_event": null,
@@ -166,9 +166,9 @@
       "uoa_cp_ratio": 2.995983935742972
     },
     "SEAT": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Spanne 22.8% + FINRA Short-Vol 59%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Spanne 22.8% + News-KI 8/30: Analyst downgrade and debt concerns indicate weakening fundamentals, reducing squeeze potential despite possible short i + FINRA Short-Vol 59%",
       "price": 1.39,
       "chg_pct": -0.0,
       "rvol_4d": 0.78,
@@ -180,16 +180,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "TNDM": {
-      "score": 50,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 9.1% + News: earnings beat + UOA Call/Put 7.6×",
+      "drivers": "Volumen 1.7× + Spanne 9.1% + News: revenue beat, earnings beat + UOA Call/Put 7.6×",
       "price": 20.07,
       "chg_pct": -0.0,
       "rvol_4d": 1.73,
