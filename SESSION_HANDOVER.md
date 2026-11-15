@@ -3441,6 +3441,11 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Blindfenster jetzt 10, ≈ 40 %). `scripts/suw_eval.py` Teil B (`freeze_run`, Rechenkern unverändert),
   `suw_eval.yml` committet nur `eval_results.jsonl` (nur test, nach Auslöser), Digest-Zeile „🧪 SUW“.
   open_items `regel-suw-shorts-unter-wasser` → beobachtet, `blindes-fenster-keine-weiteren-tests` Nachtrag.
+- **Bekannte Grenzen (Guardian #720, vor dem test-Lauf beachten):** hängt zwischen Checkout und Push eine andere
+  Instanz Zeilen an `eval_results.jsonl`, bricht der Commit-Schritt ab (Präfix-Prüfung) — die Zeilen liegen dann
+  nur im Artifact, main hat keine suw-Zeile, ein zweiter Lauf ist nötig. Scheitert nach dem Anhängen das
+  Schreiben von `--out`, entfällt der Commit ebenso. Beides fail-safe; den test-Lauf nicht parallel zu
+  anderen eval_results-Schreibern starten (z. B. Health-Digest 08:47 UTC).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#719`, eigene `#720` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
