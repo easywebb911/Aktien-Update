@@ -3432,6 +3432,14 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Erkundung Einstieg Eröffnung vs. 30 Minuten später (1 PR, Doku, Self-Merge)
+
+- `#712` (Branch `claude/erkundung-einstieg-30min-v2r4`, kein Merge-Hash — Regel a). Nur open_item
+  `erkundung-einstieg-30min` (n = 79, 8 Tage, Einstiege ≤ 23.10.): B/A − 1 +0,42 % (KI −0,13 … +1,04),
+  Berkman-Muster nicht sichtbar; erkundend, kein Beleg. Wegwerf-Skript nicht in main.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#711`, eigene `#712` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — Rückrechnung geschlossen + Proben entfernt (1 PR, Aufräumen/Doku, Self-Merge)
 
 - `#711` (Branch `claude/rueckrechnung-aufraeumen-z6q1`, Branch-Commit `c8c901e2`, kein Merge-Hash — Regel a).
