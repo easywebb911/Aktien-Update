@@ -3432,6 +3432,16 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Rangregel Inst-2 (1 PR, Doku, Self-Merge)
+
+- `#716` (Branch `claude/rangregel-inst-2-w3n6`, kein Merge-Hash — Regel a). Nur open_item `rangregel-inst-2`:
+  Regel zuerst festgeschrieben (Branch-Commit `af3ba366`, 19:25:24 UTC, vor jeder Rendite gepusht), dann ein
+  Rechenlauf (`1aaeffb8`). Je Tag die 2 Top-10-Einträge mit geringster Inst-Beteiligung (Wert wie H-I Stufe 1):
+  n 104 an 52 Tagen, Mittel V −4,84 % (KI −8,96 … −0,73), Tagesdifferenz zu den übrigen −3,68 Pkt
+  (KI −8,03 … +0,38), beide Hälften negativ → **trägt nicht**, erledigt, keine Varianten. Erkundend, kein Beleg.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#715`, eigene `#716` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — Landkarte 2 Frage 4 nachgetragen (1 PR, Doku, Self-Merge)
 
 - `#715` (Branch `claude/landkarte-2-f4-nachtrag-r5t8`, kein Merge-Hash — Regel a). Nur open_items:
