@@ -3432,6 +3432,15 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Regel SUW festgeschrieben (1 PR, Doku, Self-Merge)
+
+- `#717` (Branch `claude/regel-suw-k4m9`, kein Merge-Hash — Regel a). Nur open_item
+  `regel-suw-shorts-unter-wasser` (offen): Regel „Leerverkäufer unter Wasser“ (von Beschwitz/Massa)
+  unverändert festgeschrieben, Branch-Commit `8cd6d065` vor der Rechnung gepusht (21:39 UTC). Code rechnet
+  nichts; Rechnung im Chat, Ergebnis per zweitem Auftrag. Umsetzbar (FINRA CNMSshvol bereits in ki_agent).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#716`, eigene `#717` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — Rangregel Inst-2 (1 PR, Doku, Self-Merge)
 
 - `#716` (Branch `claude/rangregel-inst-2-w3n6`, kein Merge-Hash — Regel a). Nur open_item `rangregel-inst-2`:
