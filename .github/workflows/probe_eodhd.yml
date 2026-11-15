@@ -1,0 +1,68 @@
+name: Probe EODHD-Abdeckung (Wegwerf)
+
+# WEGWERF-PROBE (Easy-Auftrag 15.11.2026, open_item
+# rueckrechnung-survivorship-delisting): liefert EODHD Kurse für dieselben 140
+# verschwundenen US-Stammaktien wie die Tiingo-Probe? Nur Hand-Start, NUR lesen
+# (contents: read), kein Commit, kein Push. Ergebnis: Log + Artifact (30 Tage).
+# Stufe 1 (≤ 6 EODHD-Abrufe, Gratis-Konto): Liste + Kurs-Zugang, danach
+# MINI-STOPP. Stufe 2 nur nach Freigabe (Kontingent-Prüfung vor jedem Abruf).
+# Secrets EODHD_API_KEY (Stufe 1+2) und TIINGO_API_KEY (nur Stufe 2,
+# Vergleich je Aktie): maskiert, nie in Log/URL-Ausgabe/Artifact.
+# BLINDHEIT: keine Rendite, kein Gipfel. Ab 31.12.2026 no-op.
+# Rückweg: diese Datei + scripts/probe_eodhd.py + Test per Commit entfernen.
+
+on:
+  workflow_dispatch:
+    inputs:
+      stufe:
+        description: "1 = Liste + Kurs-Zugang (Mini-Stopp danach), 2 = Kurse der 140 (nur nach Freigabe)"
+        required: true
+        type: choice
+        options: ["1", "2"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-eodhd
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: Checkout (nur lesen)
+        uses: actions/checkout@v5
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Probe (Schlüssel maskiert; Rate-Limit/Kontingent → Abbruch, Exit 3)
+        env:
+          EODHD_API_KEY: ${{ secrets.EODHD_API_KEY }}
+          TIINGO_API_KEY: ${{ secrets.TIINGO_API_KEY }}
+          STUFE: ${{ inputs.stufe }}
+        run: |
+          if [ -n "$EODHD_API_KEY" ]; then echo "::add-mask::$EODHD_API_KEY"; fi
+          if [ -n "$TIINGO_API_KEY" ]; then echo "::add-mask::$TIINGO_API_KEY"; fi
+          if [ "$STUFE" != "2" ]; then unset TIINGO_API_KEY; fi
+          python scripts/probe_eodhd.py --stufe "$STUFE" --out "$RUNNER_TEMP/eodhd_probe/eodhd_probe.json"
+
+      - name: Artifact hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eodhd-probe-stufe${{ inputs.stufe }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/eodhd_probe/eodhd_probe.json
+          if-no-files-found: ignore
+          retention-days: 30
