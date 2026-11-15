@@ -1,0 +1,73 @@
+name: SUW Auswertung (Leerverkäufer unter Wasser)
+
+# Regel SUW (open_item regel-suw-shorts-unter-wasser, festgeschrieben
+# 15.11.2026, Commit 8cd6d065), umgesetzt in scripts/suw_eval.py.
+#
+# Betriebsarten (Eingabe beim Hand-Start):
+#   nachrechnen  nur Einstiege ≤ 23.10.2026 (offenes Fenster) — unabhängige
+#                Nachrechnung der im Chat gerechneten Werte, Abgleich gegen die
+#                im Skript festgeschriebene Toleranz.
+#   test         nur Einstiege ≥ 24.10.2026; vor dem Auslöser (60 Einstiegstage
+#                mit endgültigem Schluss Tag 10) NUR Zählerstand — keine Kurse,
+#                keine FINRA-Dateien, keine Rendite.
+#
+# Nur Hand-Start, kein Zeitplan. Liest Repo-Dateien, holt FINRA-CNMS-Dateien
+# (cdn.finra.org) und Yahoo-Tageskurse (yfinance, auto_adjust=False) mit
+# Pausen, schreibt NICHTS ins Repo: Ergebnis als Artifact + Log-Tabelle.
+# Keine Secrets. Rückweg: diese Datei und scripts/suw_eval.py per PR
+# entfernen (keine Datendatei berührt).
+
+on:
+  workflow_dispatch:
+    inputs:
+      betriebsart:
+        description: 'nachrechnen (≤ 23.10.2026) oder test (≥ 24.10.2026, nur nach Auslöser)'
+        required: true
+        type: choice
+        options:
+          - nachrechnen
+          - test
+
+permissions:
+  contents: read
+
+concurrency:
+  group: suw-eval
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  suw-eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: SUW auswerten
+        env:
+          BETRIEBSART: ${{ inputs.betriebsart }}
+        run: python scripts/suw_eval.py --mode "$BETRIEBSART" --out "${RUNNER_TEMP}/suw_eval_result.json"
+
+      - name: Ergebnis als Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suw-eval-${{ inputs.betriebsart }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/suw_eval_result.json
+          if-no-files-found: warn
+          retention-days: 90

@@ -58,6 +58,7 @@ ALLOWLIST = [
     "display_teil_b",
     "berichtsdatum_variante_a",
     "probe_halbzeile_score",
+    "suw_eval",
     "schritt2_plausibilitaet",
     "fix_b_halbzeile",
     "earnings_fields",

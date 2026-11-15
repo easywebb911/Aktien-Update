@@ -3432,6 +3432,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — SUW Teil A: Auswertungsskript + Workflow (1 PR, Manual-Merge)
+
+- `#719` (Branch `claude/suw-eval-a7k2`, Branch-Commit `9814339f`, kein Merge-Hash — Regel a). Easy-Entscheid
+  15.11.2026: Regel SUW wird eingefroren und auf Einstiegen ab 24.10.2026 getestet (ausdrückliche Zustimmung zu
+  einem weiteren Bestätigungstest auf dem Blindfenster). Neu: `scripts/suw_eval.py` (Regel wörtlich; Yahoo
+  auto_adjust=False), `.github/workflows/suw_eval.yml` (nur Hand-Start, Betriebsart `nachrechnen` ≤ 23.10. /
+  `test` ≥ 24.10. erst nach Auslöser 60 Tage — vorher nur Zähler, keine Rendite), `scripts/mock_test_suw_eval.py`
+  (CI-Allowlist). Toleranz der Nachrechnung vor dem Lauf festgeschrieben (HZ1 ±0,3, HZ2 ±0,5, n ±3, Hälften HZ1 > 0).
+  Teil B (Freeze-Block) erst nach bestandener Nachrechnung.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#718`, eigene `#719` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — Regel SUW Ergebnis (1 PR, Doku, Self-Merge)
 
 - `#718` (Branch `claude/regel-suw-ergebnis-h2v5`, kein Merge-Hash — Regel a). Nur open_item
