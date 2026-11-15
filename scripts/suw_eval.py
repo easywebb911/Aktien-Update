@@ -53,6 +53,11 @@ Lesarten (Regeltext lässt sie offen; gewählt und offen gelegt):
      Hälften-Zuordnung bleibt), danach neu gemittelt; ein Tag, an dem eine
      Hälfte leer wird, entfällt. Für Hauptzahl 2 dieselben 3 Einträge.
   L7 Kosten 1,9 % multiplikativ wie backtest_history.apply_round_trip_haircut.
+  L8 „bessere pool_position“ = kleinere Zahl (Platz 1 vor Platz 2); fehlende
+     pool_position sortiert ans Ende.
+  L9 95-%-Bereich = sortierte Bootstrap-Werte, Index int(0,025·N) und
+     int(0,975·N) − 1 (bei N = 2000: 50 und 1949), wie in den bisherigen
+     Erkundungen.
 
 Datenquellen-Robustheit: fehlen bei mehr als 5 % der Ticker die Yahoo-Kurse →
 Ergebnis „nicht auswertbar“ (keine Schätzung). FINRA-/Yahoo-Fehler werden je
@@ -470,7 +475,7 @@ def run(mode: str, *, export_path, outcome_path, fetch_finra=fetch_finra_default
         fetch_yahoo=fetch_yahoo_default, sleep=time.sleep, holidays=None) -> dict:
     if mode not in MODES:
         raise SuwAbort(f"unbekannte Betriebsart {mode!r}")
-    res: dict = {"betriebsart": mode, "lesarten": "L1–L7 siehe Kopf von scripts/suw_eval.py"}
+    res: dict = {"betriebsart": mode, "lesarten": "L1–L9 siehe Kopf von scripts/suw_eval.py"}
     if mode == "test":
         n_trig = count_trigger_days(outcome_path, "test")
         res["ausloeser"] = {"tage_mit_schluss_tag10": n_trig, "noetig": TRIGGER_DAYS,
