@@ -3432,6 +3432,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Regel SUW Ergebnis (1 PR, Doku, Self-Merge)
+
+- `#718` (Branch `claude/regel-suw-ergebnis-h2v5`, kein Merge-Hash — Regel a). Nur open_item
+  `regel-suw-shorts-unter-wasser`: Ergebnis angehängt, **im Chat gerechnet, von Code nicht nachgerechnet**
+  (ein Lauf nach dem Regel-Push `8cd6d065`). Obere minus untere Tageshälfte V +4,48 Pkt (95 % +1,60 … +7,37,
+  Hälften +4,20 / +4,75) → vorab-Urteil „trägt stark“. Kein Beleg, nur Eintrittskarte; siebter Blick auf
+  dasselbe Fenster; obere Hälfte nach 1,9 % Kosten −0,64 %; Überschneidung mit Kurs-Schwung ungeprüft.
+  Freeze/Startdatum: Entscheid Easy. Status bleibt offen.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#717`, eigene `#718` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — Regel SUW festgeschrieben (1 PR, Doku, Self-Merge)
 
 - `#717` (Branch `claude/regel-suw-k4m9`, kein Merge-Hash — Regel a). Nur open_item
