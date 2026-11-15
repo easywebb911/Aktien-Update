@@ -9460,7 +9460,10 @@ bestimmt, ob und wie er im Tool erscheint:
 Heute: Treffer-Score (SUW) = „Eingefroren, Test läuft“ → grau, „(unvalidiert)“ / „in Prüfung“.
 Inst-Beteiligung (H-I) = „Beleg im offenen Fenster“ → blau; belegt sind **häufigere Sprünge über
 +30 %**, **nicht** eine höhere Rendite (Hinweistext `config.INST_OWNERSHIP_HINT`). Paper C =
-blau (Test läuft). Freeze-Blöcke bleiben von dieser Regel unberührt.
+blau (Test läuft). Erstes Beispiel für **„Durchgefallen: von der Karte entfernt“**: der
+Entry-Shadow (Prüfung 16.11.2026, open_item `regel-entry-shadow`: häufiger Sprünge, aber keine
+bessere Rendite) — Kartenzeile, Füll-Skript und CSS raus; Felder `entry_score`/`entry_components`/
+`entry_n_components` werden weiter gesammelt, Methodik-Panel sagt das in einem Satz. Freeze-Blöcke bleiben von dieser Regel unberührt.
 
 ### 7·1. Treffer-Score (unvalidiert) — SUW-Schatten-Wert (seit 15.11.2026)
 
