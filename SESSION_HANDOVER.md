@@ -3432,6 +3432,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Treffer-Score (unvalidiert) auf Karte + Sortier-Menü (1 PR, Manual-Merge)
+
+- `#721` (Branch `claude/suw-karte-plan-m2r6`, Branch-Commit `65386e49`, kein Merge-Hash — Regel a). SUW als
+  Schatten-Wert: `treffer_score.py` (Rechenkern aus `suw_eval.py`, nur Postclose, immer vorläufig, leer statt
+  Abbruch), Feld `s["treffer_score"]`, neue Datei `suw_daily.jsonl`; Kartenzeile unter KI-Score/Ring (grau,
+  „Platz x von N“), Detail-Satz, Panel-Zeile „Test läuft: x von 60“, Digest-Zeile; Sortier-Menü vierter Eintrag,
+  nie gespeichert; Daily-Workflow `actions/cache` `finra_cache/` + `git add suw_daily.jsonl`; Anzeige-Stufen-
+  Regel §7·0; Inst-Hinweis präzisiert. Kein Einfluss auf Score/Conviction/Filter/Auswahl/Reihenfolge (Tests).
+  Offen: Hand-Nachrechnung eines Tickers aus der Log-Zeile nach dem ersten Postclose.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#720`, eigene `#721` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — SUW Teil B: Freeze-Block + F1/F2-Auswertung (1 PR, Manual-Merge, protected-ok)
 
 - `#720` (Branch `claude/suw-freeze-b3x8`, Branch-Commit `30635474`, kein Merge-Hash — Regel a). Nach bestandener
