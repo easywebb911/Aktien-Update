@@ -143,7 +143,14 @@ with tempfile.TemporaryDirectory() as td:
           f"{len(calls)} {info_c}")
 
 # ── 4) Anwenden im Lauf (generate_report._apply_treffer_score) ──────────────
-import generate_report as gr  # noqa: E402
+# generate_report über das Golden-Harness laden (stubbt yfinance/requests/bs4 —
+# CI läuft auf stdlib + jinja2 + pyyaml).
+import importlib.util  # noqa: E402
+_spec = importlib.util.spec_from_file_location(
+    "golden_harness_ts", ROOT / "scripts" / "mock_test_outer_page_golden.py")
+golden = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(golden)
+gr = golden.gr
 
 with tempfile.TemporaryDirectory() as td:
     dp = pathlib.Path(td) / "suw_daily.jsonl"
@@ -266,9 +273,7 @@ check("37 Digest bindet die Zeile fail-soft ein", "treffer_score.digest_line(" i
 check("38 Rechenkern nur importiert (keine zweite SUW-Formel)",
       "suw_eval.suw_value(" in (ROOT / "treffer_score.py").read_text(encoding="utf-8")
       and "sv * c" not in (ROOT / "treffer_score.py").read_text(encoding="utf-8"))
-import mock_test_outer_page_golden as golden  # noqa: E402
 try:
-    golden._install_stubs() if hasattr(golden, "_install_stubs") else None
     gr._render_test(golden._fixture_stocks(), golden._FIXED_REPORT_DATE)
     ok39 = True
 except Exception as exc:  # noqa: BLE001
