@@ -3429,6 +3429,14 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — EODHD-Probe Stufe 1: Ergebnis in open_items (1 PR, Doku, Self-Merge)
+
+- `#710` (Branch `claude/eodhd-stufe1-ergebnis-h2m5`, kein Merge-Hash — Regel a). Lauf 43736344402:
+  Gratis-Konto (20 Abrufe/Tag); Liste kennt 74 % der 140 (Kürzel+Name 40 %), alle Verschwundenen
+  76 %; Kurse 2018 im Gratis-Konto leer → Gate „nein“, MINI-STOPP, Easy entscheidet. Nur open_items.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#709`, eigene `#710` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — Wegwerf-Probe EODHD-Abdeckung (1 PR, Self-Merge laut Easy, neuer Workflow mit Secret)
 
 - `#709` (Branch `claude/eodhd-probe-p4n7`, Branch-Commit `4392d141`, kein Merge-Hash — Regel a).
