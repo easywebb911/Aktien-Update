@@ -3432,6 +3432,16 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Hypothesen-Entwurf H-RVOL (1 PR, Doku, Self-Merge)
+
+- `#713` (Branch `claude/hypothese-entwurf-rvol-k7q2`, kein Merge-Hash — Regel a). Nur open_item
+  `hypothese-entwurf-rvol` (offen, NICHT eingefroren): Bootstrap-Zeilen (1012, 30 Ticker) read-only
+  nachgerechnet, return_10d_t1 je rvol-Drittel unten +3,16 % / Mitte +0,75 % / oben −1,03 % (Mittel);
+  Schwächen (Auswahl rvol ≥ 1,5, Überlebens-Auswahl, short_float/dtc vom Erzeugungstag); rvol-Definition
+  Bootstrap ≠ Daily (Nenner ohne vs. mit Signaltag). Kein Test auf dem Blindfenster ohne Easy-Entscheid.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#712`, eigene `#713` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — Erkundung Einstieg Eröffnung vs. 30 Minuten später (1 PR, Doku, Self-Merge)
 
 - `#712` (Branch `claude/erkundung-einstieg-30min-v2r4`, kein Merge-Hash — Regel a). Nur open_item
