@@ -638,6 +638,23 @@ def main(*, now_ts: datetime | None = None,
     except Exception as _eval_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Freeze-Eval-Autorun unerwartet: %r", _eval_exc)
         eval_lines = []
+    # SUW-Freeze-Zähler (15.11.2026, Block „VORABREGISTRIERUNG — SUW“): reine
+    # Zählung der Einstiegstage ≥ 24.10.2026 mit endgültigem Schluss Tag 10
+    # (liest nur date/grund aus outcome_path.jsonl, keine Rendite). Kein
+    # Auto-Lauf — die Auswertung startet Easy von Hand (suw_eval.yml, test).
+    # Eigener Fail-soft-Guard, unabhängig von den Zeilen oben.
+    try:
+        import suw_eval  # noqa: E402  (lazy, scripts/ liegt im sys.path)
+        suw_n = suw_eval.count_trigger_days(ROOT / hc.OUTCOME_PATH_FILE, "test")
+        suw_rows = [r for r in suw_eval._read_result_rows(ROOT / EVAL_RESULTS_FILE)
+                    if r.get("family") == suw_eval.FAMILY]
+        suw_verdict = ("; ".join(f"{r.get('test_id')}: {r.get('verdict')}" for r in suw_rows)
+                       if suw_rows else None)
+        eval_lines.append(hc.eval_status_line(
+            "SUW (Einstiegstage)", (suw_n, 0), suw_eval.TRIGGER_DAYS, None,
+            verdict_text=suw_verdict))
+    except Exception as _suw_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
+        log.warning("SUW-Zähler unerwartet: %r", _suw_exc)
     # Pause sichtbar machen (02.11.2026): bei abgeschaltetem Auto-Lauf steht
     # täglich eine eigene Zeile im Digest — AUSSERHALB des try, damit sie
     # auch dann erscheint, wenn die Zähler-Zeilen scheitern. Reine Anzeige,

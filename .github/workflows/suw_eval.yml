@@ -13,9 +13,11 @@ name: SUW Auswertung (Leerverkäufer unter Wasser)
 #
 # Nur Hand-Start, kein Zeitplan. Liest Repo-Dateien, holt FINRA-CNMS-Dateien
 # (cdn.finra.org) und Yahoo-Tageskurse (yfinance, auto_adjust=False) mit
-# Pausen, schreibt NICHTS ins Repo: Ergebnis als Artifact + Log-Tabelle.
-# Keine Secrets. Rückweg: diese Datei und scripts/suw_eval.py per PR
-# entfernen (keine Datendatei berührt).
+# Pausen. Ergebnis als Artifact + Log-Tabelle. Einziger Schreibweg ins Repo
+# (seit Teil B, Freeze-Block „VORABREGISTRIERUNG — SUW“): in Betriebsart test
+# NACH dem Auslöser hängt das Skript je Test eine Zeile an eval_results.jsonl;
+# der Commit-Schritt unten pusht NUR diese Datei (append-only geprüft).
+# Vor dem Auslöser und in nachrechnen wird nichts geschrieben. Keine Secrets.
 
 on:
   workflow_dispatch:
@@ -29,7 +31,7 @@ on:
           - test
 
 permissions:
-  contents: read
+  contents: write   # NUR für eval_results.jsonl (Betriebsart test, nach Auslöser)
 
 concurrency:
   group: suw-eval
@@ -71,3 +73,43 @@ jobs:
           path: ${{ runner.temp }}/suw_eval_result.json
           if-no-files-found: warn
           retention-days: 90
+
+      - name: Commit eval_results (nur test, nur nach Auswertung)
+        if: ${{ inputs.betriebsart == 'test' }}
+        run: |
+          if git diff --quiet -- eval_results.jsonl; then
+            echo "eval_results.jsonl unverändert — nichts zu committen."
+            exit 0
+          fi
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          FRESH="${RUNNER_TEMP}/eval_results_fresh.jsonl"
+          cp eval_results.jsonl "$FRESH"
+          pushed=0
+          for attempt in 1 2 3 4 5; do
+            if ! git fetch origin main; then
+              echo "fetch fehlgeschlagen (Versuch $attempt) — retry."
+              sleep 2
+              continue
+            fi
+            git reset --hard origin/main
+            ORIG_SIZE=$(stat -c %s eval_results.jsonl)
+            if ! cmp -s -n "$ORIG_SIZE" eval_results.jsonl "$FRESH"; then
+              echo "ERROR: eval_results.jsonl auf origin ist kein Präfix der neuen Datei — kein Push."
+              exit 1
+            fi
+            cp "$FRESH" eval_results.jsonl
+            git add eval_results.jsonl
+            git commit -m "SUW-Freeze-Auswertung: eval_results $(date -u '+%Y-%m-%d')"
+            if git push origin main; then
+              echo "eval_results gepusht (Versuch $attempt)."
+              pushed=1
+              break
+            fi
+            echo "push rejected (Versuch $attempt) — retry."
+            sleep 2
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "ERROR: eval_results konnte nicht gepusht werden — Artifact enthält die Zeilen."
+            exit 1
+          fi

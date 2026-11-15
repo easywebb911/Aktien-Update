@@ -472,7 +472,8 @@ def fetch_yahoo_default(ticker: str, start: date, end_excl: date) -> tuple[dict 
 
 # ── Ablauf ──────────────────────────────────────────────────────────────────
 def run(mode: str, *, export_path, outcome_path, fetch_finra=fetch_finra_default,
-        fetch_yahoo=fetch_yahoo_default, sleep=time.sleep, holidays=None) -> dict:
+        fetch_yahoo=fetch_yahoo_default, sleep=time.sleep, holidays=None,
+        freeze_kwargs: dict | None = None) -> dict:
     if mode not in MODES:
         raise SuwAbort(f"unbekannte Betriebsart {mode!r}")
     res: dict = {"betriebsart": mode, "lesarten": "L1–L9 siehe Kopf von scripts/suw_eval.py"}
@@ -483,7 +484,11 @@ def run(mode: str, *, export_path, outcome_path, fetch_finra=fetch_finra_default
         if n_trig < TRIGGER_DAYS:
             res["status"] = "nur_zaehler"
             return res
-        res["status"] = "ausloeser_erreicht_auswertung_nicht_implementiert"
+        # Auslöser erreicht → einmalige Freeze-Auswertung (Teil B). Reihenfolge:
+        # Ort → Freeze-Block-MD5 → Sperre → ERST DANN Daten/Kurse.
+        res.update(freeze_run(export_path=export_path, outcome_path=outcome_path,
+                              fetch_finra=fetch_finra, fetch_yahoo=fetch_yahoo,
+                              sleep=sleep, holidays=holidays, **(freeze_kwargs or {})))
         return res
 
     pop = load_population(export_path, mode)
@@ -566,6 +571,336 @@ def run(mode: str, *, export_path, outcome_path, fetch_finra=fetch_finra_default
     return res
 
 
+# ── Teil B: Freeze-Auswertung F1/F2 (Betriebsart test, nur nach Auslöser) ───
+# Eigener Teil; der Rechenkern oben (suw_value, day_halves, day_diff, headline,
+# bootstrap, split_halves, without_extremes, outcome_entry) bleibt unverändert
+# und wird nur aufgerufen. Wörtlich nach Block „VORABREGISTRIERUNG — SUW —
+# Leerverkäufer unter Wasser“ in SESSION_HANDOVER.md (MD5-Pin unten).
+HANDOVER_FILE = "SESSION_HANDOVER.md"
+FREEZE_HEADING = ("### VORABREGISTRIERUNG — SUW — Leerverkäufer unter Wasser, "
+                  "eingefroren mit dem Merge")
+FREEZE_BLOCK_MD5 = "916f9c2ba7df85096e27d2f0a05390d6"
+FAMILY = "suw"
+TEST_IDS = ("suw_f1", "suw_f2")
+ALPHA = 0.05
+FLOOR_DAYS_F1 = 40
+FLOOR_ROWS_F2 = 40
+REGIME_MIN_DAYS_F1 = 30
+REGIME_MIN_ROWS_F2 = 30
+REGIMES = ("bull", "bear", "neutral")
+PROTOCOL_REF = ("SESSION_HANDOVER.md, VORABREGISTRIERUNG — SUW — Leerverkäufer unter Wasser, "
+                "eingefroren mit dem Merge")
+_REQUIRED_SNIPPETS = (
+    "Einstieg D ≥ 24.10.2026",
+    "60 Einstiegstage",
+    "`family = \"suw\"`, k = 2",
+    "α = 0,05, Holm",
+    "N = 2000, Seed 42",
+    "mindestens 40 auswertbare Einstiegstage",
+    "mindestens 40 Zeilen",
+    "auto_adjust=False",
+)
+
+
+def extract_freeze_block(handover_text: str) -> str:
+    import re
+    lines = handover_text.split("\n")
+    idx = [i for i, ln in enumerate(lines) if ln == FREEZE_HEADING]
+    if len(idx) != 1:
+        raise SuwAbort(f"SUW-Freeze-Block nicht eindeutig gefunden ({len(idx)} Treffer).")
+    end = idx[0] + 1
+    while end < len(lines):
+        m = re.match(r"^(#{1,6})\s", lines[end])
+        if m and len(m.group(1)) <= 3:
+            break
+        end += 1
+    return "\n".join(lines[idx[0]:end])
+
+
+def read_freeze(handover_path) -> str:
+    import hashlib
+    import re
+    try:
+        text = pathlib.Path(handover_path).read_text(encoding="utf-8")
+    except OSError as exc:
+        raise SuwAbort(f"Handover nicht lesbar: {exc!r}") from exc
+    block = extract_freeze_block(text)
+    md5 = hashlib.md5(block.encode("utf-8")).hexdigest()
+    if md5 != FREEZE_BLOCK_MD5:
+        raise SuwAbort(f"SUW-Freeze-Block weicht ab (MD5 {md5} ≠ {FREEZE_BLOCK_MD5}) — kein Lauf "
+                       "ohne Protokolleintrag + Skript-Nachzug.")
+    norm = re.sub(r"\s+", " ", block.replace("**", ""))
+    missing = [x for x in _REQUIRED_SNIPPETS if x not in norm]
+    if missing:
+        raise SuwAbort(f"Freeze-Block-Gegenprobe fehlgeschlagen: {missing}")
+    return md5
+
+
+def _read_result_rows(results_path) -> list:
+    rows = []
+    try:
+        with open(results_path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                s = line.strip()
+                if not s:
+                    continue
+                try:
+                    obj = json.loads(s)
+                except (json.JSONDecodeError, TypeError, ValueError):
+                    continue
+                if isinstance(obj, dict):
+                    rows.append(obj)
+    except FileNotFoundError:
+        pass
+    return rows
+
+
+def check_lock(results_path) -> int:
+    rows = _read_result_rows(results_path)
+    for r in rows:
+        if r.get("family") == FAMILY or r.get("test_id") in TEST_IDS:
+            raise SuwAbort("eval_results.jsonl enthält bereits eine suw-Zeile — kein Zweitlauf "
+                           "ohne Protokolleintrag.")
+    return sum(1 for r in rows if r.get("test_id"))
+
+
+def _location_guard(env=None) -> None:
+    import os
+    env = os.environ if env is None else env
+    if env.get("GITHUB_ACTIONS") != "true" or env.get("GITHUB_REF") != "refs/heads/main":
+        raise SuwAbort("Freeze-Auswertung nur im GitHub-Workflow auf main "
+                       "(GITHUB_ACTIONS=true, GITHUB_REF=refs/heads/main).")
+
+
+def collect_test_entries(*, export_path, outcome_path, fetch_finra, fetch_yahoo, sleep,
+                         holidays=None) -> tuple[dict, list]:
+    """Wie der Datenweg von „nachrechnen“, aber für D ≥ 24.10.2026 (Riegel
+    „test“). Fenstertage vor D (FINRA/Yahoo) dürfen vor dem 24.10. liegen —
+    das sind Daten VOR dem Einstieg, kein Ergebnis. Liefert (Zähler, Einträge
+    mit Wert inkl. market_regime)."""
+    mode = "test"
+    pop = load_population(export_path, mode)
+    regime = {}
+    for obj in _iter_jsonl(export_path):
+        if obj.get("provenance") != PROVENANCE or not in_mode(parse_dmy(obj.get("date")), mode):
+            continue
+        regime.setdefault((obj.get("ticker"), obj.get("date")), obj.get("market_regime"))
+    keys = {(p["ticker"], p["date"]) for p in pop}
+    outs = load_outcomes(outcome_path, keys, mode)
+    info: dict = {"einstiege": len(pop)}
+    excl, ents = {}, []
+    for p in pop:
+        why, e = outcome_entry(outs.get((p["ticker"], p["date"])))
+        if why:
+            excl[why] = excl.get(why, 0) + 1
+            continue
+        ents.append({**p, **e, "regime": regime.get((p["ticker"], p["date"]))})
+    info["ohne_vollstaendige_kurse"] = excl
+    if not ents:
+        raise SuwAbort("keine verwertbaren Einstiege")
+    tickers = sorted({p["ticker"] for p in pop})
+    wdays = {(e["ticker"], e["date"]): window_days(e["d"], holidays=holidays) for e in ents}
+    need_dates = sorted({t for w in wdays.values() for t in w})
+    max_d = max(p["d"] for p in pop)
+    min_d = min(need_dates)
+    sv_by_t, finra_status = {}, {}
+    for i, d in enumerate(need_dates):
+        if i:
+            sleep(FINRA_PAUSE_S)
+        text, why = fetch_finra(d)
+        finra_status[d.isoformat()] = why
+        if text is None:
+            continue
+        for sym, v in parse_finra(text, set(tickers)).items():
+            sv_by_t.setdefault(sym, {})[d] = v
+    info["finra_dateien"] = {"benoetigt": len(need_dates),
+                             "fehlend": sorted(k for k, v in finra_status.items() if v != "ok")}
+    info["finra_ticker_nie_gefunden"] = sorted(t for t in tickers if t not in sv_by_t)
+    close_by_t, yahoo_fail = {}, {}
+    for i, t in enumerate(tickers):
+        if i:
+            sleep(YAHOO_PAUSE_S)
+        c, why = fetch_yahoo(t, min_d - timedelta(days=5), max_d + timedelta(days=1))
+        if c is None:
+            yahoo_fail[t] = why
+            continue
+        close_by_t[t] = {k: v for k, v in c.items() if k <= max_d}
+    info["yahoo_ohne_kurse"] = yahoo_fail
+    info["ticker"] = len(tickers)
+    if (len(yahoo_fail) / len(tickers)) > MAX_TICKER_FAIL_SHARE:
+        info["nicht_auswertbar"] = (f"Yahoo ohne Kurse bei {len(yahoo_fail)}/{len(tickers)} "
+                                    "Tickern (> 5 %)")
+        return info, []
+    no_value, with_val = {}, []
+    for e in ents:
+        v, why, _m = suw_value(e["d"], wdays[(e["ticker"], e["date"])], sv_by_t.get(e["ticker"], {}),
+                               close_by_t.get(e["ticker"], {}))
+        if v is None:
+            no_value[why] = no_value.get(why, 0) + 1
+            continue
+        with_val.append({**e, "suw": v})
+    info["ohne_wert"] = no_value
+    info["mit_wert"] = len(with_val)
+    return info, with_val
+
+
+def _stats_imports():
+    scripts = str(_ROOT / "scripts")
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    import hypothesen_nov26_eval as hn  # Wilcoxon B.4 + Holm-Adjustierung (wörtlich)
+    from stats_helpers import multiple_testing_correction
+    return hn, multiple_testing_correction
+
+
+def _day_regime(rows) -> str:
+    vals = {r.get("regime") for r in rows}
+    if len(vals) == 1:
+        v = next(iter(vals))
+        if v in REGIMES:
+            return v
+    return "unbekannt"
+
+
+def _bootstrap_upper_net(days: dict, net, n: int = N_BOOT, seed: int = SEED) -> tuple[float, float]:
+    keys = sorted(days)
+    rng = random.Random(seed)
+    out = []
+    for _ in range(n):
+        vals = []
+        for _k in keys:
+            vals += [net(e) for e in days[rng.choice(keys)][0]]
+        out.append(sum(vals) / len(vals))
+    out.sort()
+    return out[int(0.025 * n)], out[int(0.975 * n) - 1]
+
+
+def _regime_side(v) -> int:
+    return 0 if v is None or v == 0 else (1 if v > 0 else -1)
+
+
+def freeze_evaluate(with_val: list, hc: Callable, hn, mtc) -> dict:
+    by = {}
+    for e in with_val:
+        by.setdefault(e["d"], []).append(e)
+    days, rows_by_day = {}, {}
+    for x in sorted(by):
+        r = day_halves(by[x])
+        if r is not None:
+            days[x] = r
+            rows_by_day[x] = by[x]
+    out: dict = {"tage_auswertbar": len(days), "tage_entfallen": len(by) - len(days)}
+    if not days:
+        raise SuwAbort("keine auswertbaren Einstiegstage")
+    keys = sorted(days)
+    med, d1, d2 = split_halves(keys)
+    diffs = [day_diff(days[x][0], days[x][1], "v") for x in keys]
+    net = lambda e: hc(e["v"])  # noqa: E731 — HAIRCUT_ROUND_TRIP_PCT (−4 %), wie H-I Rendite
+    upper = [e for x in keys for e in days[x][0]]
+    n1 = [net(e) for e in upper]
+
+    # F1
+    w1 = hn.wilcoxon_one_sided(diffs, [0.0] * len(diffs))
+    lo1, hi1 = bootstrap(days, "v")
+    hz1 = headline(days, keys, "v")
+    reg1 = {}
+    for rg in REGIMES + ("unbekannt",):
+        ks = [x for x in keys if _day_regime(rows_by_day[x]) == rg]
+        val = headline(days, ks, "v") if ks else None
+        ok = rg != "unbekannt" and len(ks) >= REGIME_MIN_DAYS_F1
+        reg1[rg] = {"tage": len(ks), "wert": val, "status": "pruefbar" if ok else "nicht_pruefbar"}
+    # F2
+    w2 = hn.wilcoxon_one_sided(n1, [0.0] * len(n1))
+    lo2, hi2 = _bootstrap_upper_net(days, net)
+    m2 = sum(n1) / len(n1)
+    reg2 = {}
+    for rg in REGIMES + ("unbekannt",):
+        rs = [net(e) for x in keys for e in days[x][0] if _day_regime(rows_by_day[x]) == rg]
+        ok = rg != "unbekannt" and len(rs) >= REGIME_MIN_ROWS_F2
+        reg2[rg] = {"zeilen": len(rs), "wert": (sum(rs) / len(rs)) if rs else None,
+                    "status": "pruefbar" if ok else "nicht_pruefbar"}
+
+    def reg_status(detail, total):
+        pr = [d for d in detail.values() if d["status"] == "pruefbar"]
+        if not pr:
+            return "nicht_pruefbar"
+        side = _regime_side(total)
+        bad = [d for d in pr if _regime_side(d["wert"]) not in (0, side)]
+        return "widerspricht" if bad else "plausibel"
+
+    res = {
+        "suw_f1": {"p": w1["p_one_sided"], "floor_ok": len(days) >= FLOOR_DAYS_F1,
+                   "ci_ok": lo1 > 0, "reg": reg_status(reg1, hz1), "reg_detail": reg1,
+                   "statistic": {"wilcoxon": w1, "wert": hz1, "ci95": [lo1, hi1], "tage": len(days),
+                                 "h1": headline(days, d1, "v"), "h2": headline(days, d2, "v"),
+                                 "median_datum": med.isoformat()},
+                   "target": "Hauptzahl 1: je Einstiegstag Mittel V obere minus untere SUW-Hälfte, "
+                             "über die Tage gemittelt, > 0"},
+        "suw_f2": {"p": w2["p_one_sided"], "floor_ok": len(upper) >= FLOOR_ROWS_F2,
+                   "ci_ok": lo2 > 0, "reg": reg_status(reg2, m2), "reg_detail": reg2,
+                   "statistic": {"wilcoxon": w2, "wert": m2, "ci95": [lo2, hi2], "zeilen": len(upper)},
+                   "target": "Mittel V (netto, HAIRCUT_ROUND_TRIP_PCT −4 %) der oberen SUW-Hälfte > 0"},
+    }
+    p_in = {t: (res[t]["p"] if (res[t]["floor_ok"] and res[t]["p"] is not None) else 1.0)
+            for t in TEST_IDS}
+    holm = mtc([p_in[t] for t in TEST_IDS], labels=list(TEST_IDS), alpha=ALPHA)
+    holm_by = {row["label"]: bool(row["holm_reject"]) for row in holm["results"]}
+    adj, _thr = hn.holm_adjusted(p_in, list(TEST_IDS))
+    if any((adj[t] < ALPHA) != holm_by[t] for t in TEST_IDS):
+        raise SuwAbort("Holm-adjustierter p widerspricht multiple_testing_correction.")
+    for t in TEST_IDS:
+        r = res[t]
+        r["p_holm_input"], r["p_holm_adjusted"], r["holm_significant"] = p_in[t], adj[t], holm_by[t]
+        r["verdict"], r["verdict_reason"] = hn.verdict_for(r["floor_ok"], holm_by[t], r["ci_ok"], r["reg"])
+    out["tests"] = res
+    out["nur_berichtet"] = {
+        "obere_nach_1_9": describe(upper, hc)["mittel_v_nach_1_9"],
+        "obere": describe(upper, hc), "untere": describe([e for x in keys for e in days[x][1]], hc),
+        "hz2_treffer": {"wert": headline(days, keys, "hit"), "ci95": list(bootstrap(days, "hit"))},
+    }
+    return out
+
+
+def freeze_run(*, export_path, outcome_path, fetch_finra, fetch_yahoo, sleep, holidays=None,
+               handover_path=None, results_path=None, env=None, now=None) -> dict:
+    from datetime import datetime, timezone
+    _location_guard(env)
+    md5 = read_freeze(handover_path or (_ROOT / HANDOVER_FILE))
+    rp = results_path or (_ROOT / config.EVAL_RESULTS_FILE)
+    tests_before = check_lock(rp)
+    hn, mtc = _stats_imports()
+    hc = _haircut_fn()
+    info, with_val = collect_test_entries(export_path=export_path, outcome_path=outcome_path,
+                                          fetch_finra=fetch_finra, fetch_yahoo=fetch_yahoo,
+                                          sleep=sleep, holidays=holidays)
+    if "nicht_auswertbar" in info:
+        info["status"] = "nicht_auswertbar"
+        return info
+    ev = freeze_evaluate(with_val, hc, hn, mtc)
+    ts = (now or datetime.now(timezone.utc)).isoformat()
+    commit = __import__("os").environ.get("GITHUB_SHA")
+    rows = []
+    for t in TEST_IDS:
+        r = ev["tests"][t]
+        rows.append({"schema_v": 1, "family": FAMILY, "test_id": t, "run_ts": ts,
+                     "protocol_ref": PROTOCOL_REF, "freeze_block_md5": md5,
+                     "target": r["target"], "verdict": r["verdict"],
+                     "verdict_reason": r["verdict_reason"], "p_raw": r["p"],
+                     "p_holm_input": r["p_holm_input"], "p_holm_adjusted": r["p_holm_adjusted"],
+                     "holm_significant": r["holm_significant"], "floor_ok": r["floor_ok"],
+                     "ci_kriterium": r["ci_ok"], "statistic": r["statistic"],
+                     "regime_split": {"status": r["reg"], "detail": r["reg_detail"]},
+                     "datenlage": {k: v for k, v in info.items()},
+                     "nur_berichtet": ev["nur_berichtet"],
+                     "confirmatory_tests_total": tests_before + len(TEST_IDS),
+                     "script_commit_hash": commit, "n_boot": N_BOOT, "seed": SEED})
+    with open(rp, "a", encoding="utf-8") as fh:
+        for r in rows:
+            fh.write(json.dumps(_jsonable(r), ensure_ascii=False, sort_keys=True) + "\n")
+    info.update({"status": "ausgewertet", "eval_rows": rows})
+    return info
+
+
 def _fmt(x, nd=2):
     return "—" if x is None else f"{x:+.{nd}f}"
 
@@ -574,7 +909,19 @@ def log_table(res: dict) -> str:
     L = [f"SUW-Auswertung — Betriebsart {res['betriebsart']} — Status {res.get('status')}"]
     if res["betriebsart"] == "test":
         a = res["ausloeser"]
-        L.append(f"Auslöser: {a['tage_mit_schluss_tag10']}/{a['noetig']} Einstiegstage — keine Rendite geladen")
+        if res.get("status") == "nur_zaehler":
+            L.append(f"Auslöser: {a['tage_mit_schluss_tag10']}/{a['noetig']} Einstiegstage — keine Rendite geladen")
+            return "\n".join(L)
+        L.append(f"Auslöser erreicht: {a['tage_mit_schluss_tag10']}/{a['noetig']} Einstiegstage")
+        if res.get("status") != "ausgewertet":
+            L.append(f"NICHT AUSWERTBAR: {res.get('nicht_auswertbar')}")
+            return "\n".join(L)
+        for r in res["eval_rows"]:
+            st_ = r["statistic"]
+            L.append(f"| {r['test_id']} | {r['verdict']} | Wert {_fmt(st_['wert'])} | KI95 "
+                     f"{_fmt(st_['ci95'][0])} … {_fmt(st_['ci95'][1])} | p {r['p_raw']} | "
+                     f"p Holm {r['p_holm_adjusted']} | Regime {r['regime_split']['status']} |")
+        L.append(f"Zeilen an {config.EVAL_RESULTS_FILE} angehängt: {len(res['eval_rows'])}")
         return "\n".join(L)
     L.append(f"Einstiege {res.get('einstiege')} | ohne vollständige Kurse {res.get('ohne_vollstaendige_kurse')}"
              f" | ohne Wert {res.get('ohne_wert')} | mit Wert {res.get('mit_wert')} | Ticker {res.get('ticker')}")
