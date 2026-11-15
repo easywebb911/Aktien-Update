@@ -3432,6 +3432,16 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Landkarte 2 Frage 4 nachgetragen (1 PR, Doku, Self-Merge)
+
+- `#715` (Branch `claude/landkarte-2-f4-nachtrag-r5t8`, kein Merge-Hash — Regel a). Nur open_items:
+  `erkundung-landkarte-2` F4 (rvol ≥ 2,384, n 192 vs. 477, −1,86 Pkt, KI −5,95 … +2,54, Hälften
+  +1,62 / −6,62) — **im Chat gerechnet, von Code nicht nachgerechnet** (Yahoo in der Sandbox gesperrt);
+  Gesamturteil 4 von 4 kein Kandidat; F1-Erkenntnis: Treffer halten im Mittel +27 % bis Tag 10, Hebel ist
+  die Treffer-Erkennung. `hypothese-entwurf-rvol` → beobachtet (auf echten Daten nicht bestätigt).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#714`, eigene `#715` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — Erkundung Landkarte 2 (1 PR, Doku, Self-Merge)
 
 - `#714` (Branch `claude/erkundung-landkarte-2-p8m3`, kein Merge-Hash — Regel a). Nur open_item
