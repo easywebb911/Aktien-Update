@@ -3432,6 +3432,16 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Rückrechnung geschlossen + Proben entfernt (1 PR, Aufräumen/Doku, Self-Merge)
+
+- `#711` (Branch `claude/rueckrechnung-aufraeumen-z6q1`, Branch-Commit `c8c901e2`, kein Merge-Hash — Regel a).
+  Easy-Entscheid 15.11.: Rückrechnung geschlossen (Tiingo 69 %, EODHD 74 % nach Kürzel, alte Kurse gratis
+  gesperrt). Entfernt: probe_eodhd/probe_tiingo/probe_rueckrechnung (Workflows, Skripte, Tests, CI-Liste
+  208 → 205). open_items: survivorship-delisting + 3 Folge-Items erledigt, Hypothesen-Entwürfe bleiben offen.
+  Lesson 8z15. Secrets löscht Easy selbst.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#710`, eigene `#711` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — EODHD-Probe Stufe 1: Ergebnis in open_items (1 PR, Doku, Self-Merge)
 
 - `#710` (Branch `claude/eodhd-stufe1-ergebnis-h2m5`, kein Merge-Hash — Regel a). Lauf 43736344402:
