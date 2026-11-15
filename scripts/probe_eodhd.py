@@ -68,6 +68,7 @@ TIINGO_EXPECTED = (97, 140)               # Ergebnis Lauf 43626657445 (Reprodukt
 KEY = {"v": ""}
 COUNT = {"eodhd": 0, "limit": STUFE1_MAX_CALLS}
 OUT = {"p": ""}
+TIINGO_STOP = {"v": ""}
 
 
 class RateLimited(Exception):
@@ -150,7 +151,10 @@ def eod_rows(sym, start, end):
                                                      "to": end.isoformat(), "period": "d"})
     if st != "ok":
         return st, []
-    return ("ok", data) if isinstance(data, list) else ("unerwartet", [])
+    if not isinstance(data, list):
+        return "unerwartet", []
+    # nur Zeilen mit Datum (Guardian F3) — sonst KeyError in covered()/Auswertung
+    return "ok", [r for r in data if isinstance(r, dict) and r.get("date")]
 
 
 def row_summary(st, rows):
@@ -225,6 +229,8 @@ def stufe1(result, lists):
     L18 = lists.get(2018) or {}
     probe_sym = next((s for s in L18.get("stichprobe_v", []) if norm(s) in idx), None)
     e2 = {"verschwunden_2018_symbol_in_liste": probe_sym is not None}
+    if probe_sym is None:
+        e2["grund"] = "kein_stichproben_symbol_in_liste — Kurs-Zugang für Verschwundene nicht geprüft"
     if probe_sym and L18.get("base"):
         st2, rws = eod_rows(probe_sym, L18["base"] - timedelta(days=5), L18["base"] + timedelta(days=30))
         e2["verschwunden_2018"] = row_summary(st2, rws)
@@ -240,7 +246,11 @@ def stufe1(result, lists):
     q = (e1.get("gesamt_stichprobe") or {}).get("kuerzel") or {}
     kurse_ok = bool((e2.get("verschwunden_2018") or {}).get("zeilen"))
     result["stufe1_gate"] = {
-        "listen_quote_stichprobe": q.get("anteil"), "schwelle": LIST_GATE_MIN,
+        "gate_quote": "kuerzel (Kürzel-Treffer; kuerzel_und_name ist strenger, nur Bericht)",
+        "listen_quote_stichprobe": q.get("anteil"),
+        "listen_quote_stichprobe_kuerzel_und_name":
+            ((e1.get("gesamt_stichprobe") or {}).get("kuerzel_und_name") or {}).get("anteil"),
+        "schwelle": LIST_GATE_MIN,
         "kurse_verschwunden_2018": kurse_ok,
         "weiter_zu_stufe_2": bool(q.get("anteil") is not None and q["anteil"] >= LIST_GATE_MIN
                                    and kurse_ok)}
@@ -298,7 +308,7 @@ def stufe2(result, lists, sdates):
     tot_e = tot_n = 0
     for y in pt.YEARS:
         L = lists.get(y) or {}
-        if L.get("datei_fehlt"):
+        if not L or L.get("datei_fehlt"):
             continue
         base, later = L["base"], L["later"]
         res = {"geprueft": 0, "abgedeckt": 0, "status": {}, "volumen_plausibel": 0,
@@ -321,9 +331,18 @@ def stufe2(result, lists, sdates):
                 except (TypeError, ValueError):
                     pass
             t_st, t_cov = "nicht_abgefragt", None
-            if pt.KEY["v"]:
-                t_st, t_rows = pt.tiingo_prices(s, base - timedelta(days=5), later + timedelta(days=60))
-                t_cov = bool(t_st == "ok" and t_rows and pt.covered(t_rows, base))
+            if pt.KEY["v"] and not TIINGO_STOP["v"]:
+                # Nebenpfad (Guardian F1): ein Tiingo-Abbruch darf die EODHD-Auswertung
+                # nicht beenden — ab dann Tiingo „abgebrochen“, EODHD läuft weiter.
+                try:
+                    t_st, t_rows = pt.tiingo_prices(s, base - timedelta(days=5), later + timedelta(days=60))
+                    t_cov = bool(t_st == "ok" and t_rows and pt.covered(t_rows, base))
+                except (pt.RateLimited, RuntimeError) as exc:
+                    TIINGO_STOP["v"] = f"{type(exc).__name__}"
+                    t_st, t_cov = "abgebrochen", None
+                    log(f"Tiingo-Vergleich abgebrochen ({TIINGO_STOP['v']}) — EODHD läuft weiter")
+            elif TIINGO_STOP["v"]:
+                t_st = "abgebrochen"
             per.append({"jahr": y, "symbol": s, "eodhd": cov, "eodhd_status": st,
                         "in_liste": norm(s) in idx, "tiingo": t_cov, "tiingo_status": t_st})
         res["abdeckung"] = pr.wilson(res["abgedeckt"], res["geprueft"])
@@ -345,6 +364,7 @@ def stufe2(result, lists, sdates):
     section(result, "T1")
     section(result, "T2")
     result["vergleich"] = vergleich(per)
+    result["vergleich"]["tiingo_abgebrochen"] = TIINGO_STOP["v"] or None
     result["je_aktie"] = per
     section(result, "vergleich")
 
@@ -403,7 +423,7 @@ def main(argv=None) -> int:
         else:
             stufe2(result, lists, sdates)
     except (RateLimited, Exception) as exc:  # noqa: BLE001
-        rc = 3 if isinstance(exc, (RateLimited, pt.RateLimited)) else 4
+        rc = 3 if isinstance(exc, (RateLimited, pt.RateLimited, pr.RateLimited)) else 4
         result["abbruch_grund"] = scrub(f"{type(exc).__name__}: {str(exc)[:300]}")
         log(f"ABBRUCH — vollständig: {result.get('abschnitte_vollstaendig', [])}; "
             f"Grund: {result['abbruch_grund']}")

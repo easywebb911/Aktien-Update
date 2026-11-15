@@ -165,6 +165,35 @@ def main() -> int:
         except pe.RateLimited as exc:
             check("14 Kontingent zu klein → Abbruch ohne Kurs-Abruf",
                   "Kontingent" in str(exc) and not any("/eod/" in c[0] for c in CALLS))
+        # Stufe 2: Tiingo-Abbruch beendet die EODHD-Auswertung nicht (Guardian F1)
+        def _router_big(url, params=None, **kw):
+            if url.endswith("/user"):
+                return _Resp(200, {"dailyRateLimit": 100000, "apiRequests": 0})
+            return _router(url, params, **kw)
+        _install_requests(_router_big)
+        pe.COUNT.update(eodhd=0, limit=pe.STUFE1_MAX_CALLS)
+        saved = (pe.pr.get_file, pe.pr.yf_download, pe.pt.tiingo_prices)
+        pe.pr.get_file = lambda d: {}
+        pe.pr.yf_download = lambda *a, **k: {}
+
+        def _t_boom(*a, **k):
+            raise pe.pt.RateLimited("tiingo 429")
+        pe.pt.tiingo_prices = _t_boom
+        os.environ["TIINGO_API_KEY"] = "tiingoX"
+        lists[2018]["stichprobe_v"] = ["AAA", "BB.B"]
+        res3 = {}
+        try:
+            with redirect_stdout(io.StringIO()):
+                pe.stufe2(res3, lists, [date(2026, 11, 13)])
+        finally:
+            pe.pr.get_file, pe.pr.yf_download, pe.pt.tiingo_prices = saved
+            os.environ.pop("TIINGO_API_KEY", None)
+            pe.pt.KEY["v"] = ""
+            pe.TIINGO_STOP["v"] = ""
+        g = res3.get("T1", {}).get("gesamt", {})
+        check("23 Tiingo-Abbruch: EODHD läuft weiter, Entscheidung berechnet",
+              g.get("abdeckung", {}).get("k") == 2 and g.get("entscheidung") == "ungültig"
+              and res3["vergleich"]["tiingo_abgebrochen"] == "RateLimited")
     finally:
         if saved_req is not None:
             sys.modules["requests"] = saved_req

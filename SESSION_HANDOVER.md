@@ -3438,7 +3438,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   Kontingent-Sperre und Tiingo-Vergleich je Aktie. Keine Renditen. open_items: 1 Nachtrag.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#708`, höchste in Block 1
   erwähnte PR = `#709` (eigene) — kein Rückstand.
-- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+- **Guardian-Lauf vor Ready:** 4 Befunde behoben (Tiingo-Abbruch beendet EODHD nicht mehr,
+  yfinance-Rate-Limit = Exit 3, Zeilen ohne Datum gefiltert, Gate-Quote + Grund im Bericht); Test 23.
 
 ### 14.11.2026 — Handover-Konsistenz zum Sitzungsende + Tiingo-Ergebnis (1 PR, Doku, Self-Merge)
 
