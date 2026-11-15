@@ -144,11 +144,17 @@ def _fixture_stocks() -> list[dict]:
     # AAAA: rsi14=61.0 → RSI-Detail-Zeile gerendert (Wert-Zweig).
     # BBBB: rsi14=None → RSI-Zeile weggelassen (None-Zweig) — deckt beide
     # Render-Pfade in EINEM Golden ab.
-    return [
-        _fixture_stock("AAAA", score=82.0, price=5.10, change=6.3),
-        _fixture_stock("BBBB", score=71.5, price=12.40, change=-2.1,
-                       rsi14=None),
-    ]
+    # Treffer-Score (SUW-Schatten-Wert, 15.11.2026): AAAA mit Wert (Zeile mit
+    # Platz + data-treffer), BBBB ohne Wert („—“, Grund als title) — deckt
+    # beide Render-Zweige der Kartenzeile ab.
+    a = _fixture_stock("AAAA", score=82.0, price=5.10, change=6.3)
+    a["treffer_score"] = {"wert": 13.6512, "rang": 1, "n_mit_wert": 1,
+                          "datum": "2026-06-01", "stand": "vorläufig", "grund": None}
+    b = _fixture_stock("BBBB", score=71.5, price=12.40, change=-2.1, rsi14=None)
+    b["treffer_score"] = {"wert": None, "rang": None, "n_mit_wert": 1,
+                          "datum": "2026-06-01", "stand": "vorläufig",
+                          "grund": "Tagesschluss fehlt"}
+    return [a, b]
 
 
 def _fixture_backtest_history() -> list[dict]:

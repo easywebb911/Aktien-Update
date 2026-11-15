@@ -3908,6 +3908,108 @@ def _momentum_5t_row_html(stock: dict) -> str:
     )
 
 
+# ── Treffer-Score (unvalidiert) — SUW-Schatten-Wert (Easy-Entscheid 15.11.2026) ──
+# Reine Anzeige + Ansichts-Sortierung. KEIN Leser in score(), score_bonus(),
+# _compute_sub_scores(), Conviction, Filtern, Auswahl oder gespeicherter
+# Reihenfolge (Wächter: scripts/mock_test_treffer_score.py). Der eingefrorene
+# SUW-Test liest das Tagesfeld nie (rechnet selbst aus endgültigen Daten).
+TREFFER_LABEL = "Treffer-Score (unvalidiert):"
+TREFFER_NOTE = ("Misst, ob die Leerverkäufer der letzten 20 Tage im Minus sitzen. "
+                "Vorläufiger Tageswert vom Abend. Vor Börsenschluss steht hier der Wert "
+                "vom letzten Abend mit Datum, der Platz gilt dann für die damalige Top-10. "
+                "In Prüfung, Ergebnis ca. Februar 2027. Kein Kaufsignal.")
+
+
+def _treffer_pct_text(w: float) -> str:
+    """Ganze Prozent, kaufmännisch gerundet, mit Vorzeichen (Anzeige)."""
+    n = int(math.floor(abs(w) + 0.5))
+    if n == 0:
+        return "0\u00a0%"
+    return f"{'+' if w > 0 else '−'}{n}\u00a0%"
+
+
+def _treffer_row_html(stock: dict) -> str:
+    """Kartenzeile unter dem Block aus KI-Score und Conviction-Ring. Nur wenn
+    das Feld gesetzt ist (Top-10); Watchlist-Karten außerhalb der Top-10 ohne
+    Zeile. Neutral grau, kein Fettdruck, kein Pfeil, keine Ampel."""
+    if "treffer_score" not in stock:
+        return ""
+    t = stock.get("treffer_score") or {}
+    w, rang, n = t.get("wert"), t.get("rang"), t.get("n_mit_wert")
+    if _finite(w) and isinstance(rang, int) and isinstance(n, int):
+        val = f"{_treffer_pct_text(float(w))} · Platz {rang} von {n}"
+        title = ""
+    else:
+        val = "—"
+        g = str(t.get("grund") or "").replace('"', "'").replace("<", "").replace(">", "")
+        title = f' title="{g}"' if g else ""
+    if t.get("aus_postclose") and t.get("datum"):
+        try:
+            val += " · Stand " + datetime.strptime(str(t["datum"]), "%Y-%m-%d").strftime("%d.%m.")
+        except ValueError:
+            pass
+    return (f'<div class="cockpit-treffer"{title}>'
+            f'<span class="ts-lbl">{TREFFER_LABEL}</span> '
+            f'<span class="ts-val">{val}</span></div>')
+
+
+def _treffer_detail_row_html(stock: dict) -> str:
+    """Erklärender Satz im Detailbereich (nur Top-10)."""
+    if "treffer_score" not in stock:
+        return ""
+    return (f'<tr><td>Treffer-Score</td>'
+            f'<td><span class="ts-note">{TREFFER_NOTE}</span></td></tr>')
+
+
+def _treffer_data_attr(stock: dict) -> str:
+    """``data-treffer`` (gespeicherter Wert, 4 Nachkommastellen) — nur für die
+    Ansichts-Sortierung im Browser. Ohne Wert kein Attribut."""
+    t = stock.get("treffer_score") or {}
+    w = t.get("wert")
+    return f' data-treffer="{float(w):.4f}"' if _finite(w) else ""
+
+
+def _apply_treffer_score(top10: list, run_phase: str, report_day, *,
+                         compute=None, daily_path=None) -> None:
+    """Setzt ``s["treffer_score"]`` je Top-10-Eintrag. Postclose: berechnen und
+    an ``suw_daily.jsonl`` anhängen. Sonst: letzter Postclose-Wert mit Datum.
+    Fail-soft — nie eine Exception; andere Felder werden nie verändert."""
+    try:
+        import treffer_score as _ts
+        path = daily_path or _ts.DAILY_FILE
+        if run_phase == "postclose":
+            items, info = (compute or _ts.compute_for_top10)(top10, report_day,
+                                                             cache_dir=_ts.CACHE_DIR)
+            for s, it in zip(top10, items):
+                s["treffer_score"] = _ts.field_from_item(it)
+            try:
+                _ts.append_daily(items, path)
+            except OSError as exc:
+                log.warning("Treffer-Score: suw_daily.jsonl nicht geschrieben (%s)", exc)
+            _ts.prune_cache(_ts.CACHE_DIR)
+            n_val = sum(1 for it in items if _finite(it.get("wert")))
+            print(f"[treffer_score] {n_val}/{len(items)} mit Wert · {info}", flush=True)
+            line = _ts.log_line(items)
+            if line:
+                print(line, flush=True)
+            return
+        d, rows = _ts.load_last_postclose(path)
+        for s in top10:
+            r = rows.get(s.get("ticker"))
+            if r:
+                f = _ts.field_from_item(r)
+            else:
+                f = {"wert": None, "rang": None, "n_mit_wert": None, "datum": d,
+                     "stand": None, "grund": "kein Wert im letzten Postclose"}
+            f["aus_postclose"] = True
+            s["treffer_score"] = f
+    except Exception as exc:  # noqa: BLE001 — leer statt Abbruch
+        log.warning("Treffer-Score: nicht berechnet (%s)", exc)
+        for s in top10:
+            s["treffer_score"] = {"wert": None, "rang": None, "n_mit_wert": None,
+                                  "datum": None, "stand": None, "grund": "nicht_berechnet"}
+
+
 def _float_turnover_pts(stock: dict) -> tuple[float, float]:
     """Float-Turnover = today_volume / float_shares.
 
@@ -7459,6 +7561,7 @@ def _card_cockpit_html(
         f'{conv_status_badge}'
         f'</div>'
         f'</div>'
+        f'{_treffer_row_html(s)}'
         f'<div class="cockpit-entry-shadow" data-es-ticker="{ticker}" hidden></div>'
         f'</div>'
     )
@@ -7701,6 +7804,7 @@ def _card(i: int, s: dict) -> str:
     _conv_sc = _conv.get("score")
     conviction_data_attr = (f' data-conviction="{int(round(float(_conv_sc)))}"'
                             if isinstance(_conv_sc, (int, float)) else '')
+    conviction_data_attr += _treffer_data_attr(s)   # Treffer-Score: nur Ansichts-Sortierung
 
 
     # SI trend history + velocity
@@ -7793,7 +7897,8 @@ def _card(i: int, s: dict) -> str:
     # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-SPY).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
     momentum_rows = (_rsi_row + _ma_combined_row + _ma50_row2 + rs_spy_row
-                     + _momentum_5t_row_html(s) + _last_bar_note_row_html(s))
+                     + _momentum_5t_row_html(s) + _last_bar_note_row_html(s)
+                     + _treffer_detail_row_html(s))
     float_turnover_row = _float_turnover_row_html(s)
 
     # Options market data rows — Feature 4: <0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch
@@ -8220,6 +8325,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     _conv_sc = _conv.get("score")
     conviction_data_attr = (f' data-conviction="{int(round(float(_conv_sc)))}"'
                             if isinstance(_conv_sc, (int, float)) else '')
+    conviction_data_attr += _treffer_data_attr(s)   # Treffer-Score: nur Ansichts-Sortierung
 
     # ── FINRA SI-Trend & velocity ────────────────────────────────────────
     finra_d     = s.get("finra_data") or {}
@@ -8311,7 +8417,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-SPY).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
     momentum_rows = (_rsi_row + _ma_combined_row + _ma50_row2 + _rs_spy_row_
-                     + _momentum_5t_row_html(s) + _last_bar_note_row_html(s))
+                     + _momentum_5t_row_html(s) + _last_bar_note_row_html(s)
+                     + _treffer_detail_row_html(s))
     float_turnover_row = _float_turnover_row_html(s)
 
     # ── Options rows — Feature 4 (<0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch) ──
@@ -9188,7 +9295,21 @@ def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
             continue
         _x_kind = _status_kind_of(_xkey)
         _x_parts = []
-        if _xkey != "paper_c":
+        if _xkey == "suw":
+            # Zähler des eingefrorenen SUW-Tests (nur date/grund aus
+            # outcome_path.jsonl, keine Rendite). Fail-soft.
+            try:
+                import sys as _sys
+                import pathlib as _pl
+                _sd = str(_pl.Path(__file__).resolve().parent / "scripts")
+                if _sd not in _sys.path:
+                    _sys.path.insert(0, _sd)
+                import suw_eval as _se
+                _x_parts.append(f"Test läuft: {_se.count_trigger_days(OUTCOME_PATH_FILE, 'test')} "
+                                f"von {_se.TRIGGER_DAYS} Einstiegstagen")
+            except Exception:  # noqa: BLE001
+                _x_parts.append("Test läuft: Zähler nicht ermittelbar")
+        elif _xkey != "paper_c":
             _ref = (_x.get("eval_ref") or {}).get("test_id")
             _num = _eval_numbers_text(_ev.get(_ref)) if _ref else ""
             if _num:
@@ -9713,6 +9834,10 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         <button class="menu-subitem" data-sort="conviction" role="menuitemradio" onclick="selectSortMode('conviction')">
           <i data-lucide="check" class="menu-check" id="menu-sort-check-conviction"></i>
           <span>Conviction-Score</span>
+        </button>
+        <button class="menu-subitem" data-sort="treffer" role="menuitemradio" onclick="selectSortMode('treffer')">
+          <i data-lucide="check" class="menu-check" id="menu-sort-check-treffer"></i>
+          <span class="menu-sort-treffer-lbl">Treffer-Score (unvalidiert)</span>
         </button>
       </div>
       <button class="menu-item" role="menuitem" onclick="toggleChat();toggleMenuDrawer(false)">
@@ -10762,14 +10887,30 @@ function changeFontSize(dir){{
 // ``monster`` ist entfernt (Easy-Entscheid 24.10.2026, Monster-Score von
 // den Karten genommen) — ein weiterhin im localStorage stehender Alt-Wert
 // ``monster`` fällt fail-soft auf ``setup`` zurück (``indexOf`` liefert -1).
+// Vierte Option ``treffer`` (Treffer-Score unvalidiert, Easy-Entscheid
+// 15.11.2026): sortiert NUR die Ansicht nach data-treffer absteigend; Karten
+// ohne Wert ans Ende; Basis und Gleichstand = Server-Reihenfolge. Die Wahl
+// wird NICHT gespeichert (nie voreingestellt): _SORT_VALID bleibt die Liste
+// der speicherbaren Modi, ein unbekannter gespeicherter Wert → setup.
 const _SORT_KEY = 'squeeze_sort_mode';
 const _SORT_VALID = ['setup', 'ki', 'conviction'];
+const _SORT_VIEW_ONLY = ['treffer'];
 function _applySortMode(mode){{
-  const m = _SORT_VALID.indexOf(mode) >= 0 ? mode : 'setup';
+  const m = (_SORT_VALID.indexOf(mode) >= 0 || _SORT_VIEW_ONLY.indexOf(mode) >= 0) ? mode : 'setup';
   const grid = document.querySelector('.cards-grid');
   if (grid) {{
     const cards = Array.from(grid.querySelectorAll('article.card'));
-    if (m === 'ki') {{
+    if (m === 'treffer') {{
+      // Basis: Server-Reihenfolge; danach stabil nach gespeichertem Wert.
+      cards.sort((a, b) => parseInt(a.dataset.setupRank || '0', 10) - parseInt(b.dataset.setupRank || '0', 10));
+      cards.sort((a, b) => {{
+        const ah = a.dataset.treffer !== undefined, bh = b.dataset.treffer !== undefined;
+        if (ah && bh) return parseFloat(b.dataset.treffer) - parseFloat(a.dataset.treffer);
+        if (ah) return -1;
+        if (bh) return 1;
+        return 0;
+      }});
+    }} else if (m === 'ki') {{
       cards.sort((a, b) => parseFloat(b.dataset.kiScore || '0') - parseFloat(a.dataset.kiScore || '0'));
     }} else if (m === 'conviction') {{
       // Conviction: data-conviction (gesetzt nur wenn Wert vorhanden) absteigend.
@@ -10799,14 +10940,25 @@ function _applySortMode(mode){{
   if (cs) cs.style.visibility = (m === 'setup')      ? 'visible' : 'hidden';
   if (ck) ck.style.visibility = (m === 'ki')         ? 'visible' : 'hidden';
   if (cc) cc.style.visibility = (m === 'conviction') ? 'visible' : 'hidden';
+  const ct = document.getElementById('menu-sort-check-treffer');
+  if (ct) ct.style.visibility = (m === 'treffer')    ? 'visible' : 'hidden';
 }}
 function setSortMode(mode){{
+  if (_SORT_VIEW_ONLY.indexOf(mode) >= 0) {{
+    // Treffer-Score: nur Ansicht, KEIN localStorage-Schreiben.
+    _applySortMode(mode);
+    return;
+  }}
   const m = _SORT_VALID.indexOf(mode) >= 0 ? mode : 'setup';
-  localStorage.setItem(_SORT_KEY, m);
+  try {{ localStorage.setItem(_SORT_KEY, m); }} catch (e) {{}}
   _applySortMode(m);
 }}
 window.addEventListener('DOMContentLoaded', () => {{
-  const cur = localStorage.getItem(_SORT_KEY) || 'setup';
+  let cur = 'setup';
+  try {{ cur = localStorage.getItem(_SORT_KEY) || 'setup'; }} catch (e) {{}}
+  // Nur gespeicherte, speicherbare Modi gelten beim Laden; alles andere
+  // (auch ein „treffer“ aus Fremdquellen) → setup.
+  if (_SORT_VALID.indexOf(cur) < 0) cur = 'setup';
   _applySortMode(cur);
 }});
 // ── Dark Mode ─────────────────────────────────────────────────────────────
@@ -20665,6 +20817,14 @@ def main():
     if _wl_outsiders_for_pool:
         apply_conviction_scores(_wl_outsiders_for_pool,
                                  _anomalies_today, _vix_for_conv)
+
+    # Treffer-Score (unvalidiert) — SUW-Schatten-Wert (Easy-Entscheid 15.11.2026).
+    # Läuft NACH Auswahl, Scores, Conviction und Backtest-Append: liest die
+    # fertige Top-10 nur und schreibt ausschließlich ``s["treffer_score"]`` +
+    # ``suw_daily.jsonl``. Kein Einfluss auf Score, Filter, Auswahl oder
+    # gespeicherte Reihenfolge. Der eingefrorene SUW-Test liest dieses Feld nie
+    # (rechnet selbst aus endgültigen Daten, scripts/suw_eval.py). Fail-soft.
+    _apply_treffer_score(top10, run_phase, _report_day)
 
     # Watchlist-Karten-Snapshot VOR generate_html aufbauen, damit der
     # Chat-Synthese-Builder (_build_chat_synthesis_ctx) den enriched

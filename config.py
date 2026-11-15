@@ -2386,6 +2386,22 @@ SCORE_STATUS_LABELS = {
                        "— keine Widerlegung, kein Beleg",
         "eval_ref":    {"file": "eval_results.jsonl", "test_id": "hk_s1"},
     },
+    # Treffer-Score (SUW, „Leerverkäufer unter Wasser“) — eingefroren 15.11.2026
+    # (Block „VORABREGISTRIERUNG — SUW“, Easy-Entscheid). Anzeige-Stufe
+    # „Eingefroren, Test läuft“ → GRAU (heuristic) mit „in Prüfung“. Der Zähler
+    # „Test läuft: x von 60 Einstiegstagen“ kommt zur Render-Zeit aus
+    # scripts/suw_eval.count_trigger_days (nur date/grund). Die Zahl in
+    # review_cond stammt aus dem Freeze-Block (Erkundung, Einstiege ≤ 23.10.).
+    # Keine Rendite-/Trefferzahl aus Einstiegen ab 24.10.2026. Rein Anzeige.
+    "suw": {
+        "status":      "in Prüfung · eingefroren 15.11.2026",
+        "status_kind": "heuristic",
+        "status_date": "2026-11-15",
+        "review_by":   None,
+        "review_cond": "Erkundung Juli–Okt. 2026: obere minus untere Tageshälfte "
+                       "+4,48 Pkt (10-Tage-Rendite) — Erkundung, kein Beleg. "
+                       "Auswertung bei 60 Einstiegstagen (ca. Februar 2027)",
+    },
 }
 
 # Reihenfolge + Anzeigename der Befund-Zeilen ohne Daten-Dimension im
@@ -2395,14 +2411,15 @@ SCORE_STATUS_EXTRA_ROWS = (
     ("h_i",     "Inst-Beteiligung (H-I)"),
     ("h_g",     "Gewinnziel +30 % (H-G)"),
     ("h_k",     "8-K-Meldung (H-K)"),
+    ("suw",     "Treffer-Score (SUW)"),
 )
 
 # Hinweis unter dem Wert „Institutioneller Anteil“ (Detailbereich der Karte),
 # Easy-Auftrag 13.11.2026 (open_item inst-anzeige-farbe): Farbe neutral, keine
 # Schwellen, kein Marker im Kartenkopf. Wortlaut von Easy vorgegeben.
 INST_OWNERSHIP_HINT = (
-    "Niedrigere Beteiligung: häufiger +30 % im Hoch (Beleg, 1 Zeitfenster). "
-    "Rendite im selben Zeitraum nicht besser als null — kein Kaufsignal."
+    "Niedrigere Beteiligung: belegt sind häufigere Sprünge über +30 % im Hoch "
+    "(1 Zeitfenster) — NICHT eine höhere Rendite. Kein Kaufsignal."
 )
 
 # Explorative Zeile im Konfidenz-Panel (Easy-Auftrag 13.11.2026, Teil B).

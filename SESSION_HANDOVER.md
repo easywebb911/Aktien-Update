@@ -9390,6 +9390,40 @@ Netto-Feld, Reifegrenze aus PR #549 noch nicht erreicht).
 
 ## 7) ARCHITEKTUR-ANKER
 
+### 7·0. Anzeige-Stufen für Prüfwerte (feste Regel, Easy-Entscheid 15.11.2026)
+
+Jeder neue Prüfwert (Hypothese, Score-Kandidat) durchläuft dieselben Anzeige-Stufen. Die Stufe
+bestimmt, ob und wie er im Tool erscheint:
+
+| Stufe | Anzeige |
+|---|---|
+| **Erkundung** | **nicht auf der Karte**, nur in `open_items.json` |
+| **Eingefroren, Test läuft** | **grau**, mit dem Zusatz „unvalidiert“ oder „in Prüfung“ |
+| **Beleg im offenen Fenster** | **blau**, mit einem Satz, **was** belegt ist (und was nicht) |
+| **Bestätigt auf neuen Daten** | **grün** (CLAUDE.md-GRÜN-Regel: nur mit `eval_ref` auf eine `eval_results`-Zeile „Beleg“) |
+| **Durchgefallen** | wird **von der Karte entfernt** |
+
+Heute: Treffer-Score (SUW) = „Eingefroren, Test läuft“ → grau, „(unvalidiert)“ / „in Prüfung“.
+Inst-Beteiligung (H-I) = „Beleg im offenen Fenster“ → blau; belegt sind **häufigere Sprünge über
++30 %**, **nicht** eine höhere Rendite (Hinweistext `config.INST_OWNERSHIP_HINT`). Paper C =
+blau (Test läuft). Freeze-Blöcke bleiben von dieser Regel unberührt.
+
+### 7·1. Treffer-Score (unvalidiert) — SUW-Schatten-Wert (seit 15.11.2026)
+
+- Berechnung nur im Postclose in `generate_report.main()` nach Auswahl, Scores, Conviction und
+  Backtest-Append (`_apply_treffer_score` → `treffer_score.compute_for_top10`); Rechenkern aus
+  `scripts/suw_eval.py` (L1–L9), keine zweite Formel. Feld `s["treffer_score"]` + Sammeldatei
+  `suw_daily.jsonl` (nur angehängt). Immer **vorläufig** (Schlusskurs D aus dem Postclose).
+- **Schatten-Wert:** kein Leser in Score, Conviction, Filtern, Auswahl, gespeicherter
+  Reihenfolge, Backtest, Export, KI-Agent (Wächter `mock_test_treffer_score.py`, Tests 25–27).
+- **Freeze-Trennung:** der SUW-Test liest Feld und Datei nie; er rechnet selbst aus endgültigen
+  Daten (`suw_eval.py`, Betriebsart test).
+- Karte: Zeile unter KI-Score und Ring (grau, „Platz x von N“, N = Einträge mit Wert);
+  Premarket/Intraday: letzter Postclose-Wert mit „Stand TT.MM.“. Sortier-Menü: vierter Eintrag,
+  **nur Ansicht, nie gespeichert**.
+- FINRA-Zwischenspeicher `finra_cache/` über `actions/cache` (25 Börsentage), Zeitlimit 10 s je
+  Datei / 60 s gesamt; jeder Fehler → Feld leer, nie Abbruch.
+
 ### 7a. Analyse-Persistenz-Felder — Look-Ahead-Konvention
 
 Vier Felder im `backtest_history.json` sind **reine Analyse-/Outcome-Persistenz**,

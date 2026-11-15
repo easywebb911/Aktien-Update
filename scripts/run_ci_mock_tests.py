@@ -59,6 +59,7 @@ ALLOWLIST = [
     "berichtsdatum_variante_a",
     "probe_halbzeile_score",
     "suw_eval",
+    "treffer_score",
     "schritt2_plausibilitaet",
     "fix_b_halbzeile",
     "earnings_fields",

@@ -655,6 +655,13 @@ def main(*, now_ts: datetime | None = None,
             verdict_text=suw_verdict))
     except Exception as _suw_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("SUW-Zähler unerwartet: %r", _suw_exc)
+    # Treffer-Score-Abdeckung (SUW-Schatten-Wert, 15.11.2026): „x/10 mit Wert“
+    # aus dem letzten Postclose in suw_daily.jsonl. Reine Anzeige, fail-soft.
+    try:
+        import treffer_score  # noqa: E402  (Repo-Root liegt im sys.path)
+        eval_lines.append(treffer_score.digest_line(ROOT / treffer_score.DAILY_FILE))
+    except Exception as _ts_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
+        log.warning("Treffer-Score-Digest unerwartet: %r", _ts_exc)
     # Pause sichtbar machen (02.11.2026): bei abgeschaltetem Auto-Lauf steht
     # täglich eine eigene Zeile im Digest — AUSSERHALB des try, damit sie
     # auch dann erscheint, wenn die Zähler-Zeilen scheitern. Reine Anzeige,

@@ -591,6 +591,21 @@ kein Sortieren.
   `_isNonTradingDay`), Tooltip: bester gemessener Stand ab Einstiegskurs,
   kein belegter Vorteil, Ausstiegsregel unbelegt.
 
+### Karten-Zeile „Treffer-Score (unvalidiert)“ (SUW-Schatten-Wert, seit 15.11.2026)
+
+Zeile in voller Breite unter dem Block aus KI-Score und Conviction-Ring
+(`_treffer_row_html`, im Cockpit-Helper → v1 == v2), nur auf Top-10-Karten
+(Feld `s["treffer_score"]`; Watchlist außerhalb der Top-10 ohne Zeile). Grau,
+11 px, kein Fettdruck/Pfeil/Ampel; zwei nicht umbrechende Teile, unter 360 px
+zwei Zeilen reserviert. Wert = SUW aus `treffer_score.py` (Rechenkern
+`scripts/suw_eval.py`), nur im Postclose berechnet, immer vorläufig; sonst
+letzter Postclose-Wert aus `suw_daily.jsonl` mit „Stand TT.MM.“.
+**Schatten-Wert:** nie in Score/Conviction/Filter/Auswahl/Reihenfolge/Backtest/
+Export lesen (Wächter `scripts/mock_test_treffer_score.py`); der SUW-Freeze-Test
+liest Feld und Datei nie. Sortier-Menü: vierter Eintrag `treffer`, nur Ansicht,
+**nie in localStorage gespeichert** (`_SORT_VIEW_ONLY`). Anzeige-Stufen-Regel:
+SESSION_HANDOVER §7·0.
+
 ### Pflege
 
 - Bei Schema-Erweiterung an Sub-Scores (z. B. neuer Entry-Score ab
