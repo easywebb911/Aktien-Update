@@ -3432,6 +3432,15 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Erkundung Landkarte 2 (1 PR, Doku, Self-Merge)
+
+- `#714` (Branch `claude/erkundung-landkarte-2-p8m3`, kein Merge-Hash — Regel a). Nur open_item
+  `erkundung-landkarte-2` (Einstiege ≤ 23.10., n = 669, 67 Tage): F1 Verkaufsziel L30 − V +0,52 Pkt,
+  F2 Nacht − Tag +0,49 Pkt, F3 Neuling − Dauergast −1,46 Pkt — alle „kein Kandidat“ (Hälften drehen
+  das Vorzeichen). F4 (rvol ≥ 2,384) nicht gerechnet: Yahoo aus der Sandbox gesperrt. Kein Beleg.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#713`, eigene `#714` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — Hypothesen-Entwurf H-RVOL (1 PR, Doku, Self-Merge)
 
 - `#713` (Branch `claude/hypothese-entwurf-rvol-k7q2`, kein Merge-Hash — Regel a). Nur open_item
