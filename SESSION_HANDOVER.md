@@ -3441,6 +3441,12 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   nie gespeichert; Daily-Workflow `actions/cache` `finra_cache/` + `git add suw_daily.jsonl`; Anzeige-Stufen-
   Regel §7·0; Inst-Hinweis präzisiert. Kein Einfluss auf Score/Conviction/Filter/Auswahl/Reihenfolge (Tests).
   Offen: Hand-Nachrechnung eines Tickers aus der Log-Zeile nach dem ersten Postclose.
+- **protected-ok nach Regel a:** einziger Treffer `config.SCORE_STATUS_EXTRA_ROWS` (+ Tupel `("suw", …)`) — Reihenfolge
+  und Anzeigename einer Panel-Zeile, keine Schwelle/Filter/Logik; Guardian-Bestätigung 15.11.2026.
+- **Bekannte Grenzen (Guardian #721):** (1) `suw_daily.jsonl` ist keine `.json` — ein Rebase-Konflikt bei zwei
+  gleichzeitigen Postclose-Läufen bricht den Commit-Schritt ab (wie bei `options_chain_raw.jsonl`); (2) der erste
+  Abend nach dem Merge kann ohne Wert bleiben (20 FINRA-Dateien ungecacht, Budget 60 s); der Cache wird nur nach
+  erfolgreichem Job gespeichert; (3) `bar_date` fehlt → c_D gilt als vorhanden (dann fehlt meist auch der Preis).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#720`, eigene `#721` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
