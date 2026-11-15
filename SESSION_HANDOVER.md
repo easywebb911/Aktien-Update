@@ -3432,6 +3432,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — SUW Teil B: Freeze-Block + F1/F2-Auswertung (1 PR, Manual-Merge, protected-ok)
+
+- `#720` (Branch `claude/suw-freeze-b3x8`, Branch-Commit `30635474`, kein Merge-Hash — Regel a). Nach bestandener
+  Nachrechnung (Lauf 43767043537, Artifact-ID 14182348499): neuer Freeze-Block „VORABREGISTRIERUNG — SUW —
+  Leerverkäufer unter Wasser, eingefroren mit dem Merge“ (MD5 `916f9c2b…` gepinnt; Lesarten L1–L9 wörtlich;
+  Einstiege ≥ 24.10.2026, Auslöser 60 Einstiegstage; Familie `suw` k = 2 Holm; Zahl der Tests auf dem
+  Blindfenster jetzt 10, ≈ 40 %). `scripts/suw_eval.py` Teil B (`freeze_run`, Rechenkern unverändert),
+  `suw_eval.yml` committet nur `eval_results.jsonl` (nur test, nach Auslöser), Digest-Zeile „🧪 SUW“.
+  open_items `regel-suw-shorts-unter-wasser` → beobachtet, `blindes-fenster-keine-weiteren-tests` Nachtrag.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#719`, eigene `#720` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — SUW Teil A: Auswertungsskript + Workflow (1 PR, Manual-Merge)
 
 - `#719` (Branch `claude/suw-eval-a7k2`, Branch-Commit `9814339f`, kein Merge-Hash — Regel a). Easy-Entscheid
