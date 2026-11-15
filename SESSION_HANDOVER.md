@@ -3432,6 +3432,23 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — SUW Teil B: Freeze-Block + F1/F2-Auswertung (1 PR, Manual-Merge, protected-ok)
+
+- `#720` (Branch `claude/suw-freeze-b3x8`, Branch-Commit `30635474`, kein Merge-Hash — Regel a). Nach bestandener
+  Nachrechnung (Lauf 43767043537, Artifact-ID 14182348499): neuer Freeze-Block „VORABREGISTRIERUNG — SUW —
+  Leerverkäufer unter Wasser, eingefroren mit dem Merge“ (MD5 `916f9c2b…` gepinnt; Lesarten L1–L9 wörtlich;
+  Einstiege ≥ 24.10.2026, Auslöser 60 Einstiegstage; Familie `suw` k = 2 Holm; Zahl der Tests auf dem
+  Blindfenster jetzt 10, ≈ 40 %). `scripts/suw_eval.py` Teil B (`freeze_run`, Rechenkern unverändert),
+  `suw_eval.yml` committet nur `eval_results.jsonl` (nur test, nach Auslöser), Digest-Zeile „🧪 SUW“.
+  open_items `regel-suw-shorts-unter-wasser` → beobachtet, `blindes-fenster-keine-weiteren-tests` Nachtrag.
+- **Bekannte Grenzen (Guardian #720, vor dem test-Lauf beachten):** hängt zwischen Checkout und Push eine andere
+  Instanz Zeilen an `eval_results.jsonl`, bricht der Commit-Schritt ab (Präfix-Prüfung) — die Zeilen liegen dann
+  nur im Artifact, main hat keine suw-Zeile, ein zweiter Lauf ist nötig. Scheitert nach dem Anhängen das
+  Schreiben von `--out`, entfällt der Commit ebenso. Beides fail-safe; den test-Lauf nicht parallel zu
+  anderen eval_results-Schreibern starten (z. B. Health-Digest 08:47 UTC).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#719`, eigene `#720` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — SUW Teil A: Auswertungsskript + Workflow (1 PR, Manual-Merge)
 
 - `#719` (Branch `claude/suw-eval-a7k2`, Branch-Commit `9814339f`, kein Merge-Hash — Regel a). Easy-Entscheid
@@ -8404,6 +8421,210 @@ Protokolleintrag festgehalten.
 **Protokolleintrag 14.11.2026 — Berichtsdatum nach Mitternacht (Variante A, PR #698):** Kriterien dieses Blocks **unverändert**; Naht = Merge-Datum von #698. Ab dann schreibt ein Postclose-Lauf, der zwischen 00:00 und 09:30 ET des Folgetags startet, die Einträge für den letzten abgeschlossenen Handelstag D, statt sie zu verwerfen (bisher verloren: 27.08. und 04.11.2026). Nur bisher verlorene Tage bekommen Einträge; Läufe vor Mitternacht ET bleiben byte-gleich (Test + Golden). Solche Zeilen tragen `nacht_lauf_et` (Laufzeit ET); ihre KI-/News-/OI-/VIX-Werte stammen aus der Nacht vor der Eröffnung von Tag 1 (kein Wert nach 09:30 ET).
 
 **Protokolleintrag 14.11.2026 — Halbzeile im Postclose (Fix B, PR #701):** **Fehler:** im Postclose lieferte der Kurs-Batch (yfinance) für die meisten Ticker eine halbe letzte Tageszeile (Volumen da, Open/Hoch/Tief/Schluss leer; belegt seit etwa 21.09.2026, Nacht-Probe 13.11.2026). Score-Eingaben aus dieser Zeile (Gap & Hold, RS vs. SPY, rvol, rsi14, change_2d → Late-Runner) rechneten dadurch mit dem Vortag oder fehlten. **Gemessen** (Probe 1, Lauf 43578382904, nur Eingaben und Scores, kein Ergebnisfeld): 15 von 21 Postclose-Abenden seit 19.10.2026 betroffen; 76 von 149 Halbzeilen-Zeilen weichen um ≥ 0,5 Pkt vom Score mit endgültigen Kursen ab (Spanne −12,65 bis +10,05); 3–9 Rangwechsel je Abend innerhalb der Top-10; 11 Wechsel um 70 (5 neu darüber, 6 neu darunter); Kontrolle (vollständige Zeilen) 0 von 61 ≥ 0,5. Die Top-10-Zugehörigkeit vor der Naht ist **nicht rekonstruierbar** (der Log enthält nur die Top-10, nicht den Kandidaten-Pool). **Fix:** PR #701 (Fix B) — im Postclose wird die unvollständige letzte Tageszeile aus dem bereits geladenen .info gefüllt (nur wenn dessen Datum derselbe Handelstag ist und alle Werte endlich sind), sonst verworfen (Bar-Datum ehrlich Vortag; der Backtest-Eintrag entfällt mit Grund `zeile_nicht_fuellbar`); ^GSPC nach derselben Regel (nicht füllbar → wie bisher, gekennzeichnet). Eine Stelle für alle Konsumenten; keine Änderung an Score-Formeln, Gewichten, Schwellen, Filtern; gespeicherte Werte werden nicht umgeschrieben. Herkunft je neuem Eintrag in `letzte_zeile` / `spx_letzte_zeile`. **Naht** = Merge-Datum von PR #701 (ET); erster Lauf mit Fix = erster Postclose nach dem Merge. Betroffen sind über den Score die Population ≥ 70 (Exit-B.1-Nachfolger) und über die Top-10-Zugehörigkeit alle Populationen dieses Blocks. **Nur berichtend:** die Ergebnisse dieses Blocks werden zusätzlich getrennt nach „Einstieg vor Naht“ / „Einstieg ab Naht“ ausgewiesen — kein neuer Test, keine Änderung an Verfahren, Familie, Population oder Auslöser; die Kriterien dieses Blocks bleiben **unverändert**. Kein Ergebnis erzeugt oder gelesen.
+
+### VORABREGISTRIERUNG — SUW — Leerverkäufer unter Wasser, eingefroren mit dem Merge
+
+**Easy-Entscheid 15.11.2026:** Die Regel SUW wird eingefroren und auf neuen Daten getestet, Start
+mit Einstiegen ab 24.10.2026. Das ist Easys **ausdrückliche Zustimmung zu einem weiteren
+Bestätigungstest auf dem Blindfenster** (open_item `blindes-fenster-keine-weiteren-tests`).
+Eingefroren mit Easys Merge (Freeze-Datum = ET-Datum des Merge-Commits). **Beim Schreiben wurde für
+Einstiege ≥ 24.10.2026 kein Ergebnis- oder Kursfeld gelesen**; gezählt wurden nur Zeilen und Tage.
+Alle bestehenden Freeze-Blöcke bleiben byte-unverändert. Umsetzung: `scripts/suw_eval.py`,
+Workflow `.github/workflows/suw_eval.yml`.
+
+#### A. Herkunft, Erkundung, Nachrechnung (Vorwissen, offen benannt)
+
+1. **Herkunft:** von Beschwitz/Massa, „Biased Shorts“ — Aktien, bei denen Leerverkäufer im
+   Buchverlust sitzen, haben höhere Folgerenditen.
+2. **Regel vor der Rechnung festgeschrieben:** open_item `regel-suw-shorts-unter-wasser`, Commit
+   `8cd6d065`, gepusht 15.11.2026 21:39:55 UTC (PR #717).
+3. **Erkundung 15.11.2026** (im Chat gerechnet, genau ein Lauf, Einstiege ≤ 23.10.2026): 664 mit
+   Wert an 67 Einstiegstagen; Hauptzahl 1 +4,48 Pkt (95 % +1,60 … +7,37, Hälften +4,20 / +4,75,
+   ohne 3 Extremwerte +4,23); Hauptzahl 2 +3,81 Pkt (95 % −0,22 … +7,76); obere Hälfte n 327, Mittel
+   V +1,29 %, nach 1,9 % Kosten −0,64 %; untere Hälfte Mittel V −3,03 %. Urteil nach vorab
+   festgelegter Regel „trägt stark“. **Siebter Blick auf das offene Fenster, kein Beleg.**
+4. **Unabhängige Nachrechnung** (Code, Workflow `suw_eval.yml`, Betriebsart `nachrechnen`, Lauf
+   43767043537, Artifact-ID 14182348499, PR #719): **BESTANDEN** gegen die vor dem Lauf
+   festgeschriebene Toleranz (Hauptzahl 1 ±0,3, Hauptzahl 2 ±0,5, n mit Wert ±3, beide Zeithälften
+   von Hauptzahl 1 > 0). Ergebnis: 664 mit Wert, 67 Tage, Hauptzahl 1 +4,48 (95 % +1,62 … +7,60,
+   Hälften +4,04 / +4,93, ohne 3 Extremwerte +4,23), Hauptzahl 2 +3,81 (95 % −0,07 … +7,91, Hälften
+   +5,15 / +2,42); obere Hälfte Mittel V +1,29 %, nach 1,9 % −0,62 %; untere −3,03 %; dieselben 3
+   Extremwerte (REPL 29.07., ARCT 12.08., ARCT 13.08.); 87 CNMS-Dateien, keine fehlend; alle 213
+   Ticker bei FINRA und Yahoo gefunden.
+5. **Abweichung der Zeithälften** (Nachrechnung +4,04 / +4,93 gegen Chat +4,20 / +4,75): **Ursache
+   offen.** Rechnerischer Hinweis, nicht eingesehen: beide Chat-Werte ergeben sich genau, wenn der
+   Median-Tag 08.09.2026 im Chat-Lauf der zweiten statt der ersten Hälfte zugeschlagen war und
+   seine Tagesdifferenz rund −1,24 Pkt betrug (34 · 4,04 − 33 · 4,20 = −1,24 und (33 · 4,93 − 1,24)
+   / 34 = 4,75; für Hauptzahl 2 entsprechend +0,2 Pkt). Der Tageswert des 08.09. wurde nicht
+   ausgegeben; deshalb ist das kein Nachweis. Für diesen Block gilt L5 (C).
+
+#### B. Merkmal und Auswertung (wörtlich wie open_item `regel-suw-shorts-unter-wasser`)
+
+MERKMAL je Einstieg (D = Einstiegsdatum, Tag 0):
+- sv_t = ShortVolume des Tickers aus der FINRA-Tagesdatei CNMSshvol (nur diese Datei).
+- c_t = Tagesschlusskurs (Yahoo, endgültige Tageszeile, split-bereinigt).
+- Fenster: die 20 Handelstage VOR D (D−20 … D−1), D selbst nicht.
+- R = Summe(sv_t × c_t) / Summe(sv_t).
+- SUW = c_D / R − 1. Positiv = Kurs über dem Durchschnitts-Einstieg der Leerverkäufer =
+  Leerverkäufer im Minus.
+- Fehlen mehr als 5 der 20 Tage (Datei oder Ticker): kein Wert. Unbekannt ist nicht 0.
+
+AUSWERTUNG:
+- V = Schluss Tag 10 / Eröffnung Tag 1 − 1 (outcome_path).
+- Je Einstiegstag die Einträge mit Wert nach SUW ordnen. Obere Tageshälfte = höchste SUW, untere =
+  niedrigste; bei ungerader Zahl bleibt der mittlere Eintrag weg. Tage mit weniger als 4 Werten
+  entfallen. Gleichstand: bessere pool_position, dann Ticker alphabetisch.
+- Hauptzahl 1: je Tag Mittel V obere minus untere Hälfte, über die Tage gemittelt.
+- Hauptzahl 2: dasselbe für den Anteil mit Hoch Tag 1–10 >= Eröffnung Tag 1 × 1,30.
+
+**Kursart:** Yahoo-Tagesschluss ohne Dividenden-Bereinigung, split-bereinigt — yfinance
+`auto_adjust=False`, Spalte `Close` (Easy-Zusatz 15.11.2026, so auch im Chat gerechnet). V kommt
+unverändert aus `outcome_path.jsonl` (dort `auto_adjust=True`).
+
+#### C. Lesarten (wörtlich aus `scripts/suw_eval.py`, bindend; die Lesart des Chat-Laufs gilt nicht)
+
+  L1 Handelstage = US-Börsentage (Mo–Fr ohne config.US_MARKET_HOLIDAYS), nicht
+     die Kursreihe des Tickers — sonst könnte ein fehlender Kurstag nie als
+     „fehlend“ zählen.
+  L2 Ein Fenstertag zählt als vorhanden, wenn die CNMS-Datei des Tages existiert,
+     den Ticker (exakte Schreibweise) mit ShortVolume enthält UND Yahoo für den
+     Tag einen endlichen Schluss > 0 hat. ShortVolume 0 zählt als vorhanden.
+  L3 c_D fehlt bei Yahoo → kein Wert. Summe(sv) = 0 → kein Wert.
+  L4 Kursverlauf vollständig = 11 Tageszeilen mit endlichem Open Tag 1 > 0,
+     endlichem Schluss Tag 10 und endlichem Hoch Tag 1–10 (sonst „ohne
+     vollständige Kurse“, zählt nicht als Eintrag mit Wert).
+  L5 Zeithälften: Schnitt am (unteren) Median der verwendeten Einstiegstage;
+     erste Hälfte = Tage ≤ Median-Datum.
+  L6 „ohne die 3 extremsten Einträge“: die 3 Einträge mit dem größten |V| unter
+     allen Einträgen der oberen und unteren Hälften werden entfernt (die
+     Hälften-Zuordnung bleibt), danach neu gemittelt; ein Tag, an dem eine
+     Hälfte leer wird, entfällt. Für Hauptzahl 2 dieselben 3 Einträge.
+  L7 Kosten 1,9 % multiplikativ wie backtest_history.apply_round_trip_haircut.
+  L8 „bessere pool_position“ = kleinere Zahl (Platz 1 vor Platz 2); fehlende
+     pool_position sortiert ans Ende.
+  L9 95-%-Bereich = sortierte Bootstrap-Werte, Index int(0,025·N) und
+     int(0,975·N) − 1 (bei N = 2000: 50 und 1949), wie in den bisherigen
+     Erkundungen.
+
+Zu L5: Der mittlere Tag (Median-Datum) gehört zur **ersten** Hälfte.
+
+#### D. Stichprobe, Auslöser, Ablauf
+
+1. **Stichprobe:** `matured_backtest_export.jsonl`, `provenance == "forward"`, **Einstieg D ≥
+   24.10.2026**, alle Scores, Dedup nach `(ticker, date)` (erste Zeile gewinnt). Join zu
+   `outcome_path.jsonl` über `(ticker, date)` (erste Zeile zählt). Ausschlussgründe (L4):
+   `zeile_fehlt` → `grund:<Wert>` → `bars_unvollstaendig`; danach ohne Wert (L1–L3):
+   `zu_viele_fehlende_tage`, `c_D_fehlt`, `summe_sv_null`.
+2. **Auslöser:** **60 Einstiegstage** D ≥ 24.10.2026 mit mindestens einer Zeile in
+   `outcome_path.jsonl` ohne `grund` (= endgültiger Schluss Tag 10 liegt vor;
+   `suw_eval.count_trigger_days`). **Genau EINE Auswertung.** Bis dahin nur Zähler (Digest-Zeile
+   „🧪 SUW“), keine Zwischenblicke auf Renditen.
+3. **Ablauf:** Workflow `suw_eval.yml`, Betriebsart `test`, **Easy startet von Hand**. Vor dem
+   Auslöser liefert der Lauf nur den Zählerstand (keine Kurse, keine FINRA-Dateien, keine Rendite).
+   Nach dem Auslöser in dieser Reihenfolge: Ort (nur GitHub-Workflow auf `main`) → MD5 dieses Blocks
+   (Überschrift bis vor die nächste Überschrift der Ebene ≤ 3) → Sperre (E.6) → erst dann Daten.
+   **Das Ergebnis geht als je eine Zeile pro Test (`suw_f1`, `suw_f2`) in `eval_results.jsonl`**;
+   der Lauf hängt sie an, der Workflow committet nur diese Datei.
+4. **Datenrobustheit:** fehlen bei mehr als 5 % der Ticker die Yahoo-Kurse, lautet das Ergebnis
+   „nicht auswertbar“ (keine Schätzung, keine Zeile in `eval_results.jsonl`); der Lauf darf dann
+   wiederholt werden, weil keine Rendite berechnet wurde. FINRA-/Yahoo-Fehler werden je Datei bzw.
+   Ticker gezählt und genannt; kein Retry bei Rate-Limit.
+
+#### E. Fragen, Tests, Kriterien
+
+1. **F1 — Hauptzahl 1 > 0:** Ist der über die Tage gemittelte Unterschied der Rendite V (obere minus
+   untere SUW-Hälfte) größer als 0?
+   - Test-p = einseitiger Wilcoxon-Vorzeichen-Rang-Test auf die **Tagesdifferenzen** d_Tag gegen 0,
+     Alternative „nach oben verschoben“, Formel wie Block „Hypothesen-Runde November 2026“ B.4
+     (`hypothesen_nov26_eval.wilcoxon_one_sided(d, Z)`, Z = Liste aus Nullen; Nullen entfernt und
+     gezählt, Tie- und Stetigkeitskorrektur 0,5).
+   - Effekt = Hauptzahl 1. 95-%-Bereich: Bootstrap **N = 2000, Seed 42**, gezogen nach
+     **Einstiegstag** (`suw_eval.bootstrap`, L9).
+   - **Erfolgskriterium:** (a) Holm-signifikant (E.3); (b) untere Grenze des 95-%-Bereichs > 0;
+     (c) Regime-Split plausibel (E.4).
+   - **Floor:** mindestens 40 auswertbare Einstiegstage; sonst „nicht auswertbar“, p = 1 im
+     Holm-Schritt.
+2. **F2 — obere Hälfte netto > 0:** Ist das Mittel der Netto-Rendite N1 aller Einträge der oberen
+   SUW-Hälften größer als 0?
+   - **Kosten und Rechenweg exakt wie Block „H-I Rendite“:** `N1 = apply_round_trip_haircut(V)`
+     (`backtest_history.py`, `HAIRCUT_ROUND_TRIP_PCT` = −4,0, multiplikativ, Rundung auf 2
+     Nachkommastellen wie die Funktion); Test-p = einseitiger Wilcoxon auf N1 gegen 0 (wie dort
+     B.2). Nur berichtet: dieselbe Zahl nach 1,9 % (L7).
+   - Effekt = Mittel(N1 der oberen Hälften). 95-%-Bereich: Bootstrap **N = 2000, Seed 42**, gezogen
+     nach **Einstiegstag** (je Ziehung Tage mit Zurücklegen, Mittel N1 über alle oberen Einträge der
+     gezogenen Tage; `suw_eval._bootstrap_upper_net`). **Abweichung von der Bauart „H-I Rendite“
+     (dort Ziehung nach Zeilen), bewusst gewählt:** die Tagesziehung hält Einträge desselben Tages
+     zusammen und ist hier die Einheit aller Bereiche.
+   - **Erfolgskriterium:** (a) Holm-signifikant; (b) untere Grenze des 95-%-Bereichs > 0;
+     (c) Regime-Split plausibel.
+   - **Floor:** mindestens 40 Zeilen in den oberen Hälften; sonst „nicht auswertbar“, p = 1 im
+     Holm-Schritt.
+3. **Familie:** `family = "suw"`, k = 2 (F1, F2), α = 0,05, Holm
+   (`stats_helpers.multiple_testing_correction`, Labels `suw_f1`, `suw_f2`); berichtet wird
+   zusätzlich der Holm-adjustierte p (`hypothesen_nov26_eval.holm_adjusted`, Gegenprobe gegen
+   `multiple_testing_correction`). Eigene Familie, nicht Teil einer anderen. Test-IDs `suw_f1`,
+   `suw_f2`.
+4. **Regime-Split** nach `market_regime`: Regime eines Tages = der Wert aller Einträge des Tages,
+   wenn er einheitlich bull/bear/neutral ist, sonst „unbekannt“ (nie prüfbar). F1: je Regime
+   Hauptzahl 1 über die Tage des Regimes, prüfbar ab **30** Tagen. F2: je Regime Mittel N1 der
+   oberen Einträge, prüfbar ab **30** Zeilen. „Plausibel“ = kein prüfbares Regime liegt auf der
+   anderen Seite von 0 als der Gesamtwert (genau 0 ist keine Gegenrichtung). Die Hälften werden je
+   Tag einmal gebildet, nicht je Regime neu.
+5. **Verdikte (wie in den bestehenden Blöcken):** „Beleg“ = (a)+(b)+(c); „bedingt“ = (a)+(b), aber
+   kein Regime prüfbar; „Unklar“ = (a) oder (b) verfehlt oder ein prüfbares Regime widerspricht;
+   „nicht auswertbar“ = Floor verfehlt (`hypothesen_nov26_eval.verdict_for`). Weder „bedingt“ noch
+   „Unklar“ ist eine Widerlegung. Eine Punktschätzung allein ist nie Beleg.
+6. **Sperre:** steht eine Zeile mit `family = "suw"` in `eval_results.jsonl`, ist kein weiterer
+   Lauf erlaubt (nur mit datiertem Protokolleintrag hier). Seed 42 und N = 2000 für jeden
+   Bootstrap-Aufruf.
+7. **Bauart-Abweichungen, offen benannt:** (i) F2-Bereich nach Einstiegstag statt nach Zeilen (E.2);
+   (ii) kein Cluster-Doppellauf (`freeze_eval.cluster_double_run`) — die Einheit der Bereiche ist
+   bereits der Einstiegstag; (iii) Floor von F1 in Einstiegstagen statt Zeilen; (iv) Auslöser in
+   Einstiegstagen (60) statt Zeilen (n ≥ 500), wie von Easy festgelegt.
+8. **Status:** Ein „Beleg“ ist eine Bestätigung auf blinden Daten; über Anzeige, Score oder Karten
+   entscheidet Easy gesondert (CLAUDE.md-GRÜN-Regel, eigener PR).
+
+#### F. Pflichtangaben im Bericht
+
+Einstiege, Ausschlüsse je Grund, mit Wert, Ticker, FINRA-Dateien (benötigt, fehlend), Ticker ohne
+FINRA-Treffer bzw. ohne Yahoo-Kurse; auswertbare und entfallene Tage, Median-Datum, Tage je Hälfte;
+F1/F2: Wilcoxon (W⁺, z, n ≠ 0, Nullen), roher und Holm-adjustierter p, Effekt mit 95-%-Bereich,
+Kriterien, Regime-Tabelle, Verdikt; nur berichtet: Hauptzahl 1 je Zeithälfte, Hauptzahl 2 mit
+Bereich, Kennzahlen obere/untere Hälfte (Mittel, Median, nach 1,9 %, Treffer, im Plus, Median SUW);
+Skript-Commit; N; Seed; Gesamtzahl bisher gelaufener Bestätigungstests (`eval_results.jsonl`).
+
+#### G. Zählungen beim Freeze (nur Zeilen und Tage, Stand 15.11.2026)
+
+- Export forward, Einstieg ≥ 24.10.2026, nach Dedup: **40** Zeilen an **4** Einstiegstagen
+  (26.–29.10.2026). Auslöser-Zähler: **4 / 60** Einstiegstage. Kein Ergebnis- oder Kursfeld gelesen.
+- Schätzung (nicht bindend): 60 Einstiegstage ab 24.10.2026 etwa Ende Januar 2027, plus Reifung bis
+  Schluss Tag 10.
+
+#### H. Zahl der Tests auf dem Blindfenster
+
+Auf den Einstiegen ≥ 24.10.2026 laufen damit **zehn** Bestätigungstests: Replikation (1), „Paper C
+handelbar“ (1), H-I Stufe 2 (1), H-I Rendite (2), Landkarte K1/K2 (2), Exit-B.1-Nachfolger (1,
+überschneidend) und **SUW (2)**. Gezählt wird je Einzeltest wie im Block „Landkarte K1/K2“ (G)
+(8 + 2 = 10); der Easy-Auftrag nannte 9 (Zählung je Familie für SUW) — offen benannt. Jede Familie
+hält ihr α = 0,05 nur für sich. Wären alle Nullhypothesen wahr und die Tests unabhängig, läge die
+Wahrscheinlichkeit für **mindestens einen** „Beleg“ bei 1 − 0,95¹⁰ = 1 − 0,599 ≈ **40 %** (bei
+Zählung 9: 1 − 0,95⁹ = 1 − 0,630 ≈ 37 %). Ein einzelner Treffer ist deshalb im Lichte aller Tests
+zu lesen; kein einzelner Beleg reicht allein für eine Score- oder Filter-Änderung (Easy entscheidet).
+
+#### I. Überschneidungen und Grenzen
+
+- Dieselben Zeilen wie H-I Rendite und Landkarte K1/K2; SUW hängt mit kurzfristigem Kurs-Schwung
+  zusammen (c_D gegen den Kurs der 20 Vortage) — **Überschneidung mit Momentum ungeprüft**.
+- Die obere Hälfte war in der Erkundung nach 1,9 % Kosten nicht im Plus; das Signal sortierte vor
+  allem Verlierer aus. F2 prüft genau diese Frage (netto −4 %).
+- FINRA-Daten enthalten nur über FINRA-Meldestellen gemeldetes Volumen (überwiegend außerbörslich),
+  nicht das gesamte Leerverkaufs-Volumen; Ticker, die nur in FNSQ/FNQC stehen, zählen als fehlend.
+- Kosten −4 % sind eine Annahme (`HAIRCUT_ROUND_TRIP_PCT`), keine Messung. Kauf genau zur Eröffnung
+  Tag 1, Verkauf genau zum Schluss Tag 10; keine Slippage, Leihkosten oder Steuern.
+
+**Änderungs-Protokoll (bindend ab Merge):** Keine Änderung an diesem Block ohne datierten
+Protokolleintrag, der Änderung und Grund festhält. Ein Revert wird ebenfalls als Protokolleintrag
+festgehalten.
 
 ### ✅ STATUS-PANEL — 6. Eintrag `si_position_history` — ERLEDIGT (PR #430, 14.07.)
 
