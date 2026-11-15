@@ -49,7 +49,10 @@ zuerst, mit Ausnahmen):
    29.12.2017; Abgang 9–16 % in 12 Monaten; yfinance/Stooq ohne
    Delisting-Kurse), Tiingo-Probe (`#706`, Lauf 14.11.: nur 69 % der
    Verschwundenen abgedeckt → Regel „nicht bauen in dieser Form“); Gewinn-Felder
-   im Backtest (`#707`).
+   im Backtest (`#707`). **15.11.: EODHD-Probe** (`#709`/`#710`: Liste kennt 74 %
+   der 140 nach Kürzel, alte Kurse im Gratis-Konto gesperrt) → **Easy-Entscheid:
+   Rückrechnung GESCHLOSSEN** (Prämisse kostenlos); Proben entfernt (Aufräum-PR).
+   Wiederaufnahme nur, wenn die Kosten-Prämisse fällt (Lesson 8z15).
 
 **Edge-Stand 14.11.2026:** 7 Bestätigungstests, 2 Belege (`paper_c_gipfel` =
 Spanne inkl. Einstiegstag; `hi_s1`, je 1 Fenster), GRÜN unvergeben.
@@ -5284,8 +5287,8 @@ neu getestet.
 | **Di 17.11., ~23:07 UTC** (erster `score_abgleich` für D = 16.11.) | **Fix-B-Wirkungsbeleg:** 0 Zeilen mit |Δ| ≥ 0,5 erwartet → Easy melden → Cleanup Probe 1 | `fixb-wirkungsbeleg` |
 | erster Nachtlauf | **Berichtsdatum Variante A** belegen (`nacht_lauf_et`, kein Verwurf) | `berichtsdatum-wurzelloesung-nacht-probe` |
 | **~20./21.11.2026** (nach 10 Werktags-Läufen) | **Wahrheits-Abgleich Einlaufphase**: Fehlalarme prüfen (Rundungsschranke, Dividende im Fenster) | `wahrheits-abgleich-einlaufphase` |
-| **Easy-Entscheid offen** | **Tiingo-Probe ausgewertet 14.11.2026** (Lauf 43626657445): Abdeckung der Verschwundenen **97/140 = 69 %** (KI 61–76 %) < 90 % → Regel vorab: **nicht bauen in dieser Form**; Kontrolle 20/20 gültig. Nächster Schritt: Easy-Entscheid (andere Quelle / Ersatzrendite mit Sensitivität / keine Rückrechnung), danach Cleanup `probe_rueckrechnung.yml`/`probe_tiingo.yml` | `rueckrechnung-survivorship-delisting`, `mehrjahres-rueckrechnung-probe`, `rueckrechnung-datenablage`, `rueckrechnung-zeitraeume-freeze` |
-| vor dem Bau-Entscheid Rückrechnung | **Hypothesen Gewinnzahlen/Sprungtag** (ENTWURF H-EA1/H-EA2/H-JUMP) — Freeze erst mit dem Bau-Entscheid, vor jedem Blick in Mehrjahres-Renditen | `rueckrechnung-hypothesen-gewinnzahlen` |
+| ✅ **GESCHLOSSEN 15.11.2026** | **Rückrechnung** — Easy-Entscheid: nicht bauen (Prämisse kostenlos). Tiingo 97/140 = 69 % (Lauf 43626657445), EODHD-Liste 104/140 = 74 % nach Kürzel und alte Kurse im Gratis-Konto gesperrt (Lauf 43736344402) — beide unter der 90-%-Regel. Proben-Workflows/-Skripte/-Tests entfernt. Wiederaufnahme nur, wenn die Kosten-Prämisse fällt; dann Stufe 2 neu aufsetzen | `rueckrechnung-survivorship-delisting`, `mehrjahres-rueckrechnung-probe`, `rueckrechnung-datenablage`, `rueckrechnung-zeitraeume-freeze` |
+| kein Termin | **Hypothesen Gewinnzahlen/Sprungtag** (ENTWURF H-EA1/H-EA2/H-JUMP + DTC-Hälften) — bleiben Entwurf: wartet auf eigene Daten, kein Mehrjahres-Test möglich; nichts eingefroren | `rueckrechnung-hypothesen-gewinnzahlen` |
 | ab 01.12.2026 | **Glättung:** erster echter Monatswechsel-Nachweis | `score-smoothing-textsortierung-monatswechsel` |
 | **03.12.2026** | **Sammel-Wiedervorlage** (unverändert): NaN-Baseline Gruppe 1, FINRA-SSR-UTC-Cache-Schlüssel, KI-Score-Edge-Freeze, Options-Rohketten, PR-#532-Sibling-Bugs | `nan-bypass-baseline-70`, `finra-ssr-utc-cache-key`, `ki-score-edge-freeze`, `options-chain-raw-sammelfeld`, `pr532-or0-sibling-bugs` |
 | **~21./22.12.2026** · Auslöser n ≥ 300 (Einstieg ≥ 24.10.) | **Paper C Replikation** (nur Gipfel); vorher Skript parametrisieren | `paper-c-replikation-sammelphase`, `paper-c-replikations-skript` |
@@ -9226,7 +9229,20 @@ Projekt-Ehrlichkeitsregel.
 
 *(Neueste zuerst: 8z7 vom 17.07.; 8z4–8z6 vom 16.–17.07.; 8z1–8z3 vom 15.07.-Abend; 8v–8y vom
 15.07.; 8s–8u vom 14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag; 8n–8p vom 13.07.;
-8j–8m vom 11.–12.07.; etablierte 8a–8i darunter; 8z10–8z14 vom 11.–14.11., 8z9 vom 12.11. und 8z8 vom 06.11. ganz oben.)*
+8j–8m vom 11.–12.07.; etablierte 8a–8i darunter; 8z15 vom 15.11., 8z10–8z14 vom 11.–14.11., 8z9 vom 12.11. und 8z8 vom 06.11. ganz oben.)*
+
+### 8z15. Anbieter-Werbung zu abgegangenen Aktien vor jedem Bau messen (15.11.2026)
+
+Tiingo („delistete Werte werden unterstützt“) und EODHD („delisted tickers“) werben
+mit Daten zu abgegangenen Aktien. Gemessen an denselben 140 laut FINRA
+verschwundenen US-Stammaktien lieferte Tiingo Kurse für **69 %** (`#706`), die
+EODHD-Liste kannte **74 %** nach Kürzel (nur 40 % mit passendem Namen) und das
+Gratis-Konto lieferte gar keine alten Kurse (`#709`/`#710`). Beide lagen unter der
+vorab festgelegten 90-%-Regel → Rückrechnung geschlossen (Easy 15.11.2026).
+**Regel:** Werbeaussagen zu Survivorship-Daten nie übernehmen. Vor jedem Bau mit
+einer festen Stichprobe (Seed), einer vorab festgelegten Schwelle und einer
+Kontrollgruppe messen — billig, in Stufen, mit Mini-Stopp vor bezahlten Schritten.
+Kürzel-Treffer allein überschätzen die Abdeckung (wiederverwendete Kürzel).
 
 ### 8z14. Rückrechnung: Kursquellen kennen keine Toten (14.11.2026)
 
@@ -9239,7 +9255,8 @@ verschieden ist (Titel mit niedrigen Days to Cover verschwinden häufiger). Die
 übernommene Annahme „SI frei ab 06/2021“ war falsch: frei ab **29.12.2017**.
 **Regel:** keine Rückrechnung ohne Delisting-Kurse (Tiingo-Probe `#706`, Regel
 ≥ 90 % vorab) oder Ersatzrendite mit Sensitivität; Kontrollgruppe vorab
-festschreiben; Quellen-Annahmen messen statt übernehmen.
+festschreiben; Quellen-Annahmen messen statt übernehmen. *(Nachtrag 15.11.2026:
+Rückrechnung geschlossen, siehe 8z15.)*
 
 ### 8z13. Kurs richtig ≠ Zeile richtig — die halbe Abend-Tageszeile (14.11.2026)
 
