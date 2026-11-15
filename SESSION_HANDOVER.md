@@ -3432,6 +3432,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Regel Entry-Shadow (1 PR, Doku, Self-Merge)
+
+- `#722` (Branch `claude/regel-entry-shadow-q4w7`, kein Merge-Hash — Regel a). Nur open_item `regel-entry-shadow`:
+  Regel + Datenlage zuerst festgeschrieben (Branch-Commit `fdff8118`, gepusht 23:19:17 UTC), dann ein Rechenlauf
+  (`c9b0729a`). Gespeicherter entry_score, obere minus untere Tageshälfte: Hauptzahl 1 (V) +0,03 Pkt (95 % −3,34 …
+  +3,41, Hälften −0,38 / +0,46) → **trägt nicht**, erledigt. Hauptzahl 2 (Treffer ≥ +30 %) +6,64 Pkt (95 % +1,72 …
+  +11,49) — mehr Ausschläge, kein Halte-Vorteil. Achter Blick auf dasselbe Fenster, kein Beleg. Empfehlung: Entry-
+  Shadow von der Karte, weiter sammeln — Entscheid Easy. #672: höchstens 171 von 404 Werten mit verschobenem Delta.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#721`, eigene `#722` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — Treffer-Score (unvalidiert) auf Karte + Sortier-Menü (1 PR, Manual-Merge)
 
 - `#721` (Branch `claude/suw-karte-plan-m2r6`, Branch-Commit `65386e49`, kein Merge-Hash — Regel a). SUW als
