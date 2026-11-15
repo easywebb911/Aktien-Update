@@ -1237,6 +1237,17 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
    der Live-Patch entfernt sie, sobald ein Wert kommt. */
 .cockpit-pillar-hint{margin-top:3px;font-size:8px;line-height:1.25;
   font-style:italic;color:#64748b;white-space:normal;max-width:100%;cursor:help}
+/* Treffer-Score (unvalidiert) — SUW-Schatten-Wert (Easy-Entscheid 15.11.2026).
+   Volle Kartenbreite unter dem Block aus KI-Score und Ring. Neutral grau, kein
+   Fettdruck, kleiner als der KI-Score. Zwei Teile, die selbst nie umbrechen
+   („(unvalidiert)“ wird nie abgeschnitten); unter 360 px immer zwei Zeilen
+   reserviert, damit die Kartenhöhe nicht vom Wert abhängt. */
+.cockpit-treffer{margin-top:8px;font-size:11px;line-height:1.4;font-weight:400;
+  color:var(--txt-dim);display:flex;flex-wrap:wrap;column-gap:.35em}
+.cockpit-treffer>span{white-space:nowrap}
+@media (max-width:359px){.cockpit-treffer{min-height:2.8em;align-content:flex-start}}
+.ts-note{color:var(--txt-dim);font-size:.9em}
+.menu-sort-treffer-lbl{white-space:normal;overflow:visible}
 /* PR B2 — Rang-Kontext: der vorhandene Conviction-Erklärtext, prominent unter
    dem Header (statt versteckt unter dem Donut). Linke Akzent-Leiste + gedimmt
    → liest sich als Einordnung, nicht als „jetzt kaufen"-Signal. */

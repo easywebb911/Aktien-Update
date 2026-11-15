@@ -3432,6 +3432,24 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Treffer-Score (unvalidiert) auf Karte + Sortier-Menü (1 PR, Manual-Merge)
+
+- `#721` (Branch `claude/suw-karte-plan-m2r6`, Branch-Commit `65386e49`, kein Merge-Hash — Regel a). SUW als
+  Schatten-Wert: `treffer_score.py` (Rechenkern aus `suw_eval.py`, nur Postclose, immer vorläufig, leer statt
+  Abbruch), Feld `s["treffer_score"]`, neue Datei `suw_daily.jsonl`; Kartenzeile unter KI-Score/Ring (grau,
+  „Platz x von N“), Detail-Satz, Panel-Zeile „Test läuft: x von 60“, Digest-Zeile; Sortier-Menü vierter Eintrag,
+  nie gespeichert; Daily-Workflow `actions/cache` `finra_cache/` + `git add suw_daily.jsonl`; Anzeige-Stufen-
+  Regel §7·0; Inst-Hinweis präzisiert. Kein Einfluss auf Score/Conviction/Filter/Auswahl/Reihenfolge (Tests).
+  Offen: Hand-Nachrechnung eines Tickers aus der Log-Zeile nach dem ersten Postclose.
+- **protected-ok nach Regel a:** einziger Treffer `config.SCORE_STATUS_EXTRA_ROWS` (+ Tupel `("suw", …)`) — Reihenfolge
+  und Anzeigename einer Panel-Zeile, keine Schwelle/Filter/Logik; Guardian-Bestätigung 15.11.2026.
+- **Bekannte Grenzen (Guardian #721):** (1) `suw_daily.jsonl` ist keine `.json` — ein Rebase-Konflikt bei zwei
+  gleichzeitigen Postclose-Läufen bricht den Commit-Schritt ab (wie bei `options_chain_raw.jsonl`); (2) der erste
+  Abend nach dem Merge kann ohne Wert bleiben (20 FINRA-Dateien ungecacht, Budget 60 s); der Cache wird nur nach
+  erfolgreichem Job gespeichert; (3) `bar_date` fehlt → c_D gilt als vorhanden (dann fehlt meist auch der Preis).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#720`, eigene `#721` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — SUW Teil B: Freeze-Block + F1/F2-Auswertung (1 PR, Manual-Merge, protected-ok)
 
 - `#720` (Branch `claude/suw-freeze-b3x8`, Branch-Commit `30635474`, kein Merge-Hash — Regel a). Nach bestandener
@@ -9389,6 +9407,40 @@ Netto-Feld, Reifegrenze aus PR #549 noch nicht erreicht).
 ---
 
 ## 7) ARCHITEKTUR-ANKER
+
+### 7·0. Anzeige-Stufen für Prüfwerte (feste Regel, Easy-Entscheid 15.11.2026)
+
+Jeder neue Prüfwert (Hypothese, Score-Kandidat) durchläuft dieselben Anzeige-Stufen. Die Stufe
+bestimmt, ob und wie er im Tool erscheint:
+
+| Stufe | Anzeige |
+|---|---|
+| **Erkundung** | **nicht auf der Karte**, nur in `open_items.json` |
+| **Eingefroren, Test läuft** | **grau**, mit dem Zusatz „unvalidiert“ oder „in Prüfung“ |
+| **Beleg im offenen Fenster** | **blau**, mit einem Satz, **was** belegt ist (und was nicht) |
+| **Bestätigt auf neuen Daten** | **grün** (CLAUDE.md-GRÜN-Regel: nur mit `eval_ref` auf eine `eval_results`-Zeile „Beleg“) |
+| **Durchgefallen** | wird **von der Karte entfernt** |
+
+Heute: Treffer-Score (SUW) = „Eingefroren, Test läuft“ → grau, „(unvalidiert)“ / „in Prüfung“.
+Inst-Beteiligung (H-I) = „Beleg im offenen Fenster“ → blau; belegt sind **häufigere Sprünge über
++30 %**, **nicht** eine höhere Rendite (Hinweistext `config.INST_OWNERSHIP_HINT`). Paper C =
+blau (Test läuft). Freeze-Blöcke bleiben von dieser Regel unberührt.
+
+### 7·1. Treffer-Score (unvalidiert) — SUW-Schatten-Wert (seit 15.11.2026)
+
+- Berechnung nur im Postclose in `generate_report.main()` nach Auswahl, Scores, Conviction und
+  Backtest-Append (`_apply_treffer_score` → `treffer_score.compute_for_top10`); Rechenkern aus
+  `scripts/suw_eval.py` (L1–L9), keine zweite Formel. Feld `s["treffer_score"]` + Sammeldatei
+  `suw_daily.jsonl` (nur angehängt). Immer **vorläufig** (Schlusskurs D aus dem Postclose).
+- **Schatten-Wert:** kein Leser in Score, Conviction, Filtern, Auswahl, gespeicherter
+  Reihenfolge, Backtest, Export, KI-Agent (Wächter `mock_test_treffer_score.py`, Tests 25–27).
+- **Freeze-Trennung:** der SUW-Test liest Feld und Datei nie; er rechnet selbst aus endgültigen
+  Daten (`suw_eval.py`, Betriebsart test).
+- Karte: Zeile unter KI-Score und Ring (grau, „Platz x von N“, N = Einträge mit Wert);
+  Premarket/Intraday: letzter Postclose-Wert mit „Stand TT.MM.“. Sortier-Menü: vierter Eintrag,
+  **nur Ansicht, nie gespeichert**.
+- FINRA-Zwischenspeicher `finra_cache/` über `actions/cache` (25 Börsentage), Zeitlimit 10 s je
+  Datei / 60 s gesamt; jeder Fehler → Feld leer, nie Abbruch.
 
 ### 7a. Analyse-Persistenz-Felder — Look-Ahead-Konvention
 

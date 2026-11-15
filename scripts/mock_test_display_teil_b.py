@@ -60,8 +60,10 @@ def test_inst():
     check("ohne Wert → keine Zeile, NaN → keine Zeile",
           gr._inst_row_html({}) == "" and gr._inst_row_html({"inst_ownership": float("nan")}) == "")
     check("Hinweis wörtlich (Easy-Auftrag)",
-          config.INST_OWNERSHIP_HINT == "Niedrigere Beteiligung: häufiger +30 % im Hoch (Beleg, "
-          "1 Zeitfenster). Rendite im selben Zeitraum nicht besser als null — kein Kaufsignal.")
+          # präzisiert 15.11.2026 (Easy): belegt sind häufigere Sprünge über +30 %,
+          # NICHT eine höhere Rendite — nur Text, keine neue Zahl.
+          config.INST_OWNERSHIP_HINT == "Niedrigere Beteiligung: belegt sind häufigere Sprünge "
+          "über +30 % im Hoch (1 Zeitfenster) — NICHT eine höhere Rendite. Kein Kaufsignal.")
     stock = dict(golden._fixture_stocks()[0])
     stock["inst_ownership"] = 0.9
     head = gr._card_cockpit_html(0, stock)

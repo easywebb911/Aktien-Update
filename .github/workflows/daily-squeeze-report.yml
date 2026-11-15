@@ -120,6 +120,20 @@ jobs:
           POSITIONS_JSON: ${{ secrets.POSITIONS_JSON }}
         run: python scripts/pull_gist_data.py
 
+      # Treffer-Score (SUW-Schatten-Wert, 15.11.2026): Zwischenspeicher der
+      # FINRA-CNMS-Tagesdateien (finra_cache/, 25 Börsentage, Pflege in
+      # treffer_score.prune_cache). Rollierender Schlüssel: jeder Lauf
+      # speichert einen neuen Stand, der nächste stellt den jüngsten wieder
+      # her. Fehlt der Cache, lädt der Lauf die Dateien neu (Zeitlimit 60 s,
+      # danach Feld leer — nie Abbruch). Nicht im Repo (.gitignore).
+      - name: Restore FINRA cache (Treffer-Score)
+        uses: actions/cache@v4
+        with:
+          path: finra_cache
+          key: finra-cnms-${{ github.run_id }}
+          restore-keys: |
+            finra-cnms-
+
       - name: Generate squeeze report
         env:
           NTFY_TOPIC:       ${{ secrets.NTFY_TOPIC }}
@@ -244,6 +258,11 @@ jobs:
           # und der Export könnte nie akkumulieren (Grundlage der Sept-Re-Test-
           # Auswertung). KEIN Frontend-Fetch, nicht im HTML/Golden.
           git add matured_backtest_export.jsonl 2>/dev/null || true
+          # suw_daily.jsonl: Treffer-Score (SUW-Schatten-Wert) je Postclose und
+          # Top-10-Eintrag, nur angehängt (15.11.2026). Ohne ``git add`` ginge die
+          # Datei bei jedem Lauf verloren (Lehre #501) und Premarket/Intraday
+          # hätten keinen letzten Postclose-Wert. Der SUW-Freeze-Test liest sie nie.
+          git add suw_daily.jsonl 2>/dev/null || true
           # Health-Check-Persistenz (Phase 1/2): die JSONL-Files werden vom
           # health_check.py-Hook lokal im Runner geschrieben — ohne ``git add``
           # gehen sie beim nächsten Workflow-Checkout verloren und der
