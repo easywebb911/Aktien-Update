@@ -3429,6 +3429,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 15.11.2026 — Wegwerf-Probe EODHD-Abdeckung (1 PR, Self-Merge laut Easy, neuer Workflow mit Secret)
+
+- `#709` (Branch `claude/eodhd-probe-p4n7`, Branch-Commit `4392d141`, kein Merge-Hash — Regel a).
+  `probe_eodhd.yml` (Hand-Start, Eingabe stufe 1/2) + `scripts/probe_eodhd.py`: gleiche 140 wie
+  Tiingo, Regel vorab ≥ 90 % → „bauen möglich“, sonst „nicht bauen“ (Kontrolle ungültig →
+  „ungültig“). Stufe 1 (Gratis, ≤ 6 Abrufe, Mini-Stopp), Stufe 2 nach Freigabe mit
+  Kontingent-Sperre und Tiingo-Vergleich je Aktie. Keine Renditen. open_items: 1 Nachtrag.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#708`, höchste in Block 1
+  erwähnte PR = `#709` (eigene) — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 14.11.2026 — Handover-Konsistenz zum Sitzungsende + Tiingo-Ergebnis (1 PR, Doku, Self-Merge)
 
 - `#708` (Branch `claude/handover-konsistenz-w3k9`, Branch-Commit `8f53894e`, kein Merge-Hash — Regel a).
