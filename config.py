@@ -2400,7 +2400,8 @@ SCORE_STATUS_LABELS = {
         "review_by":   None,
         "review_cond": "Erkundung Juli–Okt. 2026: obere minus untere Tageshälfte "
                        "+4,48 Pkt (10-Tage-Rendite) — Erkundung, kein Beleg. "
-                       "Auswertung bei 60 Einstiegstagen (ca. Februar 2027)",
+                       "Auswertung bei 60 Einstiegstagen (ca. Februar 2027); "
+                       "Gegenprobe an anderen Aktien: nicht bestätigt, Richtung offen",
     },
 }
 
