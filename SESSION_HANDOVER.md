@@ -3432,6 +3432,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 16.11.2026 — Entry-Shadow von der Karte entfernt (1 PR, Anzeige, Self-Merge)
+
+- `#725` (Branch `claude/entry-shadow-karte-raus-r8n2`, kein Merge-Hash — Regel a). Entscheid Easy 16.11.2026 nach
+  beiden Prüfungen (`regel-entry-shadow`, `regel-kombi-entry-suw`: häufiger Sprünge, keine bessere Rendite). Karten-
+  zeile, Cockpit-Platzhalter, Füll-Skript (`_fillEntryShadow` u. a., inkl. `_BT_DATA`-Preload nur für diese Zeile) und
+  CSS raus; Methodik-Panel ein Satz. Sammlung unverändert (`entry_score.py`, Felder, Schreibpfad, Exporte,
+  Exit-Shadow; Backtest-Eintrag vorher/nachher byte-gleich). §7·0: erstes Beispiel „Durchgefallen: von der Karte
+  entfernt“. Test `mock_test_entry_shadow_card_removed.py` (12 Checks), Golden an 6 erwarteten Stellen.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#724`, eigene `#725` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 16.11.2026 — Ergebnis Kombi Entry-Shadow × SUW (1 PR, Doku, Self-Merge)
 
 - `#724` (Branch `claude/kombi-ergebnis-p3m8`, kein Merge-Hash — Regel a). Nur open_item `regel-kombi-entry-suw`:
