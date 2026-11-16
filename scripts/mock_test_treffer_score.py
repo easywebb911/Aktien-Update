@@ -207,7 +207,15 @@ check("23 data-treffer = gespeicherter Wert (4 Stellen)",
 check("24 Detail-Satz mit Pflichttext + Premarket-Hinweis",
       all(x in gr.TREFFER_NOTE for x in ("Misst, ob die Leerverkäufer der letzten 20 Tage im Minus sitzen.",
                                          "Vorläufiger Tageswert", "In Prüfung, Ergebnis ca. Februar 2027.",
-                                         "Kein Kaufsignal.", "damalige Top-10")))
+                                         "Kein Kaufsignal.", "damalige Top-10",
+                                         "Gegenprobe an 30 anderen Aktien (2025/26): nicht bestätigt, "
+                                         "dort zeigte der Wert in die Gegenrichtung. Richtung offen bis "
+                                         "zum Test."))
+      and gr.TREFFER_NOTE.endswith("Kein Kaufsignal."))
+_panel_rows, _ = gr._score_confidence_rows_html({"setup": {"n": 5, "data_tier": "klein"}})
+_suw_li = next((li for li in _panel_rows.split("<li>") if "Treffer-Score (SUW)" in li), "")
+check("24b Panel-Zeile Treffer-Score (SUW) nennt die Gegenprobe (Halbsatz, ohne Zahl)",
+      "Gegenprobe an anderen Aktien: nicht bestätigt, Richtung offen" in _suw_li)
 
 # ── 6) (a) Auswahl/Scores/Reihenfolge lesen das Feld nie ────────────────────
 src_gr = (ROOT / "generate_report.py").read_text(encoding="utf-8")

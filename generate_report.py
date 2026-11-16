@@ -3917,7 +3917,9 @@ TREFFER_LABEL = "Treffer-Score (unvalidiert):"
 TREFFER_NOTE = ("Misst, ob die Leerverkäufer der letzten 20 Tage im Minus sitzen. "
                 "Vorläufiger Tageswert vom Abend. Vor Börsenschluss steht hier der Wert "
                 "vom letzten Abend mit Datum, der Platz gilt dann für die damalige Top-10. "
-                "In Prüfung, Ergebnis ca. Februar 2027. Kein Kaufsignal.")
+                "In Prüfung, Ergebnis ca. Februar 2027. "
+                "Gegenprobe an 30 anderen Aktien (2025/26): nicht bestätigt, dort zeigte "
+                "der Wert in die Gegenrichtung. Richtung offen bis zum Test. Kein Kaufsignal.")
 
 
 def _treffer_pct_text(w: float) -> str:
