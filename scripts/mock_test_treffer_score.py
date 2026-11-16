@@ -281,11 +281,18 @@ check("37 Digest bindet die Zeile fail-soft ein", "treffer_score.digest_line(" i
 check("38 Rechenkern nur importiert (keine zweite SUW-Formel)",
       "suw_eval.suw_value(" in (ROOT / "treffer_score.py").read_text(encoding="utf-8")
       and "sv * c" not in (ROOT / "treffer_score.py").read_text(encoding="utf-8"))
+# Feste Uhr wie mock_test_paper_c_marker/sparkline_view: der Render enthält einen
+# sekundengenauen Zeitstempel (daily_run_ts_js); ohne feste Uhr wird v1 != v2,
+# sobald ein Sekundenwechsel zwischen die beiden Renders fällt (CI-Flake 16.11.2026).
+_orig_dt = gr.datetime
 try:
+    gr.datetime = golden._FixedDateTime
     gr._render_test(golden._fixture_stocks(), golden._FIXED_REPORT_DATE)
     ok39 = True
-except Exception as exc:  # noqa: BLE001
+except Exception:  # noqa: BLE001
     ok39 = False
+finally:
+    gr.datetime = _orig_dt
 check("39 v1 == v2 mit Treffer-Score-Fixture (_render_test)", ok39)
 
 print()
