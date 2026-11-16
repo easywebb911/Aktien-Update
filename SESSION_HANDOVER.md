@@ -3432,6 +3432,15 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 16.11.2026 — Regel Stopp-10-Gegenprobe auf den Bootstrap-Einträgen (1 PR, Doku, Self-Merge)
+
+- `#730` (Branch `claude/regel-stopp10-gegenprobe-r2m5`, kein Merge-Hash — Regel a). Nur open_item
+  `regel-stopp-10-gegenprobe-bootstrap` (offen): Regel vor jeder Rechnung festgeschrieben (Datenlage geprüft: 1012
+  Bootstrap-Einträge, 30 Ticker). Stopp E × 0,90 mit Einstieg Schluss D+1, Yahoo-Kurse ohne Dividenden-Bereinigung,
+  Bootstrap nach Kalendermonat. Rechnung macht der Sparringspartner im Chat.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#729`, eigene `#730` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 16.11.2026 — Regel Stopp 10 % (1 PR, Doku, Self-Merge)
 
 - `#729` (Branch `claude/regel-stopp-10-s8k3`, kein Merge-Hash — Regel a). Nur open_item `regel-stopp-10`: Regel +
