@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-11-16T10:45:31.913120+01:00",
+  "last_run": "2026-11-16T16:50:17.746548+01:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,18 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-10-30T02:08:41.582085+01:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock,trend_break",
-      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 64/100",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-10-30T02:08:41.582106+01:00",
       "ticker": "PDYN",
@@ -1311,22 +1299,34 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-11-16T16:50:17.746631+01:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale WOLF: profit_lock, trend_break crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "NMAX": 79.0,
-    "LUCK": 82.0,
-    "TNDM": 65.0,
-    "JBGS": 78.0,
-    "SEAT": 66.0,
-    "AQST": 72.0,
-    "EZPW": 71.0,
-    "FRMI": 27.0,
-    "UNIT": 41.0,
-    "VISN": 54.0,
-    "WOLF": 55.0,
-    "AMC": 13.0,
-    "VEEA": 11.0
+    "FGL": 54.0,
+    "VYX": 67.0,
+    "DMRC": 73.0,
+    "JBGS": 57.0,
+    "NGNE": 71.0,
+    "OFRM": 71.0,
+    "NTLA": 64.0,
+    "ABEO": 70.0,
+    "ULCC": 56.0,
+    "JACK": 68.0,
+    "WOLF": 39.0,
+    "VEEA": 15.0,
+    "AMC": 11.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1383,7 +1383,7 @@
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-11-16T10:45:31.913229+01:00"
+      "updated": "2026-11-16T16:50:17.746642+01:00"
     },
     "GRPN": {
       "last_active": [],
