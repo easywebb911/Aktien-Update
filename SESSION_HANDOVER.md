@@ -3432,6 +3432,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 16.11.2026 — Treffer-Score: Hinweis auf die Gegenprobe (1 PR, Anzeige, Self-Merge)
+
+- `#728` (Branch `claude/treffer-gegenprobe-hinweis-h6v2`, kein Merge-Hash — Regel a). Anzeige ehrlich halten
+  nach `regel-suw-gegenprobe-bootstrap` (nicht bestätigt): Detail-Satz `TREFFER_NOTE` um „Gegenprobe an 30 anderen
+  Aktien (2025/26): nicht bestätigt, dort zeigte der Wert in die Gegenrichtung. Richtung offen bis zum Test.“
+  ergänzt („Kein Kaufsignal.“ bleibt am Ende); Panel-Zeile „Treffer-Score (SUW)“ (`SCORE_STATUS_LABELS["suw"]`
+  `review_cond`) um einen Halbsatz ohne Zahl. Hauptkarte, Menü, Sortierung, Sammlung, Rang unverändert; keine
+  geschützte Zone (Lint grün). Golden nur am Detail-Satz; Test 24/24b.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#727`, eigene `#728` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 16.11.2026 — Ergebnis SUW-Gegenprobe auf den Bootstrap-Einträgen (1 PR, Doku, Self-Merge)
 
 - `#727` (Branch `claude/suw-gegenprobe-ergebnis-w4n9`, kein Merge-Hash — Regel a). Nur open_item
