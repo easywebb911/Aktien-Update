@@ -558,6 +558,12 @@
       "shares_short": 11871899,
       "short_pct_float": 28.25,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 10995198,
+      "short_pct_float": 26.17,
+      "pub_date": "2026-11-10"
     }
   ],
   "IMRX": [
@@ -714,6 +720,12 @@
       "shares_short": 4977362,
       "short_pct_float": 24.56,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 5628418,
+      "short_pct_float": 27.31,
+      "pub_date": "2026-11-10"
     }
   ],
   "BBW": [
@@ -1698,6 +1710,12 @@
       "shares_short": 44435219,
       "short_pct_float": 39.95,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 44361762,
+      "short_pct_float": 39.8,
+      "pub_date": "2026-11-10"
     }
   ],
   "FXHO": [
@@ -2532,6 +2550,12 @@
       "shares_short": 2325910,
       "short_pct_float": 39.37,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 1806485,
+      "short_pct_float": 30.58,
+      "pub_date": "2026-11-10"
     }
   ],
   "AMPG": [
@@ -7107,6 +7131,12 @@
       "shares_short": 2531762,
       "short_pct_float": 26.78,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 2489534,
+      "short_pct_float": 26.34,
+      "pub_date": "2026-11-10"
     }
   ],
   "SPRY": [
@@ -10209,6 +10239,12 @@
       "shares_short": 20349877,
       "short_pct_float": 21.35,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 23624682,
+      "short_pct_float": 23.95,
+      "pub_date": "2026-11-10"
     }
   ],
   "DBGI": [
@@ -11211,6 +11247,12 @@
       "shares_short": 6008738,
       "short_pct_float": 15.87,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 5658156,
+      "short_pct_float": 15.46,
+      "pub_date": "2026-11-10"
     }
   ],
   "SES": [
@@ -11268,6 +11310,12 @@
       "shares_short": 5093623,
       "short_pct_float": 30.2,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 5685998,
+      "short_pct_float": 32.4,
+      "pub_date": "2026-11-10"
     }
   ],
   "UWMC": [
@@ -11541,6 +11589,12 @@
       "shares_short": 8249065,
       "short_pct_float": 19.52,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 8086195,
+      "short_pct_float": 19.58,
+      "pub_date": "2026-11-10"
     }
   ],
   "EYE": [
