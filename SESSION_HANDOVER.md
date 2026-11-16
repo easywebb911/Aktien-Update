@@ -3432,6 +3432,16 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 16.11.2026 — Regel Stopp 10 % (1 PR, Doku, Self-Merge)
+
+- `#729` (Branch `claude/regel-stopp-10-s8k3`, kein Merge-Hash — Regel a). Nur open_item `regel-stopp-10`: Regel +
+  Datenlage zuerst festgeschrieben (Branch-Commit `367ec7b8`, gepusht 05:43:50 UTC), dann genau ein Rechenlauf
+  (Wegwerf-Skript, nicht in main; nur D ≤ 23.10.2026, 669 Einstiege / 67 Tage). Stopp E × 0,90: Hauptzahl 1 (R − V)
+  +1,06 (95 % +0,21 … +1,92, Hälften +0,43 / +1,72), Hauptzahl 2 nach 1,9 % −0,26 / −3,57 % → **hilft, reicht
+  nicht**, erledigt. 48 % ausgestoppt, 8 von 73 Treffern vor dem Hoch. Zehnter Blick auf dasselbe Fenster.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#728`, eigene `#729` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 16.11.2026 — Treffer-Score: Hinweis auf die Gegenprobe (1 PR, Anzeige, Self-Merge)
 
 - `#728` (Branch `claude/treffer-gegenprobe-hinweis-h6v2`, kein Merge-Hash — Regel a). Anzeige ehrlich halten
