@@ -7562,7 +7562,6 @@ def _card_cockpit_html(
         f'</div>'
         f'</div>'
         f'{_treffer_row_html(s)}'
-        f'<div class="cockpit-entry-shadow" data-es-ticker="{ticker}" hidden></div>'
         f'</div>'
     )
 
@@ -10051,11 +10050,10 @@ def generate_html_v1(stocks: list[dict], report_date: str,
             Höher = stärkeres KI-Signal. (Nicht verwechseln mit dem grünen
             Live-Punkt <em>über</em> dem Setup-Score — das ist der
             Kurs-Polling-Status beim Aufklappen.)</li>
-          <li><strong>„Entry-Shadow N · M/5 Komp."</strong> — ein rein
-            diagnostischer Schatten-Score (0–100, heuristisch, Erhebung läuft):
-            ungewichteter Schnitt der vorhandenen Entry-Komponenten. „M/5 Komp."
-            = wie viele der 5 Komponenten Daten hatten. Zählt <em>nicht</em> in
-            den Setup-Score.</li>
+          <li><strong>Entry-Shadow:</strong> wird im Hintergrund weiter
+            gesammelt, steht nicht mehr auf der Karte (Prüfungen 16.11.2026: findet
+            häufiger Sprünge, aber keine bessere Rendite — allein und zusammen mit
+            dem Treffer-Score).</li>
           <li><strong>Momentum-Kachel „+X,X% / 5T: ±Y,Y%"</strong> — die erste
             Zahl ist die heutige Tagesveränderung (1 Tag, ggü. Vortagsschluss),
             die zweite („5T:") die 5-Tage-Veränderung (nur Anzeige). Die
@@ -11313,64 +11311,6 @@ const _TJ_KNALLER_FALLBACK_HIT   = 25;
 const _TJ_KNALLER_FALLBACK_CRASH = -20;
 const _TJ_KNALLER_MIN_N      = 30;
 
-// ── Entry-Shadow-Caption (#336 Cockpit-Rest) — REIN ADDITIV ──────────────
-// Fuellt .cockpit-entry-shadow[data-es-ticker] aus window._BT_DATA
-// (backtest_history.json). Zeigt entry_score + n_components NUR wenn ein
-// echter Wert existiert (None-Konvention: null/undefined → Element entfernt,
-// kein leeres Element/"–"). "latest" = juengstes `date` pro Ticker, chrono-
-// logisch aus dem DD.MM.YYYY-Format geparst (NICHT lexikografisch).
-function _esDmyKey(d){{
-  if (typeof d !== 'string') return 0;
-  const p = d.split('.');
-  if (p.length !== 3) return 0;
-  return (+p[2]) * 10000 + (+p[1]) * 100 + (+p[0]);
-}}
-function _fillEntryShadow(){{
-  const hooks = document.querySelectorAll('.cockpit-entry-shadow[data-es-ticker]');
-  if (!hooks.length) return;
-  const data = (Array.isArray(window._BT_DATA) && window._BT_DATA.length)
-               ? window._BT_DATA : null;
-  if (!data) return;
-  const latest = {{}};
-  for (let i = 0; i < data.length; i++) {{
-    const e = data[i];
-    if (!e || !e.ticker) continue;
-    const es = e.entry_score;
-    if (es === null || es === undefined) continue;   // None-Konvention
-    const k = _esDmyKey(e.date);
-    const cur = latest[e.ticker];
-    if (!cur || k > cur._k) latest[e.ticker] = {{_k: k, score: es, n: e.entry_n_components}};
-  }}
-  hooks.forEach(el => {{
-    const t = el.getAttribute('data-es-ticker');
-    const rec = t ? latest[t] : null;
-    if (rec) {{
-      const n = (rec.n === null || rec.n === undefined) ? '–' : rec.n;
-      el.textContent = 'Entry-Shadow ' + Math.round(rec.score) + ' · ' + n
-                       + '/5 Komp. · heuristisch (Erhebung läuft).';
-      el.removeAttribute('hidden');
-    }} else {{
-      el.remove();   // kein leeres Element im DOM, wenn kein Wert
-    }}
-  }});
-}}
-// Additiver Preload: schreibt in den BESTEHENDEN window._BT_DATA-Cache-Key,
-// damit ein spaeteres Backtest-Panel-/Knaller-Render NICHT erneut fetcht
-// (dieselbe Reuse-Bedingung wie _tjBucketRef unten).
-async function _preloadBtForEntryShadow(){{
-  if (!(Array.isArray(window._BT_DATA) && window._BT_DATA.length)) {{
-    try {{
-      const resp = await fetch('./backtest_history.json?_=' + Date.now());
-      if (resp.ok) {{
-        const json = await resp.json();
-        window._BT_DATA = Array.isArray(json) ? json : [];
-      }}
-    }} catch (err) {{ /* fail-soft: Caption bleibt aus, kein UI-Bruch */ }}
-  }}
-  _fillEntryShadow();
-}}
-window.addEventListener('DOMContentLoaded', _preloadBtForEntryShadow);
-
 // Cache-Slot fuer Bucket-Referenz-Stats (P90/P10/n_returns pro Bucket).
 // Wird beim ersten renderTradeJournal-Call gefuellt, danach reused.
 // Invalidierung: bei Page-Reload (Force-Refresh) sowieso neu geladen.
@@ -11876,8 +11816,9 @@ function buildPositionStatus(ticker) {{
       const c = v >= 75 ? '#ef4444' : v >= 30 ? '#f59e0b' : 'var(--txt-dim)';
       // Easy-Entscheid 30.10.2026 (Variante B): exit_pressure hat keinen
       // belegten Score-Edge (siehe config.SCORE_STATUS_LABELS["exit_pressure"]),
-      // Caption im Stil der Entry-Shadow-"heuristisch (Erhebung läuft)."-Zeile
-      // macht das direkt auf der Karte sichtbar statt nur im Methodik-Panel.
+      // Graue „unvalidiert“-Kennzeichnung (früher im Stil der Entry-Shadow-
+      // Kartenzeile, die am 16.11.2026 entfernt wurde) macht das direkt auf der
+      // Karte sichtbar statt nur im Methodik-Panel.
       pressureLine = `<div class="ps-pressure" style="color:${{c}}">Exit-Druck: ${{v}}/100 `
         + `<span class="ps-unvalidated">unvalidiert</span></div>`;
     }}
