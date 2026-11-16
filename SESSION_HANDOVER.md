@@ -3432,6 +3432,16 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 16.11.2026 — Regel SUW-Gegenprobe auf den Bootstrap-Einträgen (1 PR, Doku, Self-Merge)
+
+- `#726` (Branch `claude/regel-suw-gegenprobe-b5t1`, kein Merge-Hash — Regel a). Nur open_item
+  `regel-suw-gegenprobe-bootstrap` (offen): Regel vor jeder Rechnung festgeschrieben, Datenlage vorab ohne Renditen
+  (1012 Bootstrap-Einträge, 22.04.2025–23.04.2026, 30 Ticker, alle mit `return_10d_t1`, 13 Monate). Rechnung macht der
+  Sparringspartner im Chat. Kein Einfluss auf den eingefrorenen SUW-Test. Dazu §4: Wiedervorlage **Mo 08.02.2027**
+  (Digest-Zähler SUW 60/60) — SUW-Test von Hand starten (fehlte bisher).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#725`, eigene `#726` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 16.11.2026 — Entry-Shadow von der Karte entfernt (1 PR, Anzeige, Self-Merge)
 
 - `#725` (Branch `claude/entry-shadow-karte-raus-r8n2`, kein Merge-Hash — Regel a). Entscheid Easy 16.11.2026 nach
@@ -5466,6 +5476,7 @@ neu getestet.
 | direkt nach der Replikation · n ≥ 500 (Schätzung **~Ende Jan. 2027**, nicht bindend) | **Paper C handelbar** (Ziel ab **Eröffnung Tag 1**, `outcome_path`-bars); Skript fehlt | `paper-c-handelbar-zusatzfamilie` |
 | danach · n ≥ 500 (frühestens ~Ende Jan. 2027) | **H-I Stufe 2** (`hyp_nov26_s2`, k = 1) → **H-I Rendite** (`hi_r_f1`/`hi_r_f2`) → **Landkarte K1/K2** — Reihenfolge laut Freeze-Blöcken | `hypothesen-runde-nov26-skript`, `hi-rendite-skript`, `landkarte-k1k2-skript` |
 | ab 09.11.2026 · n = 500 | **Exit-B.1-Nachfolger** sammelt (Schätzung ~Mitte/Ende Mai 2027) | `exit-b1-nachfolger-sammelphase` |
+| **Mo 08.02.2027** (maßgeblich: Digest-Zähler SUW 60/60) | **SUW-Test von Hand starten** (Workflow `suw_eval.yml`, Modus test; Freeze-Block „VORABREGISTRIERUNG — SUW“) — nachgetragen 16.11.2026 | `regel-suw-shorts-unter-wasser` |
 | kein Bau ohne Entscheid | Handelskosten-Auswertung (Minutenkurse) | `handelskosten-messung` |
 
 *(Vorgänger-Tabelle „Stand 08.11.2026“ ersetzt; erledigt seither:
