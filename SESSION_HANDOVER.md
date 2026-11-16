@@ -3432,6 +3432,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 16.11.2026 — Regel Kombi Entry-Shadow × SUW (1 PR, Doku, Self-Merge)
+
+- `#723` (Branch `claude/regel-kombi-entry-suw-k7q2`, kein Merge-Hash — Regel a). Nur open_item
+  `regel-kombi-entry-suw` (offen): Regel vor jeder Rechnung festgeschrieben (Easy-Entscheid 16.11.2026; Entry-Shadow
+  bleibt vorerst auf der Karte, Entfernen zurückgestellt, Branch `claude/entry-shadow-karte-raus-r8n2` unberührt).
+  Kombi-Gruppe = obere Hälfte nach SUW UND nach entry_score, gegen den Rest des Tages; nur Einstiege ≤ 23.10.2026.
+  Rechnung macht der Sparringspartner im Chat, Ergebnis folgt in einem zweiten Auftrag. Neunter Blick auf dasselbe
+  Fenster (nach oben verzerrt).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#722`, eigene `#723` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 15.11.2026 — Regel Entry-Shadow (1 PR, Doku, Self-Merge)
 
 - `#722` (Branch `claude/regel-entry-shadow-q4w7`, kein Merge-Hash — Regel a). Nur open_item `regel-entry-shadow`:
