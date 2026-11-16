@@ -4,7 +4,7 @@
 Kein Netz. Prüft: (1) Kartenzeile, Füll-Skript und CSS sind weg; (2) Methodik-
 Panel trägt den neuen Satz; (3) die Sammlung bleibt — der Backtest-Eintrag
 enthält entry_score / entry_components / entry_n_components unverändert
-(Fixture-Werte gepinnt); (4) v1 == v2; (5) open_item-Entwurf vorhanden.
+(Fixture-Werte gepinnt); (4) v1 == v2; (5) Regel-open_item statt Entwurf.
 """
 from __future__ import annotations
 
@@ -46,8 +46,8 @@ check("03 CSS .cockpit-entry-shadow entfernt", "cockpit-entry-shadow" not in hea
 _flat = " ".join(src.split())
 check("04 Methodik-Satz vorhanden",
       "<strong>Entry-Shadow:</strong> wird im Hintergrund weiter gesammelt, steht "
-      "nicht mehr auf der Karte (Prüfung 16.11.2026: findet häufiger Sprünge, aber "
-      "keine bessere Rendite).</li>" in _flat)
+      "nicht mehr auf der Karte (Prüfungen 16.11.2026: findet häufiger Sprünge, aber "
+      "keine bessere Rendite — allein und zusammen mit dem Treffer-Score).</li>" in _flat)
 check("05 alter Methodik-Eintrag weg", "Entry-Shadow N · M/5 Komp." not in src)
 
 html = golden._render_outer_page()
@@ -79,12 +79,9 @@ except Exception:  # noqa: BLE001
 check("11 v1 == v2 (_render_test)", ok)
 
 items = json.loads((ROOT / "open_items.json").read_text(encoding="utf-8"))["items"]
-it = next((i for i in items if i.get("id") == "hypothese-entwurf-kombination"), None)
-check("12 open_item hypothese-entwurf-kombination offen",
-      it is not None and it.get("status") == "offen"
-      and "Hoher Entry-Shadow (oder geringe institutionelle Beteiligung) UND "
-          "Treffer-Score in der oberen Tageshälfte: mehr Sprünge bei positiver "
-          "Richtung." in it.get("description", ""))
+ids = {i.get("id") for i in items}
+check("12 Regel regel-kombi-entry-suw vorhanden, Entwurf hypothese-entwurf-kombination nicht",
+      "regel-kombi-entry-suw" in ids and "hypothese-entwurf-kombination" not in ids)
 
 print()
 if FAILS:
