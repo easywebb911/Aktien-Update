@@ -3432,6 +3432,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 16.11.2026 — Ergebnis Stopp-10-Gegenprobe Bootstrap + Regel §7·0a (1 PR, Doku, Self-Merge)
+
+- `#731` (Branch `claude/stopp10-gegenprobe-ergebnis-v7c4`, kein Merge-Hash — Regel a). open_item
+  `regel-stopp-10-gegenprobe-bootstrap`: Ergebnis unter dem unveränderten Regeltext (im Chat gerechnet, von Code
+  nicht nachgerechnet, genau ein Lauf, nach Push `1e09a44a`), Status erledigt. 953 von 1012 Einträgen (GREE/BBBY ohne
+  Kurse). Hauptzahl (Stopp minus Halten) 0,00 (95 % −1,08 … +1,07, Hälften −0,29 / +0,38) → **nicht bestätigt**.
+  Zweite Gegenprobe in Folge ohne Bestätigung; `regel-stopp-10` bleibt „hilft, reicht nicht“, als Baustein nicht
+  belegt. Neue feste Regel §7·0a: keine weiteren Erkundungen auf dem offenen Fenster (≤ 23.10.2026).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#730`, eigene `#731` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 16.11.2026 — Regel Stopp-10-Gegenprobe auf den Bootstrap-Einträgen (1 PR, Doku, Self-Merge)
 
 - `#730` (Branch `claude/regel-stopp10-gegenprobe-r2m5`, kein Merge-Hash — Regel a). Nur open_item
@@ -9528,6 +9539,13 @@ blau (Test läuft). Erstes Beispiel für **„Durchgefallen: von der Karte entfe
 Entry-Shadow (Prüfungen 16.11.2026, open_items `regel-entry-shadow` und `regel-kombi-entry-suw`: häufiger
 Sprünge, aber keine bessere Rendite — allein und zusammen mit dem Treffer-Score) — Kartenzeile, Füll-Skript und CSS raus; Felder `entry_score`/`entry_components`/
 `entry_n_components` werden weiter gesammelt, Methodik-Panel sagt das in einem Satz. Freeze-Blöcke bleiben von dieser Regel unberührt.
+
+### 7·0a. Keine weiteren Erkundungen auf dem offenen Fenster (feste Regel, Festlegung Easy/Sparringspartner 16.11.2026)
+
+Auf dem offenen Fenster (Einstiege **<= 23.10.2026**) werden **keine weiteren Erkundungen** gerechnet. Anlass:
+zwei Gegenproben in Folge haben Funde aus diesem Fenster nicht bestätigt (SUW `regel-suw-gegenprobe-bootstrap`,
+Stopp 10 % `regel-stopp-10-gegenprobe-bootstrap`); nach zehn Blicken ist es ausgereizt. Bereits festgeschriebene
+Regeln und eingefrorene Tests bleiben unberührt; Einstiege ab 24.10.2026 bleiben blind (Freeze-Blöcke).
 
 ### 7·1. Treffer-Score (unvalidiert) — SUW-Schatten-Wert (seit 15.11.2026)
 
