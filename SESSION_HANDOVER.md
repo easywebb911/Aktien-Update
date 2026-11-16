@@ -3450,7 +3450,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   nicht nachholbar): `options_intraday.py` + Workflow `options_intraday.yml` (15:07/16:37/18:07 UTC werktags, Fenster
   10:00–15:30 ET, Feiertage aus, einmal je Handelstag). Top-10 des letzten Postclose, je Ticker erster Verfall ≥ Tag
   10 und der folgende, Strikes ±30 %, Aktienkurs aus demselben Abruf. Nur angehängt in
-  `options_chain_intraday.jsonl`, State + Digest-Zeile. Keine Auswertung. Test 35 Checks; CLAUDE.md-Abschnitt;
+  `options_chain_intraday.jsonl`, State + Digest-Zeile; veraltete Top-10 gekennzeichnet (Guardian). Keine
+  Auswertung. Test 37 Checks; CLAUDE.md-Abschnitt;
   open_item `options-intraday-erster-lauf`.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#734` (nach Rebase), eigene `#733` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.

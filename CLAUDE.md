@@ -4692,7 +4692,9 @@ Verfall) bleibt unverändert.
   Nachholen am selben Tag).
 - **Top-10** = jüngster Postclose in `backtest_history.json` (Nicht-Bootstrap, Datum als Datum
   gelesen, nach `pool_position`). Am Vormittag gilt damit der Vorabend-Postclose (Einstieg =
-  heutige Eröffnung), nicht ein Premarket-Stand.
+  heutige Eröffnung), nicht ein Premarket-Stand. Fehlt der Postclose des letzten Handelstags,
+  wird die ältere Top-10 trotzdem gesammelt, aber als `top10_aktuell: false` markiert (Digest
+  „Top-10 vom TT.MM. (veraltet)“).
 - **Je Ticker** zwei Verfälle: erster am/nach Tag 10 (`trading_date.nth_trading_day_after(D, 10)`)
   und der folgende; Strikes ±`OPTIONS_CHAIN_RAW_MONEYNESS_RANGE`; Felder wie Nachtsammlung +
   `spot`/`spot_time_utc` aus demselben Abruf (`option_chain(...).underlying`), `fetch_ts_utc`.

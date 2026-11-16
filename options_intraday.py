@@ -262,6 +262,13 @@ def summarize(rows: list[dict]) -> dict:
     return {"n_tickers": n, "n_with_chain": len(with_chain), "n_pair_ok": pair}
 
 
+def prev_trading_day(d: date, holidays=US_MARKET_HOLIDAYS) -> date:
+    x = d - timedelta(days=1)
+    while not is_trading_day(x, holidays):
+        x -= timedelta(days=1)
+    return x
+
+
 def already_done(state: dict, today_et: str) -> bool:
     """Ein Lauf je US-Handelstag: auch nach Rate-Limit oder Zeitlimit holt ein
     späterer Slot desselben Tages NICHT nach (kein Retry, Easy-Vorgabe)."""
@@ -293,6 +300,13 @@ def run(*, now_utc: datetime | None = None, root=_ROOT, ticker_factory=None,
         print("[options_intraday] keine Postclose-Top-10 gefunden — nichts gesammelt")
         return state
     tag10 = trading_date.nth_trading_day_after(entry_d, DAY_OFFSET, US_MARKET_HOLIDAYS)
+    # Kennzeichen statt stiller Annahme (Guardian 16.11.): fehlt der Postclose
+    # des letzten Handelstags (Lauf ausgefallen, Vintage-Guard-Verwurf), wird die
+    # ältere Top-10 trotzdem gesammelt, aber als veraltet markiert.
+    erwartet = prev_trading_day(date.fromisoformat(today_et))
+    top10_aktuell = entry_d == erwartet
+    if not top10_aktuell:
+        print(f"[options_intraday] WARNUNG: Top-10 vom {entry_d}, erwartet {erwartet} — als veraltet markiert")
     if ticker_factory is None:
         import yfinance as yf  # Netz nur im echten Lauf
         ticker_factory = yf.Ticker
@@ -325,8 +339,11 @@ def run(*, now_utc: datetime | None = None, root=_ROOT, ticker_factory=None,
         for r in rows:
             f.write(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n")
     summ = summarize(rows)
+    for r in rows:
+        r["top10_aktuell"] = top10_aktuell
     new_state = {"last_run_date": today_et, "last_run_utc": now_utc.isoformat(),
                  "entry_date": entry_d.isoformat(), "tag10": tag10.isoformat(),
+                 "top10_aktuell": top10_aktuell, "erwartet_entry_date": erwartet.isoformat(),
                  "status": "fertig" if stop_reason is None else stop_reason, **summ}
     tmp = state_path.with_suffix(".tmp")
     tmp.write_text(json.dumps(new_state, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -349,6 +366,11 @@ def digest_line(state_path=STATE_FILE) -> str:
         n, c, p = st["n_tickers"], st["n_with_chain"], st["n_pair_ok"]
         anteil = f"{round(100 * p / c)} %" if c else "—"
         extra = "" if st.get("status") == "fertig" else f" · Status {st.get('status')}"
+        if st.get("top10_aktuell") is False:
+            ed = datetime.strptime(st["entry_date"], "%Y-%m-%d").strftime("%d.%m.")
+            extra += f" · Top-10 vom {ed} (veraltet)"
+        if isinstance(n, int) and n < TOP_N:
+            extra += f" · nur {n} Ticker"
         return f"🧾 Optionen Handelszeit ({d}): Kette {c}/{n} · ATM-Paar {p}/{c} ({anteil}){extra}"
     except Exception:  # noqa: BLE001
         return "🧾 Optionen Handelszeit: nicht ermittelbar"

@@ -202,6 +202,19 @@ with tempfile.TemporaryDirectory() as td:
     dl = O.digest_line(root / O.STATE_FILE)
     check("30 Digest-Zeile mit Status bei Abbruch", dl.startswith("🧾 Optionen Handelszeit (11.12.)")
           and "Status zeitlimit" in dl, dl)
+    check("30b veraltete Top-10 (Postclose vom 01.12., erwartet 10.12.) gekennzeichnet, nur 3 Ticker",
+          st4["top10_aktuell"] is False and st4["erwartet_entry_date"] == "2026-12-10"
+          and "Top-10 vom 01.12. (veraltet)" in dl and "nur 3 Ticker" in dl, dl)
+    root2 = pathlib.Path(td) / "r2"
+    root2.mkdir()
+    (root2 / O.BACKTEST_FILE).write_text(json.dumps(
+        [{"date": "08.12.2026", "ticker": f"X{i}", "pool_position": i + 1} for i in range(10)]),
+        encoding="utf-8")
+    st5 = O.run(now_utc=at(WINTER, 15, 7), root=root2, ticker_factory=lambda t: Tk(t, "ok"),
+                sleep=lambda s: None)
+    dl5 = O.digest_line(root2 / O.STATE_FILE)
+    check("30c aktueller Postclose (08.12. für Lauf am 09.12.) → nicht veraltet, kein Zusatz",
+          st5["top10_aktuell"] is True and "veraltet" not in dl5 and "nur" not in dl5, dl5)
     check("31 Digest ohne State → noch kein Lauf",
           O.digest_line(root / "fehlt.json") == "🧾 Optionen Handelszeit: noch kein Lauf")
 
