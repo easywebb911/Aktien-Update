@@ -3432,6 +3432,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 16.11.2026 — Ergebnis SUW-Gegenprobe auf den Bootstrap-Einträgen (1 PR, Doku, Self-Merge)
+
+- `#727` (Branch `claude/suw-gegenprobe-ergebnis-w4n9`, kein Merge-Hash — Regel a). Nur open_item
+  `regel-suw-gegenprobe-bootstrap`: Ergebnis unter dem unveränderten Regeltext (im Chat gerechnet, von Code nicht
+  nachgerechnet, genau ein Lauf, nach Push `7372cef4`), Status erledigt. 953 von 1012 mit Wert (GREE/BBBY ohne
+  Yahoo-Kurse, 6,7 % der Ticker — nach Skript-Robustheitsregel „nicht auswertbar“, Gegenprobe-Regel verweist nur
+  auf L1–L9; beides festgehalten). Hauptzahl −4,83 (95 % −10,33 … −0,00, Hälften −4,03 / −5,77) → **nicht
+  bestätigt**, Vorzeichen entgegengesetzt zur Erkundung (+4,48). Ursache ungeklärt; der eingefrorene SUW-Test
+  bleibt unverändert und entscheidet (kein Eingriff in den Freeze-Block). Lesson 8z16.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#726`, eigene `#727` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 16.11.2026 — Regel SUW-Gegenprobe auf den Bootstrap-Einträgen (1 PR, Doku, Self-Merge)
 
 - `#726` (Branch `claude/regel-suw-gegenprobe-b5t1`, kein Merge-Hash — Regel a). Nur open_item
@@ -9652,7 +9664,16 @@ Projekt-Ehrlichkeitsregel.
 
 *(Neueste zuerst: 8z7 vom 17.07.; 8z4–8z6 vom 16.–17.07.; 8z1–8z3 vom 15.07.-Abend; 8v–8y vom
 15.07.; 8s–8u vom 14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag; 8n–8p vom 13.07.;
-8j–8m vom 11.–12.07.; etablierte 8a–8i darunter; 8z15 vom 15.11., 8z10–8z14 vom 11.–14.11., 8z9 vom 12.11. und 8z8 vom 06.11. ganz oben.)*
+8j–8m vom 11.–12.07.; etablierte 8a–8i darunter; 8z16 vom 16.11., 8z15 vom 15.11., 8z10–8z14 vom 11.–14.11., 8z9 vom 12.11. und 8z8 vom 06.11. ganz oben.)*
+
+### 8z16. Erkundung vor dem Anzeigen an einem zweiten, unabhängigen Datensatz gegenprüfen (16.11.2026)
+
+SUW trennte im offenen Fenster (Top-10, 21.07.–23.10.2026) mit +4,48 Punkten und kam als Treffer-Score auf
+die Karte (`#721`). Die Gegenprobe an 30 anderen Aktien aus 2025/26 (Bootstrap-Einträge,
+`regel-suw-gegenprobe-bootstrap`) zeigte −4,83 — entgegengesetzte Richtung, Ursache ungeklärt.
+**Regel:** Eine Erkundung auf einem Fenster vor dem Anzeigen möglichst an einem zweiten, unabhängigen
+Datensatz gegenprüfen. Dazu (Lesson aus `#724`): vor jeder Auswertung die Datenquelle gegen die erwartete
+Zahl der Einträge und Tage prüfen, bevor eine Rendite gerechnet wird.
 
 ### 8z15. Anbieter-Werbung zu abgegangenen Aktien vor jedem Bau messen (15.11.2026)
 
