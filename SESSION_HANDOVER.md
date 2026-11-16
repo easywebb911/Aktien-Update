@@ -3432,6 +3432,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 16.11.2026 — Plan Erkundungsfeld 2025/26 + Options-Sammlung (1 PR, Doku, Self-Merge)
+
+- `#732` (Branch `claude/erkundungsfeld-plan-e3q8`, kein Merge-Hash — Regel a). Nur open_item `erkundungsfeld-plan`
+  (offen): Diagnose und Plan, nichts gebaut. Teil A: Einstiege 02.01.2025–02.07.2026 (03.07. kein Handelstag),
+  FINRA-Stand ab Tag nach `finra_publication_date` + 1, Annäherungs-Score = `score()` mit FINRA-DTC und
+  Näherungs-Short-Float, Ähnlichkeit nur über Namen 21.07.–23.10.2026, 30 je Tag, Riegel Such-/Prüffeld mit
+  Öffnungsprotokoll, Bau in drei Stufen (Manual-Merge). Fund: Sonderschließung 09.01.2025 fehlt im Kalender.
+  Teil B: `options_chain_raw` ≤ 23.10. = 44 Ticker-Tage, 31 mit ATM-Paar, Spanne Median 47,6 % (Abruf nach
+  Schluss) — reicht nicht; Kurse in der Handelszeit und ein Verfall ≥ 14 Tage ab sofort sammeln (Entscheid Easy).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#731`, eigene `#732` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 16.11.2026 — Ergebnis Stopp-10-Gegenprobe Bootstrap + Regel §7·0a (1 PR, Doku, Self-Merge)
 
 - `#731` (Branch `claude/stopp10-gegenprobe-ergebnis-v7c4`, kein Merge-Hash — Regel a). open_item
