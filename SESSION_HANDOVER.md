@@ -3432,6 +3432,20 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 16.11.2026 — Ergebnis Kombi Entry-Shadow × SUW (1 PR, Doku, Self-Merge)
+
+- `#724` (Branch `claude/kombi-ergebnis-p3m8`, kein Merge-Hash — Regel a). Nur open_item `regel-kombi-entry-suw`:
+  Ergebnis unter dem unveränderten Regeltext angehängt (im Chat gerechnet, von Code nicht nachgerechnet; nach Push
+  `c231e9bb` 04:46:34 UTC), Status erledigt. Zwei Läufe offen festgehalten: Lauf 1 ungültig (entry_score aus
+  `backtest_history.json`, beginnt erst 17.08. → 476 Teilnehmer / 47 Tage), Lauf 2 gültig (Export, 663 / 65 Tage).
+  Hauptzahl 1 +3,39 (95 % −1,59 … +8,94, Hälften +3,93 / +2,83), Hauptzahl 2 gesamt −1,01 % (Hälften +2,47 / −4,10)
+  → **trägt nicht**, keine Varianten. Erkenntnis: Entry-Shadow erhöht die Zahl der Sprünge, nicht die Rendite; SUW
+  allein schneidet nicht schlechter ab.
+- **Lesson:** Vor einer Auswertung die Datenquelle gegen die erwartete Zahl der Einträge und Tage prüfen (hier
+  671 / 67), bevor eine Rendite gerechnet wird.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#723`, eigene `#724` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 16.11.2026 — Regel Kombi Entry-Shadow × SUW (1 PR, Doku, Self-Merge)
 
 - `#723` (Branch `claude/regel-kombi-entry-suw-k7q2`, kein Merge-Hash — Regel a). Nur open_item
