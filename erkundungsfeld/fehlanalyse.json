@@ -1,0 +1,251 @@
+{
+ "faelle": 670,
+ "gegenrichtung": [],
+ "gegenrichtung_boerse_heute": {},
+ "herkunft_fehlfaelle": {
+  "(leer)": 40,
+  "manual": 79,
+  "yahoo_aggressive_small_caps": 101,
+  "yahoo_most_shorted_stocks": 403,
+  "yahoo_small_cap_gainers": 321,
+  "yahoo_undervalued_growth_stocks": 3
+ },
+ "kat2_3_mit_float_heute": {
+  "bestanden": 0,
+  "faelle": 161,
+  "kennz": "Nenner heutig",
+  "namen_bestanden": 0,
+  "nicht_bestanden": 0,
+  "ohne_float": 161
+ },
+ "kat4_unsicher_wegen_abbruch": 509,
+ "kat5_short_float_tool_vs_naeherung": {
+  "faelle": 0,
+  "naeherung_sf_median": null,
+  "tool_quellen": {},
+  "tool_sf_median": null
+ },
+ "kategorien": {
+  "1": {
+   "anteil_pct": 0.0,
+   "faelle": 0,
+   "gruende": {},
+   "haeufigste": [],
+   "name": "nicht in der FINRA-Liste / Kürzel-Abweichung",
+   "namen": 0
+  },
+  "2": {
+   "anteil_pct": 19.1,
+   "faelle": 128,
+   "gruende": {
+    "keine Aktienzahl": 128
+   },
+   "haeufigste": [
+    [
+     "METC",
+     12
+    ],
+    [
+     "XPOF",
+     10
+    ],
+    [
+     "RXRX",
+     9
+    ],
+    [
+     "AI",
+     8
+    ],
+    [
+     "EVGO",
+     8
+    ],
+    [
+     "DFH",
+     7
+    ],
+    [
+     "ASST",
+     6
+    ],
+    [
+     "DMRC",
+     5
+    ],
+    [
+     "INDI",
+     5
+    ],
+    [
+     "NMAX",
+     4
+    ]
+   ],
+   "name": "kein SEC-Nenner (Aktienzahl) — Vorfilter",
+   "namen": 41
+  },
+  "3": {
+   "anteil_pct": 4.9,
+   "faelle": 33,
+   "gruende": {
+    "0.0 %": 2,
+    "0.7 %": 1,
+    "0.8 %": 1,
+    "0.9 %": 1,
+    "1.6 %": 2,
+    "1.7 %": 2,
+    "1.9 %": 1,
+    "2.1 %": 2,
+    "2.3 %": 1,
+    "2.4 %": 4,
+    "2.5 %": 1,
+    "2.8 %": 1,
+    "3.0 %": 2,
+    "3.3 %": 1,
+    "3.4 %": 1,
+    "3.6 %": 2,
+    "4.1 %": 3,
+    "4.4 %": 1,
+    "4.8 %": 2,
+    "4.9 %": 2
+   },
+   "haeufigste": [
+    [
+     "VEEA",
+     3
+    ],
+    [
+     "WBTN",
+     3
+    ],
+    [
+     "CTNT",
+     2
+    ],
+    [
+     "CURV",
+     2
+    ],
+    [
+     "FUBO",
+     2
+    ],
+    [
+     "JEM",
+     2
+    ],
+    [
+     "NUWE",
+     2
+    ],
+    [
+     "STKH",
+     2
+    ],
+    [
+     "VEEE",
+     2
+    ],
+    [
+     "AMIX",
+     1
+    ]
+   ],
+   "name": "Vorfilter FINRA-Bestand / Aktienzahl < 5 %",
+   "namen": 22
+  },
+  "4": {
+   "anteil_pct": 76.0,
+   "faelle": 509,
+   "gruende": {
+    "kein Float heute": 506,
+    "kein Yahoo-Kurs am Tag": 3
+   },
+   "haeufigste": [
+    [
+     "WOLF",
+     41
+    ],
+    [
+     "GRPN",
+     32
+    ],
+    [
+     "LENZ",
+     21
+    ],
+    [
+     "ARCT",
+     15
+    ],
+    [
+     "SHOE",
+     14
+    ],
+    [
+     "HTZ",
+     10
+    ],
+    [
+     "TBCH",
+     10
+    ],
+    [
+     "MNRO",
+     9
+    ],
+    [
+     "PCT",
+     9
+    ],
+    [
+     "XRX",
+     9
+    ]
+   ],
+   "name": "kein Float heute / kein Yahoo-Kurs",
+   "namen": 151
+  },
+  "5": {
+   "anteil_pct": 0.0,
+   "faelle": 0,
+   "gruende": {},
+   "haeufigste": [],
+   "name": "am nachgebildeten Filter gescheitert",
+   "namen": 0
+  },
+  "6": {
+   "anteil_pct": 0.0,
+   "faelle": 0,
+   "haeufigste": [],
+   "name": "im Rennen, aber Rang > 30",
+   "namen": 0,
+   "rang_bereiche": {
+    "31-50": 0,
+    "51-100": 0,
+    ">100": 0
+   },
+   "rang_median": null
+  }
+ },
+ "laeufe": {
+  "abbrueche": [
+   "rate_limit_float"
+  ],
+  "echte_namen": 212,
+  "nachrechnung_top30_wie_gespeichert_pct": 0.0,
+  "ohne_float": 2261,
+  "ohne_kurs": 12,
+  "sec_frames_fehlend": [],
+  "vergleichstage": 67,
+  "vollstaendig": false
+ },
+ "rahmen": {
+  "regel": "§7·0a (b): nur Namen/Ränge/Merkmale vom Listentag, keine Renditen",
+  "vergleich": [
+   "2026-07-21",
+   "2026-10-23"
+  ]
+ }
+}
