@@ -3432,6 +3432,16 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 17.11.2026 — Diagnose EDGAR-Ausfall + Folgen des Startverzugs (1 Doku-PR)
+
+- `#741` (Branch `claude/edgar-ausfall-diagnose-m2v6`, Branch-Commit `1fdc92fc`, kein Merge-Hash — Regel a).
+  Neue open_items `edgar-abrufe-ausfall-1711` (8-K/Form 4 im KI-Agent seit 16.11. 15:50 UTC 100 % Fehler,
+  Ursache unklar/vermutet SEC-Sperre browse-edgar bzw. fester User-Agent; Fehlschlag zählt als „keine Meldung“;
+  Backtest-SEC-Felder nicht betroffen) und `zeitplan-verzug-folgen` (Premarket in der Handelszeit, S11 ab ~19.11.,
+  Postclose nach 09:30 ET, Optionen-Slots). Nichts gebaut.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#738`, `#739`/`#740` offen, eigene `#741` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 17.11.2026 — Digest-Push-Kurzfassung + Volltext-Ablage (1 PR)
 
 - `#738` (Branch `claude/digest-kurzfassung-n4t8`, Branch-Commit `046c3c47`, kein Merge-Hash — Regel a).
