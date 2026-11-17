@@ -280,6 +280,9 @@ check("39 Fehl-Analyse: genau eine Kategorie je Stufe (FINRA/SEC/Vorfilter/Yahoo
       and cm["T06"]["kat"] == 3 and cm["T07"]["detail"] == "kein Yahoo-Kurs am Tag"
       and cm["T08"]["detail"] == "kein Float heute"
       and cm["T09"]["kat"] == 5 and cm["T09"]["detail"] == "short_float", cm)
+check("39b Name außerhalb des Kandidatensets (alter Stichtag) → Kategorie 1, nicht 6",
+      ef.classify_miss(t_mid, "T10", fin2, tick, sec, bars_fa, fmap_fa, sf, {"T10": 35},
+                       candidates={"T11"}) == {"kat": 1, "detail": "Stichtag veraltet (nicht im Kandidatenset)"})
 in30 = next(sym for sym, r in ranks_fa.items() if r <= 30)
 r6 = _cm("T10", ranks={"T10": 35})
 check("40 Rang <= 30 → kein Fehlfall; Rang > 30 → Kategorie 6 mit Rang",
@@ -313,7 +316,8 @@ check("44 Fehl-Analyse: Kurse nur bis 23.10., FINRA aus Datei, schreibt nur fehl
       "WIN_FETCH_START, WIN_END, WIN_END" in fa_src and "finra_si.jsonl.gz" in fa_src
       and "finra_settlement(" not in fa_src
       and sorted(set(__import__("re").findall(r'OUT_DIR / "([^"]+)"', fa_src))) ==
-      ["fehlanalyse.json", "fehlanalyse_faelle.jsonl.gz", "finra_si.jsonl.gz", "vergleich_namen.jsonl.gz"])
+      ["fehlanalyse.json", "fehlanalyse_faelle.jsonl.gz", "finra_si.jsonl.gz", "vergleich_namen.jsonl.gz"]
+      and 'c["unsicher"] = "abbruch:"' in fa_src and "candidates=win_t" in fa_src)
 check("45 Workflow: Modus fehlanalyse wählbar, Commit bei voll und fehlanalyse",
       "- fehlanalyse" in wf and "inputs.modus != 'probe'" in wf)
 
@@ -321,4 +325,4 @@ print()
 if FAILS:
     print(f"FEHLER: {len(FAILS)} Test(s) rot: {FAILS}")
     sys.exit(1)
-print("Alle 45 Checks grün.")
+print("Alle 46 Checks grün.")

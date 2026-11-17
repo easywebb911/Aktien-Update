@@ -634,9 +634,12 @@ def filter_failures(st: dict, avg_vol: float) -> list[str]:
     return out
 
 
-def classify_miss(t, sym, finra, tick, sec, bars, float_map, spx_feat, ranks) -> dict:
+def classify_miss(t, sym, finra, tick, sec, bars, float_map, spx_feat, ranks,
+                  candidates=None) -> dict:
     """Eine Kategorie je (Tag, echter Name). ``ranks`` = {sym: rang} ALLER Kandidaten
-    von Tag t. Rang <= TOP_N → ``None`` (kein Fehlfall)."""
+    von Tag t. Rang <= TOP_N → ``None`` (kein Fehlfall). ``candidates`` = das
+    Kandidatenset der Pipeline (``win_t``): ein Name außerhalb (jüngster Stichtag
+    zu alt, Guardian #739) fällt dort schon VOR dem Vorfilter heraus → Kategorie 1."""
     cur, prev = usable_records(finra, sym, t)
     if not cur:
         if not _RE_COMMON.match(sym):
@@ -646,6 +649,8 @@ def classify_miss(t, sym, finra, tick, sec, bars, float_map, spx_feat, ranks) ->
         else:
             det = "nie in gelisteten FINRA-Stammaktien"
         return {"kat": KAT_FINRA, "detail": det}
+    if candidates is not None and sym not in candidates:
+        return {"kat": KAT_FINRA, "detail": "Stichtag veraltet (nicht im Kandidatenset)"}
     cik = tick.get(sym)
     sh = sec_shares_known(sec, cik, usable_from(cur[0])) if cik else None
     if not sh:
@@ -656,6 +661,8 @@ def classify_miss(t, sym, finra, tick, sec, bars, float_map, spx_feat, ranks) ->
         return {"kat": KAT_VORFILTER, "detail": f"{pct:.1f} %", "si": cur[1]["qty"]}
     feat = features_at(bars[sym], t, with_squeeze=False) if sym in bars else None
     fl, sh_today = float_map.get(sym, (None, None))
+    # „kein Float heute“ zählt hier zu Kategorie 4 (Easys Kategorienliste). In der
+    # Pipeline scheitert so ein Name erst am Filter (_sf=None) — gleiches Ergebnis.
     if feat is None:
         return {"kat": KAT_YAHOO, "detail": "kein Yahoo-Kurs am Tag"}
     if not fl:
@@ -730,6 +737,9 @@ def run_fehlanalyse(deadline, ua) -> int:
     import requests
     from collections import Counter
     finra = {}
+    if not (OUT_DIR / "finra_si.jsonl.gz").exists():
+        log("ABBRUCH: erkundungsfeld/finra_si.jsonl.gz fehlt (erst Modus voll laufen lassen)")
+        return 1
     with gzip.open(OUT_DIR / "finra_si.jsonl.gz", "rt", encoding="utf-8") as fh:
         for line in fh:
             r = json.loads(line)
@@ -805,7 +815,8 @@ def run_fehlanalyse(deadline, ua) -> int:
             top10_ann[sym] += 1
             ann_features.setdefault(sym, []).append(m)
         for sym in real[t]:
-            res = classify_miss(t, sym, finra, tick, sec, bars, float_map, sf, ranks)
+            res = classify_miss(t, sym, finra, tick, sec, bars, float_map, sf, ranks,
+                                candidates=win_t)
             if res is None:
                 continue
             res.update({"date": t.isoformat(), "ticker": sym,
@@ -815,7 +826,14 @@ def run_fehlanalyse(deadline, ua) -> int:
                 res["mit_float_nenner_bestanden"] = (
                     None if not fl else bool(res["si"] / fl * 100 >= PREFILTER_SEC_PCT))
             cases.append(res)
+    # Abbruch (Rate-/Zeitlimit) → fehlende Kurse/Floats sind nicht zwingend echt:
+    # Kategorie-4-Fälle werden dann als unsicher markiert (Guardian #739).
+    if STOPS:
+        for c in cases:
+            if c["kat"] == KAT_YAHOO:
+                c["unsicher"] = "abbruch:" + ",".join(sorted(set(STOPS)))
     summ = summarize_misses(cases)
+    summ["kat4_unsicher_wegen_abbruch"] = sum(1 for c in cases if c.get("unsicher"))
     # Punkt 2: Kategorie (2)+(3) mit Nenner „Float heute“ (gekennzeichnet).
     s23 = [c for c in cases if c["kat"] in (KAT_SEC, KAT_VORFILTER)]
     summ["kat2_3_mit_float_heute"] = {
