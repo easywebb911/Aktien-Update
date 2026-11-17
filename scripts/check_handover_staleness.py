@@ -128,6 +128,22 @@ def extract_highest_doc_pr(handover_text: str) -> int | None:
     return max(numbers) if numbers else None
 
 
+def extract_highest_entry_file_pr(entry_dir: pathlib.Path) -> int | None:
+    """Höchste PR-Nummer in den Eintragsdateien ``handover_eintraege/*.md``
+    (seit 17.11.2026, Easy-Entscheid Weg a: Block-1-Einträge sind eigene
+    Dateien, der Bot erzeugt den Bereich in Block 1 erst nach dem Merge).
+    Fail-soft: fehlender Ordner / unlesbare Datei → ignoriert."""
+    if not entry_dir.is_dir():
+        return None
+    numbers: list[int] = []
+    for p in sorted(entry_dir.glob("*.md")):
+        try:
+            numbers += [int(n) for n in _PR_NUM_RE.findall(p.read_text(encoding="utf-8"))]
+        except (OSError, UnicodeDecodeError):
+            continue
+    return max(numbers) if numbers else None
+
+
 def compute_staleness(highest_merged_pr: int, highest_doc_pr: int) -> int:
     """Pure: Rückstand = höchste gemergte PR-Nummer minus höchste in
     Block 1 erwähnte PR-Nummer. Kann 0 oder negativ sein (Doku bereits
@@ -215,6 +231,11 @@ def main() -> int:
         return 0
 
     highest_doc_pr = extract_highest_doc_pr(handover_text)
+    # 17.11.2026: Eintragsdateien zählen mit (Block 1 wird erst nach dem
+    # Merge vom Bot erzeugt — ein PR mit eigener Datei ist nicht im Rückstand).
+    _entry_pr = extract_highest_entry_file_pr(ROOT / "handover_eintraege")
+    if _entry_pr is not None:
+        highest_doc_pr = max(highest_doc_pr or 0, _entry_pr)
     if highest_doc_pr is None:
         print(f"HINWEIS: keine PR-Nummer in Block 1 von {HANDOVER_PATH} "
               f"gefunden -- Staleness-Check nicht durchführbar "

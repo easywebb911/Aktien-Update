@@ -69,7 +69,7 @@ jobs:
       - name: Probe 2a — SEC browse-edgar (8-K IONQ) mit aktuellem SEC_HEADERS-UA
         run: |
           set +e
-          URL="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=IONQ&type=8-K&dateb=&owner=include&count=5&search_text=&output=atom"
+          URL="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=IONQ&type=8-K&dateb=&owner=include&count=10&search_text=&output=atom"
           SEC_UA="SqueezeReport/1.0 github-actions@squeeze-report.com"
           echo "URL: $URL"
           echo "User-Agent: $SEC_UA   (aktuell in config.py:903)"
@@ -90,7 +90,7 @@ jobs:
       - name: Probe 2b — SEC browse-edgar (8-K IONQ) mit SEC-konformem UA
         run: |
           set +e
-          URL="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=IONQ&type=8-K&dateb=&owner=include&count=5&search_text=&output=atom"
+          URL="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=IONQ&type=8-K&dateb=&owner=include&count=10&search_text=&output=atom"
           SEC_UA="Easy Webb easy@example.com"
           echo "URL: $URL"
           echo "User-Agent: $SEC_UA   (SEC-konformes Format Name + Email)"

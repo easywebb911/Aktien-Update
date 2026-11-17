@@ -16,6 +16,7 @@ exclude:
   # Interne Architektur-/Workflow-Doku (Liquid-unsafe wegen {{...}}-Patterns).
   - CLAUDE.md
   - SESSION_HANDOVER.md
+  - handover_eintraege/
   - docs/
 
   # Code- und Daten-Stack, der bereits über andere Wege ausgeliefert wird

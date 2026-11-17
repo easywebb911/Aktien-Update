@@ -131,6 +131,16 @@ jobs:
           PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
         run: python scripts/lint_protected_zones.py
 
+      - name: Handover Block 1 (Eintragsdateien)
+        # 17.11.2026 (Easy-Entscheid, Weg a): Block-1-Einträge sind eigene
+        # Dateien in handover_eintraege/. Rot, wenn eine Eintragsdatei
+        # fehlerhaft ist, noch "#?" trägt oder der PR den vom Bot erzeugten
+        # Bereich zwischen den Marken ändert. Ein Nachhängen von main
+        # (Bot-Lauf) ist nur Hinweis, nicht Schuld des PR.
+        env:
+          BLOCK1_BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: python scripts/handover_block1.py --pr-check "$BLOCK1_BASE_REF"
+
       - name: Handover-Staleness-Hinweis
         # 7. Check (28.09.2026) — ADVISORY, weicher als die übrigen 6
         # Checks in dieser Datei: liefert IMMER exit 0, egal ob (a) kein

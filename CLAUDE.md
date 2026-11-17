@@ -4955,6 +4955,42 @@ zwischen `main` und `SESSION_HANDOVER.md` Block 1 („## 1) HEUTE
 IMPLEMENTIERT") soll strukturell gar nicht erst entstehen, statt nur
 per Session-Disziplin nachträglich aufgeräumt zu werden.
 
+**Seit 17.11.2026 (Easy-Entscheid, Weg a) — Eintrag als DATEI, nie
+mehr direkt in `SESSION_HANDOVER.md`.** Gilt für JEDE Sitzung (auch
+Wächter, Lit-Check, Monatsrundgang) und jeden PR:
+
+- Der Block-1-Eintrag ist eine eigene Datei
+  `handover_eintraege/<JJJJ-MM-TT>_<slug>.md` (slug: a-z, 0-9, `-`;
+  Datum = Datum im Titel). Erste Zeile `### TT.MM.JJJJ — Titel`, danach
+  der Eintrag wie bisher; der ERSTE Aufzählungspunkt beginnt mit der
+  eigenen PR-Nummer in Backticks (`` - `#NNN` (Branch …`` — im Entwurf `` `#?` ``, vor Ready
+  durch die echte Nummer ersetzen — pr-checks ist sonst rot). Keine
+  `#`/`##`-Überschriften, kein weiteres `###`, keine
+  VORABREGISTRIERUNG/ERRATUM, keine Marken im Eintrag.
+- **Den Bereich zwischen `<!-- BLOCK1-AUTO-START` und
+  `<!-- BLOCK1-AUTO-END -->` in `SESSION_HANDOVER.md` NIE von Hand
+  ändern** — ihn schreibt nach dem Merge allein der Bot-Workflow
+  `handover_block1.yml` (`scripts/handover_block1.py`; nur dieser Bereich,
+  Byte-Vergleich davor/danach, MD5 der Freeze-Blöcke, committet nur
+  `SESSION_HANDOVER.md`). Der Altbestand darunter bleibt unverändert.
+  Andere Abschnitte des Handovers (Wiedervorlagen, §4 …) ändert ein PR
+  weiterhin direkt.
+- pr-checks-Schritt „Handover Block 1“ ist rot bei fehlerhafter
+  Eintragsdatei, `#?` oder Änderung im erzeugten Bereich.
+- **Prüfen, ob der Bot hinterherhängt:**
+  `python scripts/handover_block1.py --check` (Exit 1 = Bereich passt
+  nicht zum Ordner). Dieselbe Prüfung steht als Zeile „Block 1 hängt
+  nach“ im Health-Check-Digest. Der Wächter führt den `--check` bei jedem
+  Lauf aus und meldet einen Fund.
+- Zwei parallele PRs legen zwei verschiedene Dateien an → kein
+  Merge-Konflikt, beide lassen sich ohne Rebase nacheinander mergen
+  (Beleg: Test `scripts/mock_test_handover_block1.py`).
+- Rückweg: Workflow per PR entfernen; der zuletzt erzeugte Bereich bleibt
+  als normaler Text stehen.
+
+Regel a) bis d) unten gelten sinngemäß weiter („Eintrag ergänzen“ =
+Eintragsdatei anlegen).
+
 **Regel a) — jeder PR trägt seinen eigenen Block-1-Eintrag mit.**
 Ablauf: PR als Entwurf anlegen → PR-Nummer aus der Antwort lesen →
 Block-1-Eintrag für genau diesen PR als zusätzlichen Commit auf
@@ -5167,3 +5203,4 @@ ersetzen, nicht anhängen — und direkt auf `main` committen mit Message
 - **Session ohne Commits:** trotzdem aktualisieren — Datum oben + Hinweis „Session ohne Commits, [Stichpunkte zu Diskussionen]". Backlog-Sektionen bleiben gefüllt, falls relevant.
 - **Commit-Liste** mit kompletten 7-stelligen Hashes, Type-Prefix wie im echten Commit (`feat:`, `fix:`, `chore:`, `docs:`, `perf:`).
 - **Eigenständig committen** — nicht zusätzlich auf User-Bestätigung warten. „Gute Nacht" ist die Bestätigung.
+- **Block-1-Marken erhalten (seit 17.11.2026):** beim Neuschreiben die Zeilen `<!-- BLOCK1-AUTO-START …-->` und `<!-- BLOCK1-AUTO-END -->` samt Bereich unverändert übernehmen (sonst bricht der Bot-Workflow `handover_block1.yml` sichtbar ab); neue Einträge nur als Dateien in `handover_eintraege/`.
