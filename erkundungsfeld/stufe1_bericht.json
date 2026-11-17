@@ -1,0 +1,213 @@
+{
+ "abbrueche": [],
+ "ende_utc": "2026-11-17T17:21:40+00:00",
+ "feld_tage_mit_liste": 375,
+ "finra_felder_ok": true,
+ "finra_stichtage": 49,
+ "finra_stichtage_fehlend": [],
+ "luecke_je_monat": {
+  "2025-01": {
+   "ohne_float_ticker_tage": 241,
+   "ohne_kurs_ticker_tage": 60,
+   "tage": 20
+  },
+  "2025-02": {
+   "ohne_float_ticker_tage": 288,
+   "ohne_kurs_ticker_tage": 69,
+   "tage": 19
+  },
+  "2025-03": {
+   "ohne_float_ticker_tage": 305,
+   "ohne_kurs_ticker_tage": 56,
+   "tage": 21
+  },
+  "2025-04": {
+   "ohne_float_ticker_tage": 338,
+   "ohne_kurs_ticker_tage": 42,
+   "tage": 21
+  },
+  "2025-05": {
+   "ohne_float_ticker_tage": 374,
+   "ohne_kurs_ticker_tage": 48,
+   "tage": 21
+  },
+  "2025-06": {
+   "ohne_float_ticker_tage": 409,
+   "ohne_kurs_ticker_tage": 70,
+   "tage": 20
+  },
+  "2025-07": {
+   "ohne_float_ticker_tage": 467,
+   "ohne_kurs_ticker_tage": 108,
+   "tage": 22
+  },
+  "2025-08": {
+   "ohne_float_ticker_tage": 460,
+   "ohne_kurs_ticker_tage": 87,
+   "tage": 21
+  },
+  "2025-09": {
+   "ohne_float_ticker_tage": 499,
+   "ohne_kurs_ticker_tage": 91,
+   "tage": 21
+  },
+  "2025-10": {
+   "ohne_float_ticker_tage": 560,
+   "ohne_kurs_ticker_tage": 113,
+   "tage": 23
+  },
+  "2025-11": {
+   "ohne_float_ticker_tage": 457,
+   "ohne_kurs_ticker_tage": 104,
+   "tage": 19
+  },
+  "2025-12": {
+   "ohne_float_ticker_tage": 490,
+   "ohne_kurs_ticker_tage": 113,
+   "tage": 22
+  },
+  "2026-01": {
+   "ohne_float_ticker_tage": 452,
+   "ohne_kurs_ticker_tage": 90,
+   "tage": 20
+  },
+  "2026-02": {
+   "ohne_float_ticker_tage": 514,
+   "ohne_kurs_ticker_tage": 86,
+   "tage": 19
+  },
+  "2026-03": {
+   "ohne_float_ticker_tage": 653,
+   "ohne_kurs_ticker_tage": 93,
+   "tage": 22
+  },
+  "2026-04": {
+   "ohne_float_ticker_tage": 693,
+   "ohne_kurs_ticker_tage": 105,
+   "tage": 21
+  },
+  "2026-05": {
+   "ohne_float_ticker_tage": 757,
+   "ohne_kurs_ticker_tage": 102,
+   "tage": 20
+  },
+  "2026-06": {
+   "ohne_float_ticker_tage": 793,
+   "ohne_kurs_ticker_tage": 115,
+   "tage": 21
+  },
+  "2026-07": {
+   "ohne_float_ticker_tage": 325,
+   "ohne_kurs_ticker_tage": 40,
+   "tage": 9
+  },
+  "2026-08": {
+   "ohne_float_ticker_tage": 725,
+   "ohne_kurs_ticker_tage": 110,
+   "tage": 21
+  },
+  "2026-09": {
+   "ohne_float_ticker_tage": 657,
+   "ohne_kurs_ticker_tage": 136,
+   "tage": 21
+  },
+  "2026-10": {
+   "ohne_float_ticker_tage": 642,
+   "ohne_kurs_ticker_tage": 95,
+   "tage": 17
+  }
+ },
+ "luecken": {
+  "ohne_float_heute": 97,
+  "ohne_kurs_feld": 17,
+  "ohne_kurs_vergleich": 10
+ },
+ "median_top30_trotz_luecken": 3,
+ "modus": "voll",
+ "rahmen": {
+  "feld": [
+   "2025-01-02",
+   "2026-07-02"
+  ],
+  "schwelle": {
+   "bestanden_ab": 5,
+   "grenzfall_ab": 3
+  },
+  "vergleich": [
+   "2026-07-21",
+   "2026-10-23"
+  ]
+ },
+ "sec_frames_fehlend": [],
+ "split_kennzeichen_feld": {
+  "eintraege": 6121,
+  "split_nach_tag": 377,
+  "split_seit_stichtag": 475
+ },
+ "start_utc": "2026-11-17T16:44:14+00:00",
+ "urteil": "grenzfall",
+ "vergleich": {
+  "tage": 67,
+  "top10": {
+   "max": 6,
+   "median": 2,
+   "min": 0,
+   "verteilung": {
+    "0": 7,
+    "1": 9,
+    "10": 0,
+    "2": 21,
+    "3": 17,
+    "4": 9,
+    "5": 2,
+    "6": 2,
+    "7": 0,
+    "8": 0,
+    "9": 0
+   }
+  },
+  "top20": {
+   "max": 7,
+   "median": 3,
+   "min": 0,
+   "verteilung": {
+    "0": 5,
+    "1": 8,
+    "10": 0,
+    "2": 14,
+    "3": 18,
+    "4": 12,
+    "5": 6,
+    "6": 1,
+    "7": 3,
+    "8": 0,
+    "9": 0
+   }
+  },
+  "top30": {
+   "max": 8,
+   "median": 3,
+   "min": 0,
+   "verteilung": {
+    "0": 5,
+    "1": 8,
+    "10": 0,
+    "2": 13,
+    "3": 18,
+    "4": 12,
+    "5": 7,
+    "6": 1,
+    "7": 2,
+    "8": 1,
+    "9": 0
+   }
+  }
+ },
+ "vollstaendig": true,
+ "vorfilter": {
+  "feld_ticker": 2410,
+  "kennz": "Ticker→CIK aus der HEUTIGEN SEC-Liste (Survivorship, Kürzel-Wiederverwendung)",
+  "ohne_sec_nenner": 11507,
+  "vergleich_ticker": 2220
+ }
+}
