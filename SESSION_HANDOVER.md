@@ -3443,6 +3443,15 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#741`, eigene `#739` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 17.11.2026 — Digest-Anstoß nach dem Postclose (1 PR, Easy-Merge angefragt)
+
+- `#740` (Branch `claude/digest-nach-postclose-p7w3`, Branch-Commit `80994701`, kein Merge-Hash — Regel a).
+  Easy-Entscheid B 17.11.: Daily-Run stößt nach JEDEM Postclose (if: always()) den Digest an, Status als
+  `upstream_status` (nicht erfolgreich → crit „POSTCLOSE“). Zeitplan 08:47 bleibt Rückfall. Digest-Tag ab
+  21:00 UTC (kein Doppelversand), übersprungener Lauf hält `last_successful_run` frisch (S8), concurrency.
+  Test `mock_test_digest_after_postclose.py` (27). open_item `digest-startverzug` → beobachtet.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#741`, `#739` offen, eigene `#740` — kein Rückstand.
+
 ### 17.11.2026 — Diagnose EDGAR-Ausfall + Folgen des Startverzugs (1 Doku-PR)
 
 - `#741` (Branch `claude/edgar-ausfall-diagnose-m2v6`, Branch-Commit `1fdc92fc`, kein Merge-Hash — Regel a).
