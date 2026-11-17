@@ -132,6 +132,18 @@ check("16 höchstens 30 Namen, Rang 1..n, Score absteigend",
       and all(lst[i][2] >= lst[i + 1][2] for i in range(len(lst) - 1)), len(lst))
 check("17 deterministisch (zweimal gleich)", lst == lst2)
 check("18 Kandidat ohne Kurse zählt als Lücke", ohne == ["NOPX"])
+lk = {}
+pre = {(date(2024, 12, 31), "T00")}
+lst_p, _ = ef.rank_day(t_mid, set(bars_map), bars_map, sf, fin2, fmap, gr.score, prefilter_ok=pre,
+                       splits={"T00": [t_mid + timedelta(days=3)]}, cap=ef.FIELD_END, luecken=lk)
+check("18b Vorfilter je Tag: nur (Stichtag, Ticker) mit bestandenem Vorfilter",
+      [s for _, s, *_ in lst_p] == ["T00"], lst_p)
+check("18c Split nach dem Tag und seit dem Stichtag gekennzeichnet",
+      lst_p[0][3]["split_nach_tag"] is True and lst_p[0][3]["split_seit_stichtag"] is True)
+fmap2 = dict(fmap)
+fmap2.pop("T01")
+ef.rank_day(t_mid, {"T01"}, bars_map, sf, fin2, fmap2, gr.score, luecken=lk)
+check("18d Kurs da, Float fehlt → Lücke ohne_float", lk.get("ohne_float") == 1, lk)
 check("19 Merkmale tragen Kennzeichen „Nenner heutig“ und Stichtag",
       all(m["kennz"] == "Nenner heutig" and m["si_stichtag"] == "2024-12-31" for *_, m in lst))
 
@@ -145,7 +157,8 @@ check("20 Treffer je Tag in 10/20/30", c["je_tag"][0]["top10"] == 2 and c["je_ta
 check("21 Median + Verteilung", c["top30"]["median"] == 2.5 and c["top30"]["verteilung"]["5"] == 1)
 check("22 Schwelle: >=5 bestanden, 3–4 Grenzfall, <3 nicht weiterbauen",
       ef.verdict(5) == "bestanden" and ef.verdict(4) == "grenzfall" and ef.verdict(3) == "grenzfall"
-      and ef.verdict(2.5) == "nicht_weiterbauen" and ef.verdict(None) == "nicht_messbar")
+      and ef.verdict(2.5) == "nicht_weiterbauen" and ef.verdict(None) == "nicht_messbar"
+      and ef.verdict(7, vollstaendig=False) == "unvollstaendig")
 with tempfile.TemporaryDirectory() as td:
     p = pathlib.Path(td) / "exp.jsonl"
     rows = [{"date": "21.07.2026", "ticker": f"R{i}", "pool_position": 11 - i, "provenance": "forward"} for i in range(11)]
@@ -183,8 +196,14 @@ class _Sub:
     def iterrows(self): return iter(self.rows)
 
 
+class _Cols:
+    nlevels = 2
+    def __init__(self, syms): self.syms = syms
+    def get_level_values(self, i): return list(self.syms)
+
+
 class _DF:
-    def __init__(self, rows): self.rows = rows
+    def __init__(self, rows, syms): self.rows, self.columns = rows, _Cols(syms)
     def __getitem__(self, k): return _Sub(self.rows)
 
 
@@ -193,20 +212,35 @@ def _dl(batch, start, end, **kw):
     rows = [(_Idx(date(2026, 7, 1)), {"Open": 1, "High": 1, "Low": 1, "Close": 1, "Volume": 1}),
             (_Idx(date(2026, 7, 2)), {"Open": 1, "High": 1, "Low": 1, "Close": 2, "Volume": 1}),
             (_Idx(date(2026, 7, 6)), {"Open": 9, "High": 9, "Low": 9, "Close": 9, "Volume": 9})]
-    return _DF(rows)
+    rows[1][1]["Stock Splits"] = 0.25
+    return _DF(rows, batch)
 
 
-sys.modules["yfinance"] = types.SimpleNamespace(download=_dl)
+_shared = types.SimpleNamespace(_ERRORS={})
+sys.modules["yfinance"] = types.SimpleNamespace(download=_dl, shared=_shared)
 _sleep = ef.time.sleep
 ef.time.sleep = lambda s: None
+spl = {}
 try:
-    out, miss = ef.fetch_bars({"A", "B"}, ef.FIELD_FETCH_START, ef.FIELD_END, ef.FIELD_END)
+    out, miss = ef.fetch_bars({"A", "B"}, ef.FIELD_FETCH_START, ef.FIELD_END, ef.FIELD_END, splits_out=spl)
+    one, miss1 = ef.fetch_bars({"Z"}, ef.FIELD_FETCH_START, ef.FIELD_END, ef.FIELD_END)
+
+    def _dl_rl(batch, start, end, **kw):
+        _shared._ERRORS.update({b: "YFRateLimitError('Too Many Requests')" for b in batch})
+        return _DF([], [])
+    sys.modules["yfinance"].download = _dl_rl
+    ef.STOPS.clear()
+    rl, miss_rl = ef.fetch_bars({"Q1", "Q2"}, ef.FIELD_FETCH_START, ef.FIELD_END, ef.FIELD_END)
 finally:
     ef.time.sleep = _sleep
 check("26 Abruf endet am 02.07.2026 (end exklusiv 03.07.), spätere Zeilen verworfen",
       calls and calls[0][2] == "2026-07-03" and all(r[0] <= ef.FIELD_END for r in out["A"])
       and miss == [], calls)
 src = (ROOT / "scripts" / "erkundungsfeld.py").read_text(encoding="utf-8")
+check("26b einzelner Ticker mit MultiIndex wird gelesen, Split-Tage erfasst",
+      "Z" in one and miss1 == [] and spl.get("A") == [date(2026, 7, 2)], (miss1, spl))
+check("26c gemeldetes Rate-Limit (shared._ERRORS) → kein Retry, Lücke, Abbruchgrund",
+      rl == {} and miss_rl == ["Q1", "Q2"] and "rate_limit_kurse" in ef.STOPS)
 check("27 main nutzt die Obergrenzen 02.07. (Feld) und 23.10. (Vergleich)",
       "fetch_bars(field_t | {\"^GSPC\"}, FIELD_FETCH_START, FIELD_END, FIELD_END" in src
       and "fetch_bars(win_t | {\"^GSPC\"}, WIN_FETCH_START, WIN_END, WIN_END" in src)
@@ -230,4 +264,4 @@ print()
 if FAILS:
     print(f"FEHLER: {len(FAILS)} Test(s) rot: {FAILS}")
     sys.exit(1)
-print("Alle 32 Checks grün.")
+print("Alle 38 Checks grün.")

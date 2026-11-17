@@ -379,12 +379,20 @@ def _score_fn():
     return gr.score
 
 
-def rank_day(t, tickers, bars, spx_feat, finra, float_map, score_fn):
-    """Kandidatenliste Tag t: (liste[(rang, sym, score, merkmale)], ohne_kurs[sym])."""
+def rank_day(t, tickers, bars, spx_feat, finra, float_map, score_fn,
+             prefilter_ok=None, splits=None, cap=None, luecken=None):
+    """Kandidatenliste Tag t: (liste[(rang, sym, score, merkmale)], ohne_kurs[sym]).
+
+    ``prefilter_ok``: Menge (stichtag, sym), die den SEC-Vorfilter mit dem am
+    Nutzbar-ab bekannten Stand bestanden haben — Vorfilter je Tag point-in-time
+    (Guardian #736). ``luecken``: dict, zählt ``ohne_float`` (Kurs da, Float fehlt).
+    """
     cands, ohne_kurs = [], []
     for sym in sorted(tickers):
         cur, prev = usable_records(finra, sym, t)
         if not cur:
+            continue
+        if prefilter_ok is not None and (cur[0], sym) not in prefilter_ok:
             continue
         if sym not in bars:
             ohne_kurs.append(sym)
@@ -393,6 +401,8 @@ def rank_day(t, tickers, bars, spx_feat, finra, float_map, score_fn):
         if feat is None:
             continue
         fl, sh = float_map.get(sym, (None, None))
+        if not fl and luecken is not None:
+            luecken["ohne_float"] = luecken.get("ohne_float", 0) + 1
         st = build_stock(sym, feat, spx_feat, cur, prev, fl, sh)
         if not passes_filter(st, feat["avg_vol_20d"]):
             continue
@@ -407,7 +417,10 @@ def rank_day(t, tickers, bars, spx_feat, finra, float_map, score_fn):
             "chg_rel_spy": round(feat["change"] - spx_feat["change"], 3),
             "rs_spy": None if st["rel_strength_20d"] is None else round(st["rel_strength_20d"], 3),
             "sf_naeherung": round(st["_sf"], 3), "mcap_naeherung": round(st["_mcap"]),
-            "float_heute": fl, "kennz": "Nenner heutig"}))
+            "float_heute": fl, "kennz": "Nenner heutig",
+            # Yahoo-Kurse sind split-bereinigt bis zur Abruf-Obergrenze; FINRA-Bestand nicht.
+            "split_nach_tag": bool(splits and cap and any(t < x <= cap for x in splits.get(sym, ()))),
+            "split_seit_stichtag": bool(splits and any(cur[0] < x for x in splits.get(sym, ())))}))
     cands.sort(key=lambda x: (-x[0], x[1]))
     return [(i + 1, s, round(sc, 2), m) for i, (sc, s, m) in enumerate(cands[:TOP_N])], ohne_kurs
 
@@ -453,7 +466,9 @@ def compare(lists: dict, real: dict) -> dict:
             "top10": dist("top10"), "top20": dist("top20"), "top30": dist("top30")}
 
 
-def verdict(median30) -> str:
+def verdict(median30, vollstaendig: bool = True) -> str:
+    if not vollstaendig:
+        return "unvollstaendig"
     if median30 is None:
         return "nicht_messbar"
     if median30 >= SCHWELLE_BESTANDEN:
@@ -464,7 +479,11 @@ def verdict(median30) -> str:
 
 
 # ── Yahoo ───────────────────────────────────────────────────────────────────
-def fetch_bars(symbols, start: date, end_incl: date, cap: date, deadline=None) -> tuple[dict, list]:
+STOPS: list = []      # Abbruchgründe (Zeitlimit/Rate-Limit/Quellen-Fehler) → Urteil „unvollstaendig“
+
+
+def fetch_bars(symbols, start: date, end_incl: date, cap: date, deadline=None,
+               splits_out=None) -> tuple[dict, list]:
     """Ein Abruf je Ticker (Pakete à YF_BATCH). ``end_incl`` > ``cap`` → Abbruch
     (harter Riegel). Rate-Limit → kein Retry, Rest als ``nicht_abgerufen``."""
     if end_incl > cap:
@@ -477,20 +496,31 @@ def fetch_bars(symbols, start: date, end_incl: date, cap: date, deadline=None) -
         if deadline and time.monotonic() > deadline:
             missing += syms[i:]
             log("Zeitlimit Kurse erreicht")
+            STOPS.append("zeitlimit_kurse")
             break
         try:
+            shared = getattr(yf, "shared", None)
+            if shared is not None and isinstance(getattr(shared, "_ERRORS", None), dict):
+                shared._ERRORS.clear()
             df = yf.download(batch, start=start.isoformat(),
                              end=(end_incl + timedelta(days=1)).isoformat(), interval="1d",
-                             auto_adjust=True, group_by="ticker", threads=True, progress=False)
+                             auto_adjust=True, actions=True, group_by="ticker", threads=True,
+                             progress=False)
         except Exception as exc:  # noqa: BLE001
             if "RateLimit" in type(exc).__name__ or "Too Many Requests" in str(exc):
                 log("Yahoo Rate-Limit (Kurse) — kein Retry")
                 missing += syms[i:]
+                STOPS.append("rate_limit_kurse")
                 break
             missing += batch
             continue
+        if _yf_rate_limited(yf):
+            log("Yahoo Rate-Limit (Kurse, gemeldet) — kein Retry")
+            missing += syms[i:]
+            STOPS.append("rate_limit_kurse")
+            break
         for s in batch:
-            rows = _df_rows(df, s, len(batch) > 1, end_incl)
+            rows = _df_rows(df, s, len(batch) > 1, end_incl, splits_out)
             if rows:
                 out[s] = rows
             else:
@@ -499,9 +529,17 @@ def fetch_bars(symbols, start: date, end_incl: date, cap: date, deadline=None) -
     return out, sorted(set(missing))
 
 
-def _df_rows(df, sym, multi, end_incl):
+def _df_rows(df, sym, multi, end_incl, splits_out=None):
+    """Zeilen eines Tickers; Ticker-Level immer über die Spalten auflösen
+    (auch bei einem einzelnen Ticker liefert yfinance oft MultiIndex)."""
     try:
-        sub = df[sym] if multi else df
+        cols = df.columns
+        if getattr(cols, "nlevels", 1) > 1:
+            if sym not in cols.get_level_values(0):
+                return []
+            sub = df[sym]
+        else:
+            sub = df
         sub = sub.dropna(subset=["Close"])
     except Exception:  # noqa: BLE001
         return []
@@ -510,9 +548,18 @@ def _df_rows(df, sym, multi, end_incl):
         d = idx.date()
         if d > end_incl:
             continue
+        sp = _num(r.get("Stock Splits"))
+        if sp and splits_out is not None:
+            splits_out.setdefault(sym, []).append(d)
         rows.append((d, _num(r.get("Open")), _num(r.get("High")), _num(r.get("Low")),
                      _num(r.get("Close")), _num(r.get("Volume"))))
     return rows
+
+
+def _yf_rate_limited(yf) -> bool:
+    """yf.download wirft bei Rate-Limit oft nicht, sondern meldet es in shared._ERRORS."""
+    errs = getattr(getattr(yf, "shared", None), "_ERRORS", None) or {}
+    return any("Rate" in str(m) or "Too Many Requests" in str(m) for m in errs.values())
 
 
 def fetch_float_today(symbols, deadline=None) -> tuple[dict, list]:
@@ -522,6 +569,7 @@ def fetch_float_today(symbols, deadline=None) -> tuple[dict, list]:
     for i, s in enumerate(syms):
         if deadline and time.monotonic() > deadline:
             missing += syms[i:]
+            STOPS.append("zeitlimit_float")
             break
         try:
             info = yf.Ticker(s).info or {}
@@ -529,6 +577,7 @@ def fetch_float_today(symbols, deadline=None) -> tuple[dict, list]:
             if "RateLimit" in type(exc).__name__ or "Too Many Requests" in str(exc):
                 log("Yahoo Rate-Limit (Float) — kein Retry")
                 missing += syms[i:]
+                STOPS.append("rate_limit_float")
                 break
             missing.append(s)
             continue
@@ -574,6 +623,9 @@ def main(argv=None) -> int:
     except RateLimited:
         log("FINRA Rate-Limit — Abbruch ohne Retry")
         return 2
+    except Exception as exc:  # noqa: BLE001 — ohne Stichtage kein Lauf
+        log(f"ABBRUCH: FINRA-Stichtage nicht abrufbar: {exc!r}")
+        return 1
     bericht["finra_stichtage"] = len(sdates)
     bericht["finra_felder_ok"] = finra_fields_ok(probe_rows)
     log(f"FINRA: {len(sdates)} Stichtage, Felder ok={bericht['finra_felder_ok']}; "
@@ -585,35 +637,64 @@ def main(argv=None) -> int:
     if args.modus == "probe":
         print(json.dumps(bericht, ensure_ascii=False))
         return 0
-    finra = {}
-    for sd in sdates:
+    finra, finra_fehlend = {}, []
+    for i, sd in enumerate(sdates):
         try:
             finra[sd] = normalize_finra(finra_settlement(sd, requests.post))
         except RateLimited:
             log("FINRA Rate-Limit — kein Retry, Rest fehlt")
+            finra_fehlend += [x.isoformat() for x in sdates[i:]]
+            STOPS.append("rate_limit_finra")
             break
+        except Exception as exc:  # noqa: BLE001 — Lücke statt Absturz
+            log(f"FINRA {sd}: Fehler {exc!r} — Stichtag fehlt")
+            finra_fehlend.append(sd.isoformat())
+            continue
         log(f"FINRA {sd}: {len(finra[sd])} gelistete Stammaktien")
+    bericht["finra_stichtage_fehlend"] = finra_fehlend
+    if finra_fehlend:
+        STOPS.append("finra_stichtage_fehlend")
     write_gz_jsonl(OUT_DIR / "finra_si.jsonl.gz",
                    ({"stichtag": sd.isoformat(), "ticker": s, **v}
                     for sd in sorted(finra) for s, v in sorted(finra[sd].items())))
 
     # 2. SEC-Vorfilter
     hdr = {"User-Agent": ua, "Accept-Encoding": "gzip"}
-    tick = {v["ticker"].upper(): int(v["cik_str"])
-            for v in requests.get(SEC_TICKERS, headers=hdr, timeout=60).json().values()}
-    sec = {}
-    for y, q in sec_quarters(FINRA_FROM - timedelta(days=200), WIN_END):
-        r = requests.get(SEC_FRAME.format(y=y, q=q), headers=hdr, timeout=60)
-        time.sleep(0.15)
+    try:
+        r = requests.get(SEC_TICKERS, headers=hdr, timeout=60)
         if r.status_code != 200:
-            log(f"SEC-Frame CY{y}Q{q}I HTTP {r.status_code}")
+            raise RuntimeError(f"HTTP {r.status_code}")
+        # HEUTIGE Zuordnung Ticker → CIK (Survivorship/Kürzel-Wiederverwendung: Kennzeichen im Bericht)
+        tick = {v["ticker"].upper(): int(v["cik_str"]) for v in r.json().values()}
+    except Exception as exc:  # noqa: BLE001 — ohne Zuordnung kein Vorfilter möglich
+        log(f"ABBRUCH: SEC-Tickerliste nicht abrufbar: {exc!r}")
+        bericht["urteil"] = "unvollstaendig"
+        print(json.dumps(bericht, ensure_ascii=False))
+        return 1
+    sec, sec_fehlend = {}, []
+    # nur Quartale, deren Ende + 90 Tage im Messzeitraum liegen kann (spätere gibt es noch nicht)
+    for y, q in sec_quarters(FINRA_FROM - timedelta(days=200), WIN_END - timedelta(days=SEC_LAG_DAYS)):
+        try:
+            r = requests.get(SEC_FRAME.format(y=y, q=q), headers=hdr, timeout=60)
+            time.sleep(0.15)
+            if r.status_code != 200:
+                raise RuntimeError(f"HTTP {r.status_code}")
+            data = r.json().get("data", [])
+        except Exception as exc:  # noqa: BLE001
+            log(f"SEC-Frame CY{y}Q{q}I fehlt: {exc!r}")
+            sec_fehlend.append(f"CY{y}Q{q}I")
             continue
-        for row in r.json().get("data", []):
+        for row in data:
             try:
                 sec.setdefault(int(row["cik"]), []).append((date.fromisoformat(row["end"]), float(row["val"])))
             except (KeyError, ValueError, TypeError):
                 continue
-    field_t, win_t, ohne_sec = set(), set(), set()
+    bericht["sec_frames_fehlend"] = sec_fehlend
+    if sec_fehlend:
+        STOPS.append("sec_frames_fehlend")
+    # Vorfilter je Stichtag mit dem am Nutzbar-ab bekannten SEC-Stand (point-in-time
+    # je Tag; rank_day prüft den an Tag t gültigen Stichtag gegen prefilter_ok).
+    field_t, win_t, ohne_sec, prefilter_ok = set(), set(), set(), set()
     for sd, recs in finra.items():
         uf = usable_from(sd)
         for sym, rec in recs.items():
@@ -624,18 +705,23 @@ def main(argv=None) -> int:
                 continue
             if rec["qty"] / sh * 100 < PREFILTER_SEC_PCT:
                 continue
+            prefilter_ok.add((sd, sym))
             # Stichtag kann für Tage des Zeitraums der jüngste nutzbare sein
             if FIELD_START - timedelta(days=45) <= uf <= FIELD_END:
                 field_t.add(sym)
             if WIN_START - timedelta(days=45) <= uf <= WIN_END:
                 win_t.add(sym)
     bericht["vorfilter"] = {"feld_ticker": len(field_t), "vergleich_ticker": len(win_t),
-                            "ohne_sec_nenner": len(ohne_sec)}
+                            "ohne_sec_nenner": len(ohne_sec),
+                            "kennz": "Ticker→CIK aus der HEUTIGEN SEC-Liste (Survivorship, Kürzel-Wiederverwendung)"}
     log(f"Vorfilter: Feld {len(field_t)}, Vergleich {len(win_t)}, ohne SEC-Nenner {len(ohne_sec)}")
 
     # 3. Kurse (Variante A, harte Obergrenzen)
-    bars_f, miss_f = fetch_bars(field_t | {"^GSPC"}, FIELD_FETCH_START, FIELD_END, FIELD_END, deadline)
-    bars_w, miss_w = fetch_bars(win_t | {"^GSPC"}, WIN_FETCH_START, WIN_END, WIN_END, deadline)
+    splits_f, splits_w = {}, {}
+    bars_f, miss_f = fetch_bars(field_t | {"^GSPC"}, FIELD_FETCH_START, FIELD_END, FIELD_END, deadline,
+                                splits_out=splits_f)
+    bars_w, miss_w = fetch_bars(win_t | {"^GSPC"}, WIN_FETCH_START, WIN_END, WIN_END, deadline,
+                                splits_out=splits_w)
 
     # 4. Heutiger Float nur für Ticker mit Kursen
     float_map, miss_float = fetch_float_today((set(bars_f) | set(bars_w)) - {"^GSPC"}, deadline)
@@ -644,22 +730,30 @@ def main(argv=None) -> int:
 
     score_fn = _score_fn()
 
-    def run_days(days, tickers, bars):
+    def run_days(days, tickers, bars, splits, cap):
         spx = bars.get("^GSPC") or []
         lists, gap = {}, {}
         for t in days:
             sf = features_at(spx, t)
             if sf is None:
                 continue
-            lst, ohne = rank_day(t, tickers, bars, sf, finra, float_map, score_fn)
+            lk = {}
+            lst, ohne = rank_day(t, tickers, bars, sf, finra, float_map, score_fn,
+                                 prefilter_ok=prefilter_ok, splits=splits, cap=cap, luecken=lk)
             lists[t] = lst
-            gap.setdefault(t.strftime("%Y-%m"), [0, 0])
-            gap[t.strftime("%Y-%m")][0] += len(ohne)
-            gap[t.strftime("%Y-%m")][1] += 1
+            g = gap.setdefault(t.strftime("%Y-%m"), [0, 0, 0])
+            g[0] += len(ohne)
+            g[1] += lk.get("ohne_float", 0)
+            g[2] += 1
         return lists, gap
 
-    field_lists, gap_f = run_days(trading_days(FIELD_START, FIELD_END), field_t, bars_f)
-    win_lists, gap_w = run_days(trading_days(WIN_START, WIN_END), win_t, bars_w)
+    field_lists, gap_f = run_days(trading_days(FIELD_START, FIELD_END), field_t, bars_f, splits_f, FIELD_END)
+    win_lists, gap_w = run_days(trading_days(WIN_START, WIN_END), win_t, bars_w, splits_w, WIN_END)
+    n_eintr = sum(len(v) for v in field_lists.values())
+    bericht["split_kennzeichen_feld"] = {
+        "eintraege": n_eintr,
+        "split_nach_tag": sum(1 for v in field_lists.values() for *_, m in v if m["split_nach_tag"]),
+        "split_seit_stichtag": sum(1 for v in field_lists.values() for *_, m in v if m["split_seit_stichtag"])}
     write_gz_jsonl(OUT_DIR / "kandidaten.jsonl.gz",
                    ({"date": t.isoformat(), "rang": r, "ticker": s, "score_ann": sc, "merkmale": m}
                     for t in sorted(field_lists) for r, s, sc, m in field_lists[t]))
@@ -670,8 +764,12 @@ def main(argv=None) -> int:
     real = real_top10(ROOT / "matured_backtest_export.jsonl", WIN_START, WIN_END)
     cmp_ = compare(win_lists, real)
     bericht["vergleich"] = {k: cmp_[k] for k in ("tage", "top10", "top20", "top30")}
-    bericht["urteil"] = verdict(cmp_["top30"]["median"])
-    bericht["luecke_je_monat"] = {m: {"ohne_kurs_ticker_tage": v[0], "tage": v[1]}
+    bericht["abbrueche"] = sorted(set(STOPS))
+    bericht["vollstaendig"] = not STOPS
+    bericht["urteil"] = verdict(cmp_["top30"]["median"], vollstaendig=not STOPS)
+    bericht["median_top30_trotz_luecken"] = cmp_["top30"]["median"]
+    bericht["luecke_je_monat"] = {m: {"ohne_kurs_ticker_tage": v[0], "ohne_float_ticker_tage": v[1],
+                                      "tage": v[2]}
                                   for m, v in sorted({**gap_f, **gap_w}.items())}
     bericht["feld_tage_mit_liste"] = len(field_lists)
     bericht["ende_utc"] = datetime.now(timezone.utc).isoformat(timespec="seconds")

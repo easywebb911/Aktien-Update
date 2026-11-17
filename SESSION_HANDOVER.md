@@ -3439,7 +3439,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   consolidatedShortInterest (nutzbar ab Handelstag nach Stichtag + 7), Nenner „Hybrid“ (SEC-Vorfilter >= 5 %,
   dann heutiger Yahoo-Float, gekennzeichnet), Kurse Variante A (Obergrenze 02.07./23.10.2026, Merkmale nur aus
   Zeilen <= t), unveränderte score(), 30 Namen je Tag, Namensvergleich gegen echte Top-10 (67 Tage). Schwelle
-  vorab: Median Top-30 >= 5 / 3–4 / < 3. §7·0a Ergänzung (a)/(b). Test 32 Checks. Keine Renditen/Treffer.
+  vorab: Median Top-30 >= 5 / 3–4 / < 3. §7·0a Ergänzung (a)/(b). Test 38 Checks (Guardian: Vorfilter je Tag, Split-
+  Kennzeichen, Fehler als Lücke, Urteil „unvollstaendig“ bei Abbruch, Yahoo-Spalten/Rate-Limit). Keine Renditen/Treffer.
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#735`, eigene `#736` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
