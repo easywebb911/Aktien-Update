@@ -3475,6 +3475,16 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#736`, eigene `#738` — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 17.11.2026 — [Wächter] EDGAR 8-K/Form-4 count=10 (1 PR, Wächter)
+
+- `#737` (Branch `claude/waechter-edgar-count-r4k9`, Branch-Commit `dc01bd6`, kein Merge-Hash — Regel a).
+  SEC `browse-edgar` lehnt `count=5` seit ca. 16.11.2026 mit HTTP 400 ab („Count must be one of: 10, 20, …“) →
+  `edgar_8k`/`edgar_form4` seit 16.11. 15:50 UTC 100 % Fehlschlag. `ki_agent.fetch_sec_8k`/`fetch_sec_form4`:
+  `count=10` (Einträge neueste zuerst, Rückgabe gleich). Test `mock_test_source_pool`: `trading_date` im
+  exec-Namespace (NameError mit bs4, vorbestehend). KI-Score-Zeilen vom 16.11. ohne 8-K/Form-4-Baustein.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#741`, eigene `#737` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 17.11.2026 — Erkundungsfeld Stufe 1, PR B (1 PR, neuer Workflow, Manual-Merge)
 
 - `#736` (Branch `claude/erkundungsfeld-stufe1-q8m3`, Branch-Commit `b703aa4d`, kein Merge-Hash — Regel a).
