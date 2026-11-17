@@ -638,8 +638,10 @@ def classify_miss(t, sym, finra, tick, sec, bars, float_map, spx_feat, ranks,
                   candidates=None) -> dict:
     """Eine Kategorie je (Tag, echter Name). ``ranks`` = {sym: rang} ALLER Kandidaten
     von Tag t. Rang <= TOP_N → ``None`` (kein Fehlfall). ``candidates`` = das
-    Kandidatenset der Pipeline (``win_t``): ein Name außerhalb (jüngster Stichtag
-    zu alt, Guardian #739) fällt dort schon VOR dem Vorfilter heraus → Kategorie 1."""
+    Kandidatenset der Pipeline (``win_t``): ein Name, der den Vorfilter besteht,
+    aber außerhalb liegt (jüngster Stichtag zu alt, Guardian #739), wird in der
+    Pipeline nie bewertet → Kategorie 1 (erst NACH den Vorfilter-Stufen geprüft,
+    damit Kategorie 2/3 erhalten bleiben)."""
     cur, prev = usable_records(finra, sym, t)
     if not cur:
         if not _RE_COMMON.match(sym):
@@ -649,8 +651,6 @@ def classify_miss(t, sym, finra, tick, sec, bars, float_map, spx_feat, ranks,
         else:
             det = "nie in gelisteten FINRA-Stammaktien"
         return {"kat": KAT_FINRA, "detail": det}
-    if candidates is not None and sym not in candidates:
-        return {"kat": KAT_FINRA, "detail": "Stichtag veraltet (nicht im Kandidatenset)"}
     cik = tick.get(sym)
     sh = sec_shares_known(sec, cik, usable_from(cur[0])) if cik else None
     if not sh:
@@ -659,6 +659,11 @@ def classify_miss(t, sym, finra, tick, sec, bars, float_map, spx_feat, ranks,
     pct = cur[1]["qty"] / sh * 100
     if pct < PREFILTER_SEC_PCT:
         return {"kat": KAT_VORFILTER, "detail": f"{pct:.1f} %", "si": cur[1]["qty"]}
+    # Vorfilter am Tag-t-Stichtag bestanden, aber nicht im Kandidatenset der
+    # Pipeline (``win_t`` enthält nur Stichtage mit Nutzbar-ab im Fenster) →
+    # in der Pipeline nie bewertet: Kategorie 1, nicht 6 (Guardian #739).
+    if candidates is not None and sym not in candidates:
+        return {"kat": KAT_FINRA, "detail": "Stichtag veraltet (nicht im Kandidatenset)"}
     feat = features_at(bars[sym], t, with_squeeze=False) if sym in bars else None
     fl, sh_today = float_map.get(sym, (None, None))
     # „kein Float heute“ zählt hier zu Kategorie 4 (Easys Kategorienliste). In der

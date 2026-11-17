@@ -280,9 +280,11 @@ check("39 Fehl-Analyse: genau eine Kategorie je Stufe (FINRA/SEC/Vorfilter/Yahoo
       and cm["T06"]["kat"] == 3 and cm["T07"]["detail"] == "kein Yahoo-Kurs am Tag"
       and cm["T08"]["detail"] == "kein Float heute"
       and cm["T09"]["kat"] == 5 and cm["T09"]["detail"] == "short_float", cm)
-check("39b Name außerhalb des Kandidatensets (alter Stichtag) → Kategorie 1, nicht 6",
+check("39b außerhalb des Kandidatensets → Kategorie 1 (nicht 6); Kategorie 2/3 bleiben erhalten",
       ef.classify_miss(t_mid, "T10", fin2, tick, sec, bars_fa, fmap_fa, sf, {"T10": 35},
-                       candidates={"T11"}) == {"kat": 1, "detail": "Stichtag veraltet (nicht im Kandidatenset)"})
+                       candidates={"T11"}) == {"kat": 1, "detail": "Stichtag veraltet (nicht im Kandidatenset)"}
+      and ef.classify_miss(t_mid, "T05", fin2, tick, sec, bars_fa, fmap_fa, sf, {}, candidates={"T11"})["kat"] == 2
+      and ef.classify_miss(t_mid, "T06", fin2, tick, sec, bars_fa, fmap_fa, sf, {}, candidates={"T11"})["kat"] == 3)
 in30 = next(sym for sym, r in ranks_fa.items() if r <= 30)
 r6 = _cm("T10", ranks={"T10": 35})
 check("40 Rang <= 30 → kein Fehlfall; Rang > 30 → Kategorie 6 mit Rang",
