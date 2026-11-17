@@ -381,7 +381,17 @@ def _score_fn():
 
 def rank_day(t, tickers, bars, spx_feat, finra, float_map, score_fn,
              prefilter_ok=None, splits=None, cap=None, luecken=None):
-    """Kandidatenliste Tag t: (liste[(rang, sym, score, merkmale)], ohne_kurs[sym]).
+    """Kandidatenliste Tag t: (liste[(rang, sym, score, merkmale)], ohne_kurs[sym])."""
+    cands, ohne_kurs = score_candidates(t, tickers, bars, spx_feat, finra, float_map, score_fn,
+                                        prefilter_ok=prefilter_ok, splits=splits, cap=cap,
+                                        luecken=luecken)
+    return [(i + 1, s, round(sc, 2), m) for i, (sc, s, m) in enumerate(cands[:TOP_N])], ohne_kurs
+
+
+def score_candidates(t, tickers, bars, spx_feat, finra, float_map, score_fn,
+                     prefilter_ok=None, splits=None, cap=None, luecken=None):
+    """ALLE Kandidaten von Tag t, die den Filter bestehen, sortiert (Score ab,
+    Ticker auf): (liste[(score, sym, merkmale)], ohne_kurs[sym]).
 
     ``prefilter_ok``: Menge (stichtag, sym), die den SEC-Vorfilter mit dem am
     Nutzbar-ab bekannten Stand bestanden haben — Vorfilter je Tag point-in-time
@@ -422,7 +432,7 @@ def rank_day(t, tickers, bars, spx_feat, finra, float_map, score_fn,
             "split_nach_tag": bool(splits and cap and any(t < x <= cap for x in splits.get(sym, ()))),
             "split_seit_stichtag": bool(splits and any(cur[0] < x for x in splits.get(sym, ())))}))
     cands.sort(key=lambda x: (-x[0], x[1]))
-    return [(i + 1, s, round(sc, 2), m) for i, (sc, s, m) in enumerate(cands[:TOP_N])], ohne_kurs
+    return cands, ohne_kurs
 
 
 # ── Namensvergleich ─────────────────────────────────────────────────────────
@@ -590,6 +600,299 @@ def fetch_float_today(symbols, deadline=None) -> tuple[dict, list]:
     return out, missing
 
 
+# ── Fehl-Analyse (Easy-Entscheid 17.11.2026, nur Namen) ──────────────────────
+# Je echtem Top-10-Namen eines Vergleichstags, der NICHT unter den ersten 30
+# der Annäherung steht, genau EINE Kategorie (erste Stufe, an der er
+# herausfällt). Keine Kurse nach dem Listentag, keine Renditen, keine Treffer.
+KAT_FINRA, KAT_SEC, KAT_VORFILTER, KAT_YAHOO, KAT_FILTER, KAT_RANG = 1, 2, 3, 4, 5, 6
+KAT_NAMEN = {
+    KAT_FINRA: "nicht in der FINRA-Liste / Kürzel-Abweichung",
+    KAT_SEC: "kein SEC-Nenner (Aktienzahl) — Vorfilter",
+    KAT_VORFILTER: "Vorfilter FINRA-Bestand / Aktienzahl < 5 %",
+    KAT_YAHOO: "kein Float heute / kein Yahoo-Kurs",
+    KAT_FILTER: "am nachgebildeten Filter gescheitert",
+    KAT_RANG: "im Rennen, aber Rang > 30",
+}
+# Nur diese Export-Felder werden gelesen (Merkmale vom Listentag; nie Renditen).
+EXPORT_FELDER_ERLAUBT = ("ticker", "date", "provenance", "pool_position", "source_pools",
+                         "short_float", "short_float_source", "rvol", "entry_price", "dtc")
+
+
+def filter_failures(st: dict, avg_vol: float) -> list[str]:
+    """Alle nicht erfüllten Filterbedingungen, feste Reihenfolge wie ``passes_filter``."""
+    out = []
+    if not st["price"] >= MIN_PRICE:
+        out.append("kurs")
+    if not st["rel_volume"] >= MIN_RVOL:
+        out.append("rvol")
+    if st["_sf"] is None or not st["_sf"] >= MIN_SI_PCT:
+        out.append("short_float")
+    if st["_mcap"] is None or not st["_mcap"] < MAX_MCAP:
+        out.append("marktwert")
+    if not avg_vol >= MIN_AVG_VOL:
+        out.append("durchschnittsvolumen")
+    return out
+
+
+def classify_miss(t, sym, finra, tick, sec, bars, float_map, spx_feat, ranks) -> dict:
+    """Eine Kategorie je (Tag, echter Name). ``ranks`` = {sym: rang} ALLER Kandidaten
+    von Tag t. Rang <= TOP_N → ``None`` (kein Fehlfall)."""
+    cur, prev = usable_records(finra, sym, t)
+    if not cur:
+        if not _RE_COMMON.match(sym):
+            det = "Kürzelformat (Klasse/Ausland)"
+        elif any(sym in recs for recs in finra.values()):
+            det = "am Tag kein nutzbarer Stichtag"
+        else:
+            det = "nie in gelisteten FINRA-Stammaktien"
+        return {"kat": KAT_FINRA, "detail": det}
+    cik = tick.get(sym)
+    sh = sec_shares_known(sec, cik, usable_from(cur[0])) if cik else None
+    if not sh:
+        return {"kat": KAT_SEC, "detail": "kein CIK" if not cik else "keine Aktienzahl",
+                "si": cur[1]["qty"]}
+    pct = cur[1]["qty"] / sh * 100
+    if pct < PREFILTER_SEC_PCT:
+        return {"kat": KAT_VORFILTER, "detail": f"{pct:.1f} %", "si": cur[1]["qty"]}
+    feat = features_at(bars[sym], t, with_squeeze=False) if sym in bars else None
+    fl, sh_today = float_map.get(sym, (None, None))
+    if feat is None:
+        return {"kat": KAT_YAHOO, "detail": "kein Yahoo-Kurs am Tag"}
+    if not fl:
+        return {"kat": KAT_YAHOO, "detail": "kein Float heute"}
+    st = build_stock(sym, feat, spx_feat, cur, prev, fl, sh_today)
+    fails = filter_failures(st, feat["avg_vol_20d"])
+    if fails:
+        return {"kat": KAT_FILTER, "detail": fails[0], "alle": fails,
+                "werte": {"kurs": round(st["price"], 4), "rvol": round(st["rel_volume"], 3),
+                          "sf_naeherung": round(st["_sf"], 2) if st["_sf"] is not None else None,
+                          "mcap_naeherung": round(st["_mcap"]) if st["_mcap"] else None,
+                          "avg_vol_20d": round(feat["avg_vol_20d"])}}
+    rang = ranks.get(sym)
+    if rang is not None and rang <= TOP_N:
+        return None
+    return {"kat": KAT_RANG, "detail": f"Rang {rang}" if rang else "ohne Rang", "rang": rang}
+
+
+def tool_values(export_path, start: date, end: date) -> dict:
+    """{(date, ticker): Merkmale} der echten Top-10 — nur ``EXPORT_FELDER_ERLAUBT``."""
+    out = {}
+    with open(export_path, encoding="utf-8") as fh:
+        for line in fh:
+            try:
+                e = json.loads(line)
+            except ValueError:
+                continue
+            e = {k: e.get(k) for k in EXPORT_FELDER_ERLAUBT}
+            if e["provenance"] != "forward":
+                continue
+            try:
+                dd, mm, yy = str(e["date"]).split(".")
+                d = date(int(yy), int(mm), int(dd))
+            except ValueError:
+                continue
+            if start <= d <= end:
+                out[(d, e["ticker"])] = {k: e[k] for k in ("source_pools", "short_float",
+                                                           "short_float_source", "rvol",
+                                                           "entry_price", "dtc")}
+    return out
+
+
+def summarize_misses(cases: list[dict], n_top: int = 10) -> dict:
+    """Tabelle: Fälle je Kategorie, Anteil, die häufigsten Ticker je Kategorie
+    (und je Filter-Bedingung). Deterministisch sortiert."""
+    from collections import Counter
+    total = len(cases)
+    out = {"faelle": total, "kategorien": {}}
+    for k in sorted(KAT_NAMEN):
+        sub = [c for c in cases if c["kat"] == k]
+        tick = Counter(c["ticker"] for c in sub)
+        det = Counter(c["detail"] for c in sub) if k != KAT_RANG else None
+        row = {"name": KAT_NAMEN[k], "faelle": len(sub),
+               "anteil_pct": round(100 * len(sub) / total, 1) if total else None,
+               "namen": len(tick),
+               "haeufigste": [[t, n] for t, n in sorted(tick.items(), key=lambda x: (-x[1], x[0]))[:n_top]]}
+        if det is not None:
+            row["gruende"] = dict(sorted(det.items(), key=lambda x: (-x[1], x[0])))
+        if k == KAT_RANG:
+            rr = sorted(c["rang"] for c in sub if c.get("rang"))
+            row["rang_median"] = statistics.median(rr) if rr else None
+            row["rang_bereiche"] = {"31-50": sum(31 <= r <= 50 for r in rr),
+                                    "51-100": sum(51 <= r <= 100 for r in rr),
+                                    ">100": sum(r > 100 for r in rr)}
+        out["kategorien"][str(k)] = row
+    return out
+
+
+def run_fehlanalyse(deadline, ua) -> int:
+    """Fehl-Analyse über Namen (Vergleichsfenster). FINRA aus der gespeicherten
+    Datei; SEC + Yahoo frisch (Kurse nur bis WIN_END)."""
+    import requests
+    from collections import Counter
+    finra = {}
+    with gzip.open(OUT_DIR / "finra_si.jsonl.gz", "rt", encoding="utf-8") as fh:
+        for line in fh:
+            r = json.loads(line)
+            finra.setdefault(date.fromisoformat(r["stichtag"]), {})[r["ticker"]] = {
+                "qty": r["qty"], "dtc": r["dtc"], "adv": r["adv"], "split": r["split"]}
+    hdr = {"User-Agent": ua, "Accept-Encoding": "gzip"}
+    try:
+        r = requests.get(SEC_TICKERS, headers=hdr, timeout=60)
+        if r.status_code != 200:
+            raise RuntimeError(f"HTTP {r.status_code}")
+        tick = {v["ticker"].upper(): int(v["cik_str"]) for v in r.json().values()}
+    except Exception as exc:  # noqa: BLE001 — ohne Zuordnung keine Analyse
+        log(f"ABBRUCH: SEC-Tickerliste nicht abrufbar: {exc!r}")
+        return 1
+    sec, sec_fehlend = {}, []
+    for y, q in sec_quarters(FINRA_FROM - timedelta(days=200), WIN_END - timedelta(days=SEC_LAG_DAYS)):
+        try:
+            rr = requests.get(SEC_FRAME.format(y=y, q=q), headers=hdr, timeout=60)
+            time.sleep(0.15)
+            if rr.status_code != 200:
+                raise RuntimeError(f"HTTP {rr.status_code}")
+            for row in rr.json().get("data", []):
+                try:
+                    sec.setdefault(int(row["cik"]), []).append(
+                        (date.fromisoformat(row["end"]), float(row["val"])))
+                except (KeyError, ValueError, TypeError):
+                    continue
+        except Exception as exc:  # noqa: BLE001
+            sec_fehlend.append(f"CY{y}Q{q}I")
+            log(f"SEC-Frame CY{y}Q{q}I fehlt: {exc!r}")
+    prefilter_ok, win_t = set(), set()
+    for sd, recs in finra.items():
+        uf = usable_from(sd)
+        for sym, rec in recs.items():
+            cik = tick.get(sym)
+            sh = sec_shares_known(sec, cik, uf) if cik else None
+            if sh and rec["qty"] / sh * 100 >= PREFILTER_SEC_PCT:
+                prefilter_ok.add((sd, sym))
+                if WIN_START - timedelta(days=45) <= uf <= WIN_END:
+                    win_t.add(sym)
+    real = real_top10(ROOT / "matured_backtest_export.jsonl", WIN_START, WIN_END)
+    tvals = tool_values(ROOT / "matured_backtest_export.jsonl", WIN_START, WIN_END)
+    real_names = {s for v in real.values() for s in v}
+    bars, miss_bars = fetch_bars((win_t | real_names | {"^GSPC"}), WIN_FETCH_START, WIN_END, WIN_END,
+                                 deadline)
+    float_map, miss_float = fetch_float_today(((set(bars) - {"^GSPC"}) | real_names), deadline)
+    score_fn = _score_fn()
+    spx = bars.get("^GSPC") or []
+    cases, top10_ann, stored_agree = [], Counter(), [0, 0]
+    stored = {}
+    try:
+        with gzip.open(OUT_DIR / "vergleich_namen.jsonl.gz", "rt", encoding="utf-8") as fh:
+            for line in fh:
+                x = json.loads(line)
+                stored.setdefault(x["date"], []).append((x["rang"], x["ticker"]))
+    except OSError:
+        pass
+    ann_features = {}
+    for t in trading_days(WIN_START, WIN_END):
+        if t not in real:
+            continue
+        sf = features_at(spx, t)
+        if sf is None:
+            continue
+        cands, _ = score_candidates(t, win_t, bars, sf, finra, float_map, score_fn,
+                                    prefilter_ok=prefilter_ok)
+        ranks = {sym: i + 1 for i, (_, sym, _) in enumerate(cands)}
+        top30 = [sym for _, sym, _ in cands[:TOP_N]]
+        old = [tk for _, tk in sorted(stored.get(t.isoformat(), []))]
+        stored_agree[0] += len(set(old) & set(top30))
+        stored_agree[1] += len(old)
+        for _, sym, m in cands[:10]:
+            top10_ann[sym] += 1
+            ann_features.setdefault(sym, []).append(m)
+        for sym in real[t]:
+            res = classify_miss(t, sym, finra, tick, sec, bars, float_map, sf, ranks)
+            if res is None:
+                continue
+            res.update({"date": t.isoformat(), "ticker": sym,
+                        "tool": tvals.get((t, sym))})
+            if res["kat"] in (KAT_SEC, KAT_VORFILTER):
+                fl = float_map.get(sym, (None, None))[0]
+                res["mit_float_nenner_bestanden"] = (
+                    None if not fl else bool(res["si"] / fl * 100 >= PREFILTER_SEC_PCT))
+            cases.append(res)
+    summ = summarize_misses(cases)
+    # Punkt 2: Kategorie (2)+(3) mit Nenner „Float heute“ (gekennzeichnet).
+    s23 = [c for c in cases if c["kat"] in (KAT_SEC, KAT_VORFILTER)]
+    summ["kat2_3_mit_float_heute"] = {
+        "faelle": len(s23),
+        "bestanden": sum(1 for c in s23 if c.get("mit_float_nenner_bestanden") is True),
+        "nicht_bestanden": sum(1 for c in s23 if c.get("mit_float_nenner_bestanden") is False),
+        "ohne_float": sum(1 for c in s23 if c.get("mit_float_nenner_bestanden") is None),
+        "namen_bestanden": len({c["ticker"] for c in s23 if c.get("mit_float_nenner_bestanden")}),
+        "kennz": "Nenner heutig"}
+    # Kategorie (5): Werte des echten Tools (Listentag) für die gescheiterte Bedingung.
+    f5 = [c for c in cases if c["kat"] == KAT_FILTER and c["detail"] == "short_float"]
+    tool_sf = [c["tool"]["short_float"] for c in f5 if c.get("tool") and _num(c["tool"].get("short_float"))]
+    summ["kat5_short_float_tool_vs_naeherung"] = {
+        "faelle": len(f5),
+        "tool_sf_median": round(statistics.median(tool_sf), 1) if tool_sf else None,
+        "naeherung_sf_median": (round(statistics.median([c["werte"]["sf_naeherung"] for c in f5
+                                                          if c["werte"]["sf_naeherung"] is not None]), 1)
+                                if any(c["werte"]["sf_naeherung"] is not None for c in f5) else None),
+        "tool_quellen": dict(Counter((c.get("tool") or {}).get("short_float_source") or "?" for c in f5))}
+    # Herkunft der echten Fehlfälle im Tool (Screener-Pool / Watchlist).
+    summ["herkunft_fehlfaelle"] = dict(sorted(Counter(
+        p for c in cases for p in ((c.get("tool") or {}).get("source_pools") or ["(leer)"])).items(),
+        key=lambda x: (-x[1], x[0])))
+    # Punkt 3: Gegenrichtung — oft in den ersten 10 der Annäherung, nie in der echten Top-10.
+    gegen = []
+    for sym, n in sorted(top10_ann.items(), key=lambda x: (-x[1], x[0])):
+        if sym in real_names:
+            continue
+        ms = ann_features.get(sym, [])
+        def _med(key):
+            vals = [m[key] for m in ms if _num(m.get(key)) is not None]
+            return round(statistics.median(vals), 2) if vals else None
+        gegen.append({"ticker": sym, "tage_in_top10": n, "sf_naeherung_median": _med("sf_naeherung"),
+                      "mcap_naeherung_median": _med("mcap_naeherung"), "rvol20_median": _med("rvol20"),
+                      "float_heute": ms[0].get("float_heute") if ms else None})
+        if len(gegen) >= 15:
+            break
+    gegen_syms = [g["ticker"] for g in gegen]
+    summ["gegenrichtung"] = gegen
+    summ["gegenrichtung_boerse_heute"] = _exchange_today(gegen_syms)
+    summ["laeufe"] = {"vergleichstage": len({c["date"] for c in cases}) if cases else 0,
+                      "echte_namen": len(real_names), "ohne_kurs": len(miss_bars),
+                      "ohne_float": len(miss_float), "sec_frames_fehlend": sec_fehlend,
+                      "abbrueche": sorted(set(STOPS)), "vollstaendig": not STOPS,
+                      "nachrechnung_top30_wie_gespeichert_pct": (
+                          round(100 * stored_agree[0] / stored_agree[1], 1) if stored_agree[1] else None)}
+    summ["rahmen"] = {"vergleich": [WIN_START.isoformat(), WIN_END.isoformat()],
+                      "regel": "§7·0a (b): nur Namen/Ränge/Merkmale vom Listentag, keine Renditen"}
+    (OUT_DIR / "fehlanalyse.json").write_text(
+        json.dumps(summ, ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    write_gz_jsonl(OUT_DIR / "fehlanalyse_faelle.jsonl.gz",
+                   sorted(cases, key=lambda c: (c["date"], c["ticker"])))
+    log("FEHLANALYSE " + json.dumps({k: v["faelle"] for k, v in summ["kategorien"].items()}))
+    print(json.dumps({"kategorien": {k: [v["faelle"], v["anteil_pct"]] for k, v in summ["kategorien"].items()},
+                      "laeufe": summ["laeufe"]}, ensure_ascii=False))
+    return 0
+
+
+def _exchange_today(symbols) -> dict:
+    """Börsenplatz/Typ HEUTE (Yahoo .info, gekennzeichnet) — nur für die
+    Gegenrichtung (≤ 15 Namen). Fail-soft."""
+    out = {}
+    try:
+        import yfinance as yf
+    except Exception:  # noqa: BLE001
+        return out
+    for s in symbols:
+        try:
+            info = yf.Ticker(s).info or {}
+            out[s] = {"exchange": info.get("exchange"), "quoteType": info.get("quoteType"),
+                      "kennz": "heutig"}
+        except Exception:  # noqa: BLE001
+            out[s] = None
+        time.sleep(INFO_PAUSE_S)
+    return out
+
+
 # ── Ausgabe ─────────────────────────────────────────────────────────────────
 def write_gz_jsonl(path: Path, rows) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -605,12 +908,14 @@ def write_gz_jsonl(path: Path, rows) -> None:
 def main(argv=None) -> int:
     import argparse
     ap = argparse.ArgumentParser()
-    ap.add_argument("--modus", choices=("probe", "voll"), default="probe")
+    ap.add_argument("--modus", choices=("probe", "voll", "fehlanalyse"), default="probe")
     ap.add_argument("--zeitlimit-min", type=float, default=130.0)
     args = ap.parse_args(argv)
     import requests
     deadline = time.monotonic() + args.zeitlimit_min * 60
     ua = os.environ.get("EDGAR_USER_AGENT") or "Squeeze Report erkundungsfeld contact@example.com"
+    if args.modus == "fehlanalyse":
+        return run_fehlanalyse(deadline, ua)
     bericht = {"modus": args.modus, "start_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                "rahmen": {"feld": [FIELD_START.isoformat(), FIELD_END.isoformat()],
                           "vergleich": [WIN_START.isoformat(), WIN_END.isoformat()],
