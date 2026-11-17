@@ -260,8 +260,71 @@ check("31 Workflow nur Hand-Start, committet nur erkundungsfeld/",
 check("32 Schwelle im Code wie festgeschrieben (5 / 3, Top 30)",
       (ef.SCHWELLE_BESTANDEN, ef.SCHWELLE_GRENZFALL, ef.TOP_N) == (5, 3, 30))
 
+# ── Fehl-Analyse (Easy-Entscheid 17.11.2026, nur Namen) ─────────────────────
+sd0 = date(2024, 12, 31)
+tick = {f"T{i:02d}": 1000 + i for i in range(40) if i != 5}
+sec = {1000 + i: [(date(2024, 9, 30), 1_500_000.0)] for i in range(40)}
+sec[1006] = [(date(2024, 9, 30), 10**9)]           # T06: Bestand/Aktienzahl < 5 %
+bars_fa = {k: v for k, v in bars_map.items() if k != "T07"}
+fmap_fa = dict(fmap)
+fmap_fa.pop("T08")
+fmap_fa["T09"] = (10**9, 1_500_000)                  # Short Float winzig → Filter
+cands_fa, _ = ef.score_candidates(t_mid, set(bars_fa), bars_fa, sf, fin2, fmap_fa, gr.score)
+ranks_fa = {sym: i + 1 for i, (_, sym, _) in enumerate(cands_fa)}
+def _cm(sym, ranks=ranks_fa):
+    return ef.classify_miss(t_mid, sym, fin2, tick, sec, bars_fa, fmap_fa, sf, ranks)
+cm = {k: _cm(k) for k in ("ZZZ", "BRK.B", "T05", "T06", "T07", "T08", "T09")}
+check("39 Fehl-Analyse: genau eine Kategorie je Stufe (FINRA/SEC/Vorfilter/Yahoo/Filter)",
+      cm["ZZZ"]["kat"] == 1 and cm["BRK.B"]["detail"].startswith("Kürzelformat")
+      and cm["T05"] == {"kat": 2, "detail": "kein CIK", "si": 205000}
+      and cm["T06"]["kat"] == 3 and cm["T07"]["detail"] == "kein Yahoo-Kurs am Tag"
+      and cm["T08"]["detail"] == "kein Float heute"
+      and cm["T09"]["kat"] == 5 and cm["T09"]["detail"] == "short_float", cm)
+check("39b außerhalb des Kandidatensets → Kategorie 1 (nicht 6); Kategorie 2/3 bleiben erhalten",
+      ef.classify_miss(t_mid, "T10", fin2, tick, sec, bars_fa, fmap_fa, sf, {"T10": 35},
+                       candidates={"T11"}) == {"kat": 1, "detail": "Stichtag veraltet (nicht im Kandidatenset)"}
+      and ef.classify_miss(t_mid, "T05", fin2, tick, sec, bars_fa, fmap_fa, sf, {}, candidates={"T11"})["kat"] == 2
+      and ef.classify_miss(t_mid, "T06", fin2, tick, sec, bars_fa, fmap_fa, sf, {}, candidates={"T11"})["kat"] == 3)
+in30 = next(sym for sym, r in ranks_fa.items() if r <= 30)
+r6 = _cm("T10", ranks={"T10": 35})
+check("40 Rang <= 30 → kein Fehlfall; Rang > 30 → Kategorie 6 mit Rang",
+      _cm(in30) is None and r6 == {"kat": 6, "detail": "Rang 35", "rang": 35}, (in30, r6))
+check("41 score_candidates liefert alle, rank_day nur die ersten 30 (gleiche Reihenfolge)",
+      [s for _, s, *_ in ef.rank_day(t_mid, set(bars_fa), bars_fa, sf, fin2, fmap_fa, gr.score)[0]]
+      == [s for _, s, _ in cands_fa[:30]])
+cases = [{"kat": 6, "ticker": "A", "detail": "Rang 40", "rang": 40},
+         {"kat": 6, "ticker": "B", "detail": "Rang 120", "rang": 120},
+         {"kat": 5, "ticker": "A", "detail": "short_float"},
+         {"kat": 1, "ticker": "C", "detail": "x"}]
+sm = ef.summarize_misses(cases)
+check("42 Tabelle: Fälle, Anteil, häufigste Ticker, Rangbereiche; alle 6 Kategorien",
+      sm["faelle"] == 4 and sm["kategorien"]["6"]["anteil_pct"] == 50.0
+      and sm["kategorien"]["6"]["rang_bereiche"] == {"31-50": 1, "51-100": 0, ">100": 1}
+      and sm["kategorien"]["5"]["haeufigste"] == [["A", 1]] and len(sm["kategorien"]) == 6
+      and sm == ef.summarize_misses(list(cases)), sm)
+with tempfile.TemporaryDirectory() as td:
+    ex = pathlib.Path(td) / "e.jsonl"
+    ex.write_text(json.dumps({"ticker": "A", "date": "22.07.2026", "provenance": "forward",
+                              "short_float": 31.0, "rvol": 2.0, "return_10d": 99.0,
+                              "max_gain_pct": 50.0}) + "\n", encoding="utf-8")
+    tv = ef.tool_values(ex, ef.WIN_START, ef.WIN_END)
+check("43 Export: nur erlaubte Felder vom Listentag (keine Renditen)",
+      tv == {(date(2026, 7, 22), "A"): {"source_pools": None, "short_float": 31.0,
+                                         "short_float_source": None, "rvol": 2.0,
+                                         "entry_price": None, "dtc": None}}
+      and not any(k.startswith(("return", "max_", "forward")) for k in ef.EXPORT_FELDER_ERLAUBT), tv)
+fa_src = src[src.index("def run_fehlanalyse"):src.index("def _exchange_today")]
+check("44 Fehl-Analyse: Kurse nur bis 23.10., FINRA aus Datei, schreibt nur fehlanalyse*",
+      "WIN_FETCH_START, WIN_END, WIN_END" in fa_src and "finra_si.jsonl.gz" in fa_src
+      and "finra_settlement(" not in fa_src
+      and sorted(set(__import__("re").findall(r'OUT_DIR / "([^"]+)"', fa_src))) ==
+      ["fehlanalyse.json", "fehlanalyse_faelle.jsonl.gz", "finra_si.jsonl.gz", "vergleich_namen.jsonl.gz"]
+      and 'c["unsicher"] = "abbruch:"' in fa_src and "candidates=win_t" in fa_src)
+check("45 Workflow: Modus fehlanalyse wählbar, Commit bei voll und fehlanalyse",
+      "- fehlanalyse" in wf and "inputs.modus != 'probe'" in wf)
+
 print()
 if FAILS:
     print(f"FEHLER: {len(FAILS)} Test(s) rot: {FAILS}")
     sys.exit(1)
-print("Alle 38 Checks grün.")
+print("Alle 46 Checks grün.")

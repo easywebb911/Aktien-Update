@@ -3432,6 +3432,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 17.11.2026 — Erkundungsfeld Fehl-Analyse über Namen (1 PR, Manual-Merge)
+
+- `#739` (Branch `claude/erkundungsfeld-fehlanalyse-k5r2`, Branch-Commit `55b3950a`, kein Merge-Hash — Regel a).
+  Easy-Entscheid 17.11. (Grenzfall Median 3): Modus `fehlanalyse` in `scripts/erkundungsfeld.py` + Workflow-
+  Option. Je echtem Top-10-Namen außerhalb der ersten 30 genau eine Kategorie (FINRA / SEC-Nenner / Vorfilter /
+  Yahoo / Filter-Bedingung / Rang > 30), Gegenrichtung, Zählung „Vorfilter mit Float heute“. Kurse nur bis
+  23.10.2026, Export nur über Feld-Whitelist (keine Renditen, §7·0a b). `rank_day` unverändert
+  (`score_candidates`). Test 46 Checks. Ergebnis nach dem Hand-Lauf ins open_item `erkundungsfeld-plan`.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#741`, eigene `#739` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 17.11.2026 — Diagnose EDGAR-Ausfall + Folgen des Startverzugs (1 Doku-PR)
 
 - `#741` (Branch `claude/edgar-ausfall-diagnose-m2v6`, Branch-Commit `1fdc92fc`, kein Merge-Hash — Regel a).

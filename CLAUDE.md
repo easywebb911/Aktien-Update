@@ -4755,6 +4755,12 @@ Treffer, **keine** Kurse nach dem jeweiligen Listentag (Handover §7·0a Ergänz
   Merkmale für Tag t nur aus Zeilen ≤ t (Kürzungstest). Ranking über die unveränderte `score()`, 30 Namen.
 - **Schwelle** (vorab, Easy 16.11.): Median Top-10-Namen in den ersten 30 ≥ 5 bestanden, 3–4 Grenzfall, < 3 nicht
   weiterbauen. Kein Konsument im Tool. Test `scripts/mock_test_erkundungsfeld.py`. Rückweg: Revert.
+- **Ergebnis Stufe 1 (17.11.2026):** Median 3/10 → Grenzfall. **Fehl-Analyse** (Easy-Entscheid 17.11.,
+  Modus `fehlanalyse`): je echtem Top-10-Namen außerhalb der ersten 30 genau eine Kategorie
+  (FINRA / SEC-Nenner / Vorfilter / Yahoo / Filter-Bedingung / Rang > 30), Gegenrichtung (oft in den
+  ersten 10, nie echt), Zählung „Vorfilter mit Float heute bestanden“. FINRA aus `finra_si.jsonl.gz`,
+  SEC + Yahoo frisch, Kurse nur bis 23.10.2026; Export nur über `EXPORT_FELDER_ERLAUBT` (Merkmale vom
+  Listentag, nie Renditen). Schreibt `fehlanalyse.json` + `fehlanalyse_faelle.jsonl.gz`.
 
 ## Datenprüfung Aktienbasis / Short Float (seit 17.11.2026, PR C)
 

@@ -11,18 +11,24 @@ name: Erkundungsfeld Stufe 1
 # gespeichert, KEINE Renditen oder Treffer gerechnet.
 # Schreibt AUSSCHLIESSLICH erkundungsfeld/ (finra_si.jsonl.gz, kandidaten.jsonl.gz,
 # vergleich_namen.jsonl.gz, vergleich_je_tag.jsonl.gz, stufe1_bericht.json).
+#   modus=fehlanalyse (Easy-Entscheid 17.11.2026): je echtem Top-10-Namen, der
+#                nicht unter den ersten 30 steht, EINE Kategorie (FINRA / SEC /
+#                Vorfilter / Yahoo / Filter / Rang > 30). FINRA aus finra_si.jsonl.gz,
+#                SEC + Yahoo frisch, Kurse nur bis 23.10.2026. Schreibt
+#                fehlanalyse.json + fehlanalyse_faelle.jsonl.gz. Keine Renditen.
 # Kein Konsument im Tool. Rückweg: Revert; die Dateien dürfen liegen bleiben.
 
 on:
   workflow_dispatch:
     inputs:
       modus:
-        description: "probe (nur FINRA-Feldprobe) oder voll (ganzer Lauf)"
+        description: "probe (nur FINRA-Feldprobe), voll (ganzer Lauf) oder fehlanalyse (nur Namen, Vergleichsfenster)"
         required: true
         type: choice
         options:
           - probe
           - voll
+          - fehlanalyse
 
 permissions:
   contents: write   # NUR für erkundungsfeld/
@@ -61,7 +67,7 @@ jobs:
         run: python scripts/erkundungsfeld.py --modus "${{ inputs.modus }}" --zeitlimit-min 130
 
       - name: Commit erkundungsfeld/
-        if: ${{ inputs.modus == 'voll' }}
+        if: ${{ inputs.modus != 'probe' }}
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
