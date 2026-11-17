@@ -107,10 +107,11 @@ check("13 Short Float = FINRA-Bestand / Float heute (30 %), Marktkap = Kurs × A
 score_val = gr.score(st)
 check("14 unveränderte generate_report.score() nimmt das Dict an (endlich, 0..100)",
       0.0 <= score_val <= 100.0, score_val)
-check("15 Filter: Preis, RVOL, SI, Marktkap, Ø-Volumen",
+check("15 Filter: Preis, SI, Marktkap, Ø-Volumen — rvol seit 17.11.2026 kein harter Filter",
       ef.passes_filter(dict(st, price=2, rel_volume=2, _sf=20, _mcap=1e8), 400_000)
       and not ef.passes_filter(dict(st, price=0.9, rel_volume=2, _sf=20, _mcap=1e8), 400_000)
-      and not ef.passes_filter(dict(st, price=2, rel_volume=1.4, _sf=20, _mcap=1e8), 400_000)
+      and ef.passes_filter(dict(st, price=2, rel_volume=1.4, _sf=20, _mcap=1e8), 400_000)
+      and ef.filter_failures(dict(st, price=2, rel_volume=0.5, _sf=20, _mcap=1e8), 400_000) == []
       and not ef.passes_filter(dict(st, price=2, rel_volume=2, _sf=14.9, _mcap=1e8), 400_000)
       and not ef.passes_filter(dict(st, price=2, rel_volume=2, _sf=20, _mcap=2e9), 400_000)
       and not ef.passes_filter(dict(st, price=2, rel_volume=2, _sf=20, _mcap=1e8), 299_999))
@@ -323,8 +324,53 @@ check("44 Fehl-Analyse: Kurse nur bis 23.10., FINRA aus Datei, schreibt nur fehl
 check("45 Workflow: Modus fehlanalyse wählbar, Commit bei voll und fehlanalyse",
       "- fehlanalyse" in wf and "inputs.modus != 'probe'" in wf)
 
+# ── rvol-Regel wie im Tool (Easy-Entscheid 17.11.2026) ──────────────────────
+# Tool (generate_report.py, Auswahl top10_vol):
+#   top10_vol = [c for c in enriched if c.get("rel_volume", 0) >= MIN_REL_VOLUME]
+#   top10 = top10_vol[:10] if len(top10_vol) >= 10 else enriched[:10]
+def _c(sym, sc, vor):
+    return (sc, sym, {"rvol_vorrang": vor})
+cands_u = [_c(f"S{i:02d}", 100 - i, i % 2 == 0) for i in range(24)]   # 12 mit Vorrang
+ch, auf = ef.select_tool_order(cands_u)
+check("47 Vorrang greift (>= 10 Namen über 1,5): nur diese, Score-Reihenfolge, nicht aufgefüllt",
+      [s for _, s, _ in ch] == [f"S{i:02d}" for i in range(0, 24, 2)] and auf is False, [s for _, s, _ in ch])
+cands_9 = [_c(f"S{i:02d}", 100 - i, i < 9) for i in range(24)]          # nur 9 mit Vorrang
+ch9, auf9 = ef.select_tool_order(cands_9)
+check("48 < 10 Namen über 1,5: Liste aller Kandidaten in Score-Reihenfolge, aufgefüllt",
+      [s for _, s, _ in ch9] == [f"S{i:02d}" for i in range(24)] and auf9 is True)
+cands_10 = [_c(f"S{i:02d}", 100 - i, i >= 14) for i in range(24)]       # genau 10 mit Vorrang
+ch10, auf10 = ef.select_tool_order(cands_10)
+check("49 Grenze genau 10 → Vorrang (wie len(top10_vol) >= 10)",
+      [s for _, s, _ in ch10] == [f"S{i:02d}" for i in range(14, 24)] and auf10 is False)
+
+# Ganzer Tag über rank_day: 12 Ticker mit Volumen-Spitze (rvol ≈ 3), 28 ohne (rvol ≈ 1)
+def _bars_spike(spike):
+    return [(b[0], b[1], b[2], b[3], b[4], b[5] * (3 if (spike and b[0] == t_mid) else 1)) for b in bars]
+bars_v = {f"T{i:02d}": _bars_spike(i < 12) for i in range(40)}
+aw = {}
+lst_v, _ = ef.rank_day(t_mid, set(bars_v), bars_v, sf, fin2, fmap, gr.score, auswahl=aw)
+check("50 Tag mit >= 10 über 1,5: Liste = genau die 12 Vorrang-Namen (Liste kürzer als 30, nicht aufgefüllt)",
+      sorted(s for _, s, *_ in lst_v) == [f"T{i:02d}" for i in range(12)]
+      and aw == {"aufgefuellt": False, "n_vorrang": 12}
+      and all(m["rvol_vorrang"] and m["rvol20"] >= 1.5 for *_, m in lst_v), (len(lst_v), aw))
+bars_w = {f"T{i:02d}": _bars_spike(i < 5) for i in range(40)}
+aw2 = {}
+lst_w, _ = ef.rank_day(t_mid, set(bars_w), bars_w, sf, fin2, fmap, gr.score, auswahl=aw2)
+cands_w, _ = ef.score_candidates(t_mid, set(bars_w), bars_w, sf, fin2, fmap, gr.score)
+check("51 Tag mit < 10 über 1,5: aufgefüllt aus allen, erste 30 nach Score (auch Namen unter 1,5)",
+      [s for _, s, *_ in lst_w] == [s for _, s, _ in cands_w[:30]] and len(lst_w) == 30
+      and aw2 == {"aufgefuellt": True, "n_vorrang": 5}
+      and any(not m["rvol_vorrang"] for *_, m in lst_w), aw2)
+lst_w2, _ = ef.rank_day(t_mid, set(bars_w), bars_w, sf, fin2, fmap, gr.score)
+check("52 deterministisch (zweimal gleich, mit und ohne auswahl-Dict)", lst_w == lst_w2)
+src_main = src[src.index("def main("):]
+check("53 Bericht nennt Tage mit Auffüllen; Schwelle und Kandidatenkreis unverändert",
+      '"vergleich_tage_aufgefuellt"' in src_main and "rvol_regel" in src_main
+      and (ef.MIN_RVOL, ef.MIN_PRICE, ef.MIN_SI_PCT, ef.MAX_MCAP, ef.MIN_AVG_VOL, ef.PREFILTER_SEC_PCT)
+      == (1.5, 1.0, 15.0, 2e9, 300_000, 5.0))
+
 print()
 if FAILS:
     print(f"FEHLER: {len(FAILS)} Test(s) rot: {FAILS}")
     sys.exit(1)
-print("Alle 46 Checks grün.")
+print("Alle 53 Checks grün.")
