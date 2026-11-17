@@ -184,6 +184,11 @@ jobs:
           # KEINE historischen Ketten, d.h. jeder verlorene Tag ist ein OI-
           # Momentanwert, der nie wiederkommt.
           git add options_oi_history.json 2>/dev/null || true
+          # finra_si_cache.json: Zwischenspeicher der FINRA-consolidatedShortInterest-
+          # Abrufe für die Datenprüfung Short Float (PR C, 17.11.2026; TTL 20 h,
+          # Prune 30 Tage). Ohne Commit fiele der Cache bei jedem Checkout weg und
+          # jeder Lauf ruft FINRA für alle Kandidaten neu ab.
+          git add finra_si_cache.json 2>/dev/null || true
           # options_chain_raw.jsonl: Rohdaten-Sammelfeld (Bid/Ask/LastPrice/
           # Volumen/OI/IV/LastTradeDate je Strike), NUR postclose (17.10.2026,
           # Lit-Check-Funde — siehe SESSION_HANDOVER.md). Persistenz über

@@ -12,7 +12,7 @@
   <div class="metrics-row">
     <div class="metric-box" style="--mc:{{ sf_col }}">
       <span class="m-val">{{ sf_display }}</span>
-      <span class="m-lbl">Short Float</span>
+      <span class="m-lbl">Short Float</span>{{ ab_tile_html }}
     </div>
     <div class="metric-box" style="--mc:{{ sr_col }}">
       <span class="m-val">{{ sr_display }}</span>
@@ -44,12 +44,12 @@
         {{ agent_boost_row }}
         {{ conviction_row }}
         <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
-        <tr><td>Marktkapitalisierung</td><td>{{ cap_fmt }}</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>{{ cap_fmt }}{{ ab_cap_html }}</td></tr>
         {{ float_row }}
         {{ sector_detail_row }}
         <tr><td>52W-Hoch / -Tief</td><td>${{ hi_str }} / ${{ lo_str }}</td></tr>
         {{ inst_row }}
-        <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>
+        <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>{{ ab_row_html }}
         {{ edgar_row }}
         <tr><td>SI-Trend (3M)</td><td>{{ trend_html }}</td></tr>
         {{ si_shares_per_day_row }}

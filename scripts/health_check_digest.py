@@ -669,6 +669,14 @@ def main(*, now_ts: datetime | None = None,
         eval_lines.append(options_intraday.digest_line(ROOT / options_intraday.STATE_FILE))
     except Exception as _oi_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Options-Handelszeit-Digest unerwartet: %r", _oi_exc)
+    # Datenprüfung Short Float (PR C, 17.11.2026): „x von 10 auffällig“ mit
+    # Tickern aus dem jüngsten Postclose (backtest_history.json). Hinweis-
+    # Charakter (warn), zählt NICHT in die Digest-Klasse. Fail-soft.
+    try:
+        import aktienbasis_check  # noqa: E402  (Repo-Root liegt im sys.path)
+        eval_lines.append(aktienbasis_check.digest_line(ROOT / hc.BACKTEST_FILE))
+    except Exception as _ab_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
+        log.warning("Datenprüfung-Short-Float-Digest unerwartet: %r", _ab_exc)
     # Pause sichtbar machen (02.11.2026): bei abgeschaltetem Auto-Lauf steht
     # täglich eine eigene Zeile im Digest — AUSSERHALB des try, damit sie
     # auch dann erscheint, wenn die Zähler-Zeilen scheitern. Reine Anzeige,

@@ -3432,6 +3432,24 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 17.11.2026 — Datenprüfung Aktienbasis / Short Float, PR C (1 PR, Manual-Merge)
+
+- `#735` (Branch `claude/aktienbasis-kennzeichen-r7p2`, Branch-Commit `22374386`, kein Merge-Hash —
+  Regel a). Easy-Entscheid 17.11.2026 nach FGL: `aktienbasis_check.py` setzt je Top-10-/Watchlist-
+  Kandidat (a) Aktienbasis widersprüchlich (Marktkap < 0,9 × Float × Kurs) und (b) Short Float
+  weicht > Faktor 2 vom FINRA-Bestand/Float ab (consolidatedShortInterest, nur am Berichtstag
+  veröffentlichte Stichtage, Cache `finra_si_cache.json`). Backtest-Feld `aktienbasis_pruefung`
+  (forward-only), Karten-Hinweis, Risiko-Text ohne Marktkap bei (a), Digest-Zeile. Kein Effekt auf
+  Score/Filter/Liste. Test 41 Checks (Guardian: Aufruf vor den Append gezogen, SF 0 = nicht prüfbar); open_items: FGL-Nachtrag (Urteil „Wirkung auf die Liste
+  belegt“, kein Ausschluss/Freeze-Eintrag), neu `datenpruefung-short-float-auswertung` (02.12.2026).
+- **protected-ok:** `lint_protected_zones` traf `backtest_history._append_backtest_entries` (eine
+  angehängte Feld-Zuweisung `aktienbasis_pruefung`, keine bestehenden Felder geändert). Label nach
+  **Regel b** (Logik-Zone, inhaltliche Freigabe durch Easy im Chat am 17.11.2026) gesetzt; technische
+  Setz-Aktion durch Code (Regel d), danach frischer Push (Regel c).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#734`, eigene `#735` — kein Rückstand
+  (`#733` ist gemergt, Block-1-Eintrag vorhanden).
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 17.11.2026 — Diagnose Marktkapitalisierung FGL (1 PR, Doku, Self-Merge)
 
 - `#734` (Branch `claude/marketcap-fgl-diag-m4c7`, kein Merge-Hash — Regel a). Nur open_item
