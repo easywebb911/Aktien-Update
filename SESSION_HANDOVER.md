@@ -3450,7 +3450,8 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   `upstream_status` (nicht erfolgreich → crit „POSTCLOSE“). Zeitplan 08:47 bleibt Rückfall. Digest-Tag ab
   21:00 UTC (kein Doppelversand), übersprungener Lauf hält `last_successful_run` frisch (S8), concurrency.
   Test `mock_test_digest_after_postclose.py` (27). open_item `digest-startverzug` → beobachtet.
-- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#741`, `#739` offen, eigene `#740` — kein Rückstand.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#741` (`#739` gemergt), eigene `#740` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
 ### 17.11.2026 — Diagnose EDGAR-Ausfall + Folgen des Startverzugs (1 Doku-PR)
 
