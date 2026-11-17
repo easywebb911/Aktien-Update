@@ -2063,9 +2063,14 @@ DIGEST_STALE_DAYS = 7                    # Counter-Reset nach 7 d Inaktivität
 # würde der Body das ntfy-Limit sprengen → der crit-Push geht UNVERÄNDERT raus
 # (ein crit ohne Prompt ist okay, ein verschluckter crit nicht).
 #
-# ntfy.sh Server-Default message-size-limit = 4096 Bytes (darüber HTTP 413 →
-# Push NICHT zugestellt). _ntfy_send kürzt NICHT selbst → der Body MUSS unter
-# dem Limit bleiben. Konservativer Deckel mit Sicherheitsabstand:
+# ntfy.sh message-size-limit = 4096 Bytes. KORREKTUR 17.11.2026: darüber gibt
+# es KEIN HTTP 413 — ntfy macht aus dem Body einen Anhang „attachment.txt“, der
+# auf ntfy.sh nach 3 h verfällt (ntfy docs/publish.md „Longer messages are
+# treated as attachments“, server/config.go DefaultAttachmentExpiryDuration;
+# Beleg: Digest 16.11.2026, 6189 Bytes, als verfallener Anhang angekommen).
+# Der Push selbst wird seit 17.11.2026 von compose_digest_push auf
+# DIGEST_PUSH_MAX_BYTES gedeckelt; dieser ältere Deckel gilt nur noch für den
+# Diagnose-Prompt im vollständigen Body:
 DIGEST_BODY_SAFE_BYTES = 3800            # crit-Body + Prompt nur bis hierher
 _DIAGNOSE_PROMPT_SEP = "--- Diagnose-Prompt zum Kopieren: ---"
 _DIAGNOSE_PROMPT_HEADER = (
@@ -4604,6 +4609,198 @@ def _fit_ok_warn_lines(body_lines: list[str], pos: int, n_warn: int) -> list[str
     return head + warns[:1] + ([f"🟡 +{len(warns) - 1} weitere warn "
                                 f"(Details: health_check_log.jsonl)"]
                                if len(warns) > 1 else []) + tail
+
+
+# ── Push-Kurzfassung + vollständiger Digest als Datei (17.11.2026) ───────────
+# Befund 16.11.2026: der Montags-Digest (Wochenblock) war 6189 Bytes lang; ntfy
+# machte daraus den Anhang „attachment.txt“, der nach 3 h verfallen war — Easy
+# konnte ihn nicht mehr lesen. Seitdem: die Push-Nachricht ist IMMER reiner
+# Text unter DIGEST_PUSH_MAX_BYTES (in Bytes gezählt, UTF-8); der vollständige
+# Digest liegt als Datei im Repo (health_check_digests/JJJJ-MM-TT.txt) und ist
+# über einen festen raw-Link ohne Anmeldung lesbar (öffentliches Repo; die
+# Datei wird nie überschrieben außer durch einen zweiten Lauf am selben Tag).
+NTFY_MESSAGE_LIMIT_BYTES = 4096          # ntfy.sh message-size-limit (Doku)
+DIGEST_PUSH_MARGIN_BYTES = 596           # Abstand zur Grenze
+DIGEST_PUSH_MAX_BYTES = NTFY_MESSAGE_LIMIT_BYTES - DIGEST_PUSH_MARGIN_BYTES  # 3500
+DIGEST_ARCHIVE_DIR = "health_check_digests"
+DIGEST_ARCHIVE_URL_BASE = ("https://raw.githubusercontent.com/easywebb911/"
+                           "Aktien-Update/main/health_check_digests")
+_DIGEST_LINK_PREFIX = "vollständiger Digest: "
+_DIGEST_LINE_CUT_SUFFIX = " … (vollständig im Link)"
+
+
+def _nbytes(text: str) -> int:
+    return len(text.encode("utf-8"))
+
+
+def _cut_bytes(text: str, max_bytes: int) -> str:
+    """Kürzt ``text`` auf höchstens ``max_bytes`` UTF-8-Bytes, nie mitten in
+    einem Mehrbyte-Zeichen."""
+    raw = text.encode("utf-8")
+    if len(raw) <= max_bytes:
+        return text
+    return raw[:max(0, max_bytes)].decode("utf-8", "ignore")
+
+
+def digest_archive_url(digest_date: str) -> str:
+    return f"{DIGEST_ARCHIVE_URL_BASE}/{digest_date}.txt"
+
+
+def digest_link_line(digest_date: str, published: bool | None) -> str:
+    """Letzte Zeile der Kurzfassung. Nur wenn die Datei nachweislich nach main
+    gepusht wurde (``published is True``) steht der Link da — sonst ein
+    Hinweis statt eines toten Links."""
+    if published is True:
+        return _DIGEST_LINK_PREFIX + digest_archive_url(digest_date)
+    why = "Ablage fehlgeschlagen" if published is False else "Lauf ohne Ablage"
+    return (_DIGEST_LINK_PREFIX + f"nicht abgelegt ({why}) — "
+            "Volltext im Log des Digest-Laufs")
+
+
+def digest_alarm_lines(state_fails: list[dict], provider_fails: list[dict],
+                       extra_warn_lines: list[str] | None = None) -> list[str]:
+    """Alle aktiven crit- und warn-Zeilen VOLLSTÄNDIG, feste Reihenfolge:
+    crit State · crit Provider · warn State · warn Provider · weitere
+    Warnzeilen (Abdeckung, Watchdog) in Eingabe-Reihenfolge. Erholte
+    State-Fails sind kein Alarm (stehen im vollständigen Digest)."""
+    def _flat(txt) -> str:
+        return " ".join(str(txt or "").split())
+    active = [f for f in state_fails if not f.get("recovered")]
+    out: list[str] = []
+    for sev, mark in (("crit", "🔴"), ("warn", "🟡")):
+        for f in active:
+            if f.get("severity") == sev:
+                tail = (f" ({f['count']}× im 24h-Fenster)"
+                        if f.get("count", 1) > 1 else "")
+                out.append(f"{mark} {f.get('id', '?')}: {_flat(f.get('detail'))}{tail}")
+        for f in provider_fails:
+            if f.get("severity") == sev:
+                tail = (f" ({f['consecutive']} Runs in Folge)"
+                        if f.get("consecutive", 0) > 1 else "")
+                out.append(f"{mark} {f.get('provider', '?')} (Tier {f.get('tier', '?')}): "
+                           f"{_flat(f.get('reason'))}{tail}")
+    for line in extra_warn_lines or []:
+        if line:
+            out.append(_flat(line))
+    return out
+
+
+def compose_digest_push(head_lines: list[str], alarm_lines: list[str],
+                        counter_lines: list[str], link_line: str, *,
+                        prompt_tail: str | None = None,
+                        max_bytes: int = DIGEST_PUSH_MAX_BYTES) -> str:
+    """Kurzfassung für ntfy — pure, deterministisch, immer ≤ ``max_bytes``.
+
+    Rangfolge: Status (``head_lines``) · alle Alarme vollständig · Zähler ·
+    (bei crit) Diagnose-Prompt · Link als letzte Zeile. Passen nicht alle
+    Alarme hinein, steht „… und N weitere Alarme, siehe Link“ da — nie
+    stilles Kürzen. Ein einzelner Alarm, der allein nicht passt, wird
+    sichtbar mit „… (vollständig im Link)“ gekürzt. Zähler, die nicht mehr
+    passen, entfallen (stehen im vollständigen Digest)."""
+    head = [str(h) for h in head_lines if h is not None]
+    alarms = [str(a) for a in alarm_lines if a]
+
+    def _size(lines: list[str]) -> int:
+        return _nbytes("\n".join(lines))
+
+    def _more(n: int) -> str:
+        return f"… und {n} weitere Alarme, siehe Link"
+
+    lines = list(head)
+    if _size(lines + alarms + [link_line]) <= max_bytes:
+        lines += alarms
+    else:
+        k = len(alarms)
+        while k > 0 and _size(lines + alarms[:k] + [_more(len(alarms) - k), link_line]) > max_bytes:
+            k -= 1
+        if k > 0:
+            lines += alarms[:k] + [_more(len(alarms) - k)]
+        elif alarms:
+            rest = len(alarms) - 1
+            fixed = lines + ([_more(rest)] if rest else []) + [link_line]
+            room = max_bytes - _size(fixed) - 1 - _nbytes(_DIGEST_LINE_CUT_SUFFIX)
+            first = _cut_bytes(alarms[0], room) + _DIGEST_LINE_CUT_SUFFIX
+            lines += [first] + ([_more(rest)] if rest else [])
+    for c in counter_lines:
+        if c and _size(lines + [str(c), link_line]) <= max_bytes:
+            lines.append(str(c))
+        elif c:
+            break
+    if prompt_tail:
+        cand = lines + ["", prompt_tail.strip()]
+        if _size(cand + [link_line]) <= max_bytes:
+            lines = cand
+        else:
+            note = "Diagnose-Prompt: im vollständigen Digest"
+            if _size(lines + [note, link_line]) <= max_bytes:
+                lines.append(note)
+    lines.append(link_line)
+    text = "\n".join(lines)
+    if _nbytes(text) > max_bytes:  # letzte Sicherung (z. B. überlanger Kopf)
+        text = _cut_bytes("\n".join(head), max_bytes - _nbytes(link_line) - 1) \
+            + "\n" + link_line
+    return text
+
+
+def digest_archive_text(body: str, *, digest_date: str, created_utc: str) -> str:
+    """Inhalt der abgelegten Datei: vollständiger Digest + Kopfzeile. Enthält
+    nur den Body (kein Topic, keine Secrets)."""
+    return (f"Health-Check-Digest {digest_date} — vollständig "
+            f"(erstellt {created_utc} UTC)\n\n{body.rstrip()}\n")
+
+
+APEWISDOM_SHADOW_TARGET_N = 500          # Wiedervorlage apewisdom-abdeckung
+
+
+def apewisdom_shadow_counter_line(apewisdom_path=None, backtest_path=None) -> str:
+    """Zähler für die Wiedervorlage ``apewisdom-abdeckung`` (Easy-Entscheid
+    17.11.2026: weiter sammeln, kein Test bis 500): Top-10-Einstiege
+    (backtest_history, ohne Bootstrap) mit Abdeckungs-Angabe, d. h. mit einer
+    ApeWisdom-Zeile desselben Tickers und Tages, deren ``found`` gesetzt ist
+    (True/False). Nur eine Zählung — kein Treffer-Anteil, kein Ergebnisbezug.
+    Fail-soft."""
+    label = "🗣 ApeWisdom-Schatten"
+    try:
+        ap_p = apewisdom_path if apewisdom_path is not None else APEWISDOM_ATTENTION_LOG_FILE
+        bt_p = backtest_path if backtest_path is not None else BACKTEST_FILE
+        known: set[tuple[str, str]] = set()
+        with open(ap_p, encoding="utf-8") as fh:
+            for raw in fh:
+                raw = raw.strip()
+                if not raw:
+                    continue
+                try:
+                    r = json.loads(raw)
+                except ValueError:
+                    continue
+                if isinstance(r, dict) and isinstance(r.get("found"), bool):
+                    known.add((str(r.get("ticker")), str(r.get("date"))))
+        with open(bt_p, encoding="utf-8") as fh:
+            bt = json.load(fh)
+        if isinstance(bt, dict):
+            bt = bt.get("entries", [])
+        n = 0
+        seen: set[tuple[str, str]] = set()
+        for e in bt if isinstance(bt, list) else []:
+            if not isinstance(e, dict) or e.get("source") == "bootstrap":
+                continue
+            d = str(e.get("date") or "")
+            parts = d.split(".")
+            if len(parts) != 3:
+                continue
+            key = (str(e.get("ticker")), f"{parts[2]}-{parts[1]}-{parts[0]}")
+            if key in seen:
+                continue
+            seen.add(key)
+            if key in known:
+                n += 1
+        return (f"{label}: {n}/{APEWISDOM_SHADOW_TARGET_N} Top-10-Einstiege "
+                f"mit Abdeckungs-Angabe (Wiedervorlage bei {APEWISDOM_SHADOW_TARGET_N})")
+    except FileNotFoundError:
+        return f"{label}: noch keine Daten"
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return f"{label}: Zähler nicht ermittelbar"
+
 
 
 # ── Kursverlauf ab Einstieg (outcome_path.jsonl, 12.11.2026) ─────────────────

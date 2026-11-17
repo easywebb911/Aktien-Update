@@ -58,6 +58,10 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger("health_check_digest")
 
 DIGEST_STATE_FILE = ROOT / "health_check_digest_state.json"
+# Vollständige Digests (17.11.2026), eine Datei je Tag, nie gelöscht.
+ARCHIVE_DIR = ROOT / hc.DIGEST_ARCHIVE_DIR
+# Outbox zwischen Phase prepare und send (nicht im Repo).
+DEFAULT_OUTBOX = pathlib.Path(os.environ.get("RUNNER_TEMP") or "/tmp") / "health_check_digest_outbox.json"
 DIGEST_WINDOW_HOURS = 24
 
 # Position-ohne-Watchlist-Wächter (31.10.2026): eigene Modul-Attribute statt
@@ -287,7 +291,9 @@ def _already_sent_today(state: dict, today_iso: str) -> bool:
 
 def main(*, now_ts: datetime | None = None,
          force: bool = False,
-         dry_run: bool = False) -> int:
+         dry_run: bool = False,
+         phase: str = "all",
+         outbox_path=None) -> int:
     """Returnt Exit-Code:
       0 = OK (Push gesendet / ntfy disabled / dry-run / skip)
       1 = ntfy-Send-Fail bei aktivem NTFY_TOPIC (16.05.2026 — macht
@@ -638,6 +644,9 @@ def main(*, now_ts: datetime | None = None,
     except Exception as _eval_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Freeze-Eval-Autorun unerwartet: %r", _eval_exc)
         eval_lines = []
+    # Zähler für die Push-Kurzfassung (17.11.2026) — None, falls die Zeile
+    # unten scheitert.
+    suw_line = treffer_line = ab_line = None
     # SUW-Freeze-Zähler (15.11.2026, Block „VORABREGISTRIERUNG — SUW“): reine
     # Zählung der Einstiegstage ≥ 24.10.2026 mit endgültigem Schluss Tag 10
     # (liest nur date/grund aus outcome_path.jsonl, keine Rendite). Kein
@@ -650,16 +659,18 @@ def main(*, now_ts: datetime | None = None,
                     if r.get("family") == suw_eval.FAMILY]
         suw_verdict = ("; ".join(f"{r.get('test_id')}: {r.get('verdict')}" for r in suw_rows)
                        if suw_rows else None)
-        eval_lines.append(hc.eval_status_line(
+        suw_line = hc.eval_status_line(
             "SUW (Einstiegstage)", (suw_n, 0), suw_eval.TRIGGER_DAYS, None,
-            verdict_text=suw_verdict))
+            verdict_text=suw_verdict)
+        eval_lines.append(suw_line)
     except Exception as _suw_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("SUW-Zähler unerwartet: %r", _suw_exc)
     # Treffer-Score-Abdeckung (SUW-Schatten-Wert, 15.11.2026): „x/10 mit Wert“
     # aus dem letzten Postclose in suw_daily.jsonl. Reine Anzeige, fail-soft.
     try:
         import treffer_score  # noqa: E402  (Repo-Root liegt im sys.path)
-        eval_lines.append(treffer_score.digest_line(ROOT / treffer_score.DAILY_FILE))
+        treffer_line = treffer_score.digest_line(ROOT / treffer_score.DAILY_FILE)
+        eval_lines.append(treffer_line)
     except Exception as _ts_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Treffer-Score-Digest unerwartet: %r", _ts_exc)
     # Options-Sammlung in der Handelszeit (16.11.2026): „Kette x/10 · ATM-Paar
@@ -674,9 +685,16 @@ def main(*, now_ts: datetime | None = None,
     # Charakter (warn), zählt NICHT in die Digest-Klasse. Fail-soft.
     try:
         import aktienbasis_check  # noqa: E402  (Repo-Root liegt im sys.path)
-        eval_lines.append(aktienbasis_check.digest_line(ROOT / hc.BACKTEST_FILE))
+        ab_line = aktienbasis_check.digest_line(ROOT / hc.BACKTEST_FILE)
+        eval_lines.append(ab_line)
     except Exception as _ab_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Datenprüfung-Short-Float-Digest unerwartet: %r", _ab_exc)
+    # ApeWisdom-Schatten (Easy-Entscheid 17.11.2026, open_item
+    # apewisdom-abdeckung): Zähler bis zur Wiedervorlage bei 500 Einstiegen
+    # mit Abdeckungs-Angabe. Nur Zählung, fail-soft.
+    ape_counter_line = hc.apewisdom_shadow_counter_line(
+        ROOT / hc.APEWISDOM_ATTENTION_LOG_FILE, ROOT / hc.BACKTEST_FILE)
+    eval_lines.append(ape_counter_line)
     # Pause sichtbar machen (02.11.2026): bei abgeschaltetem Auto-Lauf steht
     # täglich eine eigene Zeile im Digest — AUSSERHALB des try, damit sie
     # auch dann erscheint, wenn die Zähler-Zeilen scheitern. Reine Anzeige,
@@ -751,27 +769,34 @@ def main(*, now_ts: datetime | None = None,
 
     log.info("Digest %s — %d state-fails, %d provider-fails, %d runs",
              today_iso, len(state_fails), len(prov_fails), n_runs)
+
+    # ── Push-Kurzfassung (17.11.2026) ────────────────────────────────────────
+    # Der vollständige ``body`` überschritt am 16.11.2026 die ntfy-Grenze
+    # (4096 Bytes → verfallender Anhang). Gesendet wird seitdem nur noch die
+    # Kurzfassung (≤ hc.DIGEST_PUSH_MAX_BYTES); der Volltext liegt als Datei
+    # hc.DIGEST_ARCHIVE_DIR/<Datum>.txt im Repo (Phase prepare) und wird im
+    # Workflow-Log ausgegeben.
+    push_parts = _push_parts(
+        body, state_fails, prov_fails,
+        extra_warn_lines=([news_coverage_warn] if news_coverage_warn else [])
+        + list(coverage_warns) + list(coverage_silent_empty_warns)
+        + list(watchdog_lines or []),
+        counter_lines=[freeze_line, suw_line, truth_check_line, treffer_line,
+                       ab_line, ape_counter_line],
+    )
+    outbox = {
+        "digest_date": today_iso,
+        "title": title, "priority": priority, "tags": tags,
+        **push_parts,
+    }
+
     if dry_run:
         print(f"[DRY-RUN] {title} (priority={priority})")
         print(body)
+        print("--- Push-Kurzfassung ---")
+        print(_short_text(outbox, published=None))
         return 0
 
-    # ntfy-Send mit Exception-Auffang: hartes Versagen (Netzwerk-Bug,
-    # Exception in requests.post) wird wie sent=False behandelt und
-    # zum Workflow-Fail eskaliert. _ntfy_send selbst ist fail-soft,
-    # aber wir wollen kein Silent-Fail wenn NTFY_TOPIC erwartet wird.
-    ntfy_active = bool(NTFY_TOPIC and NTFY_ENABLED)
-    try:
-        sent = _ntfy_send(title, body, priority, tags)
-    except Exception as exc:
-        log.warning("ntfy-Send Exception: %s: %s", type(exc).__name__, exc)
-        sent = False
-
-    if sent or not ntfy_active:
-        # ntfy aktiv UND gesendet → mark today as sent.
-        # ntfy disabled / Test-Mode → trotzdem state-update, damit auch ohne
-        # ntfy nicht mehrfach pro Tag gerechnet wird (lokale Test-Runs).
-        state["last_digest_sent"] = today_iso
     # ``last_successful_run`` ist ein Liveness-Marker: „wann lief der
     # Digest zuletzt überhaupt durch?". Vor 22.05.2026 wurde das Feld
     # nur bei 0 Fails gesetzt — da seit 14.05. jeder Digest mindestens
@@ -791,7 +816,97 @@ def main(*, now_ts: datetime | None = None,
     # {} an einem Nicht-Montag — kein Effekt auf state.update.
     state.update(weekly_state_updates)
 
+    if phase == "prepare":
+        # Volltext ablegen + ins Log; Kurzfassung in die Outbox (RUNNER_TEMP,
+        # nicht ins Repo). Gesendet wird erst nach dem Ablage-Commit.
+        _write_archive(body, digest_date=today_iso, now_ts=now_ts)
+        log.info("Vollständiger Digest (%d Bytes):\n%s",
+                 len(body.encode("utf-8")), body)
+        _save_digest_state(state)
+        _write_outbox(outbox, outbox_path)
+        return 0
+
+    # phase == "all": senden ohne Ablage (Hinweis statt Link).
     _save_digest_state(state)
+    return _send_and_mark(outbox, published=None)
+
+
+# ── Kurzfassung / Ablage / Versand (17.11.2026) ─────────────────────────────
+
+
+def _push_parts(body: str, state_fails: list[dict], prov_fails: list[dict], *,
+                extra_warn_lines: list[str],
+                counter_lines: list) -> dict:
+    """Bausteine der Kurzfassung (JSON-serialisierbar, für die Outbox)."""
+    head = body.split("\n")[:2]
+    prompt_tail = None
+    if hc._DIAGNOSE_PROMPT_SEP in body:
+        prompt_tail = (hc._DIAGNOSE_PROMPT_SEP + "\n"
+                       + body.split(hc._DIAGNOSE_PROMPT_SEP, 1)[1].strip())
+    return {
+        "head": head,
+        "alarms": hc.digest_alarm_lines(state_fails, prov_fails,
+                                        extra_warn_lines=extra_warn_lines),
+        "counters": [c for c in counter_lines if c],
+        "prompt_tail": prompt_tail,
+    }
+
+
+def _short_text(outbox: dict, *, published: bool | None) -> str:
+    return hc.compose_digest_push(
+        outbox.get("head") or [], outbox.get("alarms") or [],
+        outbox.get("counters") or [],
+        hc.digest_link_line(outbox.get("digest_date") or "?", published),
+        prompt_tail=outbox.get("prompt_tail"))
+
+
+def _write_archive(body: str, *, digest_date: str, now_ts: datetime) -> pathlib.Path | None:
+    """Schreibt den vollständigen Digest nach DIGEST_ARCHIVE_DIR/<Datum>.txt.
+    Fail-soft (False-y Rückgabe → der Versand meldet dann „nicht abgelegt“,
+    weil der Commit-Schritt nichts zu pushen findet)."""
+    try:
+        ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
+        path = ARCHIVE_DIR / f"{digest_date}.txt"
+        path.write_text(hc.digest_archive_text(
+            body, digest_date=digest_date,
+            created_utc=now_ts.strftime("%Y-%m-%d %H:%M")), encoding="utf-8")
+        return path
+    except OSError as exc:
+        log.warning("Digest-Ablage fehlgeschlagen: %s", exc)
+        return None
+
+
+def _write_outbox(outbox: dict, path) -> None:
+    p = pathlib.Path(path) if path else DEFAULT_OUTBOX
+    p.write_text(json.dumps(outbox, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+def _send_and_mark(outbox: dict, *, published: bool | None) -> int:
+    """Sendet die Kurzfassung und setzt ``last_digest_sent``. Exit 1, wenn
+    ntfy aktiv ist und der Versand scheitert (Fail-Visibility 16.05.2026)."""
+    ntfy_active = bool(NTFY_TOPIC and NTFY_ENABLED)
+    short = _short_text(outbox, published=published)
+    log.info("Push-Kurzfassung: %d Bytes (Grenze %d, Deckel %d)",
+             len(short.encode("utf-8")), hc.NTFY_MESSAGE_LIMIT_BYTES,
+             hc.DIGEST_PUSH_MAX_BYTES)
+    # ntfy-Send mit Exception-Auffang: hartes Versagen (Netzwerk-Bug,
+    # Exception in requests.post) wird wie sent=False behandelt und
+    # zum Workflow-Fail eskaliert. _ntfy_send selbst ist fail-soft,
+    # aber wir wollen kein Silent-Fail wenn NTFY_TOPIC erwartet wird.
+    try:
+        sent = _ntfy_send(outbox.get("title") or "Health-Check", short,
+                          outbox.get("priority") or "default", outbox.get("tags"))
+    except Exception as exc:
+        log.warning("ntfy-Send Exception: %s: %s", type(exc).__name__, exc)
+        sent = False
+
+    if sent or not ntfy_active:
+        # ntfy aktiv UND gesendet → mark today as sent.
+        # ntfy disabled / Test-Mode → trotzdem state-update, damit auch ohne
+        # ntfy nicht mehrfach pro Tag gerechnet wird (lokale Test-Runs).
+        state = _load_digest_state()
+        state["last_digest_sent"] = outbox.get("digest_date")
+        _save_digest_state(state)
 
     # Fail-Visibility-Fix (16.05.2026): Wenn ntfy aktiv erwartet wird
     # aber der Send fehlgeschlagen ist → exit 1. State ist bereits
@@ -804,5 +919,34 @@ def main(*, now_ts: datetime | None = None,
     return 0
 
 
+def send_phase(*, outbox_path=None, published: bool | None) -> int:
+    """Phase ``send`` (Workflow, nach dem Ablage-Commit): liest die Outbox
+    der Phase ``prepare``. Keine Outbox (heute schon gesendet / prepare
+    gescheitert) → nichts senden, Exit 0 (prepare-Fehler macht den Lauf
+    ohnehin rot)."""
+    p = pathlib.Path(outbox_path) if outbox_path else DEFAULT_OUTBOX
+    try:
+        outbox = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        log.info("Keine Digest-Outbox (%s) — nichts zu senden.", p.name)
+        return 0
+    return _send_and_mark(outbox, published=published)
+
+
+def _cli(argv: list[str]) -> int:
+    import argparse
+    ap = argparse.ArgumentParser(description="Health-Check-Digest")
+    ap.add_argument("--phase", choices=("all", "prepare", "send"), default="all")
+    ap.add_argument("--outbox", default=None)
+    ap.add_argument("--published", default="",
+                    help="send: 'true' nur wenn die Ablage nach main gepusht wurde")
+    ap.add_argument("--force", action="store_true")
+    ap.add_argument("--dry-run", action="store_true")
+    a = ap.parse_args(argv)
+    if a.phase == "send":
+        return send_phase(outbox_path=a.outbox,
+                          published=(a.published.strip().lower() == "true"))
+    return main(force=a.force, dry_run=a.dry_run, phase=a.phase, outbox_path=a.outbox)
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(_cli(sys.argv[1:]))

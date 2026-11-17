@@ -4354,7 +4354,38 @@ ASCII-clean. Body bleibt vollständig UTF-8 (läuft als ``data=``).
 
 **Faustregel für künftige ntfy-Sender:** **immer URL-Pattern**,
 ASCII-only Title, UTF-8 Body, Tags als komma-getrennter String im
-Header. JSON-API wird im Tool nicht mehr verwendet.
+Header. JSON-API wird im Tool nicht mehr verwendet. **Body unter 4096
+Bytes halten:** längere Nachrichten macht ntfy NICHT zu HTTP 413, sondern
+zu einem Anhang „attachment.txt“, der auf ntfy.sh nach **3 h verfällt**
+(ntfy `docs/publish.md`, `server/config.go`).
+
+**Kurzfassung + Volltext-Ablage (seit 17.11.2026):** Befund 16.11.2026 —
+der Montags-Digest (Wochenblock) war 6189 Bytes lang, kam als Anhang an
+und war verfallen; darin stand eine aktive S8-warn. Seitdem sendet der
+Digest nur noch eine **Kurzfassung ≤ `DIGEST_PUSH_MAX_BYTES`** (3500 =
+`NTFY_MESSAGE_LIMIT_BYTES` 4096 − `DIGEST_PUSH_MARGIN_BYTES` 596, in
+UTF-8-Bytes): Status · **alle** crit-/warn-Zeilen vollständig
+(`digest_alarm_lines`: crit State → crit Provider → warn State → warn
+Provider → Abdeckungs-/Watchdog-Warnzeilen) · Zähler (Freeze, SUW,
+Wahrheits-Abgleich, Treffer-Score, Datenprüfung Short Float,
+ApeWisdom-Schatten) · bei crit der Diagnose-Prompt, falls Platz · als
+letzte Zeile „vollständiger Digest: <Link>“. Passen nicht alle Alarme:
+„… und N weitere Alarme, siehe Link“ (nie stilles Kürzen; ein einzelner
+überlanger Alarm wird mit „… (vollständig im Link)“ gekürzt).
+`compose_digest_push` ist pure und deterministisch. Der Volltext liegt
+je Tag in `health_check_digests/JJJJ-MM-TT.txt` (nie gelöscht, Verlauf
+zusätzlich über die Git-Historie), Link
+`https://raw.githubusercontent.com/easywebb911/Aktien-Update/main/health_check_digests/<Datum>.txt`
+(öffentliches Repo, ohne Anmeldung, verfällt nicht; kein Topic, keine
+Secrets im Text). Workflow-Ablauf: `--phase prepare` (rechnen, Volltext
+ablegen + ins Log, Kurzfassung in eine Outbox in `$RUNNER_TEMP`) →
+„Publish full digest“ (eigener Worktree, pusht nur
+`health_check_digests/`, setzt `published=true`) → `--phase send`
+(Link nur bei `published=true`, sonst Hinweis „nicht abgelegt“ statt
+totem Link; Exit 1 bei Versand-Fehler) → State-Commit (sichert die
+Ablage ein zweites Mal). `main()` ohne Phase (Tests, Hand-Aufruf) sendet
+die Kurzfassung ohne Ablage. Test `scripts/mock_test_digest_push_short.py`.
+**Rückweg:** Revert; `health_check_digests/` darf liegen bleiben.
 
 **Komponenten:**
 

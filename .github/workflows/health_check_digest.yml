@@ -63,10 +63,70 @@ jobs:
       - name: Install runtime dependencies
         run: pip install requests
 
-      - name: Run Health-Check Digest
+      # Ablauf seit 17.11.2026 (Befund 16.11.: 6189-Byte-Digest kam als
+      # verfallener ntfy-Anhang an): (1) prepare rechnet, legt den Volltext
+      # unter health_check_digests/<Datum>.txt ab und schreibt die
+      # Kurzfassung in eine Outbox ($RUNNER_TEMP, nicht im Repo); (2) die
+      # Ablage wird nach main gepusht; (3) send schickt die Kurzfassung
+      # (<= 3500 Bytes) mit Link — nur wenn (2) nachweislich gepusht hat,
+      # sonst mit Hinweis statt totem Link.
+      - name: Run Health-Check Digest (prepare)
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-        run: python scripts/health_check_digest.py
+        run: python scripts/health_check_digest.py --phase prepare --outbox "$RUNNER_TEMP/digest_outbox.json"
+
+      - name: Publish full digest (health_check_digests/)
+        id: publish
+        continue-on-error: true
+        run: |
+          # Eigener Worktree: der Arbeitsbaum (State-Dateien aus prepare) wird
+          # NICHT zurückgesetzt. Nur health_check_digests/ wird committet.
+          if [ ! -d health_check_digests ]; then
+            echo "Keine Digest-Ablage (heute schon gesendet oder prepare ohne Ablage)."
+            exit 0
+          fi
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          SRC="$(pwd)/health_check_digests"
+          PUB="${RUNNER_TEMP}/digest_publish"
+          pushed=0
+          for attempt in 1 2 3 4 5; do
+            if ! git fetch origin main; then
+              echo "fetch fehlgeschlagen (Versuch $attempt) — retry."
+              sleep 2
+              continue
+            fi
+            if [ -d "$PUB" ]; then
+              git worktree remove --force "$PUB"
+            fi
+            git worktree add --detach "$PUB" origin/main
+            mkdir -p "$PUB/health_check_digests"
+            cp "$SRC"/*.txt "$PUB/health_check_digests/"
+            # published nur bei: Datei schon identisch auf main ODER
+            # commit UND push erfolgreich (keine &&-Kette mit verschlucktem
+            # Fehler: jeder Teilbefehl muss gelingen).
+            if ( cd "$PUB" && git add health_check_digests && \
+                 { git diff --staged --quiet || \
+                   { git commit -m "Health-Check-Digest Volltext $(date -u '+%Y-%m-%d')" && \
+                     git push origin HEAD:main; }; } ); then
+              pushed=1
+              break
+            fi
+            echo "push rejected (Versuch $attempt) — neu fetchen und retry."
+            sleep 2
+          done
+          if [ "$pushed" -eq 1 ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ERROR: Digest-Datei nicht gepusht — Push enthält Hinweis statt Link."
+            exit 1
+          fi
+
+      - name: Send digest push (short)
+        if: always()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python scripts/health_check_digest.py --phase send --outbox "$RUNNER_TEMP/digest_outbox.json" --published "${{ steps.publish.outputs.published }}"
 
       - name: Paper C — einmalige Freeze-Auswertung (nur bei Input paper_c)
         if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.paper_c }}
@@ -111,6 +171,14 @@ jobs:
           # nächsten Checkout verloren).
           FRESH="${RUNNER_TEMP:-/tmp}/digest_state_fresh.json"
           cp health_check_digest_state.json "$FRESH"
+          # Volltext-Ablage (17.11.2026): falls der Publish-Schritt scheiterte,
+          # hier ein zweiter Versuch (die Push-Nachricht hat dann schon den
+          # Hinweis „nicht abgelegt“ — der spätere Link-Ort ist trotzdem gefüllt).
+          FRESH_DG="${RUNNER_TEMP:-/tmp}/digest_archive_fresh"
+          mkdir -p "$FRESH_DG"
+          if [ -d health_check_digests ]; then
+            cp health_check_digests/*.txt "$FRESH_DG"/
+          fi
           FRESH_EVAL="${RUNNER_TEMP:-/tmp}/eval_results_fresh.jsonl"
           if [ -f eval_results.jsonl ]; then
             cp eval_results.jsonl "$FRESH_EVAL"
@@ -141,6 +209,11 @@ jobs:
             git reset --hard origin/main
             cp "$FRESH" health_check_digest_state.json
             git add health_check_digest_state.json
+            if [ -n "$(ls "$FRESH_DG" 2>/dev/null)" ]; then
+              mkdir -p health_check_digests
+              cp "$FRESH_DG"/*.txt health_check_digests/
+              git add health_check_digests
+            fi
             if [ -f "$FRESH_EVAL" ]; then
               cp "$FRESH_EVAL" eval_results.jsonl
               git add eval_results.jsonl

@@ -5582,7 +5582,7 @@ neu getestet.
 
 | Datum / Auslöser | Was | open_item |
 |---|---|---|
-| **Mo 16.11.2026** | **ApeWisdom-Abdeckung** prüfen (Treffer-Quote, `coverage_history.jsonl` `n_mit_daten`, seit 02.11. mit 5 Seiten; FetchFailed-Läufe getrennt zählen) | `apewisdom-abdeckung` |
+| Auslöser: Digest-Zähler „🗣 ApeWisdom-Schatten“ **500/500** (Stand 17.11.: 127; Schätzung ~Ende Jan. 2027, nicht bindend) | **ApeWisdom:** Easy-Entscheid 17.11.2026 — **weiter sammeln, KEIN Test**; bei 500 Top-10-Einstiegen mit Abdeckungs-Angabe eine vorab festgelegte Frage formulieren (vor jeder Rechnung). Das Abbruchkriterium vom 02.11. (< 15 % → abschalten) gilt nicht mehr | `apewisdom-abdeckung` |
 | **Mo 16.11. (Postclose) / Di 17.11. (Digest)** | **Gewinn-Felder** (`earnings_surprise_pit`, `material_8k_events_14d`; Log `[earnings_fields]`, Digest „🧾 Gewinn-Felder“) · **`oi_stand`** am ersten Postclose-Punkt · `letzte_zeile` in neuen Einträgen | `earnings-surprise-nicht-persistiert`, `material-8k-rueckblick-zu-kurz`, `oi-stand-kennzeichen` |
 | **Di 17.11., ~23:07 UTC** (erster `score_abgleich` für D = 16.11.) | **Fix-B-Wirkungsbeleg:** 0 Zeilen mit |Δ| ≥ 0,5 erwartet → Easy melden → Cleanup Probe 1 | `fixb-wirkungsbeleg` |
 | erster Nachtlauf | **Berichtsdatum Variante A** belegen (`nacht_lauf_et`, kein Verwurf) | `berichtsdatum-wurzelloesung-nacht-probe` |
