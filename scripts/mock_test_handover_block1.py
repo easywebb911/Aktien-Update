@@ -219,8 +219,18 @@ probe = (ROOT / ".github/workflows/diagnose_provider_probe.yml").read_text(encod
 check("count=5&" not in probe and probe.count("count=10&") == 2, "diagnose_provider_probe: count=10")
 check("handover_eintraege/" in (ROOT / "_config.yml").read_text(encoding="utf-8"), "Pages: Ordner ausgeschlossen")
 
-# 10 echte Repo-Datei
-check(hb.main(["--check"]) == 0, "echtes Repo: Bereich passt zum Ordner")
+# 10 echte Repo-Datei: Marken gültig, Eintragsdateien gültig, und jeder Eintrag
+# im erzeugten Bereich stammt aus dem Ordner. NICHT „Bereich == Ordner“: in einem
+# PR liegt die eigene Eintragsdatei schon im Ordner, der Bot schreibt sie erst nach
+# dem Merge (sonst wäre dieser Test in jedem PR rot — Befund #743).
+_real = (ROOT / hb.HANDOVER).read_bytes().decode("utf-8")
+_reg = hb.split_handover(_real)[1]
+_ents = hb.load_entries(ROOT)
+_blocks = [b for b in _reg.split("\n\n### ") if b.strip()]
+_in_region = [("### " + b if not b.startswith("### ") else b).strip() for b in _blocks[1:]]
+_texts = {e.text.strip() for e in _ents}
+check(all(any(t.startswith(x[:200]) or x.startswith(t[:200]) for t in _texts) for x in _in_region),
+      f"echtes Repo: Marken gültig, {len(_in_region)} erzeugte Einträge stammen aus dem Ordner")
 
 print()
 if FAILS:
