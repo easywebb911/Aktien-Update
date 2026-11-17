@@ -2,13 +2,13 @@
   "abruf_fehler_ticker": {},
   "davon_null_nach_grund": {},
   "erneut_versuchen": 0,
-  "geschrieben": 11,
-  "last_run_utc": "2026-11-16T23:00:42+00:00",
+  "geschrieben": 10,
+  "last_run_utc": "2026-11-17T21:53:34+00:00",
   "leer_vorgemerkt": {},
   "nicht_reif": 10,
-  "pruefung_hoch_tief_abweichend": 0,
+  "pruefung_hoch_tief_abweichend": 1,
   "pruefung_nicht_moeglich": 0,
   "rate_limit_abbruch": false,
   "schema_v": 1,
-  "zeilen_gesamt": 220
+  "zeilen_gesamt": 230
 }
