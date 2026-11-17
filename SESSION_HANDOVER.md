@@ -3432,6 +3432,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 17.11.2026 — Digest-Push-Kurzfassung + Volltext-Ablage (1 PR)
+
+- `#738` (Branch `claude/digest-kurzfassung-n4t8`, Branch-Commit `046c3c47`, kein Merge-Hash — Regel a).
+  Befund 16.11.: Digest 6189 Bytes > ntfy-Grenze 4096 → Anhang `attachment.txt`, nach 3 h verfallen (darin
+  aktive S8-warn); Grenze aus ntfy-Quelltext belegt (kein HTTP 413, Kommentar korrigiert). Kurzfassung
+  `compose_digest_push` ≤ 3500 Bytes (Status · alle crit/warn · Zähler · Link, „… und N weitere Alarme“),
+  Volltext `health_check_digests/JJJJ-MM-TT.txt` (raw-Link), Workflow prepare → publish → send → State.
+  ApeWisdom: Easy-Entscheid weiter sammeln, Zähler n/500 im Digest, Wiedervorlage ereignisgebunden.
+  Neues open_item `digest-startverzug` (Diagnose, nicht gebaut). Test `mock_test_digest_push_short.py` (12).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#736`, eigene `#738` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 17.11.2026 — Erkundungsfeld Stufe 1, PR B (1 PR, neuer Workflow, Manual-Merge)
 
 - `#736` (Branch `claude/erkundungsfeld-stufe1-q8m3`, Branch-Commit `b703aa4d`, kein Merge-Hash — Regel a).
@@ -5582,7 +5594,7 @@ neu getestet.
 
 | Datum / Auslöser | Was | open_item |
 |---|---|---|
-| **Mo 16.11.2026** | **ApeWisdom-Abdeckung** prüfen (Treffer-Quote, `coverage_history.jsonl` `n_mit_daten`, seit 02.11. mit 5 Seiten; FetchFailed-Läufe getrennt zählen) | `apewisdom-abdeckung` |
+| Auslöser: Digest-Zähler „🗣 ApeWisdom-Schatten“ **500/500** (Stand 17.11.: 127; Schätzung ~Ende Jan. 2027, nicht bindend) | **ApeWisdom:** Easy-Entscheid 17.11.2026 — **weiter sammeln, KEIN Test**; bei 500 Top-10-Einstiegen mit Abdeckungs-Angabe eine vorab festgelegte Frage formulieren (vor jeder Rechnung). Das Abbruchkriterium vom 02.11. (< 15 % → abschalten) gilt nicht mehr | `apewisdom-abdeckung` |
 | **Mo 16.11. (Postclose) / Di 17.11. (Digest)** | **Gewinn-Felder** (`earnings_surprise_pit`, `material_8k_events_14d`; Log `[earnings_fields]`, Digest „🧾 Gewinn-Felder“) · **`oi_stand`** am ersten Postclose-Punkt · `letzte_zeile` in neuen Einträgen | `earnings-surprise-nicht-persistiert`, `material-8k-rueckblick-zu-kurz`, `oi-stand-kennzeichen` |
 | **Di 17.11., ~23:07 UTC** (erster `score_abgleich` für D = 16.11.) | **Fix-B-Wirkungsbeleg:** 0 Zeilen mit |Δ| ≥ 0,5 erwartet → Easy melden → Cleanup Probe 1 | `fixb-wirkungsbeleg` |
 | erster Nachtlauf | **Berichtsdatum Variante A** belegen (`nacht_lauf_et`, kein Verwurf) | `berichtsdatum-wurzelloesung-nacht-probe` |
