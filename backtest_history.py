@@ -47,6 +47,7 @@ from config import (
 )
 import entry_score as entry_score_module  # Entry-Timing-Score (Shadow, pure)
 import trading_date  # finale Schlusskurse (last_final_close_date, Fix 03.11.2026)
+from aktienbasis_check import FIELD as _AKTIENBASIS_FIELD  # PR C 17.11.2026
 import material_8k as material_8k_module   # §6c FDA-/materielle-8-K-Sammlung
 import ssr_restriction as ssr_restriction_module                   # Rule-201 SSR-Status (forward-only)
 import wiki_attention as wiki_attention_module  # Wikipedia-Attention-Feed
@@ -1709,6 +1710,12 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         # Item 2.02 + zweites 8-K-Fenster (14 Tage).
         entry.update(_build_earnings_fields(
             s, m8k_extras_by_ticker.get(s["ticker"]), MATERIAL_8K_ENABLED))
+        # Datenprüfung Aktienbasis / Short Float (17.11.2026, PR C, forward-
+        # only, S10_OBSERVED, kein Score-/Filter-Einfluss): Rohwerte + zwei
+        # Kennzeichen aus aktienbasis_check.run (Stand des Laufs). Unbekannt
+        # (Prüfung lief nicht) → null.
+        _ab = s.get(_AKTIENBASIS_FIELD)
+        entry[_AKTIENBASIS_FIELD] = dict(_ab) if isinstance(_ab, dict) else None
         history.append(entry)
         _new_entries.append(entry)
         n_added += 1

@@ -4705,6 +4705,36 @@ Verfall) bleibt unverändert.
 - **Keine Auswertung, keine Anzeige, kein Score-/Filter-/Push-Effekt.** Test
   `scripts/mock_test_options_intraday.py`. Rückweg: Revert (Dateien dürfen liegen bleiben).
 
+## Datenprüfung Aktienbasis / Short Float (seit 17.11.2026, PR C)
+
+**Anlass:** FGL 16.11.2026 — Yahoo-Marktkap 77.069 $ auf veralteter Aktienbasis (< Float × Kurs),
+Yahoo-Short-Float 38,9 %, FINRA-Bestand 30.10. (28.526) / Float 609.806 = 4,7 % → FGL hätte den
+US-Filter (≥ 15 %) nicht passiert. **Nur Kennzeichen + Rohwerte** — kein Effekt auf `score()`,
+Conviction, Filter, Auswahl oder Reihenfolge (Wächter im Test).
+
+- **Modul** `aktienbasis_check.py`, Aufruf in `main()` nach allen Short-Float-Korrekturen (Step 3c)
+  und vor dem Rendern, für Top-10 + Watchlist-Kandidaten (`_wl_outsiders_for_pool`). Raise-frei.
+- **(a) Aktienbasis widersprüchlich:** Marktkap < `AKTIENBASIS_MCAP_FLOAT_FACTOR` (0,9) × Float × Kurs.
+- **(b) Short Float abweichend:** FINRA-Bestand / Float weicht um mehr als
+  `SHORT_FLOAT_FINRA_ABWEICHUNG_FAKTOR` (2) vom verwendeten Short Float ab (beide < 1 % → kein
+  Kennzeichen). Stichtag = jüngster mit Veröffentlichung (`finra_publication_date`, 7 Handelstage)
+  ≤ Berichtstag D; FINRA-Split-Kennzeichen (`stockSplitFlag`) wird ausgewiesen.
+- **FINRA-Abruf** POST `consolidatedShortInterest` (Filter `symbolCode`, ohne Zugangsdaten),
+  `FINRA_CSI_TIMEOUT_S` je Abruf, `FINRA_CSI_BUDGET_S` gesamt, Rate-Limit → kein Retry, Rest
+  „nicht prüfbar“. Cache `finra_si_cache.json` (TTL 20 h, Prune 30 Tage), im Daily-Workflow committet.
+- **Persistenz:** Backtest-Feld `aktienbasis_pruefung` (forward-only, S10_OBSERVED; unbekannt =
+  null): Marktkap, Float, Aktienzahl, Kurs, verwendeter Short Float + Quelle, FINRA-Bestand,
+  Stichtag, Veröffentlichung, Split-Kennzeichen, FINRA-Short-Float, beide Kennzeichen mit Grund.
+- **Anzeige:** bei (a) oder (b) „⚠ zweifelhaft“ in der Kachel Short Float (Tooltip mit Satz), Zeile
+  in „Short-Daten“ („Short Float zweifelhaft — FINRA-Bestand ergibt 4,7 % …“), Marktkap-Zeile
+  „⚠ widersprüchlich“ bei (a); Risiko-Text nennt bei (a) keine Marktkap (Risiko-Punkte gleich).
+  Helfer `_aktienbasis_card_parts` (v1 == v2). Rundung: eine Nachkommastelle, Komma.
+- **Digest:** „Datenprüfung Short Float (TT.MM.): x von n auffällig (Ticker)“ aus dem jüngsten
+  Postclose — Hinweis, zählt nicht in die Digest-Klasse.
+- Test `scripts/mock_test_aktienbasis_check.py` (FGL-Fixture). Auswertung: open_item
+  `datenpruefung-short-float-auswertung` (Wiedervorlage 02.12.2026). **Rückweg:** Revert; das Feld in
+  alten Einträgen und der Cache dürfen liegen bleiben.
+
 ## Gewinn-Felder im Backtest (seit 14.11.2026)
 
 Zwei additive Felder je neuem `backtest_history.json`-Eintrag (Easy-Entscheid

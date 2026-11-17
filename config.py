@@ -1365,6 +1365,22 @@ MATERIAL_8K_14D_CAP_N         = 16    # Bloat-Schutz (doppeltes 5-Tage-Cap)
 # zählt nur; kein Feldname-Literal in health_check.py — Isolations-Wächter H1).
 EARNINGS_FIELDS_DIGEST_KEYS = ("earnings_surprise_pit", "material_8k_events_14d")
 
+# ── Datenprüfung Aktienbasis / Short Float (Easy-Entscheid 17.11.2026, PR C) ─
+# Modul ``aktienbasis_check.py``. NUR Kennzeichen + Rohwerte: kein Effekt auf
+# score(), Conviction, Filter, Auswahl oder Reihenfolge. Anlass FGL 16.11.2026
+# (Yahoo-Marktkap auf veralteter Aktienbasis, Short Float 38,9 % gegen FINRA-
+# Bestand/Float 4,7 %). Backtest-Feld ``aktienbasis_pruefung`` (forward-only).
+AKTIENBASIS_MCAP_FLOAT_FACTOR       = 0.9    # (a) Marktkap < 0,9 × Float × Kurs
+SHORT_FLOAT_FINRA_ABWEICHUNG_FAKTOR = 2.0    # (b) Abweichung > Faktor 2
+SHORT_FLOAT_FINRA_MIN_PCT           = 1.0    # beide Werte < 1 % → kein Kennzeichen
+FINRA_CSI_ENABLED      = True
+FINRA_CSI_URL          = "https://api.finra.org/data/group/otcMarket/name/consolidatedShortInterest"
+FINRA_CSI_TIMEOUT_S    = 10      # je Abruf
+FINRA_CSI_BUDGET_S     = 60.0    # gesamter Abruf je Lauf, danach „nicht prüfbar“
+FINRA_CSI_CACHE_FILE   = "finra_si_cache.json"
+FINRA_CSI_CACHE_TTL_H  = 20      # Premarket-Abruf deckt den Postclose desselben Tages
+FINRA_CSI_CACHE_PRUNE_DAYS = 30
+
 # ── SSR-Sammelfeld (Rule-201 Short-Sale-Restriction, 28.07.2026) ─────────────
 # Erhebt pro postclose-Top-10-Record den SSR-Status am Entry-Tag T aus dem
 # Cboe-Jahres-Kumulativ (BatsCircuitBreakers<year>.csv). Anker Cboe (nicht der
@@ -2749,6 +2765,11 @@ S10_OBSERVED_FIELDS = frozenset({
     # None) → nur OBSERVED, KEIN MUSS/LAG. Kein Score-/Filter-/Push-Effekt,
     # NIEMALS als Score-Feature lesen. Schema bleibt v4 (additiv).
     "earnings_surprise_pit", "material_8k_events_14d",
+    # Datenprüfung Aktienbasis / Short Float (Easy-Entscheid 17.11.2026, PR C,
+    # forward-only, additiv): Rohwerte (Marktkap, Float, Aktienzahl, FINRA-
+    # Bestand + Stichtag, FINRA-Short-Float) und zwei Kennzeichen. LEGITIM
+    # „nicht_pruefbar“ → nur OBSERVED. Kein Score-/Filter-/Push-Effekt.
+    "aktienbasis_pruefung",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check

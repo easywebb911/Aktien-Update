@@ -6016,15 +6016,26 @@ def risk_assessment(stock: dict) -> tuple[str, str, str]:
         reasons.append(f"Hohes Short-Interesse ({sf:.1f} %) erhöht die Volatilität deutlich.")
 
     cap = stock.get("market_cap") or stock.get("yf_market_cap")
+    # PR C (17.11.2026): bei widersprüchlicher Aktienbasis die Marktkap nicht
+    # als Tatsache nennen. Punkte (und damit die Risiko-Stufe) bleiben gleich.
+    _ab = stock.get("aktienbasis_pruefung")
+    _cap_unsicher = isinstance(_ab, dict) and _ab.get("aktienbasis") == "widerspruechlich"
     if cap:
         if cap < 300e6:
             pts += 2
             reasons.append(
+                "Micro-Cap (Marktkapitalisierung unsicher, Aktienzahl widersprüchlich) – "
+                "geringe Liquidität, Kursmanipulation möglich."
+                if _cap_unsicher else
                 f"Micro-Cap ({fmt_cap(cap)}) – geringe Liquidität, Kursmanipulation möglich."
             )
         elif cap < 2e9:
             pts += 1
-            reasons.append(f"Small-Cap ({fmt_cap(cap)}) mit eingeschränkter Liquidität.")
+            reasons.append(
+                "Small-Cap (Marktkapitalisierung unsicher, Aktienzahl widersprüchlich) "
+                "mit eingeschränkter Liquidität."
+                if _cap_unsicher else
+                f"Small-Cap ({fmt_cap(cap)}) mit eingeschränkter Liquidität.")
 
     rv = _safe_float(stock.get("rel_volume"))   # None-/NaN-Guard (present-but-None/NaN)
     if rv > 5:
@@ -7938,6 +7949,7 @@ def _card(i: int, s: dict) -> str:
 
     # Institutional ownership row (+ optional 13F note) — shared Helper (v1 == v2)
     _inst_row = _inst_row_html(s)
+    _ab_tile, _ab_row, _ab_cap = _aktienbasis_card_parts(s)
 
     # Float size row (Feature 2 — nutzt vorberechnete Detail-String aus _float_display)
     if float_detail_str:
@@ -8093,7 +8105,7 @@ def _card(i: int, s: dict) -> str:
   <div class="metrics-row">
     <div class="metric-box" style="--mc:{sf_col}">
       <span class="m-val">{sf_display}</span>
-      <span class="m-lbl">Short Float</span>
+      <span class="m-lbl">Short Float</span>{_ab_tile}
     </div>
     <div class="metric-box" style="--mc:{sr_col}">
       <span class="m-val">{sr_display}</span>
@@ -8125,12 +8137,12 @@ def _card(i: int, s: dict) -> str:
         {agent_boost_row}
         {conviction_row}
         <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
-        <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}{_ab_cap}</td></tr>
         {_float_row}
         {sector_detail_row}
         <tr><td>52W-Hoch / -Tief</td><td>${_finite_or_zero(s.get('52w_high')):.2f} / ${_finite_or_zero(s.get('52w_low')):.2f}</td></tr>
         {_inst_row}
-        <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>
+        <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>{_ab_row}
         {edgar_row}
         <tr><td>SI-Trend (3M)</td><td>{trend_html}</td></tr>
         {si_shares_per_day_row}
@@ -8555,6 +8567,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
 
     # ── Detail table formatted fields ────────────────────────────────────
     cap_fmt       = fmt_cap(cap_val)
+    _ab_parts     = _aktienbasis_card_parts(s)
     hi_str        = f"{_finite_or_zero(s.get('52w_high')):.2f}"
     lo_str        = f"{_finite_or_zero(s.get('52w_low')):.2f}"
     avg_vol_str   = f"{s.get('avg_vol_20d', 0):,.0f}"
@@ -8665,6 +8678,9 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "si_t3_disp":     si_t3_disp,
         "ctb_util_rows":  ctb_util_rows,
         "cap_fmt":        cap_fmt,
+        "ab_tile_html":   _ab_parts[0],
+        "ab_row_html":    _ab_parts[1],
+        "ab_cap_html":    _ab_parts[2],
         "hi_str":         hi_str,
         "lo_str":         lo_str,
         "avg_vol_str":    avg_vol_str,
@@ -9101,6 +9117,26 @@ def _iso_to_de(iso: str) -> str:
         return f"{d}.{m}.{y}"
     except (AttributeError, ValueError):
         return iso or ""
+
+
+def _aktienbasis_card_parts(s: dict) -> tuple[str, str, str]:
+    """Karten-Hinweis der Datenprüfung Aktienbasis / Short Float (PR C,
+    17.11.2026). Liefert ``(kachel_html, zeile_html, marktkap_zusatz_html)`` —
+    alle drei leer, wenn der Kandidat nicht auffällig ist oder die Prüfung
+    nicht lief. v1 ``_card`` und v2 ``_build_card_ctx`` nutzen denselben
+    Helfer (byte-identisch). REIN ANZEIGE: kein Einfluss auf Rang/Score."""
+    import html as _html_mod
+    import aktienbasis_check as _abc
+    res = s.get(_abc.FIELD)
+    if not _abc.is_auffaellig(res):
+        return "", "", ""
+    txt = _html_mod.escape(_abc.warning_text(res), quote=True)
+    tile = f'<span class="sf-doubt" title="{txt}">⚠ zweifelhaft</span>'
+    row = (f'<tr class="sf-doubt-row"><td colspan="2"><span class="sf-doubt-txt">'
+           f'⚠ {txt}</span></td></tr>')
+    cap = (' <span class="sf-doubt-inline">⚠ widersprüchlich</span>'
+           if res.get("aktienbasis") == "widerspruechlich" else "")
+    return tile, row, cap
 
 
 def _inst_row_html(s: dict) -> str:
@@ -20783,6 +20819,21 @@ def main():
     # auf einer KOPIE des Stock-Dicts (``enriched`` bleibt unverändert, kein
     # Effekt auf Score/Backtest/Exit). Top-10-Ticker und bereits gesetzte
     # Earnings-Werte bleiben unangetastet.
+    # Datenprüfung Aktienbasis / Short Float (Easy-Entscheid 17.11.2026, PR C):
+    # zwei Kennzeichen + Rohwerte je Top-10- und Watchlist-Kandidat, NACH allen
+    # Short-Float-Korrekturen (stockanalysis Step 3c) und VOR dem Rendern.
+    # Rein Anzeige/Persistenz — score(), Conviction, Filter, Auswahl und
+    # Reihenfolge sind zu diesem Zeitpunkt fertig und werden nicht gelesen.
+    # Fail-soft: aktienbasis_check.run raised nie.
+    try:
+        import aktienbasis_check as _abc
+        _t_ab = time.time()
+        _ab_res = _abc.run(list(top10) + list(_wl_outsiders_for_pool),
+                           report_day=_report_day)
+        print(_abc.log_line(_ab_res) + f" in {time.time()-_t_ab:.1f}s", flush=True)
+    except Exception as _ab_exc:  # pragma: no cover — run() ist raise-frei
+        log.warning("Datenprüfung Aktienbasis übersprungen: %r", _ab_exc)
+
     _wl_top10_set = {s["ticker"] for s in top10}
     _wl_agent_sigs = _load_agent_signals_for_display()
     _wl_earn_filled = 0
