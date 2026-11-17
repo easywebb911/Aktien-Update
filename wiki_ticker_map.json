@@ -836,6 +836,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "FGL": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-17T04:09:49Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Founder Group Limited",
+    "substrate": "none",
+    "reason": "issuer_mismatch"
+  },
   "FIP": {
     "qid": null,
     "title": null,
@@ -1402,6 +1411,15 @@
     "company_name_at_resolve": "Novavax, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "OFRM": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-17T04:09:49Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Once Upon A Farm, PBC",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "OPTU": {
     "qid": null,

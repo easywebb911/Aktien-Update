@@ -3534,6 +3534,11 @@
       "date": "2026-11-12",
       "inst_ownership": 0.74523,
       "insider_ownership": 0.09436
+    },
+    {
+      "date": "2026-11-16",
+      "inst_ownership": 0.71961,
+      "insider_ownership": 0.11847
     }
   ],
   "NMAX": [
@@ -4871,6 +4876,11 @@
       "date": "2026-11-12",
       "inst_ownership": 0.89361,
       "insider_ownership": 0.33528998
+    },
+    {
+      "date": "2026-11-16",
+      "inst_ownership": 0.86417,
+      "insider_ownership": 0.36771
     }
   ],
   "HIVE": [
@@ -6783,6 +6793,11 @@
       "date": "2026-11-13",
       "inst_ownership": 1.06826,
       "insider_ownership": 0.027209999
+    },
+    {
+      "date": "2026-11-16",
+      "inst_ownership": 1.05815,
+      "insider_ownership": 0.03652
     }
   ],
   "EDIT": [
@@ -8836,6 +8851,11 @@
       "date": "2026-11-11",
       "inst_ownership": 0.4673,
       "insider_ownership": 0.00043000001
+    },
+    {
+      "date": "2026-11-16",
+      "inst_ownership": 0.45740002,
+      "insider_ownership": 0.0061299996
     }
   ],
   "EBS": [
@@ -10082,6 +10102,11 @@
       "date": "2026-11-11",
       "inst_ownership": 0.81509,
       "insider_ownership": 0.25568
+    },
+    {
+      "date": "2026-11-16",
+      "inst_ownership": 0.80268997,
+      "insider_ownership": 0.26181
     }
   ],
   "PRGS": [
@@ -10789,6 +10814,11 @@
       "date": "2026-11-12",
       "inst_ownership": 0.84678,
       "insider_ownership": 0.14423999
+    },
+    {
+      "date": "2026-11-16",
+      "inst_ownership": 0.84281,
+      "insider_ownership": 0.15977
     }
   ],
   "DBI": [
@@ -11515,6 +11545,11 @@
       "date": "2026-11-13",
       "inst_ownership": 0.24357,
       "insider_ownership": 0.5862
+    },
+    {
+      "date": "2026-11-16",
+      "inst_ownership": 0.23737,
+      "insider_ownership": 0.5969
     }
   ],
   "SONO": [
@@ -11978,6 +12013,11 @@
       "date": "2026-11-13",
       "inst_ownership": 1.08675,
       "insider_ownership": 0.013040001
+    },
+    {
+      "date": "2026-11-16",
+      "inst_ownership": 1.02796,
+      "insider_ownership": 0.049640004
     }
   ],
   "SFIX": [
@@ -12937,6 +12977,11 @@
       "date": "2026-11-09",
       "inst_ownership": 0.15218,
       "insider_ownership": 0.61693
+    },
+    {
+      "date": "2026-11-16",
+      "inst_ownership": 0.23907,
+      "insider_ownership": 0.61935
     }
   ],
   "BHVN": [
@@ -13671,6 +13716,11 @@
       "date": "2026-11-13",
       "inst_ownership": 0.61705,
       "insider_ownership": 0.13085
+    },
+    {
+      "date": "2026-11-16",
+      "inst_ownership": 0.60573,
+      "insider_ownership": 0.14273
     }
   ],
   "SXTC": [
