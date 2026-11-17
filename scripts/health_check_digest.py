@@ -345,16 +345,27 @@ def main(*, now_ts: datetime | None = None,
     cutoff = now_ts - timedelta(hours=DIGEST_WINDOW_HOURS)
 
     state = _load_digest_state()
+    _up = upstream_fail(os.environ.get("UPSTREAM_STATUS"), os.environ.get("UPSTREAM_RUN"))
     if _already_sent_today(state, today_iso) and not force:
-        log.info("Digest heute (%s) bereits gesendet — skip.", today_iso)
-        # Liveness (17.11.2026): auch ein übersprungener Lauf zeigt, dass der
-        # Digest-Workflow lebt und heute bereits gesendet hat — sonst meldet S8
-        # am Wochenende (Freitag-Postclose-Digest Sa ~02 UTC, nächster Sonntag
-        # ~15 UTC) fälschlich „> 26 h“.
-        if not dry_run:
-            state["last_successful_run"] = now_ts.strftime("%Y-%m-%dT%H:%M:%SZ")
-            _save_digest_state(state)
-        return 0
+        if _up is not None:
+            # Ein nicht erfolgreicher Postclose darf nie von der Tages-Sperre
+            # verschluckt werden (Guardian #740) → trotzdem senden.
+            log.info("Digest heute (%s) schon gesendet, aber Postclose nicht "
+                     "erfolgreich — sende trotzdem.", today_iso)
+        else:
+            log.info("Digest heute (%s) bereits gesendet — skip.", today_iso)
+            # Liveness (17.11.2026): wie im Normalpfad last_successful_run auf den
+            # letzten Pipeline-Lauf aus den Logs (nicht auf „jetzt“ — S8 misst
+            # weiter die Pipeline, Guardian #740). Sonst meldet S8 am Wochenende
+            # (Freitag-Postclose-Digest Sa ~02 UTC, nächster Versand So ~15 UTC)
+            # fälschlich „> 26 h“, obwohl ki_agent-Ticks laufen.
+            if not dry_run:
+                _skip_entries = _load_jsonl_window(ROOT / hc.LOG_FILE, cutoff)
+                _skip_last = _latest_run_ts(_skip_entries)
+                if _skip_entries and _skip_last:
+                    state["last_successful_run"] = _skip_last
+                    _save_digest_state(state)
+            return 0
 
     state_entries = _load_jsonl_window(
         ROOT / hc.LOG_FILE, cutoff)
@@ -362,7 +373,6 @@ def main(*, now_ts: datetime | None = None,
         ROOT / hc.LOG_FILE_PROVIDER, cutoff)
 
     state_fails = hc.aggregate_state_fails(state_entries)
-    _up = upstream_fail(os.environ.get("UPSTREAM_STATUS"), os.environ.get("UPSTREAM_RUN"))
     if _up is not None:
         state_fails = [_up] + list(state_fails)
     prov_fails  = hc.aggregate_provider_fails(

@@ -95,7 +95,15 @@ with tempfile.TemporaryDirectory() as t:
     _run(tmp, U(2026, 11, 18, 15, 10), {"UPSTREAM_STATUS": "", "UPSTREAM_RUN": ""}, sent)
     st2 = json.loads((tmp / "state.json").read_text())
     check(len(sent) == 1 and st1["last_digest_sent"] == "2026-11-18", f"Anstoß 22:30 + Rückfall: ein Versand ({len(sent)})")
-    check(st2["last_successful_run"] == "2026-11-18T15:10:00Z", "übersprungener Lauf hält last_successful_run frisch")
+    check(st2["last_successful_run"] == "2026-11-18T15:10:00Z",
+          "übersprungener Lauf: last_successful_run = letzter Pipeline-Lauf aus den Logs")
+    _run(tmp, U(2026, 11, 18, 16, 0), {"UPSTREAM_STATUS": "", "UPSTREAM_RUN": ""}, sent, entries=[])
+    st3 = json.loads((tmp / "state.json").read_text())
+    check(st3["last_successful_run"] == "2026-11-18T15:10:00Z",
+          "übersprungener Lauf ohne Pipeline-Läufe: S8-Marker bleibt alt (kein Verdecken)")
+    _run(tmp, U(2026, 11, 18, 17, 0), {"UPSTREAM_STATUS": "cancelled", "UPSTREAM_RUN": "9"}, sent)
+    check(len(sent) == 2 and "abgebrochen" in sent[1][1], "Postclose-Abbruch durchbricht die Tages-Sperre")
+    del sent[1]
     _run(tmp, U(2026, 11, 19, 2, 0), {"UPSTREAM_STATUS": "failure", "UPSTREAM_RUN": "6"}, sent)
     check(len(sent) == 2 and "POSTCLOSE" in sent[1][1] and "fehlgeschlagen" in sent[1][1],
           "Postclose-Fehlschlag am Folgetag → zweiter Digest mit crit")

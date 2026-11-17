@@ -4403,7 +4403,9 @@ gestartet, Anstoß fehlt). **Digest-Tag** (`digest_day`) beginnt um
 `DIGEST_DAY_START_UTC_HOUR` = 21 UTC: ein Postclose-Ende vor oder nach Mitternacht
 UTC zählt zum Folgetag, der verspätete Rückfall desselben Tags sendet nicht
 doppelt. Ein übersprungener Lauf („heute schon gesendet“) setzt
-`last_successful_run` (S8-Liveness, sonst Fehlalarm am Wochenende). `concurrency`
+`last_successful_run` auf den letzten Pipeline-Lauf aus den Logs (S8 misst weiter
+die Pipeline, kein Fehlalarm am Wochenende). Ein nicht erfolgreicher Postclose
+durchbricht die Tages-Sperre (sein Alarm wird nie verschluckt). `concurrency`
 `health-check-digest` (kein Abbruch). healthchecks.io: der Digest wird dort nicht
 überwacht, keine Änderung nötig. Test `scripts/mock_test_digest_after_postclose.py`.
 **Rückweg:** Revert — der Zeitplan 08:47 läuft unverändert weiter.
