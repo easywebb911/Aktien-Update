@@ -27,6 +27,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import config  # noqa: E402
+import trading_date  # noqa: E402
 
 GR_TEXT = (ROOT / "generate_report.py").read_text(encoding="utf-8")
 BH_TEXT = (ROOT / "backtest_history.py").read_text(encoding="utf-8")
@@ -188,6 +189,10 @@ def _load_v111_collector(BeautifulSoup):
         "SOURCE_POOL_FINVIZ_V111": config.SOURCE_POOL_FINVIZ_V111,
         "requests": _Requests(), "HTTP_HEADERS": {},
         "BeautifulSoup": BeautifulSoup,
+        # _extract greift bis zum nächsten "def" und erfasst damit auch die
+        # Modul-Konstanten nach der Funktion (lesen trading_date) — ohne
+        # diesen Eintrag NameError, sobald bs4 installiert ist.
+        "trading_date": trading_date,
     }
     exec(_extract(GR_TEXT, "get_finviz_screener_v111"), ns)
     return ns["get_finviz_screener_v111"]
