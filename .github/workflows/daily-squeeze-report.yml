@@ -420,6 +420,22 @@ jobs:
             echo "WARNUNG: KI-Agent-Trigger fehlgeschlagen — Daily-Run nicht betroffen."
           fi
 
+      # Health-Check-Digest anstoßen (Easy-Entscheid 17.11.2026): nach JEDEM
+      # Postclose-Lauf, auch bei Fehlschlag/Abbruch (always()). Der Digest
+      # meldet einen nicht erfolgreichen Postclose als crit (UPSTREAM_STATUS).
+      # Postclose-Erkennung: Zeitplan 21:37/21:17 ODER aufgelöste Phase
+      # (Hand-Start). Fehlt der Anstoß (Runner-Ausfall, Lauf nie gestartet),
+      # greift der Zeitplan 08:47 UTC im Digest-Workflow. Werte nur über env.
+      - name: Health-Check-Digest anstoßen (nach Postclose)
+        if: ${{ always() && (github.event.schedule == '37 21 * * 1-5' || github.event.schedule == '17 21 * * 1-5' || env.RUN_PHASE == 'postclose') }}
+        continue-on-error: true
+        timeout-minutes: 2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPSTREAM_STATUS: ${{ job.status }}
+          UPSTREAM_RUN: ${{ github.run_id }}
+        run: gh workflow run health_check_digest.yml --ref main -f upstream_status="$UPSTREAM_STATUS" -f upstream_run="$UPSTREAM_RUN"
+
       # Totmann-Signal an healthchecks.io (Easy-Entscheid 02.11.2026): LETZTER
       # Schritt, nur bei erfolgreichem Lauf. Bleibt der Ping aus, alarmiert
       # healthchecks.io von außen — auch bei GitHub-Zeitplan-Stillstand.

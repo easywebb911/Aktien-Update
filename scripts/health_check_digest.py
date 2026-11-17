@@ -280,6 +280,38 @@ def _ntfy_send(title: str, body: str, priority: str,
 # ── Mehrfach-Trigger-Schutz ─────────────────────────────────────────────
 
 
+# Digest-Tag (17.11.2026, Anstoß am Ende des Postclose-Laufs): der Tag beginnt
+# um DIGEST_DAY_START_UTC_HOUR UTC statt um Mitternacht. Ein Postclose (Plan
+# 21:37 UTC) endet je nach Verspätung vor ODER nach Mitternacht UTC — beide
+# Fälle gehören zum Digest des Folgetags, damit der verspätete Rückfall-Lauf
+# (08:47 UTC, real ~15–19 UTC) desselben Tags nicht ein zweites Mal sendet.
+DIGEST_DAY_START_UTC_HOUR = 21
+
+
+def digest_day(now_ts: datetime) -> str:
+    """ISO-Datum des Digest-Tags: ab 21:00 UTC zählt schon der Folgetag."""
+    return (now_ts + timedelta(hours=24 - DIGEST_DAY_START_UTC_HOUR)).strftime("%Y-%m-%d")
+
+
+# Anstoß aus dem Daily-Run (workflow_dispatch-Inputs, über env): Status des
+# Postclose-Laufs. Nur einfache Werte (GitHub job.status / Run-Nummer).
+_UPSTREAM_STATUS_OK = frozenset({"success", "failure", "cancelled"})
+
+
+def upstream_fail(status: str | None, run_id: str | None) -> dict | None:
+    """Synthetischer crit-Eintrag, wenn der anstoßende Postclose-Lauf NICHT
+    erfolgreich war. ``None`` bei Erfolg, ohne Anstoß oder unbekanntem Wert."""
+    st = str(status or "").strip().lower()
+    rid = str(run_id or "").strip()
+    if st not in _UPSTREAM_STATUS_OK or st == "success":
+        return None
+    if not rid.isdigit():
+        rid = "?"
+    wort = "fehlgeschlagen" if st == "failure" else "abgebrochen"
+    return {"id": "POSTCLOSE", "severity": "crit", "count": 1,
+            "detail": f"Postclose-Lauf {wort} (Run {rid}) — Digest per Anstoß gesendet"}
+
+
 def _already_sent_today(state: dict, today_iso: str) -> bool:
     """True wenn der Digest heute bereits gesendet wurde. Verhindert
     doppelten Push bei ``workflow_dispatch`` am selben Tag."""
@@ -309,12 +341,19 @@ def main(*, now_ts: datetime | None = None,
     persistieren kann.
     """
     now_ts = now_ts or datetime.now(timezone.utc)
-    today_iso = now_ts.strftime("%Y-%m-%d")
+    today_iso = digest_day(now_ts)
     cutoff = now_ts - timedelta(hours=DIGEST_WINDOW_HOURS)
 
     state = _load_digest_state()
     if _already_sent_today(state, today_iso) and not force:
         log.info("Digest heute (%s) bereits gesendet — skip.", today_iso)
+        # Liveness (17.11.2026): auch ein übersprungener Lauf zeigt, dass der
+        # Digest-Workflow lebt und heute bereits gesendet hat — sonst meldet S8
+        # am Wochenende (Freitag-Postclose-Digest Sa ~02 UTC, nächster Sonntag
+        # ~15 UTC) fälschlich „> 26 h“.
+        if not dry_run:
+            state["last_successful_run"] = now_ts.strftime("%Y-%m-%dT%H:%M:%SZ")
+            _save_digest_state(state)
         return 0
 
     state_entries = _load_jsonl_window(
@@ -323,6 +362,9 @@ def main(*, now_ts: datetime | None = None,
         ROOT / hc.LOG_FILE_PROVIDER, cutoff)
 
     state_fails = hc.aggregate_state_fails(state_entries)
+    _up = upstream_fail(os.environ.get("UPSTREAM_STATUS"), os.environ.get("UPSTREAM_RUN"))
+    if _up is not None:
+        state_fails = [_up] + list(state_fails)
     prov_fails  = hc.aggregate_provider_fails(
         prov_entries, state,
         tier_map=HEALTH_CHECK_PROVIDER_TIER,

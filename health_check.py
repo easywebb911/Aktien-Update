@@ -5113,6 +5113,11 @@ def format_digest_body(state_fails: list[dict],
             f"0 Runs in den letzten 24h gefunden. Daily-Run oder "
             f"ki_agent liefen nicht — JSONL-Files leer."
         )
+        # Anstoß-Alarm (17.11.2026): ein synthetischer crit (z. B. Postclose
+        # fehlgeschlagen) muss auch ohne Lauf-Daten im Volltext stehen.
+        for f in state_fails:
+            if f.get("severity") == "crit" and not f.get("recovered"):
+                body += f"\n🔴 {f.get('id', '?')}: {f.get('detail', '')}"
         if retest_line:
             body += f"\n{retest_line}"
         if freeze_line:
