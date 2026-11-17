@@ -3432,6 +3432,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 17.11.2026 — Digest-Push-Kurzfassung + Volltext-Ablage (1 PR)
+
+- `#738` (Branch `claude/digest-kurzfassung-n4t8`, Branch-Commit `046c3c47`, kein Merge-Hash — Regel a).
+  Befund 16.11.: Digest 6189 Bytes > ntfy-Grenze 4096 → Anhang `attachment.txt`, nach 3 h verfallen (darin
+  aktive S8-warn); Grenze aus ntfy-Quelltext belegt (kein HTTP 413, Kommentar korrigiert). Kurzfassung
+  `compose_digest_push` ≤ 3500 Bytes (Status · alle crit/warn · Zähler · Link, „… und N weitere Alarme“),
+  Volltext `health_check_digests/JJJJ-MM-TT.txt` (raw-Link), Workflow prepare → publish → send → State.
+  ApeWisdom: Easy-Entscheid weiter sammeln, Zähler n/500 im Digest, Wiedervorlage ereignisgebunden.
+  Neues open_item `digest-startverzug` (Diagnose, nicht gebaut). Test `mock_test_digest_push_short.py` (12).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#736`, eigene `#738` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 17.11.2026 — Erkundungsfeld Stufe 1, PR B (1 PR, neuer Workflow, Manual-Merge)
 
 - `#736` (Branch `claude/erkundungsfeld-stufe1-q8m3`, Branch-Commit `b703aa4d`, kein Merge-Hash — Regel a).
