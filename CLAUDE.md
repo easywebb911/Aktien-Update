@@ -4377,13 +4377,15 @@ je Tag in `health_check_digests/JJJJ-MM-TT.txt` (nie gelöscht, Verlauf
 zusätzlich über die Git-Historie), Link
 `https://raw.githubusercontent.com/easywebb911/Aktien-Update/main/health_check_digests/<Datum>.txt`
 (öffentliches Repo, ohne Anmeldung, verfällt nicht; kein Topic, keine
-Secrets im Text). Workflow-Ablauf: `--phase prepare` (rechnen, Volltext
+Secrets im Text; Positions-Ticker aus S3/Watchdog sind in Ablage und
+Workflow-Log durch „[Position]“ ersetzt — `mask_tickers`, Quelle
+`app_data.json` positions; die Push-Kurzfassung behält sie). Workflow-Ablauf: `--phase prepare` (rechnen, Volltext
 ablegen + ins Log, Kurzfassung in eine Outbox in `$RUNNER_TEMP`) →
 „Publish full digest“ (eigener Worktree, pusht nur
 `health_check_digests/`, setzt `published=true`) → `--phase send`
 (Link nur bei `published=true`, sonst Hinweis „nicht abgelegt“ statt
 totem Link; Exit 1 bei Versand-Fehler) → State-Commit (sichert die
-Ablage ein zweites Mal). `main()` ohne Phase (Tests, Hand-Aufruf) sendet
+Ablage ein zweites Mal); scheitert die Ablage, wird der Lauf am Ende rot. `main()` ohne Phase (Tests, Hand-Aufruf) sendet
 die Kurzfassung ohne Ablage. Test `scripts/mock_test_digest_push_short.py`.
 **Rückweg:** Revert; `health_check_digests/` darf liegen bleiben.
 

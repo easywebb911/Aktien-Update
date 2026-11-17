@@ -17,6 +17,7 @@ Nachrichten > 4096 Bytes einen Anhang „attachment.txt“, der auf ntfy.sh nach
  10  Montags-Digest-Nachbau (Wochenblock) → Kurzfassung ≤ Deckel
  11  ApeWisdom-Zähler (Bootstrap raus, Datumsformat)
  12  Workflow: prepare → publish (Worktree, kein || true) → send → state
+ 13  Positions-Ticker maskiert; Rückfall bei überlangem Kopf nennt Alarme
 """
 from __future__ import annotations
 
@@ -149,10 +150,15 @@ def test_7_alarm_order():
                   "🟡 finra (Tier 2): r", "⚠️ Abdeckung x"], f"Reihenfolge: {out}")
 
 
+WD_LINE = "👁 Position ZZQX ohne Watchlist-Eintrag seit 2 Handelstagen"
+
+
 def _run_prepare(tmp: pathlib.Path, dg, topic="geheim-topic-xyz"):
     sent = []
     outbox = tmp / "outbox.json"
-    with mock.patch.object(dg, "DIGEST_STATE_FILE", tmp / "state.json"), \
+    with mock.patch.object(dg, "_position_tickers", return_value=["ZZQX"]), \
+         mock.patch.object(dg.hc, "position_watchlist_watchdog_lines", return_value=[WD_LINE]), \
+         mock.patch.object(dg, "DIGEST_STATE_FILE", tmp / "state.json"), \
          mock.patch.object(dg, "ARCHIVE_DIR", tmp / "health_check_digests"), \
          mock.patch.object(dg, "POSITION_WATCHLIST_STATE_FILE", tmp / "pw.json"), \
          mock.patch.object(dg, "NTFY_TOPIC", topic), \
@@ -174,7 +180,9 @@ def test_8_prepare():
         text = arch.read_text(encoding="utf-8") if arch.exists() else ""
         check("Health-Check-Digest 2026-11-17 — vollständig" in text, "Kopfzeile")
         check("geheim-topic-xyz" not in text, "Topic in Ablage")
+        check("ZZQX" not in text and "[Position]" in text, "Positions-Ticker im Volltext nicht maskiert")
         ob = outbox.read_text(encoding="utf-8") if outbox.exists() else ""
+        check("ZZQX" in ob, "Kurzfassung (privates Topic) soll den Ticker behalten")
         check(ob and "geheim-topic-xyz" not in ob, "Outbox fehlt/enthält Topic")
         st = json.loads((tmp / "state.json").read_text())
         check(st.get("last_digest_sent") != "2026-11-17", "prepare setzt last_digest_sent")
@@ -206,6 +214,17 @@ def test_9_send():
             check(dg.send_phase(outbox_path=outbox, published=True) == 1, "Fail → Exit 1")
         check(dg.send_phase(outbox_path=tmp / "fehlt.json", published=True) == 0,
               "keine Outbox → Exit 0")
+
+
+def test_13_mask_and_fallback():
+    m = hc.mask_tickers("S3: current_price fehlt bei 2 Position(en): AMC, WOLF; AMCX ok", ["AMC", "WOLF"])
+    check(m == "S3: current_price fehlt bei 2 Position(en): [Position], [Position]; AMCX ok",
+          f"mask: {m}")
+    huge_head = ["⚠️ " + "Kopf" * 2000]
+    link = hc.digest_link_line("2026-11-17", True)
+    txt = hc.compose_digest_push(huge_head, ["🔴 S1: a", "🟡 S4: b"], COUNTERS, link)
+    check(_b(txt) <= hc.DIGEST_PUSH_MAX_BYTES, "Rückfall über Deckel")
+    check("… 2 Alarme, siehe Link" in txt and txt.endswith(link), "Rückfall ohne Alarm-Hinweis")
 
 
 def test_10_monday_rebuild():
@@ -270,6 +289,11 @@ def test_12_workflow():
     check(snd.get("if") == "always()" and "--phase send" in snd["run"]
           and "steps.publish.outputs.published" in snd["run"], "send-Schritt")
     check("health_check_digests" in steps[i_c]["run"], "State-Commit sichert Ablage")
+    check('health_check_digests/${DDATE}.txt' in pub["run"] and "digest_outbox.json" in pub["run"],
+          "publish prüft heutige Datei aus der Outbox")
+    fail = [s for s in steps if s.get("name", "").startswith("Fail run if full digest")]
+    check(fail and "steps.publish.outcome == 'failure'" in fail[0].get("if", ""),
+          "roter Lauf bei gescheiterter Ablage")
 
 
 def main() -> int:

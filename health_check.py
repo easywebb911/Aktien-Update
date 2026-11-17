@@ -4737,9 +4737,25 @@ def compose_digest_push(head_lines: list[str], alarm_lines: list[str],
     lines.append(link_line)
     text = "\n".join(lines)
     if _nbytes(text) > max_bytes:  # letzte Sicherung (z. B. überlanger Kopf)
-        text = _cut_bytes("\n".join(head), max_bytes - _nbytes(link_line) - 1) \
-            + "\n" + link_line
+        note = f"… {len(alarms)} Alarme, siehe Link" if alarms else ""
+        tail = ([note] if note else []) + [link_line]
+        room = max_bytes - _nbytes("\n".join(tail)) - 1
+        text = _cut_bytes("\n".join(head), room) + "\n" + "\n".join(tail)
     return text
+
+
+def mask_tickers(text: str, tickers) -> str:
+    """Ersetzt die übergebenen Ticker (ganze Wörter) durch „[Position]“ —
+    für den öffentlich abgelegten Volltext und das Workflow-Log (Positionen
+    sind privat). Fail-soft: unbrauchbare Einträge werden übersprungen."""
+    import re as _re
+    out = text
+    for t in sorted({str(x).strip().upper() for x in tickers or [] if str(x).strip()},
+                    key=len, reverse=True):
+        if not _re.fullmatch(r"[A-Z0-9.\-]{1,12}", t):
+            continue
+        out = _re.sub(rf"(?<![A-Za-z0-9]){_re.escape(t)}(?![A-Za-z0-9])", "[Position]", out)
+    return out
 
 
 def digest_archive_text(body: str, *, digest_date: str, created_utc: str) -> str:

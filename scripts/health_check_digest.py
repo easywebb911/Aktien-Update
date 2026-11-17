@@ -819,9 +819,15 @@ def main(*, now_ts: datetime | None = None,
     if phase == "prepare":
         # Volltext ablegen + ins Log; Kurzfassung in die Outbox (RUNNER_TEMP,
         # nicht ins Repo). Gesendet wird erst nach dem Ablage-Commit.
-        _write_archive(body, digest_date=today_iso, now_ts=now_ts)
-        log.info("Vollständiger Digest (%d Bytes):\n%s",
-                 len(body.encode("utf-8")), body)
+        # Positions-Ticker (S3, Watchdog) sind privat — im öffentlich
+        # abgelegten Volltext und im (öffentlichen) Workflow-Log maskiert.
+        # Die Push-Kurzfassung (privates ntfy-Topic) bleibt unmaskiert.
+        public_body = hc.mask_tickers(body, _position_tickers())
+        if _write_archive(public_body, digest_date=today_iso, now_ts=now_ts) is None:
+            log.warning("Volltext nicht abgelegt — Publish findet keine Datei, "
+                        "Push enthält den Hinweis statt Link.")
+        log.info("Vollständiger Digest (%d Bytes, Positionen maskiert):\n%s",
+                 len(body.encode("utf-8")), public_body)
         _save_digest_state(state)
         _write_outbox(outbox, outbox_path)
         return 0
@@ -874,6 +880,21 @@ def _write_archive(body: str, *, digest_date: str, now_ts: datetime) -> pathlib.
     except OSError as exc:
         log.warning("Digest-Ablage fehlgeschlagen: %s", exc)
         return None
+
+
+def _position_tickers() -> list[str]:
+    """Positions-Ticker aus app_data.json (+ positions.json, falls da).
+    Fail-soft → leere Liste."""
+    out: set[str] = set()
+    for p, key in ((APP_DATA_FILE_FOR_WATCHDOG, "positions"), (ROOT / "positions.json", None)):
+        try:
+            data = json.loads(pathlib.Path(p).read_text(encoding="utf-8"))
+            src = data.get(key) if key else data
+            if isinstance(src, dict):
+                out.update(str(t) for t in src)
+        except (OSError, ValueError, AttributeError):
+            continue
+    return sorted(out)
 
 
 def _write_outbox(outbox: dict, path) -> None:

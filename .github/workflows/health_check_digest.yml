@@ -81,9 +81,15 @@ jobs:
         run: |
           # Eigener Worktree: der Arbeitsbaum (State-Dateien aus prepare) wird
           # NICHT zurückgesetzt. Nur health_check_digests/ wird committet.
-          if [ ! -d health_check_digests ]; then
-            echo "Keine Digest-Ablage (heute schon gesendet oder prepare ohne Ablage)."
+          OUTBOX="$RUNNER_TEMP/digest_outbox.json"
+          if [ ! -f "$OUTBOX" ]; then
+            echo "Keine Outbox (heute schon gesendet oder prepare gescheitert) — nichts abzulegen."
             exit 0
+          fi
+          DDATE="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["digest_date"])' "$OUTBOX")"
+          if [ ! -f "health_check_digests/${DDATE}.txt" ]; then
+            echo "ERROR: Volltext health_check_digests/${DDATE}.txt fehlt — kein Link."
+            exit 1
           fi
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
@@ -101,7 +107,7 @@ jobs:
             fi
             git worktree add --detach "$PUB" origin/main
             mkdir -p "$PUB/health_check_digests"
-            cp "$SRC"/*.txt "$PUB/health_check_digests/"
+            cp "$SRC/${DDATE}.txt" "$PUB/health_check_digests/"
             # published nur bei: Datei schon identisch auf main ODER
             # commit UND push erfolgreich (keine &&-Kette mit verschlucktem
             # Fehler: jeder Teilbefehl muss gelingen).
@@ -247,3 +253,12 @@ jobs:
           # Diagnose: welcher Marker tatsaechlich nach main ging.
           echo "Push-Check — last_digest_sent in main:"
           grep last_digest_sent health_check_digest_state.json || true
+
+      - name: Fail run if full digest was not published
+        # Publish hat continue-on-error (der Push geht trotzdem raus, mit
+        # Hinweis statt Link) — der Lauf soll dann aber rot sein, damit der
+        # Ablage-Fehler auffällt (GitHub-Mail an Easy).
+        if: ${{ always() && steps.publish.outcome == 'failure' }}
+        run: |
+          echo "Volltext-Ablage fehlgeschlagen — siehe Schritt 'Publish full digest'."
+          exit 1
