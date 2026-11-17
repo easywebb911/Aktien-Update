@@ -4705,6 +4705,24 @@ Verfall) bleibt unverändert.
 - **Keine Auswertung, keine Anzeige, kein Score-/Filter-/Push-Effekt.** Test
   `scripts/mock_test_options_intraday.py`. Rückweg: Revert (Dateien dürfen liegen bleiben).
 
+## Erkundungsfeld Stufe 1 (seit 17.11.2026, erkundungsfeld/)
+
+**Zweck:** messen, ob eine aus FINRA + Yahoo nachgebaute Kandidatenliste (02.01.2025–02.07.2026)
+unsere echte Top-10 abbildet (open_item `erkundungsfeld-plan`). **Keine** Renditen, **keine**
+Treffer, **keine** Kurse nach dem jeweiligen Listentag (Handover §7·0a Ergänzung b).
+
+- **Skript** `scripts/erkundungsfeld.py`, Workflow `.github/workflows/erkundungsfeld.yml` (nur
+  Hand-Start, `probe` = FINRA-Feldprobe ohne Schreiben, `voll` = ganzer Lauf, committet nur
+  `erkundungsfeld/`).
+- **FINRA** `consolidatedShortInterest` je Stichtag (gelistete Stammaktien); nutzbar ab dem Handelstag
+  nach Stichtag + 7 Handelstagen; Sonderschließung 09.01.2025 nur im Modul (`EXTRA_CLOSED`).
+- **Nenner „Hybrid“:** Vorfilter FINRA-Bestand / SEC-Aktienzahl ≥ 5 % (SEC-Frames, Periodenende + 90 Tage
+  ≤ Nutzbar-ab), danach heutiger Yahoo-Float, gekennzeichnet „Nenner heutig“; Marktkap = Kurs × Aktienzahl heute.
+- **Kurse (Variante A):** ein Abruf je Ticker, harte Obergrenze 02.07.2026 (Feld) / 23.10.2026 (Vergleich);
+  Merkmale für Tag t nur aus Zeilen ≤ t (Kürzungstest). Ranking über die unveränderte `score()`, 30 Namen.
+- **Schwelle** (vorab, Easy 16.11.): Median Top-10-Namen in den ersten 30 ≥ 5 bestanden, 3–4 Grenzfall, < 3 nicht
+  weiterbauen. Kein Konsument im Tool. Test `scripts/mock_test_erkundungsfeld.py`. Rückweg: Revert.
+
 ## Datenprüfung Aktienbasis / Short Float (seit 17.11.2026, PR C)
 
 **Anlass:** FGL 16.11.2026 — Yahoo-Marktkap 77.069 $ auf veralteter Aktienbasis (< Float × Kurs),

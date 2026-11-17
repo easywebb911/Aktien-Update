@@ -3432,6 +3432,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 17.11.2026 — Erkundungsfeld Stufe 1, PR B (1 PR, neuer Workflow, Manual-Merge)
+
+- `#736` (Branch `claude/erkundungsfeld-stufe1-q8m3`, Branch-Commit `b703aa4d`, kein Merge-Hash — Regel a).
+  `scripts/erkundungsfeld.py` + Workflow `erkundungsfeld.yml` (nur Hand-Start, probe|voll): FINRA
+  consolidatedShortInterest (nutzbar ab Handelstag nach Stichtag + 7), Nenner „Hybrid“ (SEC-Vorfilter >= 5 %,
+  dann heutiger Yahoo-Float, gekennzeichnet), Kurse Variante A (Obergrenze 02.07./23.10.2026, Merkmale nur aus
+  Zeilen <= t), unveränderte score(), 30 Namen je Tag, Namensvergleich gegen echte Top-10 (67 Tage). Schwelle
+  vorab: Median Top-30 >= 5 / 3–4 / < 3. §7·0a Ergänzung (a)/(b). Test 38 Checks (Guardian: Vorfilter je Tag, Split-
+  Kennzeichen, Fehler als Lücke, Urteil „unvollstaendig“ bei Abbruch, Yahoo-Spalten/Rate-Limit). Keine Renditen/Treffer.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#735`, eigene `#736` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 17.11.2026 — Datenprüfung Aktienbasis / Short Float, PR C (1 PR, Manual-Merge)
 
 - `#735` (Branch `claude/aktienbasis-kennzeichen-r7p2`, Branch-Commit `22374386`, kein Merge-Hash —
@@ -9600,6 +9612,11 @@ Auf dem offenen Fenster (Einstiege **<= 23.10.2026**) werden **keine weiteren Er
 zwei Gegenproben in Folge haben Funde aus diesem Fenster nicht bestätigt (SUW `regel-suw-gegenprobe-bootstrap`,
 Stopp 10 % `regel-stopp-10-gegenprobe-bootstrap`); nach zehn Blicken ist es ausgereizt. Bereits festgeschriebene
 Regeln und eingefrorene Tests bleiben unberührt; Einstiege ab 24.10.2026 bleiben blind (Freeze-Blöcke).
+
+**Ergänzung (Easy-Entscheid 16.11.2026, präzisiert 17.11.2026):** Keine Erkundung ist (a) die unveränderte
+Nachrechnung einer bereits festgeschriebenen Regel (gleicher Regeltext, gleiche Daten, gleiche Auswertung)
+und (b) ein Vergleich von Listen-Namen, bei dem keine Renditen oder Treffer aus dem offenen Fenster berechnet
+oder ausgegeben werden; Kurse dienen nur als Eingabe bis zum jeweiligen Listentag. Alles andere bleibt gesperrt.
 
 ### 7·1. Treffer-Score (unvalidiert) — SUW-Schatten-Wert (seit 15.11.2026)
 
