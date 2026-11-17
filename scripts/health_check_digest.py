@@ -28,6 +28,7 @@ from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+BLOCK1_ROOT = ROOT  # Repo-Wurzel für die Block-1-Prüfung (Tests patchen das)
 # scripts/ selbst zusätzlich voranstellen (22.10.2026) — ``freeze_eval``
 # (scripts/freeze_eval.py) wird lazy innerhalb von main() importiert; beim
 # Laden dieses Moduls über ``importlib.util.spec_from_file_location``
@@ -38,6 +39,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 import health_check as hc           # noqa: E402
+from handover_block1 import digest_line as handover_block1_digest_line  # noqa: E402
 from config import (                # noqa: E402
     HEALTH_CHECK_PROVIDER_TIER,
     NTFY_ENABLED,
@@ -787,6 +789,18 @@ def main(*, now_ts: datetime | None = None,
     except Exception as _wd_exc:  # pragma: no cover — Helper ist raise-frei
         log.warning("position_watchlist_watchdog_lines unerwartet: %r", _wd_exc)
         watchdog_lines = []
+
+    # Block 1 hängt nach (17.11.2026, Easy-Entscheid): passt der vom Bot
+    # erzeugte Bereich in SESSION_HANDOVER.md nicht zu handover_eintraege/,
+    # steht eine Warnzeile im Digest (auch im OK-Digest und in der
+    # Push-Kurzfassung). Raise-frei.
+    try:
+        _block1_warn = handover_block1_digest_line(BLOCK1_ROOT)
+    except Exception as _b1_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("handover_block1_digest_line unerwartet: %r", _b1_exc)
+        _block1_warn = None
+    if _block1_warn:
+        watchdog_lines = list(watchdog_lines or []) + [_block1_warn]
 
     body, title, priority, tags = hc.format_digest_body(
         state_fails, prov_fails,

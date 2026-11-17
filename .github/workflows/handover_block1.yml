@@ -1,0 +1,113 @@
+name: Handover Block 1 erzeugen
+
+# Easy-Entscheid 17.11.2026 (Weg a): jeder PR legt seinen Block-1-Eintrag als
+# eigene Datei in handover_eintraege/ an (kein Merge-Konflikt mehr zwischen
+# parallelen PRs). Dieser Workflow erzeugt nach dem Merge den Bereich zwischen
+# den Marken <!-- BLOCK1-AUTO-START --> … <!-- BLOCK1-AUTO-END --> in
+# SESSION_HANDOVER.md neu (scripts/handover_block1.py).
+#
+# Sicherheit (Easy 17.11.2026):
+# * schreibt AUSSCHLIESSLICH zwischen den Marken; Bytes davor/danach werden
+#   gegen origin/main verglichen — Abweichung → nichts committet, Lauf rot;
+# * MD5 aller Freeze-Blöcke vor und nach dem Erzeugen im Log, Abweichung → rot;
+# * committet NUR SESSION_HANDOVER.md (geprüft per git diff --staged);
+# * KEINE Kette / Schleife:
+#   - der Push nutzt das Standard-GITHUB_TOKEN; Ereignisse aus diesem Token
+#     starten laut GitHub-Doku keine neuen Workflow-Läufe (Ausnahme nur
+#     workflow_dispatch/repository_dispatch — die nutzt dieser Workflow nicht);
+#   - zusätzlich: der eigene Auslöser filtert auf handover_eintraege/**, der Bot
+#     ändert dort nie etwas; der einzige andere push-Workflow
+#     (open_items_main_push_check) filtert auf open_items.json;
+#   - kein `gh workflow run`, kein PAT/Secret.
+# * Rot = sichtbar: Digest-Zeile „Block 1 hängt nach“ (health_check_digest.py)
+#   und `python scripts/handover_block1.py --check` (Wächter).
+#
+# Rückweg: Workflow-Datei per PR entfernen; der zuletzt erzeugte Bereich bleibt
+# als normaler Text in SESSION_HANDOVER.md stehen.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'handover_eintraege/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: handover-block1
+  cancel-in-progress: false
+
+jobs:
+  erzeugen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Block 1 erzeugen, prüfen, nur SESSION_HANDOVER.md committen
+        run: |
+          set -euo pipefail
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          WT="${RUNNER_TEMP}/block1"
+          done_ok=0
+          for attempt in 1 2 3; do
+            git fetch origin main --depth=1
+            if [ -d "$WT" ]; then
+              git worktree remove --force "$WT"
+            fi
+            git worktree add --detach "$WT" origin/main
+            # Skript aus dem frischen main-Stand (nicht aus dem Checkout).
+            S="$WT/scripts/handover_block1.py"
+            python "$S" --root "$WT" --freeze-md5 > "$RUNNER_TEMP/freeze_vorher.txt"
+            echo "MD5 Freeze-Blöcke vorher:"; cat "$RUNNER_TEMP/freeze_vorher.txt"
+            python "$S" --root "$WT" --write
+            python "$S" --root "$WT" --verify-outside origin/main
+            python "$S" --root "$WT" --freeze-md5 > "$RUNNER_TEMP/freeze_nachher.txt"
+            echo "MD5 Freeze-Blöcke nachher:"; cat "$RUNNER_TEMP/freeze_nachher.txt"
+            if ! cmp -s "$RUNNER_TEMP/freeze_vorher.txt" "$RUNNER_TEMP/freeze_nachher.txt"; then
+              echo "FEHLER: Freeze-Block-MD5 geändert — nichts committet."
+              exit 1
+            fi
+            python "$S" --root "$WT" --check
+            cd "$WT"
+            if git diff --quiet; then
+              echo "Keine Änderung nötig."
+              done_ok=1
+              cd - > /dev/null
+              break
+            fi
+            changed="$(git diff --name-only)"
+            if [ "$changed" != "SESSION_HANDOVER.md" ]; then
+              echo "FEHLER: unerwartete Änderungen: $changed — nichts committet."
+              exit 1
+            fi
+            git add SESSION_HANDOVER.md
+            staged="$(git diff --staged --name-only)"
+            if [ "$staged" != "SESSION_HANDOVER.md" ]; then
+              echo "FEHLER: gestaged ist mehr als SESSION_HANDOVER.md: $staged"
+              exit 1
+            fi
+            git commit -m "docs(handover): Block 1 aus handover_eintraege/ erzeugt"
+            if git push origin HEAD:main; then
+              echo "Gepusht (Versuch $attempt)."
+              done_ok=1
+              cd - > /dev/null
+              break
+            fi
+            echo "Push abgelehnt (Versuch $attempt) — main neu holen und NEU erzeugen."
+            cd - > /dev/null
+            sleep 3
+          done
+          if [ "$done_ok" -ne 1 ]; then
+            echo "FEHLER: Block 1 nach 3 Versuchen nicht gepusht."
+            exit 1
+          fi
