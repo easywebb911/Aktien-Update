@@ -1025,7 +1025,7 @@ def fetch_sec_8k(ticker: str) -> tuple[bool, str, datetime | None] | None:
     url = (
         "https://www.sec.gov/cgi-bin/browse-edgar"
         f"?action=getcompany&CIK={ticker}&type=8-K"
-        "&dateb=&owner=include&count=5&search_text=&output=atom"
+        "&dateb=&owner=include&count=10&search_text=&output=atom"
     )
     cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
     time.sleep(0.5)
@@ -1530,7 +1530,7 @@ def fetch_sec_form4(ticker: str) -> tuple[bool, str] | None:
     url = (
         "https://www.sec.gov/cgi-bin/browse-edgar"
         f"?action=getcompany&CIK={ticker}&type=4"
-        "&dateb=&owner=include&count=5&search_text=&output=atom"
+        "&dateb=&owner=include&count=10&search_text=&output=atom"
     )
     cutoff = datetime.now(timezone.utc) - timedelta(days=FORM4_LOOKBACK_DAYS)
     time.sleep(0.3)
