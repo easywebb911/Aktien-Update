@@ -1,11 +1,11 @@
 {
-  "updated": "2026-11-17T05:11:13.595174+01:00",
+  "updated": "2026-11-17T14:27:49.873764+01:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 15.9,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 20.5,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "ABEO": {
@@ -49,13 +49,13 @@
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
       ],
-      "uoa_atm_ratio": 0.4803700837261662,
+      "uoa_atm_ratio": 0.40377905257555147,
       "uoa_cp_ratio": 3.331437322248961
     },
     "DMRC": {
-      "score": 68,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 24.9% + News-KI 8/30: Board changes and earnings calls are routine corporate events with no indicators of short squeeze potential such as high + FINRA Short-Vol 100% + UOA Call/Put 21.2×",
+      "drivers": "Volumen 2.1× + Spanne 24.9% + FINRA Short-Vol 100% + UOA Call/Put 21.2×",
       "price": 7.88,
       "chg_pct": 0.0,
       "rvol_4d": 2.06,
@@ -67,12 +67,12 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 21.2×"
       ],
-      "uoa_atm_ratio": 0.4,
+      "uoa_atm_ratio": 0.2857142857142857,
       "uoa_cp_ratio": 21.25
     },
     "FGL": {
@@ -118,20 +118,20 @@
       "uoa_cp_ratio": 0.5
     },
     "MNRO": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 5.8%",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 5.8% + News: buyout",
       "price": 10.53,
       "chg_pct": -0.0,
       "rvol_4d": 0.97,
       "rvol_20d": 0.92,
-      "earnings": "in 72 Tagen (27.01.2027)",
+      "earnings": "in 71 Tagen (27.01.2027)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -158,13 +158,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": 0.3656597774244833,
+      "uoa_atm_ratio": 0.36450079239302696,
       "uoa_cp_ratio": 2.8698630136986303
     },
     "OFRM": {
       "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 23.0% + News-KI 5/30: Massive product recall and $30M cost likely to increase short interest, but negative earnings catalyst and established b + UOA Call/Put 33.5×",
+      "drivers": "Volumen 2.8× + Spanne 23.0% + News-KI 5/30: Massive recall liability and negative earnings headlines severely damage short-squeeze potential, as they indicate funda + UOA Call/Put 33.5×",
       "price": 11.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.78,
@@ -204,7 +204,7 @@
       "uoa_drivers": [
         "UOA Call/Put 101.7×"
       ],
-      "uoa_atm_ratio": 0.13032258064516128,
+      "uoa_atm_ratio": 0.13026655202063628,
       "uoa_cp_ratio": 101.66666666666667
     },
     "ULCC": {
@@ -229,9 +229,9 @@
       "uoa_cp_ratio": 0.2714285714285714
     },
     "VEEA": {
-      "score": 41,
+      "score": 44,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 18.8% + News-KI 12/30: Positive business developments but no clear short-squeeze catalysts like high short interest, low float, or extreme reta",
+      "drivers": "Volumen 2.9× + Spanne 18.8% + News: merger",
       "price": 4.78,
       "chg_pct": 0.0,
       "rvol_4d": 2.9,
@@ -243,7 +243,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -257,7 +257,7 @@
       "chg_pct": -0.0,
       "rvol_4d": 1.74,
       "rvol_20d": 1.09,
-      "earnings": "in 79 Tagen (03.02.2027)",
+      "earnings": "in 78 Tagen (03.02.2027)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -267,7 +267,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.23853211009174313,
+      "uoa_atm_ratio": 0.21195652173913043,
       "uoa_cp_ratio": 0.445
     }
   }
