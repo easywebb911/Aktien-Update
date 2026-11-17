@@ -3432,6 +3432,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 17.11.2026 — Diagnose Marktkapitalisierung FGL (1 PR, Doku, Self-Merge)
+
+- `#734` (Branch `claude/marketcap-fgl-diag-m4c7`, kein Merge-Hash — Regel a). Nur open_item
+  `marktkapitalisierung-unplausibel-fgl` (offen), read-only Diagnose, kein Fix. Urteil **unklar**: FGL 16.11. Yahoo-
+  marketCap 77.069 $ beruht auf veralteter Aktienbasis (~75.560 Aktien; Float 609.806 ist neuer) — selbst nur Anzeige
+  (Risiko-Text, Karte), kein Score-/Filter-/Backtest-Effekt. Offen, ob Yahoo-Short-Float 38,9 % (steuert Score und
+  Filter ≥ 15 %) auf demselben alten Nenner beruht; Hypothese ~8× zu hoch, nicht belegbar (Rohdaten nicht gespeichert).
+  FGL 16.11. Platz 1 liegt im Blindfenster (Population eingefrorener Tests — Entscheid Easy). Erste Herleitung über
+  si_t1 korrigiert (FINRA-Tagesvolumen, Guardian). Vorschlag Kennzeichen „Aktienbasis inkonsistent“ (nicht gebaut).
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#732`, eigene `#734` (`#733` offen, Manual-Merge).
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 16.11.2026 — Plan Erkundungsfeld 2025/26 + Options-Sammlung (1 PR, Doku, Self-Merge)
 
 - `#732` (Branch `claude/erkundungsfeld-plan-e3q8`, kein Merge-Hash — Regel a). Nur open_item `erkundungsfeld-plan`
