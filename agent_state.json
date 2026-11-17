@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-11-17T14:27:53.527243+01:00",
+  "last_run": "2026-11-17T17:02:41.782881+01:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,30 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-10-30T08:07:09.136969+01:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale PDYN: trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-10-30T08:07:09.136992+01:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock",
-      "body": "🔻 Exit-Signale WOLF: profit_lock crit · Warnung pressure 56/100",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-10-30T08:07:09.137009+01:00",
       "ticker": "GRPN",
@@ -1311,21 +1287,45 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-11-17T17:02:39.394264+01:00",
+      "ticker": "LUCK",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "conviction_high",
+      "body": "⚠️ VIX 26.3 | LUCK 🎯 KAUFSIGNAL — Conviction 83/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Aggregations-Anzeige…",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 83
+    },
+    {
+      "ts": "2026-11-17T17:02:41.782959+01:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale WOLF: profit_lock, trend_break crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "FGL": 71.0,
-    "DMRC": 82.0,
-    "OFRM": 78.0,
-    "ABEO": 75.0,
-    "JBGS": 60.0,
-    "MNRO": 67.0,
-    "NTLA": 67.0,
-    "ULCC": 58.0,
-    "REF": 64.0,
-    "WOLF": 56.0,
-    "VEEA": 18.0,
-    "AMC": 15.0
+    "LUCK": 83.0,
+    "PCT": 69.0,
+    "SHOE": 68.0,
+    "FUBO": 74.0,
+    "SSMR": 58.0,
+    "LUXE": 85.0,
+    "WOLF": 42.0,
+    "TTEC": 63.0,
+    "FIRY": 63.0,
+    "EMPD": 69.0,
+    "VEEA": 12.0,
+    "AMC": 11.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1382,7 +1382,7 @@
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-11-17T14:27:53.527332+01:00"
+      "updated": "2026-11-17T17:02:41.782967+01:00"
     },
     "GRPN": {
       "last_active": [],
