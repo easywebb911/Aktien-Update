@@ -1,29 +1,228 @@
 {
- "faelle": 670,
- "gegenrichtung": [],
- "gegenrichtung_boerse_heute": {},
+ "faelle": 471,
+ "gegenrichtung": [
+  {
+   "float_heute": 73635.0,
+   "mcap_naeherung_median": 514205416.0,
+   "rvol20_median": 2.17,
+   "sf_naeherung_median": 2576.3,
+   "tage_in_top10": 14,
+   "ticker": "PUSA"
+  },
+  {
+   "float_heute": 23803781.0,
+   "mcap_naeherung_median": 191455619.0,
+   "rvol20_median": 2.23,
+   "sf_naeherung_median": 22.22,
+   "tage_in_top10": 10,
+   "ticker": "DFDV"
+  },
+  {
+   "float_heute": 21911586.0,
+   "mcap_naeherung_median": 1085709183,
+   "rvol20_median": 2.02,
+   "sf_naeherung_median": 36.5,
+   "tage_in_top10": 9,
+   "ticker": "HPK"
+  },
+  {
+   "float_heute": 32006755.0,
+   "mcap_naeherung_median": 1526865119.0,
+   "rvol20_median": 2.31,
+   "sf_naeherung_median": 27.16,
+   "tage_in_top10": 8,
+   "ticker": "AVBP"
+  },
+  {
+   "float_heute": 25144009.0,
+   "mcap_naeherung_median": 226601987,
+   "rvol20_median": 2.36,
+   "sf_naeherung_median": 22.64,
+   "tage_in_top10": 7,
+   "ticker": "DUOT"
+  },
+  {
+   "float_heute": 31273482.0,
+   "mcap_naeherung_median": 126657400,
+   "rvol20_median": 2.9,
+   "sf_naeherung_median": 168.42,
+   "tage_in_top10": 7,
+   "ticker": "MVIS"
+  },
+  {
+   "float_heute": 39984662.0,
+   "mcap_naeherung_median": 692431413.5,
+   "rvol20_median": 2.06,
+   "sf_naeherung_median": 28.52,
+   "tage_in_top10": 6,
+   "ticker": "AVTX"
+  },
+  {
+   "float_heute": 17141053.0,
+   "mcap_naeherung_median": 237072475.5,
+   "rvol20_median": 2.48,
+   "sf_naeherung_median": 761.2,
+   "tage_in_top10": 6,
+   "ticker": "BYND"
+  },
+  {
+   "float_heute": 26564230.0,
+   "mcap_naeherung_median": 1195976140.5,
+   "rvol20_median": 2.04,
+   "sf_naeherung_median": 17.13,
+   "tage_in_top10": 6,
+   "ticker": "LBRX"
+  },
+  {
+   "float_heute": 13763412.0,
+   "mcap_naeherung_median": 674776488.5,
+   "rvol20_median": 2.27,
+   "sf_naeherung_median": 37.88,
+   "tage_in_top10": 6,
+   "ticker": "OFRM"
+  },
+  {
+   "float_heute": 15855984.0,
+   "mcap_naeherung_median": 263324803,
+   "rvol20_median": 1.88,
+   "sf_naeherung_median": 23.38,
+   "tage_in_top10": 5,
+   "ticker": "ALMU"
+  },
+  {
+   "float_heute": 106566090.0,
+   "mcap_naeherung_median": 789394620,
+   "rvol20_median": 2.87,
+   "sf_naeherung_median": 30.15,
+   "tage_in_top10": 5,
+   "ticker": "PRME"
+  },
+  {
+   "float_heute": 46501240.0,
+   "mcap_naeherung_median": 1679632982,
+   "rvol20_median": 2.1,
+   "sf_naeherung_median": 24.74,
+   "tage_in_top10": 5,
+   "ticker": "STOK"
+  },
+  {
+   "float_heute": 208503.0,
+   "mcap_naeherung_median": 1103581,
+   "rvol20_median": 2.86,
+   "sf_naeherung_median": 58.92,
+   "tage_in_top10": 5,
+   "ticker": "TGL"
+  },
+  {
+   "float_heute": 37214007.0,
+   "mcap_naeherung_median": 1232146404.0,
+   "rvol20_median": 1.79,
+   "sf_naeherung_median": 29.14,
+   "tage_in_top10": 4,
+   "ticker": "BCAX"
+  }
+ ],
+ "gegenrichtung_boerse_heute": {
+  "ALMU": {
+   "exchange": "NCM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "AVBP": {
+   "exchange": "NGM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "AVTX": {
+   "exchange": "NCM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "BCAX": {
+   "exchange": "NGM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "BYND": {
+   "exchange": "NMS",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "DFDV": {
+   "exchange": "NCM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "DUOT": {
+   "exchange": "NCM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "HPK": {
+   "exchange": "NGM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "LBRX": {
+   "exchange": "NGM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "MVIS": {
+   "exchange": "NCM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "OFRM": {
+   "exchange": "NYQ",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "PRME": {
+   "exchange": "NGM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "PUSA": {
+   "exchange": "NCM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "STOK": {
+   "exchange": "NMS",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  },
+  "TGL": {
+   "exchange": "NCM",
+   "kennz": "heutig",
+   "quoteType": "EQUITY"
+  }
+ },
  "herkunft_fehlfaelle": {
-  "(leer)": 40,
-  "manual": 79,
-  "yahoo_aggressive_small_caps": 101,
-  "yahoo_most_shorted_stocks": 403,
-  "yahoo_small_cap_gainers": 321,
+  "(leer)": 36,
+  "manual": 64,
+  "yahoo_aggressive_small_caps": 74,
+  "yahoo_most_shorted_stocks": 286,
+  "yahoo_small_cap_gainers": 201,
   "yahoo_undervalued_growth_stocks": 3
  },
  "kat2_3_mit_float_heute": {
-  "bestanden": 0,
+  "bestanden": 156,
   "faelle": 161,
   "kennz": "Nenner heutig",
-  "namen_bestanden": 0,
-  "nicht_bestanden": 0,
-  "ohne_float": 161
+  "namen_bestanden": 59,
+  "nicht_bestanden": 3,
+  "ohne_float": 2
  },
- "kat4_unsicher_wegen_abbruch": 509,
+ "kat4_unsicher_wegen_abbruch": 0,
  "kat5_short_float_tool_vs_naeherung": {
-  "faelle": 0,
-  "naeherung_sf_median": null,
-  "tool_quellen": {},
-  "tool_sf_median": null
+  "faelle": 18,
+  "naeherung_sf_median": 12.1,
+  "tool_quellen": {
+   "yfinance": 18
+  },
+  "tool_sf_median": 18.9
  },
  "kategorien": {
   "1": {
@@ -35,7 +234,7 @@
    "namen": 0
   },
   "2": {
-   "anteil_pct": 19.1,
+   "anteil_pct": 27.2,
    "faelle": 128,
    "gruende": {
     "keine Aktienzahl": 128
@@ -86,7 +285,7 @@
    "namen": 41
   },
   "3": {
-   "anteil_pct": 4.9,
+   "anteil_pct": 7.0,
    "faelle": 33,
    "gruende": {
     "0.0 %": 2,
@@ -156,90 +355,106 @@
    "namen": 22
   },
   "4": {
-   "anteil_pct": 76.0,
-   "faelle": 509,
+   "anteil_pct": 0.6,
+   "faelle": 3,
    "gruende": {
-    "kein Float heute": 506,
     "kein Yahoo-Kurs am Tag": 3
    },
    "haeufigste": [
     [
+     "KPTI",
+     3
+    ]
+   ],
+   "name": "kein Float heute / kein Yahoo-Kurs",
+   "namen": 1
+  },
+  "5": {
+   "anteil_pct": 64.8,
+   "faelle": 305,
+   "gruende": {
+    "durchschnittsvolumen": 16,
+    "marktwert": 2,
+    "rvol": 269,
+    "short_float": 18
+   },
+   "haeufigste": [
+    [
      "WOLF",
-     41
+     32
     ],
     [
      "GRPN",
-     32
+     30
     ],
     [
      "LENZ",
      21
     ],
     [
-     "ARCT",
-     15
-    ],
-    [
      "SHOE",
      14
     ],
     [
-     "HTZ",
-     10
+     "MNRO",
+     8
     ],
     [
      "TBCH",
-     10
+     8
     ],
     [
-     "MNRO",
-     9
+     "INBX",
+     7
     ],
     [
      "PCT",
-     9
+     7
     ],
     [
-     "XRX",
-     9
+     "VYX",
+     7
+    ],
+    [
+     "ULCC",
+     6
     ]
    ],
-   "name": "kein Float heute / kein Yahoo-Kurs",
-   "namen": 151
-  },
-  "5": {
-   "anteil_pct": 0.0,
-   "faelle": 0,
-   "gruende": {},
-   "haeufigste": [],
    "name": "am nachgebildeten Filter gescheitert",
-   "namen": 0
+   "namen": 100
   },
   "6": {
-   "anteil_pct": 0.0,
-   "faelle": 0,
-   "haeufigste": [],
+   "anteil_pct": 0.4,
+   "faelle": 2,
+   "haeufigste": [
+    [
+     "BKKT",
+     1
+    ],
+    [
+     "OPTU",
+     1
+    ]
+   ],
    "name": "im Rennen, aber Rang > 30",
-   "namen": 0,
+   "namen": 2,
    "rang_bereiche": {
-    "31-50": 0,
+    "31-50": 2,
     "51-100": 0,
     ">100": 0
    },
-   "rang_median": null
+   "rang_median": 33.5
   }
  },
  "laeufe": {
-  "abbrueche": [
-   "rate_limit_float"
-  ],
+  "abbrueche": [],
   "echte_namen": 212,
-  "nachrechnung_top30_wie_gespeichert_pct": 0.0,
-  "ohne_float": 2261,
-  "ohne_kurs": 12,
+  "nachrechnung_top30_wie_gespeichert_pct": 100.0,
+  "ohne_float": 66,
+  "ohne_kurs": 10,
   "sec_frames_fehlend": [],
   "vergleichstage": 67,
-  "vollstaendig": false
+  "vollstaendig": true
  },
  "rahmen": {
   "regel": "§7·0a (b): nur Namen/Ränge/Merkmale vom Listentag, keine Renditen",
