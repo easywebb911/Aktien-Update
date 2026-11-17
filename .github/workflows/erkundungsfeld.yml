@@ -1,0 +1,102 @@
+name: Erkundungsfeld Stufe 1
+
+# Erkundungsfeld 2025/26, Stufe 1 (Easy-Entscheid 16./17.11.2026, PR B).
+# NUR Hand-Start. Script: scripts/erkundungsfeld.py.
+#   modus=probe: nur FINRA-Stichtage + Feldnamen-Probe (Abbruch bei fehlenden
+#                Feldern), schreibt und committet nichts.
+#   modus=voll:  FINRA, SEC-Vorfilter, Yahoo-Kurse bis 02.07.2026 (Feld) bzw.
+#                23.10.2026 (Namensvergleich), heutiger Yahoo-Float, Kandidaten-
+#                listen je Handelstag, Namensvergleich gegen die echte Top-10.
+# KEINE Kurse nach dem jeweiligen Listentag werden verwendet, KEINE Kurse
+# gespeichert, KEINE Renditen oder Treffer gerechnet.
+# Schreibt AUSSCHLIESSLICH erkundungsfeld/ (finra_si.jsonl.gz, kandidaten.jsonl.gz,
+# vergleich_namen.jsonl.gz, vergleich_je_tag.jsonl.gz, stufe1_bericht.json).
+# Kein Konsument im Tool. Rückweg: Revert; die Dateien dürfen liegen bleiben.
+
+on:
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: "probe (nur FINRA-Feldprobe) oder voll (ganzer Lauf)"
+        required: true
+        type: choice
+        options:
+          - probe
+          - voll
+
+permissions:
+  contents: write   # NUR für erkundungsfeld/
+
+concurrency:
+  group: erkundungsfeld
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  erkundungsfeld:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Erkundungsfeld Stufe 1
+        env:
+          EDGAR_USER_AGENT: ${{ secrets.EDGAR_USER_AGENT }}
+        run: python scripts/erkundungsfeld.py --modus "${{ inputs.modus }}" --zeitlimit-min 130
+
+      - name: Commit erkundungsfeld/
+        if: ${{ inputs.modus == 'voll' }}
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          if [ -z "$(git status --porcelain -- erkundungsfeld)" ]; then
+            echo "Nichts geschrieben — nichts zu committen."
+            exit 0
+          fi
+          FRESH="$(mktemp -d)"
+          cp erkundungsfeld/* "$FRESH"/
+          pushed=0
+          for attempt in 1 2 3 4 5; do
+            if ! git fetch origin main; then
+              echo "fetch fehlgeschlagen (Versuch $attempt) — retry."
+              sleep 2
+              continue
+            fi
+            git reset --hard origin/main
+            mkdir -p erkundungsfeld
+            cp "$FRESH"/* erkundungsfeld/
+            git add erkundungsfeld
+            if git diff --staged --quiet; then
+              echo "Keine Aenderung gegenueber origin/main."
+              pushed=1
+              break
+            fi
+            git commit -m "Erkundungsfeld Stufe 1 $(date -u '+%Y-%m-%d %H:%M') UTC"
+            if git push origin main; then
+              echo "erkundungsfeld gepusht (Versuch $attempt)."
+              pushed=1
+              break
+            fi
+            echo "push rejected (Versuch $attempt) — neu fetchen und retry."
+            sleep 2
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "ERROR: erkundungsfeld konnte nach 5 Versuchen nicht gepusht werden."
+            exit 1
+          fi

@@ -9601,6 +9601,11 @@ zwei Gegenproben in Folge haben Funde aus diesem Fenster nicht bestätigt (SUW `
 Stopp 10 % `regel-stopp-10-gegenprobe-bootstrap`); nach zehn Blicken ist es ausgereizt. Bereits festgeschriebene
 Regeln und eingefrorene Tests bleiben unberührt; Einstiege ab 24.10.2026 bleiben blind (Freeze-Blöcke).
 
+**Ergänzung (Easy-Entscheid 16.11.2026, präzisiert 17.11.2026):** Keine Erkundung ist (a) die unveränderte
+Nachrechnung einer bereits festgeschriebenen Regel (gleicher Regeltext, gleiche Daten, gleiche Auswertung)
+und (b) ein Vergleich von Listen-Namen, bei dem keine Renditen oder Treffer aus dem offenen Fenster berechnet
+oder ausgegeben werden; Kurse dienen nur als Eingabe bis zum jeweiligen Listentag. Alles andere bleibt gesperrt.
+
 ### 7·1. Treffer-Score (unvalidiert) — SUW-Schatten-Wert (seit 15.11.2026)
 
 - Berechnung nur im Postclose in `generate_report.main()` nach Auswahl, Scores, Conviction und
