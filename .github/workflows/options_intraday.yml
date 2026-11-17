@@ -1,0 +1,117 @@
+name: Optionen Handelszeit
+
+# Options-Sammlung in der US-Handelszeit (Easy-Entscheid 16.11.2026, open_item
+# erkundungsfeld-plan Teil B). REINE SAMMLUNG — keine Auswertung, keine Rendite,
+# keine Anzeige. Script: options_intraday.py. Schreibt AUSSCHLIESSLICH
+# options_chain_intraday.jsonl (nur angehängt) und options_intraday_state.json.
+# Die Nachtsammlung options_chain_raw.jsonl (Daily-Run) bleibt unverändert.
+#
+# Zeitplan (UTC, werktags), drei Slots — der erste erfolgreiche Lauf des Tages
+# sammelt, die übrigen sehen „heute schon gesammelt“ und enden ohne Abruf:
+#   15:07 UTC = 11:07 ET (Sommerzeit, EDT) / 10:07 ET (Winterzeit, EST)
+#   16:37 UTC = 12:37 ET / 11:37 ET
+#   18:07 UTC = 14:07 ET / 13:07 ET
+# Alle liegen in beiden Zeitzonen im Fenster 10:00–15:30 ET (≥ 30 min nach
+# Eröffnung, ≥ 30 min vor Schluss). Die späteren Slots fangen verspätete oder
+# gedropte GitHub-Läufe ab. Das Skript prüft selbst Handelstag (Wochenende,
+# config.US_MARKET_HOLIDAYS) und Fenster — an Feiertagen und bei zu später
+# Ausführung wird nichts abgerufen.
+#
+# Rückweg: diese Datei + options_intraday.py per Revert entfernen; die
+# gesammelten Dateien dürfen liegen bleiben (kein Konsument außer dem Digest).
+
+on:
+  schedule:
+    - cron: '7 15 * * 1-5'
+    - cron: '37 16 * * 1-5'
+    - cron: '7 18 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # NUR für options_chain_intraday.jsonl + options_intraday_state.json
+
+concurrency:
+  group: options-intraday
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  options-intraday:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Optionen sammeln
+        run: python options_intraday.py
+
+      - name: Commit options_chain_intraday + state
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          # Muster wie outcome_path.yml: frische Versionen sichern, auf den
+          # NEUESTEN origin/main-Stand aufsetzen und NUR die zwei eigenen Dateien
+          # wieder einspielen (dieser Workflow schreibt keine anderen Dateien).
+          FRESH_DATA="${RUNNER_TEMP:-/tmp}/options_intraday_fresh.jsonl"
+          FRESH_STATE="${RUNNER_TEMP:-/tmp}/options_intraday_state_fresh.json"
+          if [ -z "$(git status --porcelain -- options_intraday_state.json options_chain_intraday.jsonl)" ]; then
+            echo "Nichts gesammelt (übersprungen) — nichts zu committen."
+            exit 0
+          fi
+          cp options_intraday_state.json "$FRESH_STATE"
+          if [ -f options_chain_intraday.jsonl ]; then cp options_chain_intraday.jsonl "$FRESH_DATA"; fi
+          pushed=0
+          for attempt in 1 2 3 4 5; do
+            if ! git fetch origin main; then
+              echo "fetch fehlgeschlagen (Versuch $attempt) — retry."
+              sleep 2
+              continue
+            fi
+            git reset --hard origin/main
+            # Append-only-Härtung: origin-Stand muss byte-genau Anfang der
+            # frischen Datei sein, sonst Abbruch (keine Zeile überschreiben).
+            if [ -f options_chain_intraday.jsonl ] && [ -f "$FRESH_DATA" ]; then
+              ORIG_SIZE=$(stat -c %s options_chain_intraday.jsonl)
+              if ! cmp -s -n "$ORIG_SIZE" options_chain_intraday.jsonl "$FRESH_DATA"; then
+                echo "ERROR: options_chain_intraday.jsonl auf origin ist kein Präfix der neuen Datei — kein Push."
+                exit 1
+              fi
+            fi
+            cp "$FRESH_STATE" options_intraday_state.json
+            if [ -f "$FRESH_DATA" ]; then cp "$FRESH_DATA" options_chain_intraday.jsonl; fi
+            git add options_intraday_state.json
+            if [ -f options_chain_intraday.jsonl ]; then git add options_chain_intraday.jsonl; fi
+            if git diff --staged --quiet; then
+              echo "Keine Aenderung gegenueber origin/main."
+              pushed=1
+              break
+            fi
+            git commit -m "Optionen Handelszeit $(date -u '+%Y-%m-%d %H:%M') UTC"
+            if git push origin main; then
+              echo "options_intraday gepusht (Versuch $attempt)."
+              pushed=1
+              break
+            fi
+            echo "push rejected (Versuch $attempt) — neu fetchen und retry."
+            sleep 2
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "ERROR: options_intraday konnte nach 5 Versuchen nicht gepusht werden."
+            exit 1
+          fi

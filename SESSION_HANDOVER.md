@@ -3444,6 +3444,18 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#732`, eigene `#734` (`#733` offen, Manual-Merge).
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 16.11.2026 — Optionen in der Handelszeit (1 PR, neuer Workflow, Manual-Merge)
+
+- `#733` (Branch `claude/options-intraday-k5w3`, kein Merge-Hash — Regel a). Easy-Entscheid 16.11.2026 (zuerst, weil
+  nicht nachholbar): `options_intraday.py` + Workflow `options_intraday.yml` (15:07/16:37/18:07 UTC werktags, Fenster
+  10:00–15:30 ET, Feiertage aus, einmal je Handelstag). Top-10 des letzten Postclose, je Ticker erster Verfall ≥ Tag
+  10 und der folgende, Strikes ±30 %, Aktienkurs aus demselben Abruf. Nur angehängt in
+  `options_chain_intraday.jsonl`, State + Digest-Zeile; veraltete Top-10 gekennzeichnet (Guardian). Keine
+  Auswertung. Test 37 Checks; CLAUDE.md-Abschnitt;
+  open_item `options-intraday-erster-lauf`.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#734` (nach Rebase), eigene `#733` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 16.11.2026 — Plan Erkundungsfeld 2025/26 + Options-Sammlung (1 PR, Doku, Self-Merge)
 
 - `#732` (Branch `claude/erkundungsfeld-plan-e3q8`, kein Merge-Hash — Regel a). Nur open_item `erkundungsfeld-plan`

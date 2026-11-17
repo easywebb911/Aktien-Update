@@ -4678,6 +4678,33 @@ Hoch/Tief passen zur Tageszeile, der letzte Minutenkurs ist NICHT der Schlusskur
   `scripts/mock_test_minute_bars.py`. **Rückweg:** Workflow per PR entfernen; Daten können
   gelöscht werden, keine Bestandsdatei berührt.
 
+## Optionen in der Handelszeit (seit 16.11.2026, options_chain_intraday.jsonl)
+
+**Zweck:** handelbare Optionskurse mit Aktienkurs für eine spätere, vorab festzulegende
+Prüfung „Call + Put zusammen“ (open_item `erkundungsfeld-plan` Teil B). Die Nachtsammlung
+`options_chain_raw.jsonl` (Abruf nach Schluss, Geld/Brief oft weit/veraltet, nur nächster
+Verfall) bleibt unverändert.
+
+- **Skript** `options_intraday.py`, Workflow `.github/workflows/options_intraday.yml`
+  (drei Slots werktags 15:07 / 16:37 / 18:07 UTC = 10:07–14:07 ET je nach Sommer-/Winterzeit
+  + Hand-Start). Das Skript läuft nur an US-Handelstagen (`US_MARKET_HOLIDAYS`) im Fenster
+  10:00–15:30 ET und höchstens **einmal je Handelstag** (auch nach Rate-/Zeitlimit kein
+  Nachholen am selben Tag).
+- **Top-10** = jüngster Postclose in `backtest_history.json` (Nicht-Bootstrap, Datum als Datum
+  gelesen, nach `pool_position`). Am Vormittag gilt damit der Vorabend-Postclose (Einstieg =
+  heutige Eröffnung), nicht ein Premarket-Stand. Fehlt der Postclose des letzten Handelstags,
+  wird die ältere Top-10 trotzdem gesammelt, aber als `top10_aktuell: false` markiert (Digest
+  „Top-10 vom TT.MM. (veraltet)“).
+- **Je Ticker** zwei Verfälle: erster am/nach Tag 10 (`trading_date.nth_trading_day_after(D, 10)`)
+  und der folgende; Strikes ±`OPTIONS_CHAIN_RAW_MONEYNESS_RANGE`; Felder wie Nachtsammlung +
+  `spot`/`spot_time_utc` aus demselben Abruf (`option_chain(...).underlying`), `fetch_ts_utc`.
+  Fehlt Kette oder Kurs → Zeile mit `grund`, nie 0. Rate-Limit → kein Retry, Rest `rate_limit`;
+  Zeitlimit `DEADLINE_S` (600 s).
+- **Dateien** nur angehängt; State `options_intraday_state.json` (nur Zählungen). Digest-Zeile
+  „🧾 Optionen Handelszeit (TT.MM.): Kette x/10 · ATM-Paar y/x“.
+- **Keine Auswertung, keine Anzeige, kein Score-/Filter-/Push-Effekt.** Test
+  `scripts/mock_test_options_intraday.py`. Rückweg: Revert (Dateien dürfen liegen bleiben).
+
 ## Gewinn-Felder im Backtest (seit 14.11.2026)
 
 Zwei additive Felder je neuem `backtest_history.json`-Eintrag (Easy-Entscheid

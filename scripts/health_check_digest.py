@@ -662,6 +662,13 @@ def main(*, now_ts: datetime | None = None,
         eval_lines.append(treffer_score.digest_line(ROOT / treffer_score.DAILY_FILE))
     except Exception as _ts_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Treffer-Score-Digest unerwartet: %r", _ts_exc)
+    # Options-Sammlung in der Handelszeit (16.11.2026): „Kette x/10 · ATM-Paar
+    # y/x“ aus options_intraday_state.json. Reine Anzeige, fail-soft.
+    try:
+        import options_intraday  # noqa: E402  (Repo-Root liegt im sys.path)
+        eval_lines.append(options_intraday.digest_line(ROOT / options_intraday.STATE_FILE))
+    except Exception as _oi_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
+        log.warning("Options-Handelszeit-Digest unerwartet: %r", _oi_exc)
     # Pause sichtbar machen (02.11.2026): bei abgeschaltetem Auto-Lauf steht
     # täglich eine eigene Zeile im Digest — AUSSERHALB des try, damit sie
     # auch dann erscheint, wenn die Zähler-Zeilen scheitern. Reine Anzeige,

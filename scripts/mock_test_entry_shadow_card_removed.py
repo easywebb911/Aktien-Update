@@ -71,11 +71,18 @@ check("09 entry_components weiter gesammelt (unverändert)",
 check("10 entry_n_components weiter gesammelt (unverändert)",
       ext.get("entry_n_components") == 1, repr(ext.get("entry_n_components")))
 
+# Feste Uhr wie mock_test_paper_c_marker/sparkline_view: der Render enthält einen
+# sekundengenauen Zeitstempel (daily_run_ts_js); ohne feste Uhr wird v1 != v2,
+# sobald ein Sekundenwechsel zwischen die beiden Renders fällt (CI-Flake 16.11.2026).
+_orig_dt = gr.datetime
 try:
+    gr.datetime = golden._FixedDateTime
     gr._render_test(golden._fixture_stocks(), golden._FIXED_REPORT_DATE)
     ok = True
 except Exception:  # noqa: BLE001
     ok = False
+finally:
+    gr.datetime = _orig_dt
 check("11 v1 == v2 (_render_test)", ok)
 
 items = json.loads((ROOT / "open_items.json").read_text(encoding="utf-8"))["items"]
