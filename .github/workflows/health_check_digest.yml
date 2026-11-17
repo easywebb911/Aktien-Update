@@ -13,12 +13,29 @@ name: Health-Check Daily Digest
 # - Iteration 3 ``47 8 * * *`` — deutlich näher zur Stunden-Mitte,
 #   analog ki_agent ``17 * * * *``-Erfolgs-Pattern (Coverage > 95 %).
 
+# Seit 17.11.2026 (Easy-Entscheid): Hauptauslöser ist der Anstoß am Ende des
+# Postclose-Daily-Runs (auch bei dessen Fehlschlag, if: always()). Der
+# Zeitplan 08:47 UTC bleibt als Rückfall (Wochenende, ausgefallener Postclose,
+# fehlender Anstoß); die Tages-Sperre last_digest_sent verhindert Doppelversand
+# (Digest-Tag beginnt um 21:00 UTC, scripts/health_check_digest.digest_day).
 on:
   schedule:
     - cron: '47 8 * * *'
   workflow_dispatch:   # Manueller Trigger jederzeit (Mehrfach-Trigger-
                        # Schutz im Skript via last_digest_sent-Datum).
     inputs:
+      upstream_status:
+        # Anstoß am Ende des Postclose-Daily-Runs (17.11.2026): dessen
+        # job.status (success/failure/cancelled). Leer bei Zeitplan/Hand-Start.
+        description: 'nur für den Anstoß aus dem Daily-Run (job.status des Postclose)'
+        type: string
+        required: false
+        default: ''
+      upstream_run:
+        description: 'nur für den Anstoß aus dem Daily-Run (Run-Nummer des Postclose)'
+        type: string
+        required: false
+        default: ''
       paper_c:
         # Paper-C-Freeze (SESSION_HANDOVER.md, eingefroren 07.11.2026):
         # EINMALIGER Auswertungslauf. Das Skript bricht selbst ab, wenn
@@ -38,6 +55,12 @@ on:
 
 permissions:
   contents: write   # Für Commit von health_check_digest_state.json
+
+# Anstoß (Daily-Run) und Zeitplan können zusammenfallen: nacheinander statt
+# parallel — der zweite Lauf sieht dann last_digest_sent und sendet nicht.
+concurrency:
+  group: health-check-digest
+  cancel-in-progress: false
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -73,6 +96,8 @@ jobs:
       - name: Run Health-Check Digest (prepare)
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          UPSTREAM_STATUS: ${{ inputs.upstream_status }}
+          UPSTREAM_RUN: ${{ inputs.upstream_run }}
         run: python scripts/health_check_digest.py --phase prepare --outbox "$RUNNER_TEMP/digest_outbox.json"
 
       - name: Publish full digest (health_check_digests/)

@@ -4312,7 +4312,7 @@ und sendet **einen** ntfy-Push.
 | Spec | ``0 8 * * *`` | initial | — (nie deployt) |
 | #1 | ``13 8 * * *`` | bis 15.05.2026 | gedropt — State-Commit 10:37 UTC statt 08:13 UTC (Drift > 2 h) |
 | #2 | ``21 8 * * *`` | 15.–16.05.2026 | gedropt — 08:21-Slot am 16.05. komplett ausgefallen |
-| **#3** | **``47 8 * * *``** | **ab 16.05.2026** | aktive Version, deutlich näher zur Stunden-Mitte, analog ki_agent-Pattern |
+| **#3** | **``47 8 * * *``** | **ab 16.05.2026** | aktive Version, deutlich näher zur Stunden-Mitte, analog ki_agent-Pattern; seit 17.11.2026 nur noch Rückfall (Hauptauslöser: Anstoß nach dem Postclose) |
 
 **Fail-Visibility-Fix (16.05.2026):** Wenn ``_ntfy_send`` False zurück-
 gibt UND ``NTFY_TOPIC`` gesetzt ist, beendet ``health_check_digest.py``
@@ -4388,6 +4388,27 @@ totem Link; Exit 1 bei Versand-Fehler) → State-Commit (sichert die
 Ablage ein zweites Mal); scheitert die Ablage, wird der Lauf am Ende rot. `main()` ohne Phase (Tests, Hand-Aufruf) sendet
 die Kurzfassung ohne Ablage. Test `scripts/mock_test_digest_push_short.py`.
 **Rückweg:** Revert; `health_check_digests/` darf liegen bleiben.
+
+**Anstoß nach dem Postclose (seit 17.11.2026, Easy-Entscheid):** GitHub startet
+geplante Läufe hier 6–10 h zu spät (Digest 30.10.–16.11.: 14:43–19:06 statt 08:47
+UTC). Hauptauslöser ist deshalb der letzte Schritt vor dem Totmann-Ping in
+`daily-squeeze-report.yml` („Health-Check-Digest anstoßen (nach Postclose)“):
+`if: always()` + Postclose-Erkennung (Zeitplan `37 21`/`17 21` oder
+`RUN_PHASE == postclose`), `gh workflow run health_check_digest.yml` mit
+`upstream_status` = `job.status` und `upstream_run` (nur über env). Ein nicht
+erfolgreicher Postclose erscheint im Digest als crit „🔴 POSTCLOSE: Postclose-Lauf
+fehlgeschlagen/abgebrochen (Run …)“ (`upstream_fail`, auch in der Klasse „ohne
+Daten“). Der Zeitplan 08:47 UTC bleibt Rückfall (Wochenende, Postclose nie
+gestartet, Anstoß fehlt). **Digest-Tag** (`digest_day`) beginnt um
+`DIGEST_DAY_START_UTC_HOUR` = 21 UTC: ein Postclose-Ende vor oder nach Mitternacht
+UTC zählt zum Folgetag, der verspätete Rückfall desselben Tags sendet nicht
+doppelt. Ein übersprungener Lauf („heute schon gesendet“) setzt
+`last_successful_run` auf den letzten Pipeline-Lauf aus den Logs (S8 misst weiter
+die Pipeline, kein Fehlalarm am Wochenende). Ein nicht erfolgreicher Postclose
+durchbricht die Tages-Sperre (sein Alarm wird nie verschluckt). `concurrency`
+`health-check-digest` (kein Abbruch). healthchecks.io: der Digest wird dort nicht
+überwacht, keine Änderung nötig. Test `scripts/mock_test_digest_after_postclose.py`.
+**Rückweg:** Revert — der Zeitplan 08:47 läuft unverändert weiter.
 
 **Komponenten:**
 
