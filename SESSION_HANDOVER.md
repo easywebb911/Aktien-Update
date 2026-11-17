@@ -3432,6 +3432,17 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   höchste in Block 1 erwähnte PR = `#690` (eigene) — kein Rückstand.
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
 
+### 17.11.2026 — Erkundungsfeld Stufe 1, PR B (1 PR, neuer Workflow, Manual-Merge)
+
+- `#736` (Branch `claude/erkundungsfeld-stufe1-q8m3`, Branch-Commit `b703aa4d`, kein Merge-Hash — Regel a).
+  `scripts/erkundungsfeld.py` + Workflow `erkundungsfeld.yml` (nur Hand-Start, probe|voll): FINRA
+  consolidatedShortInterest (nutzbar ab Handelstag nach Stichtag + 7), Nenner „Hybrid“ (SEC-Vorfilter >= 5 %,
+  dann heutiger Yahoo-Float, gekennzeichnet), Kurse Variante A (Obergrenze 02.07./23.10.2026, Merkmale nur aus
+  Zeilen <= t), unveränderte score(), 30 Namen je Tag, Namensvergleich gegen echte Top-10 (67 Tage). Schwelle
+  vorab: Median Top-30 >= 5 / 3–4 / < 3. §7·0a Ergänzung (a)/(b). Test 32 Checks. Keine Renditen/Treffer.
+- **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#735`, eigene `#736` — kein Rückstand.
+- **Guardian-Lauf vor Ready:** siehe PR-Bericht.
+
 ### 17.11.2026 — Datenprüfung Aktienbasis / Short Float, PR C (1 PR, Manual-Merge)
 
 - `#735` (Branch `claude/aktienbasis-kennzeichen-r7p2`, Branch-Commit `22374386`, kein Merge-Hash —
