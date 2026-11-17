@@ -1,6 +1,6 @@
 ### 17.11.2026 — Erkundungsfeld: rvol-Regel wie im Tool (1 PR, Manual-Merge)
 
-- `#?` (Branch `claude/erkundungsfeld-rvol-vorrang-93ce`, kein Merge-Hash — Regel a).
+- `#744` (Branch `claude/erkundungsfeld-rvol-vorrang-93ce`, Branch-Commit `e7caeddc`, kein Merge-Hash — Regel a).
   Easy-Entscheid 17.11.: genau ein Fix nach der Fehl-Analyse (`#743`). Regeltext + Schwelle zuerst ins
   open_item `erkundungsfeld-plan` (Commit `24f507da`), dann Code: `scripts/erkundungsfeld.py` wendet
   rvol >= 1,5 nicht mehr hart an, sondern als Vorrang wie `generate_report.py` (`top10_vol`: mindestens
