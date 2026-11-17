@@ -55,6 +55,8 @@ GOOD = ("### 18.11.2026 — Titel A (1 PR)\n\n- `#801` (Branch `claude/a`, kein 
 # 1 Eintragsdateien
 e = hb.parse_entry("2026-11-18_titel-a.md", GOOD)
 check(e.pr == 801 and e.date == "2026-11-18", f"gültige Datei gelesen: {e.pr} {e.date}")
+check(hb.parse_entry("2026-11-18_y.md", GOOD + b"- zweiter Punkt nennt `#900`\n").pr == 801,
+      "eigene PR = Anfang des ersten Aufzählungspunkts, spätere Verweise egal")
 check(hb.parse_entry("2026-11-18_x.md", GOOD.replace(b"`#801`", b"`#?`")).pr is None, "'#?' → pr None")
 for name, raw, why in [
     ("README.md", GOOD, "Dateiname"),
@@ -68,6 +70,7 @@ for name, raw, why in [
     ("2026-11-18_x.md", GOOD.replace(b"`#801`", b"#801").replace(b"`#737`", b"#737"), "PR-Verweis"),
     ("2026-11-18_x.md", GOOD + b"\n```\noffen\n", "Code-Block"),
     ("2026-11-18_x.md", b"Titel ohne Raute\n- `#1`\n", "erste Zeile"),
+    ("2026-11-18_x.md", b"### 18.11.2026 \xe2\x80\x94 T\n\n- Folge zu `#737`, eigene `#801`\n", "PR-Verweis"),
 ]:
     msg = raises(hb.parse_entry, name, raw)
     check(msg is not None and why.lower() in msg.lower(), f"abgelehnt ({why}): {msg}")

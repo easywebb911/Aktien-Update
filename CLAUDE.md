@@ -4962,8 +4962,8 @@ Wächter, Lit-Check, Monatsrundgang) und jeden PR:
 - Der Block-1-Eintrag ist eine eigene Datei
   `handover_eintraege/<JJJJ-MM-TT>_<slug>.md` (slug: a-z, 0-9, `-`;
   Datum = Datum im Titel). Erste Zeile `### TT.MM.JJJJ — Titel`, danach
-  der Eintrag wie bisher; der PR-Verweis steht in Backticks, der ERSTE
-  `` `#NNN` `` ist die eigene PR-Nummer (im Entwurf `` `#?` ``, vor Ready
+  der Eintrag wie bisher; der ERSTE Aufzählungspunkt beginnt mit der
+  eigenen PR-Nummer in Backticks (`` - `#NNN` (Branch …`` — im Entwurf `` `#?` ``, vor Ready
   durch die echte Nummer ersetzen — pr-checks ist sonst rot). Keine
   `#`/`##`-Überschriften, kein weiteres `###`, keine
   VORABREGISTRIERUNG/ERRATUM, keine Marken im Eintrag.

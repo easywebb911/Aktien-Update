@@ -128,9 +128,13 @@ def parse_entry(name: str, raw: bytes) -> Entry:
         raise Block1Error(f"{name}: Code-Block nicht geschlossen")
     if _START_PREFIX in lines[0] or _END_PREFIX in lines[0]:
         raise Block1Error(f"{name}: Marke im Eintrag nicht erlaubt")
-    pm = _PR_RE.search(text)
+    # Eigene PR-Nummer = Anfang des ERSTEN Aufzählungspunkts ("- `#NNN` …"),
+    # nicht irgendein späterer Verweis auf andere PRs (Guardian #742).
+    bullets = [ln for ln in lines[1:] if ln.startswith("- ")]
+    pm = _PR_RE.match(bullets[0][2:]) if bullets else None
     if not pm:
-        raise Block1Error(f"{name}: PR-Verweis `#NNN` (oder `#?` im Entwurf) fehlt")
+        raise Block1Error(f"{name}: erster Aufzählungspunkt muss mit dem PR-Verweis "
+                          f"`#NNN` (oder `#?` im Entwurf) beginnen")
     pr = None if pm.group(1) == "?" else int(pm.group(1))
     return Entry(name=name, date="-".join(m.groups()), pr=pr, text=text)
 
