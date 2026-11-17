@@ -127,6 +127,10 @@ check("14 beide Werte < 1 % → kein Kennzeichen",
       ab.evaluate(dict(OK, short_float=0.2), {"status": "ok", "records": [
           {"settlement_date": "2026-10-30", "bestand": 0, "split": None, "revision": None}]}, D)
       ["short_float_pruefung"] == "ok")
+check("14b Short Float 0 bzw. Quelle „none“ → nicht prüfbar (kein Fehlalarm)",
+      all(ab.evaluate(x, fin, D)["short_float_pruefung"] == "nicht_pruefbar"
+          and ab.evaluate(x, fin, D)["short_float_grund"] == "short_float_fehlt"
+          for x in (dict(FGL, short_float=0.0), dict(FGL, short_float_source="none"))))
 check("15 Determinismus: gleiche Eingabe → gleiches Ergebnis",
       ab.evaluate(FGL, fin, D) == ab.evaluate(copy.deepcopy(FGL), copy.deepcopy(fin), D))
 
@@ -247,6 +251,8 @@ leak = [n.name for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.n
 check("34 kein Score-/Filter-/Conviction-Pfad liest die Prüfung", leak == [], leak)
 check("35 Aufruf erst nach Step 3c (Short-Float-Korrekturen), vor dem Rendern",
       src.index("Step 3c2") < src.index("_abc.run(") < src.index('log.info("Step 4 – Generating HTML report'))
+check("35b Prüfung läuft VOR dem Postclose-Backtest-Append (Feld beim Append gesetzt)",
+      src.index("_abc.run(") < src.index("_n_backtest_appended = _append_backtest_entries("))
 
 # ── 36–39 Persistenz, Workflow, Konstanten ──────────────────────────────────
 bsrc = (ROOT / "backtest_history.py").read_text(encoding="utf-8")
@@ -263,4 +269,4 @@ print()
 if FAILS:
     print(f"FEHLER: {len(FAILS)} Test(s) rot: {FAILS}")
     sys.exit(1)
-print("Alle 39 Checks grün.")
+print("Alle 41 Checks grün.")

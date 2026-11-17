@@ -245,7 +245,10 @@ def evaluate(s: dict, finra: dict | None, report_day: date) -> dict:
     flt = _num(s.get("float_shares"))
     shares = _num(s.get("shares_outstanding"))
     price = _num(s.get("price"))
-    sf_used = _num0(s.get("short_float"))
+    # Short Float 0 / ohne Quelle („none“) gilt als fehlend, nicht als echter
+    # Wert — sonst Fehlalarm bei Watchlist-Tickern ohne Short-Daten (Guardian #735).
+    sf_used = (None if s.get("short_float_source") == "none"
+               else _num(s.get("short_float")))
     res = {
         "marktkap": cap, "float_aktien": int(flt) if flt else None,
         "aktienzahl": int(shares) if shares else None, "kurs": price,

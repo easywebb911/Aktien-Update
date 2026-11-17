@@ -20731,6 +20731,24 @@ def main():
     _vix_for_conv = _prev_app_data_for_conv.get("vix_current")
     apply_conviction_scores(top10, _anomalies_today, _vix_for_conv)
 
+    # Datenprüfung Aktienbasis / Short Float (Easy-Entscheid 17.11.2026, PR C):
+    # zwei Kennzeichen + Rohwerte je Top-10- und Watchlist-Kandidat, NACH allen
+    # Short-Float-Korrekturen (stockanalysis Step 3c) und VOR dem Postclose-
+    # Backtest-Append (Feld aktienbasis_pruefung) und dem Rendern (Guardian-
+    # Befund #735). Rein Anzeige/Persistenz — score(), Conviction, Filter,
+    # Auswahl und Reihenfolge sind zu diesem Zeitpunkt fertig und werden nicht
+    # gelesen.
+    # Fail-soft: aktienbasis_check.run raised nie.
+    try:
+        import aktienbasis_check as _abc
+        _t_ab = time.time()
+        _ab_res = _abc.run(list(top10) + list(_wl_outsiders_for_pool),
+                           report_day=_report_day)
+        print(_abc.log_line(_ab_res) + f" in {time.time()-_t_ab:.1f}s", flush=True)
+    except Exception as _ab_exc:  # pragma: no cover — run() ist raise-frei
+        log.warning("Datenprüfung Aktienbasis übersprungen: %r", _ab_exc)
+
+
     # Backtest-History: pro Top-10-Ticker einen Eintrag anlegen (idempotent,
     # dedupliziert nach ticker+date). Returns werden später vom KI-Agent
     # aktualisiert, sobald 3/5/10 Handelstage vergangen sind.
@@ -20819,21 +20837,6 @@ def main():
     # auf einer KOPIE des Stock-Dicts (``enriched`` bleibt unverändert, kein
     # Effekt auf Score/Backtest/Exit). Top-10-Ticker und bereits gesetzte
     # Earnings-Werte bleiben unangetastet.
-    # Datenprüfung Aktienbasis / Short Float (Easy-Entscheid 17.11.2026, PR C):
-    # zwei Kennzeichen + Rohwerte je Top-10- und Watchlist-Kandidat, NACH allen
-    # Short-Float-Korrekturen (stockanalysis Step 3c) und VOR dem Rendern.
-    # Rein Anzeige/Persistenz — score(), Conviction, Filter, Auswahl und
-    # Reihenfolge sind zu diesem Zeitpunkt fertig und werden nicht gelesen.
-    # Fail-soft: aktienbasis_check.run raised nie.
-    try:
-        import aktienbasis_check as _abc
-        _t_ab = time.time()
-        _ab_res = _abc.run(list(top10) + list(_wl_outsiders_for_pool),
-                           report_day=_report_day)
-        print(_abc.log_line(_ab_res) + f" in {time.time()-_t_ab:.1f}s", flush=True)
-    except Exception as _ab_exc:  # pragma: no cover — run() ist raise-frei
-        log.warning("Datenprüfung Aktienbasis übersprungen: %r", _ab_exc)
-
     _wl_top10_set = {s["ticker"] for s in top10}
     _wl_agent_sigs = _load_agent_signals_for_display()
     _wl_earn_filled = 0

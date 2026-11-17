@@ -4713,7 +4713,7 @@ US-Filter (≥ 15 %) nicht passiert. **Nur Kennzeichen + Rohwerte** — kein Eff
 Conviction, Filter, Auswahl oder Reihenfolge (Wächter im Test).
 
 - **Modul** `aktienbasis_check.py`, Aufruf in `main()` nach allen Short-Float-Korrekturen (Step 3c)
-  und vor dem Rendern, für Top-10 + Watchlist-Kandidaten (`_wl_outsiders_for_pool`). Raise-frei.
+  und vor dem Postclose-Backtest-Append und dem Rendern, für Top-10 + Watchlist-Kandidaten (`_wl_outsiders_for_pool`). Raise-frei.
 - **(a) Aktienbasis widersprüchlich:** Marktkap < `AKTIENBASIS_MCAP_FLOAT_FACTOR` (0,9) × Float × Kurs.
 - **(b) Short Float abweichend:** FINRA-Bestand / Float weicht um mehr als
   `SHORT_FLOAT_FINRA_ABWEICHUNG_FAKTOR` (2) vom verwendeten Short Float ab (beide < 1 % → kein

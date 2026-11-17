@@ -3440,7 +3440,7 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   weicht > Faktor 2 vom FINRA-Bestand/Float ab (consolidatedShortInterest, nur am Berichtstag
   veröffentlichte Stichtage, Cache `finra_si_cache.json`). Backtest-Feld `aktienbasis_pruefung`
   (forward-only), Karten-Hinweis, Risiko-Text ohne Marktkap bei (a), Digest-Zeile. Kein Effekt auf
-  Score/Filter/Liste. Test 39 Checks; open_items: FGL-Nachtrag (Urteil „Wirkung auf die Liste
+  Score/Filter/Liste. Test 41 Checks (Guardian: Aufruf vor den Append gezogen, SF 0 = nicht prüfbar); open_items: FGL-Nachtrag (Urteil „Wirkung auf die Liste
   belegt“, kein Ausschluss/Freeze-Eintrag), neu `datenpruefung-short-float-auswertung` (02.12.2026).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#734`, eigene `#735` — kein Rückstand
   (`#733` ist gemergt, Block-1-Eintrag vorhanden).
