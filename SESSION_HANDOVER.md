@@ -3442,6 +3442,10 @@ explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
   (forward-only), Karten-Hinweis, Risiko-Text ohne Marktkap bei (a), Digest-Zeile. Kein Effekt auf
   Score/Filter/Liste. Test 41 Checks (Guardian: Aufruf vor den Append gezogen, SF 0 = nicht prüfbar); open_items: FGL-Nachtrag (Urteil „Wirkung auf die Liste
   belegt“, kein Ausschluss/Freeze-Eintrag), neu `datenpruefung-short-float-auswertung` (02.12.2026).
+- **protected-ok:** `lint_protected_zones` traf `backtest_history._append_backtest_entries` (eine
+  angehängte Feld-Zuweisung `aktienbasis_pruefung`, keine bestehenden Felder geändert). Label nach
+  **Regel b** (Logik-Zone, inhaltliche Freigabe durch Easy im Chat am 17.11.2026) gesetzt; technische
+  Setz-Aktion durch Code (Regel d), danach frischer Push (Regel c).
 - **Staleness-Grep vor Ready:** höchste gemergte PR auf `main` = `#734`, eigene `#735` — kein Rückstand
   (`#733` ist gemergt, Block-1-Eintrag vorhanden).
 - **Guardian-Lauf vor Ready:** siehe PR-Bericht.
