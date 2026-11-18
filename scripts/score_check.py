@@ -6,7 +6,8 @@ Rechnet den gespeicherten Abend-Score jeder Postclose-Top-10-Zeile aus
 ``trading_date.last_settled_close_date``) und meldet Abweichungen. Aufgerufen aus
 ``scripts/truth_check.py`` (Wahrheits-Abgleich); bewertet von Health-Check S16.
 
-Rechenmodell (aus ``scripts/probe_halbzeile_score.py``, Lauf 43578382904:
+Rechenmodell (aus der Wegwerf-Probe 1 ``scripts/probe_halbzeile_score.py`` — entfernt
+18.11.2026, siehe Git-Historie —, Lauf 43578382904:
 Modell reproduziert 210/210 gespeicherte Scores): die Score-Eingaben, die aus der
 LETZTEN Tageszeile rechnen, werden aus endgültigen Kursen neu bestimmt —
 
