@@ -306,7 +306,14 @@ def _sec_note_error(acct: dict, ticker: str, resp=None, exc=None) -> str:
     ``provider_health.jsonl`` als ``error`` und damit im Digest erscheint.
     Liefert den Text (für das Log)."""
     if resp is not None:
-        body = " ".join((getattr(resp, "text", "") or "").split())[:100]
+        body = " ".join((getattr(resp, "text", "") or "").split())
+        # Der Text landet im öffentlichen provider_health.jsonl/Digest: einen
+        # gespiegelten User-Agent und adressartige Angaben vorher entfernen
+        # (Guardian #748).
+        _ua = (SEC_HEADERS or {}).get("User-Agent") or ""
+        if _ua:
+            body = body.replace(_ua, "[User-Agent]")
+        body = re.sub(r"[\w.+-]+@[\w-]+(\.[\w-]+)+", "[Adresse]", body)[:100]
         msg = f"HTTP {getattr(resp, 'status_code', '?')}" + (f": {body}" if body else "")
     elif exc is not None:
         msg = f"{type(exc).__name__}: {str(exc)[:100]}"

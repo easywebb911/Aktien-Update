@@ -124,6 +124,18 @@ check(err.startswith("HTTP 400: Invalid count, Received: 5, Count must be one of
       and err.endswith("(erster Fehler: AAPL)"),
       f"Fehlergrund im Akkumulator, erster gewinnt: {err!r}")
 
+# 2b gespiegelter User-Agent / Adresse im Antworttext wird entfernt
+ka._reset_tier3_accumulators()
+_ua_now = ka.SEC_HEADERS.get("User-Agent")
+_addr = "jemand" + "@" + "beispiel.test"
+with mock.patch.object(ka.requests, "get",
+                       return_value=_Resp(403, f"Blocked UA: {_ua_now}; contact {_addr}")), \
+     mock.patch.object(ka.time, "sleep"):
+    ka.fetch_sec_8k("AAPL")
+_e = ka._EDGAR_8K_ACCT.get("last_error_repr") or ""
+check(_ua_now not in _e and _addr not in _e and "[User-Agent]" in _e and "[Adresse]" in _e,
+      f"User-Agent und Adresse aus dem Fehlertext entfernt: {_e!r}")
+
 # 3 Ausnahme
 ka._reset_tier3_accumulators()
 with mock.patch.object(ka.requests, "get", side_effect=ka.requests.exceptions.Timeout("read timeout")), \
