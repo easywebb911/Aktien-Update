@@ -368,7 +368,9 @@ def build_stock(sym, feat, spx, cur, prev, float_today, shares_today) -> dict:
 
 
 def passes_filter(st: dict, avg_vol: float) -> bool:
-    return (st["price"] >= MIN_PRICE and st["rel_volume"] >= MIN_RVOL
+    # rvol ist seit 17.11.2026 KEIN harter Filter mehr (Easy-Entscheid): das Tool
+    # nutzt MIN_REL_VOLUME bei der Top-10-Auswahl nur als Vorrang → select_tool_order.
+    return (st["price"] >= MIN_PRICE
             and st["_sf"] is not None and st["_sf"] >= MIN_SI_PCT
             and st["_mcap"] is not None and st["_mcap"] < MAX_MCAP
             and avg_vol >= MIN_AVG_VOL)
@@ -379,13 +381,39 @@ def _score_fn():
     return gr.score
 
 
+TOOL_VORRANG_MIN = 10   # generate_report: top10_vol[:10] if len(top10_vol) >= 10 else enriched[:10]
+
+
+def select_tool_order(cands: list) -> tuple[list, bool]:
+    """rvol-Regel wie im Tool (generate_report.py, Auswahl ``top10_vol``):
+
+        top10_vol = [c for c in enriched if c.get("rel_volume", 0) >= MIN_REL_VOLUME]
+        top10 = top10_vol[:10] if len(top10_vol) >= 10 else enriched[:10]
+
+    ``cands`` = [(score, sym, merkmale)] bereits nach Score sortiert. Rückgabe
+    (gewählte Liste, aufgefuellt). Vorrang-Liste = Kandidaten mit rvol >= MIN_RVOL
+    (ungerundet, ``merkmale["rvol_vorrang"]``); mindestens 10 → Vorrang-Liste,
+    sonst alle (``aufgefuellt`` = True). Für Plätze 11–30 hat das Tool keine
+    Regel: die Liste wird NICHT mit Namen unter 1,5 aufgefüllt, wenn die
+    Vorrang-Liste gilt (vorab festgelegt im open_item erkundungsfeld-plan)."""
+    vol = [c for c in cands if c[2]["rvol_vorrang"]]
+    if len(vol) >= TOOL_VORRANG_MIN:
+        return vol, False
+    return list(cands), True
+
+
 def rank_day(t, tickers, bars, spx_feat, finra, float_map, score_fn,
-             prefilter_ok=None, splits=None, cap=None, luecken=None):
-    """Kandidatenliste Tag t: (liste[(rang, sym, score, merkmale)], ohne_kurs[sym])."""
+             prefilter_ok=None, splits=None, cap=None, luecken=None, auswahl=None):
+    """Kandidatenliste Tag t: (liste[(rang, sym, score, merkmale)], ohne_kurs[sym]).
+    ``auswahl`` (dict, optional): erhält ``aufgefuellt`` und ``n_vorrang``."""
     cands, ohne_kurs = score_candidates(t, tickers, bars, spx_feat, finra, float_map, score_fn,
                                         prefilter_ok=prefilter_ok, splits=splits, cap=cap,
                                         luecken=luecken)
-    return [(i + 1, s, round(sc, 2), m) for i, (sc, s, m) in enumerate(cands[:TOP_N])], ohne_kurs
+    chosen, aufgefuellt = select_tool_order(cands)
+    if auswahl is not None:
+        auswahl["aufgefuellt"] = aufgefuellt
+        auswahl["n_vorrang"] = sum(1 for c in cands if c[2]["rvol_vorrang"])
+    return [(i + 1, s, round(sc, 2), m) for i, (sc, s, m) in enumerate(chosen[:TOP_N])], ohne_kurs
 
 
 def score_candidates(t, tickers, bars, spx_feat, finra, float_map, score_fn,
@@ -424,6 +452,7 @@ def score_candidates(t, tickers, bars, spx_feat, finra, float_map, score_fn,
             "dtc": cur[1]["dtc"], "si": cur[1]["qty"], "si_stichtag": cur[0].isoformat(),
             "si_nutzbar_ab": usable_from(cur[0]).isoformat(), "si_split": cur[1]["split"],
             "si_trend": st["finra_data"]["trend"], "rvol20": round(feat["rel_volume"], 3),
+            "rvol_vorrang": bool(feat["rel_volume"] >= MIN_RVOL),
             "chg_rel_spy": round(feat["change"] - spx_feat["change"], 3),
             "rs_spy": None if st["rel_strength_20d"] is None else round(st["rel_strength_20d"], 3),
             "sf_naeherung": round(st["_sf"], 3), "mcap_naeherung": round(st["_mcap"]),
@@ -619,12 +648,11 @@ EXPORT_FELDER_ERLAUBT = ("ticker", "date", "provenance", "pool_position", "sourc
 
 
 def filter_failures(st: dict, avg_vol: float) -> list[str]:
-    """Alle nicht erfüllten Filterbedingungen, feste Reihenfolge wie ``passes_filter``."""
+    """Alle nicht erfüllten Filterbedingungen, feste Reihenfolge wie ``passes_filter``
+    (rvol seit 17.11.2026 kein Filter mehr, sondern Vorrang — select_tool_order)."""
     out = []
     if not st["price"] >= MIN_PRICE:
         out.append("kurs")
-    if not st["rel_volume"] >= MIN_RVOL:
-        out.append("rvol")
     if st["_sf"] is None or not st["_sf"] >= MIN_SI_PCT:
         out.append("short_float")
     if st["_mcap"] is None or not st["_mcap"] < MAX_MCAP:
@@ -811,12 +839,13 @@ def run_fehlanalyse(deadline, ua) -> int:
             continue
         cands, _ = score_candidates(t, win_t, bars, sf, finra, float_map, score_fn,
                                     prefilter_ok=prefilter_ok)
-        ranks = {sym: i + 1 for i, (_, sym, _) in enumerate(cands)}
-        top30 = [sym for _, sym, _ in cands[:TOP_N]]
+        chosen, _aufg = select_tool_order(cands)
+        ranks = {sym: i + 1 for i, (_, sym, _) in enumerate(chosen)}
+        top30 = [sym for _, sym, _ in chosen[:TOP_N]]
         old = [tk for _, tk in sorted(stored.get(t.isoformat(), []))]
         stored_agree[0] += len(set(old) & set(top30))
         stored_agree[1] += len(old)
-        for _, sym, m in cands[:10]:
+        for _, sym, m in chosen[:10]:
             top10_ann[sym] += 1
             ann_features.setdefault(sym, []).append(m)
         for sym in real[t]:
@@ -1057,6 +1086,7 @@ def main(argv=None) -> int:
                           "ohne_float_heute": len(miss_float)}
 
     score_fn = _score_fn()
+    auswahl_je_tag: dict = {}
 
     def run_days(days, tickers, bars, splits, cap):
         spx = bars.get("^GSPC") or []
@@ -1065,10 +1095,12 @@ def main(argv=None) -> int:
             sf = features_at(spx, t)
             if sf is None:
                 continue
-            lk = {}
+            lk, aw = {}, {}
             lst, ohne = rank_day(t, tickers, bars, sf, finra, float_map, score_fn,
-                                 prefilter_ok=prefilter_ok, splits=splits, cap=cap, luecken=lk)
+                                 prefilter_ok=prefilter_ok, splits=splits, cap=cap, luecken=lk,
+                                 auswahl=aw)
             lists[t] = lst
+            auswahl_je_tag[t] = aw
             g = gap.setdefault(t.strftime("%Y-%m"), [0, 0, 0])
             g[0] += len(ohne)
             g[1] += lk.get("ohne_float", 0)
@@ -1092,6 +1124,16 @@ def main(argv=None) -> int:
     real = real_top10(ROOT / "matured_backtest_export.jsonl", WIN_START, WIN_END)
     cmp_ = compare(win_lists, real)
     bericht["vergleich"] = {k: cmp_[k] for k in ("tage", "top10", "top20", "top30")}
+    # rvol-Regel wie im Tool (seit 17.11.2026): Tage mit Auffüllen (< 10 Namen >= 1,5)
+    _vt = [auswahl_je_tag[d] for d in sorted(win_lists) if d in real and d in auswahl_je_tag]
+    bericht["rvol_regel"] = {
+        "regel": "Vorrang rvol >= 1,5 wie generate_report top10_vol; < 10 Namen → alle",
+        "vergleich_tage": len(_vt),
+        "vergleich_tage_aufgefuellt": sum(1 for a in _vt if a.get("aufgefuellt")),
+        "vergleich_listen_unter_30": sum(1 for d in win_lists if d in real and len(win_lists[d]) < TOP_N),
+        "feld_tage_aufgefuellt": sum(1 for d in field_lists
+                                     if auswahl_je_tag.get(d, {}).get("aufgefuellt")),
+        "feld_tage": len(field_lists)}
     bericht["abbrueche"] = sorted(set(STOPS))
     bericht["vollstaendig"] = not STOPS
     bericht["urteil"] = verdict(cmp_["top30"]["median"], vollstaendig=not STOPS)

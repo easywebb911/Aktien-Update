@@ -4782,6 +4782,11 @@ Treffer, **keine** Kurse nach dem jeweiligen Listentag (Handover §7·0a Ergänz
   ersten 10, nie echt), Zählung „Vorfilter mit Float heute bestanden“. FINRA aus `finra_si.jsonl.gz`,
   SEC + Yahoo frisch, Kurse nur bis 23.10.2026; Export nur über `EXPORT_FELDER_ERLAUBT` (Merkmale vom
   Listentag, nie Renditen). Schreibt `fehlanalyse.json` + `fehlanalyse_faelle.jsonl.gz`.
+- **rvol-Regel wie im Tool (Easy-Entscheid 17.11.2026, ein Fix + eine Wiederholungsmessung):** rvol >= 1,5
+  ist kein harter Filter mehr, sondern Vorrang wie `generate_report.py` (`top10_vol`): mindestens 10
+  Kandidaten über 1,5 → nur diese, sonst alle nach Score (`select_tool_order`). Plätze 11–30 werden bei
+  geltendem Vorrang nicht mit Namen unter 1,5 aufgefüllt. Bericht `rvol_regel` zählt die aufgefüllten Tage.
+  Schwelle unverändert; bleibt der Median unter 5 → Vorschlag „Feld schließen“, kein zweiter Fix.
 
 ## Datenprüfung Aktienbasis / Short Float (seit 17.11.2026, PR C)
 
