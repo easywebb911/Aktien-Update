@@ -341,14 +341,19 @@ def pr_check(base: str, root: pathlib.Path) -> list[str]:
             errs.append(f"Marken im PR fehlerhaft: {exc}")
         return errs
     try:
-        _b0, base_region, _a0 = split_handover(base_txt)
         _b1, cur_region, _a1 = split_handover(cur)
     except Block1Error as exc:
         return errs + [f"Marken-Fehler: {exc}"]
-    if cur_region != base_region:
-        errs.append("PR ändert den erzeugten Bereich zwischen den Marken — nur der "
-                    "Bot schreibt dort; Eintrag stattdessen als Datei in "
-                    f"{ENTRY_DIR}/ anlegen")
+    # Hand-Eingriff erkennen OHNE Vergleich mit ``base``: pr-checks prüft den PR
+    # gemergt mit dem NEUESTEN main, ``base.sha`` kann aber älter sein (vor einem
+    # Bot-Commit) — Befund #748. Gültig ist der Bereich, wenn er exakt die
+    # Bot-Erzeugung aus genau den Eintragsdateien ist, deren Text er enthält.
+    # Ein von Hand geänderter Eintrag oder fremder Text passt dann nicht mehr.
+    shown = [e for e in entries if e.text in cur_region]
+    if cur_region != render_region(shown):
+        errs.append("Bereich zwischen den Marken ist keine reine Bot-Erzeugung aus den "
+                    f"Eintragsdateien (von Hand geändert?) — nur der Bot schreibt dort; "
+                    f"Eintrag stattdessen als Datei in {ENTRY_DIR}/ anlegen")
     try:
         base_entries = load_entries_from_files(_entry_files_at(base, root))
         reason = check_consistency(base_txt, base_entries)

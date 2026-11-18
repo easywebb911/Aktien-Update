@@ -165,6 +165,9 @@ with tempfile.TemporaryDirectory() as t:
     (repo / hb.HANDOVER).write_text(txt.replace("— pr-a", "— pr-a von Hand"), encoding="utf-8")
     rc = hb.pr_check("main", repo)
     check(any("zwischen den Marken" in x for x in rc), f"Bereich von Hand geändert → rot ({rc})")
+    (repo / hb.HANDOVER).write_text(txt.replace("- `#811` Text.", "- `#811` Text.\nZusatz von Hand."), encoding="utf-8")
+    rc = hb.pr_check("main", repo)
+    check(any("zwischen den Marken" in x for x in rc), f"Zusatzzeile im Bereich → rot ({rc})")
     git(repo, "checkout", "-q", "--", hb.HANDOVER)
     (repo / hb.ENTRY_DIR / "2026-11-19_c.md").write_bytes(mk("2026-11-19", None, "c"))
     rc = hb.pr_check("main", repo)
@@ -175,6 +178,22 @@ with tempfile.TemporaryDirectory() as t:
     git(repo, "add", "-A"); git(repo, "commit", "-qm", "merge d ohne Bot")
     git(repo, "checkout", "-q", "-b", "pr-e", "main")
     check(hb.pr_check("main", repo) == [], "main hängt nach → kein Fehler des PR (nur Hinweis)")
+
+# 6b Befund #748: Basis-SHA älter als der main-Stand, mit dem der PR geprüft wird
+# (Bot hat nach dem Merge eines anderen PR schon geschrieben) → KEIN Fehler.
+with tempfile.TemporaryDirectory() as t:
+    repo = pathlib.Path(t)
+    git(repo, "init", "-q", "-b", "main")
+    (repo / hb.HANDOVER).write_text(BASE, encoding="utf-8")
+    (repo / hb.ENTRY_DIR).mkdir()
+    (repo / hb.ENTRY_DIR / "2026-11-18_x.md").write_bytes(mk("2026-11-18", 821, "x"))
+    git(repo, "add", "-A"); git(repo, "commit", "-qm", "merge x (vor Bot)")
+    git(repo, "tag", "basis_alt")
+    hb.main(["--write", "--root", str(repo)])
+    git(repo, "commit", "-qam", "bot schreibt x")
+    (repo / hb.ENTRY_DIR / "2026-11-18_y.md").write_bytes(mk("2026-11-18", 822, "y"))
+    rc = hb.pr_check("basis_alt", repo)
+    check(rc == [], f"Basis älter als Bot-Commit (Race #748) → kein Fehler ({rc})")
 
 # 7 Digest-Zeile ohne Verfahren → None
 with tempfile.TemporaryDirectory() as t:
