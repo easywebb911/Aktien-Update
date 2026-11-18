@@ -341,19 +341,45 @@ def pr_check(base: str, root: pathlib.Path) -> list[str]:
             errs.append(f"Marken im PR fehlerhaft: {exc}")
         return errs
     try:
+        _b0, base_region, _a0 = split_handover(base_txt)
         _b1, cur_region, _a1 = split_handover(cur)
     except Block1Error as exc:
         return errs + [f"Marken-Fehler: {exc}"]
-    # Hand-Eingriff erkennen OHNE Vergleich mit ``base``: pr-checks prüft den PR
-    # gemergt mit dem NEUESTEN main, ``base.sha`` kann aber älter sein (vor einem
-    # Bot-Commit) — Befund #748. Gültig ist der Bereich, wenn er exakt die
-    # Bot-Erzeugung aus genau den Eintragsdateien ist, deren Text er enthält.
-    # Ein von Hand geänderter Eintrag oder fremder Text passt dann nicht mehr.
-    shown = [e for e in entries if e.text in cur_region]
+    try:
+        base_by_name = {e.name: e for e in load_entries_from_files(_entry_files_at(base, root))}
+    except Block1Error:
+        base_by_name = {}
+    # Hand-Eingriff erkennen OHNE exakten Vergleich mit ``base``: pr-checks prüft
+    # den PR gemergt mit dem NEUESTEN main, ``base.sha`` kann älter sein (vor
+    # einem Bot-Commit) — Befund #748. Regeln:
+    # (1) Der Bereich muss exakt die Bot-Erzeugung aus den Einträgen sein, deren
+    #     Text er enthält (aktuelle Datei oder — falls der PR eine bestehende
+    #     Eintragsdatei ändert — ihr Stand auf der Basis; der Bot zieht nach).
+    # (2) Ein Eintrag, den der Bereich auf der Basis schon zeigte und dessen Datei
+    #     noch existiert, darf nicht fehlen (von Hand gelöscht / Bereich geleert).
+    #     main fügt zwischen Basis und Prüfung nur hinzu, entfernt nie.
+    cur_names = {e.name for e in entries}
+    shown = []
+    for e in entries:
+        if e.text in cur_region:
+            shown.append(e)
+        elif e.name in base_by_name and base_by_name[e.name].text in cur_region:
+            shown.append(base_by_name[e.name])
     if cur_region != render_region(shown):
         errs.append("Bereich zwischen den Marken ist keine reine Bot-Erzeugung aus den "
                     f"Eintragsdateien (von Hand geändert?) — nur der Bot schreibt dort; "
                     f"Eintrag stattdessen als Datei in {ENTRY_DIR}/ anlegen")
+    shown_names = {e.name for e in shown}
+    gone = sorted(n for n, b in base_by_name.items()
+                  if b.text in base_region and n in cur_names and n not in shown_names)
+    if gone:
+        errs.append("Bereich zwischen den Marken: Eintrag fehlt, obwohl die Datei existiert "
+                    f"(von Hand gelöscht?): {', '.join(gone)}")
+    changed = sorted(e.name for e in entries
+                     if e.name in base_by_name and e.text != base_by_name[e.name].text)
+    if changed:
+        print("HINWEIS: bestehende Eintragsdatei geändert — der Bot zieht den Bereich nach "
+              f"dem Merge nach: {', '.join(changed)}")
     try:
         base_entries = load_entries_from_files(_entry_files_at(base, root))
         reason = check_consistency(base_txt, base_entries)

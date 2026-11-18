@@ -195,6 +195,38 @@ with tempfile.TemporaryDirectory() as t:
     rc = hb.pr_check("basis_alt", repo)
     check(rc == [], f"Basis älter als Bot-Commit (Race #748) → kein Fehler ({rc})")
 
+# 6c Guardian #749: weitere Hand-Eingriffe → rot; geänderte Eintragsdatei → erlaubt
+with tempfile.TemporaryDirectory() as t:
+    repo = pathlib.Path(t)
+    git(repo, "init", "-q", "-b", "main")
+    (repo / hb.HANDOVER).write_text(BASE, encoding="utf-8")
+    (repo / hb.ENTRY_DIR).mkdir()
+    for nm, pr in (("2026-11-18_a.md", 831), ("2026-11-18_b.md", 832), ("2026-11-18_c.md", 833)):
+        (repo / hb.ENTRY_DIR / nm).write_bytes(mk("2026-11-18", pr, nm[11]))
+    hb.main(["--write", "--root", str(repo)])
+    git(repo, "add", "-A"); git(repo, "commit", "-qm", "basis mit 3 Einträgen")
+    full = (repo / hb.HANDOVER).read_text(encoding="utf-8")
+    ents3 = hb.load_entries(repo)
+    def _pc(new_txt):
+        (repo / hb.HANDOVER).write_text(new_txt, encoding="utf-8")
+        r = hb.pr_check("main", repo)
+        git(repo, "checkout", "-q", "--", hb.HANDOVER)
+        return r
+    mid = [e for e in ents3 if e.pr == 832][0]
+    r_del = _pc(full.replace(mid.text + "\n\n", ""))
+    check(any("fehlt" in x and "2026-11-18_b.md" in x for x in r_del), f"Eintrag mitten drin gelöscht → rot ({r_del})")
+    b_, reg_, a_ = hb.split_handover(full)
+    r_empty = _pc(b_ + hb.render_region([]) + a_)
+    check(r_empty != [], f"Bereich geleert → rot ({r_empty})")
+    e1, e3 = [e for e in ents3 if e.pr == 831][0], [e for e in ents3 if e.pr == 833][0]
+    r_ord = _pc(full.replace(e3.text, "@@").replace(e1.text, e3.text).replace("@@", e1.text))
+    check(r_ord != [], f"Einträge umsortiert → rot ({r_ord})")
+    r_intro = _pc(full.replace(hb.INTRO, hb.INTRO + " Von Hand."))
+    check(r_intro != [], f"INTRO von Hand geändert → rot ({r_intro})")
+    (repo / hb.ENTRY_DIR / "2026-11-18_b.md").write_bytes(mk("2026-11-18", 832, "b geändert"))
+    r_mod = hb.pr_check("main", repo)
+    check(r_mod == [], f"bestehende Eintragsdatei geändert → erlaubt, Bot zieht nach ({r_mod})")
+
 # 7 Digest-Zeile ohne Verfahren → None
 with tempfile.TemporaryDirectory() as t:
     (pathlib.Path(t) / hb.HANDOVER).write_text("# x\n", encoding="utf-8")
