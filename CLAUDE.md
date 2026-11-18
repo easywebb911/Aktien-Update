@@ -4790,7 +4790,8 @@ Treffer, **keine** Kurse nach dem jeweiligen Listentag (Handover §7·0a Ergänz
 - **GESCHLOSSEN (Easy-Entscheid 18.11.2026):** Wiederholungsmessung (Lauf 18.11. 08:39–09:15 UTC, vollständig)
   Median 2 / 3 / 3 in den ersten 10 / 20 / 30 → Grenzfall. Grund: Kandidatenkreis nicht nachbildbar (Auffüllen
   im Nachbau an 1 von 67 Tagen, im Tool an mindestens 58 von 67). Daten, Skript und Hand-Start-Workflow bleiben
-  als Archiv; keine weiteren Läufe, kein zweiter Fix.
+  als Archiv; keine weiteren Läufe, kein zweiter Fix. Teil B (Optionen/Ausschlag-Wette) ebenfalls geschlossen
+  (Lit-Check 18.11.2026).
 
 ## Datenprüfung Aktienbasis / Short Float (seit 17.11.2026, PR C)
 
