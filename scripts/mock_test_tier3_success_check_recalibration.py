@@ -56,10 +56,12 @@ def test_01_sec_8k_signature() -> None:
 
 def test_02_sec_8k_403_returns_none() -> None:
     block = _func_block("def fetch_sec_8k(")
-    # 403-Block: muss explizit return None (statt False-Tuple)
-    pos_403 = block.find("status_code == 403")
+    # Fehler-Block: muss explizit return None (statt False-Tuple). Seit EDGAR
+    # Fix (a) (18.11.2026) gilt jeder Status != 200 als Provider-Fehler (403
+    # Rate-Limit/UA-Block, 400 ungültige Anfrage wie am 16.11.2026).
+    pos_403 = block.find("status_code != 200")
     assert pos_403 > 0
-    snippet = block[pos_403:pos_403 + 200]
+    snippet = block[pos_403:pos_403 + 400]
     assert "return None" in snippet, "403-Pfad returnt nicht None"
     assert "return False, \"\", None" not in snippet, \
         "403-Pfad returnt noch False-Tuple"
