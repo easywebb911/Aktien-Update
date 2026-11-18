@@ -53,6 +53,8 @@ from config import (
 
 FIELD = "aktienbasis_pruefung"   # Backtest-Feldname (eine Stelle)
 _N_RECORDS = 6                   # jüngste Stichtage je Ticker im Cache
+_WINDOW_DAYS = 120               # Abruf-Fenster (2 Stichtage/Monat → ~8 Zeilen)
+_FETCH_LIMIT = 50                # Obergrenze Zeilen je Abruf
 
 # Feldnamen-Kandidaten (aus der Probe Rückrechnung, Lauf 43606294489).
 _F_SYMBOL = ("symbolCode", "issueSymbolIdentifier", "symbol")
@@ -119,17 +121,26 @@ def normalize_records(raw) -> list[dict] | None:
     return sorted(out.values(), key=lambda x: x["settlement_date"], reverse=True)[:_N_RECORDS]
 
 
-def fetch_finra(symbol: str, *, post_fn=None, timeout: float = FINRA_CSI_TIMEOUT_S):
+def fetch_finra(symbol: str, *, post_fn=None, timeout: float = FINRA_CSI_TIMEOUT_S,
+                today: date | None = None):
     """Ein Abruf. Rückgabe ``(status, records)``: ``("ok", [...])``,
-    ``("rate_limit", None)``, ``("fehler", None)``. Raise nie. Kein Retry."""
+    ``("rate_limit", None)``, ``("fehler", None)``. Raise nie. Kein Retry.
+
+    Ohne ``sortFields``: FINRA lehnt Sortieren ab, wenn ``settlementDate``
+    nicht per EQUAL gefiltert ist (HTTP 400, Befund Wächter 18.11.2026).
+    Stattdessen Datumsfenster; die Antwort kommt aufsteigend,
+    ``normalize_records`` sortiert lokal und behält die jüngsten."""
     if post_fn is None:
         import requests
         post_fn = requests.post
+    end = today or datetime.now(timezone.utc).date()
     payload = {
-        "limit": _N_RECORDS,
+        "limit": _FETCH_LIMIT,
         "compareFilters": [{"fieldName": "symbolCode", "compareType": "EQUAL",
                             "fieldValue": symbol.strip().upper()}],
-        "sortFields": ["-settlementDate"],
+        "dateRangeFilters": [{"fieldName": "settlementDate",
+                              "startDate": (end - timedelta(days=_WINDOW_DAYS)).isoformat(),
+                              "endDate": end.isoformat()}],
     }
     try:
         r = post_fn(FINRA_CSI_URL, json=payload, timeout=timeout,
@@ -213,7 +224,7 @@ def get_records(symbols, *, now_utc: datetime, cache: dict, post_fn=None,
         if stop:
             out[sym] = {"status": stop, "records": None, "quelle": None, "abgerufen_utc": None}
             continue
-        status, recs = fetch_finra(sym, post_fn=post_fn)
+        status, recs = fetch_finra(sym, post_fn=post_fn, today=now_utc.date())
         if status == "ok":
             iso = now_utc.isoformat(timespec="seconds")
             tickers[sym] = {"abgerufen_utc": iso, "records": recs}
