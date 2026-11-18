@@ -2127,6 +2127,12 @@
       "shares_short": 19452394,
       "short_pct_float": 36.27,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 19419829,
+      "short_pct_float": 36.21,
+      "pub_date": "2026-11-10"
     }
   ],
   "IVF": [
@@ -3393,6 +3399,12 @@
       "shares_short": 5580621,
       "short_pct_float": 37.63,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 5176169,
+      "short_pct_float": 34.91,
+      "pub_date": "2026-11-10"
     }
   ],
   "AZTA": [
@@ -4500,6 +4512,12 @@
       "shares_short": 24099323,
       "short_pct_float": 25.76,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 21833197,
+      "short_pct_float": 23.3,
+      "pub_date": "2026-11-10"
     }
   ],
   "SONO": [
@@ -4878,6 +4896,12 @@
       "shares_short": 39286951,
       "short_pct_float": 25.54,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 38369896,
+      "short_pct_float": 19.19,
+      "pub_date": "2026-11-10"
     }
   ],
   "XRX": [
@@ -5136,6 +5160,12 @@
       "shares_short": 7108242,
       "short_pct_float": 19.24,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 7247135,
+      "short_pct_float": 19.62,
+      "pub_date": "2026-11-10"
     }
   ],
   "EZPW": [
@@ -5415,6 +5445,12 @@
       "shares_short": 28737897,
       "short_pct_float": 16.35,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 32273605,
+      "short_pct_float": 18.35,
+      "pub_date": "2026-11-10"
     }
   ],
   "RXRX": [
@@ -5460,6 +5496,12 @@
       "shares_short": 157938412,
       "short_pct_float": 30.89,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 142265985,
+      "short_pct_float": 23.76,
+      "pub_date": "2026-11-10"
     }
   ],
   "MUX": [
@@ -7527,6 +7569,12 @@
       "shares_short": 37016055,
       "short_pct_float": 26.24,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 35838218,
+      "short_pct_float": 25.21,
+      "pub_date": "2026-11-10"
     }
   ],
   "TE": [
@@ -7764,6 +7812,12 @@
       "shares_short": 7823002,
       "short_pct_float": 37.18,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 7664845,
+      "short_pct_float": 36.39,
+      "pub_date": "2026-11-10"
     }
   ],
   "SBH": [
@@ -10662,6 +10716,12 @@
       "shares_short": 3673645,
       "short_pct_float": 17.58,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 3782194,
+      "short_pct_float": 18.17,
+      "pub_date": "2026-11-10"
     }
   ],
   "OI": [
@@ -11331,6 +11391,12 @@
       "shares_short": 12194478,
       "short_pct_float": 16.69,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 11541977,
+      "short_pct_float": 15.78,
+      "pub_date": "2026-11-10"
     }
   ],
   "NGNE": [
@@ -12054,6 +12120,12 @@
       "shares_short": 91627019,
       "short_pct_float": 24.85,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 97240652,
+      "short_pct_float": 26.36,
+      "pub_date": "2026-11-10"
     }
   ],
   "AEVA": [
@@ -12338,6 +12410,21 @@
       "settlement_date": "2026-10-30",
       "shares_short": 24527925,
       "short_pct_float": 22.06,
+      "pub_date": "2026-11-10"
+    }
+  ],
+  "IIIV": [
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 3315450,
+      "short_pct_float": null,
+      "pub_date": "2026-10-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 2851058,
+      "short_pct_float": 46.45,
       "pub_date": "2026-11-10"
     }
   ]

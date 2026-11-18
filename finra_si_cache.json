@@ -1,4 +1,538 @@
 {
  "schema_v": 1,
- "tickers": {}
+ "tickers": {
+  "AMC": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 40635926,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 47436660,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 49060479,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 43340153,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 37527938,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 42425510,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "ANRO": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 5682860,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 5204407,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 4660269,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 4174082,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 3836359,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 3556066,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "DBI": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 5176169,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 5580621,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 5603057,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 5353920,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 5156157,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 5323673,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "FIRY": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 1412124,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 1293964,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 1384773,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 1593906,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 1570379,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 1535328,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "FLWS": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 7664845,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 7707975,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 7823002,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 7697829,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 7743760,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 7754157,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "IIIV": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 2851058,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 2964770,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 3315450,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 3484995,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 3486500,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 3359997,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "OFRM": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 5628418,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 5616331,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 5906440,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 5242373,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 5094088,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 5184302,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "PAL": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 3782194,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 3673645,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 3849552,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 3310394,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 3061032,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 3109566,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "SHOE": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 9523171,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 9884802,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 9433960,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 8753908,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 7065066,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 6633948,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "VEEA": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 184665,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 280047,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 50744,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 1216996,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 671095,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": "S"
+    },
+    {
+     "bestand": 296240,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "VITL": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 9607509,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 8886738,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 8687698,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 10455625,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 9564910,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 8375857,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "VYX": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 30217395,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 32012151,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 31646263,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 29582734,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 29437918,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 28180303,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "WOLF": {
+   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "records": [
+    {
+     "bestand": 28999815,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 27376417,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 26850248,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 26101128,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 24640211,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 24000616,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  }
+ }
 }
