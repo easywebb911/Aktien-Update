@@ -1,6 +1,6 @@
 ### 18.11.2026 — [Wächter] FINRA-Abruf der Datenprüfung Short Float repariert (1 PR)
 
-- `#?` (Branch `claude/waechter-finra-csi-sortierung`, kein Merge-Hash — Regel a).
+- `#746` (Branch `claude/waechter-finra-csi-sortierung`, kein Merge-Hash — Regel a).
   Befund: erster Postclose mit PR C (18.11. 03:07 UTC) — Short Float 12 von 12 „nicht prüfbar“
   (`finra_fehler`), Cache `finra_si_cache.json` leer. Ursache: `aktienbasis_check.fetch_finra` sendete
   `sortFields: ["-settlementDate"]`; FINRA antwortet darauf mit HTTP 400 („Sorting is allowed only if all
