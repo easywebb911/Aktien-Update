@@ -284,9 +284,16 @@ check("40 Anfrage ohne sortFields, mit settlementDate-Fenster bis heute, Ergebni
       _st == "ok" and "sortFields" not in _p and _dr.get("fieldName") == "settlementDate"
       and _dr.get("endDate") == "2026-11-18"
       and _recs and _recs[0]["settlement_date"] == "2026-10-30", (_st, _p))
+# 40b FINRA liefert aufsteigend: bei 8 Zeilen gewinnt der jüngste, 6 behalten.
+_asc = [{"symbolCode": "X", "settlementDate": d, "currentShortPositionQuantity": i}
+        for i, d in enumerate(["2026-07-15", "2026-07-31", "2026-08-14", "2026-08-31",
+                               "2026-09-15", "2026-09-30", "2026-10-15", "2026-10-30"])]
+_st2, _r2 = ab.fetch_finra("X", post_fn=lambda *a, **k: _Resp(200, _asc), today=date(2026, 11, 18))
+check("40b aufsteigende Antwort: jüngster Stichtag zuerst, 6 behalten",
+      _st2 == "ok" and _r2[0]["settlement_date"] == "2026-10-30" and len(_r2) == 6, _r2)
 
 print()
 if FAILS:
     print(f"FEHLER: {len(FAILS)} Test(s) rot: {FAILS}")
     sys.exit(1)
-print("Alle 42 Checks grün.")
+print("Alle 43 Checks grün.")
