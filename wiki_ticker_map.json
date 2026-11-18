@@ -1259,6 +1259,15 @@
     "substrate": "en",
     "reason": null
   },
+  "LUXE": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-18T03:07:27Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "LuxExperience B.V.",
+    "substrate": "none",
+    "reason": "issuer_mismatch"
+  },
   "LXEO": {
     "qid": null,
     "title": null,

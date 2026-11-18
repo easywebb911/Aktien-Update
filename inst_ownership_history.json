@@ -3278,6 +3278,11 @@
       "date": "2026-11-13",
       "inst_ownership": 0.53507,
       "insider_ownership": 0.21031
+    },
+    {
+      "date": "2026-11-17",
+      "inst_ownership": 0.43799,
+      "insider_ownership": 0.17548001
     }
   ],
   "SG": [
@@ -3700,6 +3705,11 @@
       "date": "2026-08-18",
       "inst_ownership": 0.69341004,
       "insider_ownership": 0.27656
+    },
+    {
+      "date": "2026-11-17",
+      "inst_ownership": 0.70731,
+      "insider_ownership": 0.27831
     }
   ],
   "COLL": [
@@ -4226,6 +4236,11 @@
       "date": "2026-11-16",
       "inst_ownership": 0.89916,
       "insider_ownership": 0.084359996
+    },
+    {
+      "date": "2026-11-17",
+      "inst_ownership": 0.95967,
+      "insider_ownership": 0.07135
     }
   ],
   "XXI": [
@@ -4485,6 +4500,11 @@
       "date": "2026-10-20",
       "inst_ownership": 0.28408,
       "insider_ownership": 0.6903
+    },
+    {
+      "date": "2026-11-17",
+      "inst_ownership": 0.31997,
+      "insider_ownership": 0.68711
     }
   ],
   "KURA": [
@@ -6858,6 +6878,11 @@
       "date": "2026-11-16",
       "inst_ownership": 1.05815,
       "insider_ownership": 0.03652
+    },
+    {
+      "date": "2026-11-17",
+      "inst_ownership": 1.00992,
+      "insider_ownership": 0.027209999
     }
   ],
   "EDIT": [
@@ -9198,6 +9223,11 @@
       "date": "2026-11-03",
       "inst_ownership": 1.02964,
       "insider_ownership": 0.06197
+    },
+    {
+      "date": "2026-11-17",
+      "inst_ownership": 1.0679001,
+      "insider_ownership": 0.06603
     }
   ],
   "XRX": [
@@ -11501,6 +11531,11 @@
       "date": "2026-11-11",
       "inst_ownership": 0.68443,
       "insider_ownership": 0.15364
+    },
+    {
+      "date": "2026-11-17",
+      "inst_ownership": 0.6589,
+      "insider_ownership": 0.15343
     }
   ],
   "UP": [
@@ -12465,6 +12500,11 @@
       "date": "2026-11-16",
       "inst_ownership": 1.00433,
       "insider_ownership": 0.109189995
+    },
+    {
+      "date": "2026-11-17",
+      "inst_ownership": 1.11761,
+      "insider_ownership": 0.06498
     }
   ],
   "AFYA": [
@@ -13873,6 +13913,11 @@
     {
       "date": "2026-11-13",
       "inst_ownership": 0.25112,
+      "insider_ownership": 0.08673
+    },
+    {
+      "date": "2026-11-17",
+      "inst_ownership": 0.22728,
       "insider_ownership": 0.08673
     }
   ],

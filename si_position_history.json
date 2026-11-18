@@ -5793,6 +5793,12 @@
       "shares_short": 2335806,
       "short_pct_float": 15.83,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 3032675,
+      "short_pct_float": 19.82,
+      "pub_date": "2026-11-10"
     }
   ],
   "HTZ": [
@@ -6399,6 +6405,12 @@
       "shares_short": 4822522,
       "short_pct_float": 16.83,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 4844398,
+      "short_pct_float": 16.94,
+      "pub_date": "2026-11-10"
     }
   ],
   "ULCC": [
@@ -9447,6 +9459,12 @@
       "shares_short": 12153410,
       "short_pct_float": 55.96,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 11290531,
+      "short_pct_float": 51.88,
+      "pub_date": "2026-11-10"
     }
   ],
   "DFSC": [
