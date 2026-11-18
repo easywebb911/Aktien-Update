@@ -265,8 +265,28 @@ check("39 Schwellen als Konstanten (0,9 / Faktor 2 / 1 %)",
       (config.AKTIENBASIS_MCAP_FLOAT_FACTOR, config.SHORT_FLOAT_FINRA_ABWEICHUNG_FAKTOR,
        config.SHORT_FLOAT_FINRA_MIN_PCT) == (0.9, 2.0, 1.0))
 
+# ── 40 Anfrage-Form (Wächter 18.11.2026): FINRA lehnt sortFields ohne
+#    settlementDate-EQUAL mit HTTP 400 ab → kein sortFields, Datumsfenster.
+_payloads = []
+
+
+def _capture(url, json=None, timeout=None, headers=None):  # noqa: A002
+    _payloads.append(json)
+    if json.get("sortFields"):
+        return _Resp(400, {"message": "Sorting is allowed only if all partitions keys are specified"})
+    return _Resp(200, FGL_RAW)
+
+
+_st, _recs = ab.fetch_finra("FGL", post_fn=_capture, today=date(2026, 11, 18))
+_p = _payloads[-1]
+_dr = (_p.get("dateRangeFilters") or [{}])[0]
+check("40 Anfrage ohne sortFields, mit settlementDate-Fenster bis heute, Ergebnis ok",
+      _st == "ok" and "sortFields" not in _p and _dr.get("fieldName") == "settlementDate"
+      and _dr.get("endDate") == "2026-11-18"
+      and _recs and _recs[0]["settlement_date"] == "2026-10-30", (_st, _p))
+
 print()
 if FAILS:
     print(f"FEHLER: {len(FAILS)} Test(s) rot: {FAILS}")
     sys.exit(1)
-print("Alle 41 Checks grün.")
+print("Alle 42 Checks grün.")
