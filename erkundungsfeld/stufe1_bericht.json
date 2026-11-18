@@ -1,128 +1,130 @@
 {
- "abbrueche": [],
- "ende_utc": "2026-11-17T17:21:40+00:00",
+ "abbrueche": [
+  "rate_limit_float"
+ ],
+ "ende_utc": "2026-11-18T00:57:10+00:00",
  "feld_tage_mit_liste": 375,
  "finra_felder_ok": true,
  "finra_stichtage": 49,
  "finra_stichtage_fehlend": [],
  "luecke_je_monat": {
   "2025-01": {
-   "ohne_float_ticker_tage": 241,
-   "ohne_kurs_ticker_tage": 60,
+   "ohne_float_ticker_tage": 17230,
+   "ohne_kurs_ticker_tage": 40,
    "tage": 20
   },
   "2025-02": {
-   "ohne_float_ticker_tage": 288,
-   "ohne_kurs_ticker_tage": 69,
+   "ohne_float_ticker_tage": 17185,
+   "ohne_kurs_ticker_tage": 50,
    "tage": 19
   },
   "2025-03": {
-   "ohne_float_ticker_tage": 305,
-   "ohne_kurs_ticker_tage": 56,
+   "ohne_float_ticker_tage": 20493,
+   "ohne_kurs_ticker_tage": 35,
    "tage": 21
   },
   "2025-04": {
-   "ohne_float_ticker_tage": 338,
-   "ohne_kurs_ticker_tage": 42,
+   "ohne_float_ticker_tage": 21589,
+   "ohne_kurs_ticker_tage": 21,
    "tage": 21
   },
   "2025-05": {
-   "ohne_float_ticker_tage": 374,
-   "ohne_kurs_ticker_tage": 48,
+   "ohne_float_ticker_tage": 22317,
+   "ohne_kurs_ticker_tage": 27,
    "tage": 21
   },
   "2025-06": {
-   "ohne_float_ticker_tage": 409,
-   "ohne_kurs_ticker_tage": 70,
+   "ohne_float_ticker_tage": 21555,
+   "ohne_kurs_ticker_tage": 50,
    "tage": 20
   },
   "2025-07": {
-   "ohne_float_ticker_tage": 467,
-   "ohne_kurs_ticker_tage": 108,
+   "ohne_float_ticker_tage": 24325,
+   "ohne_kurs_ticker_tage": 86,
    "tage": 22
   },
   "2025-08": {
-   "ohne_float_ticker_tage": 460,
-   "ohne_kurs_ticker_tage": 87,
+   "ohne_float_ticker_tage": 23631,
+   "ohne_kurs_ticker_tage": 66,
    "tage": 21
   },
   "2025-09": {
-   "ohne_float_ticker_tage": 499,
-   "ohne_kurs_ticker_tage": 91,
+   "ohne_float_ticker_tage": 24599,
+   "ohne_kurs_ticker_tage": 70,
    "tage": 21
   },
   "2025-10": {
-   "ohne_float_ticker_tage": 560,
-   "ohne_kurs_ticker_tage": 113,
+   "ohne_float_ticker_tage": 28113,
+   "ohne_kurs_ticker_tage": 90,
    "tage": 23
   },
   "2025-11": {
-   "ohne_float_ticker_tage": 457,
-   "ohne_kurs_ticker_tage": 104,
+   "ohne_float_ticker_tage": 23811,
+   "ohne_kurs_ticker_tage": 85,
    "tage": 19
   },
   "2025-12": {
-   "ohne_float_ticker_tage": 490,
-   "ohne_kurs_ticker_tage": 113,
+   "ohne_float_ticker_tage": 28574,
+   "ohne_kurs_ticker_tage": 91,
    "tage": 22
   },
   "2026-01": {
-   "ohne_float_ticker_tage": 452,
-   "ohne_kurs_ticker_tage": 90,
+   "ohne_float_ticker_tage": 25913,
+   "ohne_kurs_ticker_tage": 73,
    "tage": 20
   },
   "2026-02": {
-   "ohne_float_ticker_tage": 514,
+   "ohne_float_ticker_tage": 25207,
    "ohne_kurs_ticker_tage": 86,
    "tage": 19
   },
   "2026-03": {
-   "ohne_float_ticker_tage": 653,
+   "ohne_float_ticker_tage": 29805,
    "ohne_kurs_ticker_tage": 93,
    "tage": 22
   },
   "2026-04": {
-   "ohne_float_ticker_tage": 693,
+   "ohne_float_ticker_tage": 30351,
    "ohne_kurs_ticker_tage": 105,
    "tage": 21
   },
   "2026-05": {
-   "ohne_float_ticker_tage": 757,
+   "ohne_float_ticker_tage": 29840,
    "ohne_kurs_ticker_tage": 102,
    "tage": 20
   },
   "2026-06": {
-   "ohne_float_ticker_tage": 793,
+   "ohne_float_ticker_tage": 32160,
    "ohne_kurs_ticker_tage": 115,
    "tage": 21
   },
   "2026-07": {
-   "ohne_float_ticker_tage": 325,
-   "ohne_kurs_ticker_tage": 40,
+   "ohne_float_ticker_tage": 15011,
+   "ohne_kurs_ticker_tage": 49,
    "tage": 9
   },
   "2026-08": {
-   "ohne_float_ticker_tage": 725,
-   "ohne_kurs_ticker_tage": 110,
+   "ohne_float_ticker_tage": 34531,
+   "ohne_kurs_ticker_tage": 131,
    "tage": 21
   },
   "2026-09": {
-   "ohne_float_ticker_tage": 657,
-   "ohne_kurs_ticker_tage": 136,
+   "ohne_float_ticker_tage": 35015,
+   "ohne_kurs_ticker_tage": 157,
    "tage": 21
   },
   "2026-10": {
-   "ohne_float_ticker_tage": 642,
-   "ohne_kurs_ticker_tage": 95,
+   "ohne_float_ticker_tage": 29824,
+   "ohne_kurs_ticker_tage": 112,
    "tage": 17
   }
  },
  "luecken": {
-  "ohne_float_heute": 97,
+  "ohne_float_heute": 2666,
   "ohne_kurs_feld": 17,
-  "ohne_kurs_vergleich": 10
+  "ohne_kurs_vergleich": 11
  },
- "median_top30_trotz_luecken": 3,
+ "median_top30_trotz_luecken": 0,
  "modus": "voll",
  "rahmen": {
   "feld": [
@@ -138,72 +140,80 @@
    "2026-10-23"
   ]
  },
+ "rvol_regel": {
+  "feld_tage": 375,
+  "feld_tage_aufgefuellt": 375,
+  "regel": "Vorrang rvol >= 1,5 wie generate_report top10_vol; < 10 Namen → alle",
+  "vergleich_listen_unter_30": 67,
+  "vergleich_tage": 67,
+  "vergleich_tage_aufgefuellt": 67
+ },
  "sec_frames_fehlend": [],
  "split_kennzeichen_feld": {
-  "eintraege": 6121,
-  "split_nach_tag": 377,
-  "split_seit_stichtag": 475
+  "eintraege": 0,
+  "split_nach_tag": 0,
+  "split_seit_stichtag": 0
  },
- "start_utc": "2026-11-17T16:44:14+00:00",
- "urteil": "grenzfall",
+ "start_utc": "2026-11-18T00:46:49+00:00",
+ "urteil": "unvollstaendig",
  "vergleich": {
   "tage": 67,
   "top10": {
-   "max": 6,
-   "median": 2,
+   "max": 0,
+   "median": 0,
    "min": 0,
    "verteilung": {
-    "0": 7,
-    "1": 9,
+    "0": 67,
+    "1": 0,
     "10": 0,
-    "2": 21,
-    "3": 17,
-    "4": 9,
-    "5": 2,
-    "6": 2,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
     "7": 0,
     "8": 0,
     "9": 0
    }
   },
   "top20": {
-   "max": 7,
-   "median": 3,
+   "max": 0,
+   "median": 0,
    "min": 0,
    "verteilung": {
-    "0": 5,
-    "1": 8,
+    "0": 67,
+    "1": 0,
     "10": 0,
-    "2": 14,
-    "3": 18,
-    "4": 12,
-    "5": 6,
-    "6": 1,
-    "7": 3,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
     "8": 0,
     "9": 0
    }
   },
   "top30": {
-   "max": 8,
-   "median": 3,
+   "max": 0,
+   "median": 0,
    "min": 0,
    "verteilung": {
-    "0": 5,
-    "1": 8,
+    "0": 67,
+    "1": 0,
     "10": 0,
-    "2": 13,
-    "3": 18,
-    "4": 12,
-    "5": 7,
-    "6": 1,
-    "7": 2,
-    "8": 1,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
     "9": 0
    }
   }
  },
- "vollstaendig": true,
+ "vollstaendig": false,
  "vorfilter": {
   "feld_ticker": 2410,
   "kennz": "Ticker→CIK aus der HEUTIGEN SEC-Liste (Survivorship, Kürzel-Wiederverwendung)",
