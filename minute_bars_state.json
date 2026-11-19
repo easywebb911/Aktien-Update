@@ -4,13 +4,13 @@
   },
   "davon_null_nach_grund": {},
   "erneut_versuchen": 0,
-  "geschrieben": 9,
-  "last_run_utc": "2026-11-18T21:34:50+00:00",
+  "geschrieben": 10,
+  "last_run_utc": "2026-11-19T21:46:53+00:00",
   "leer_vorgemerkt": {},
   "nicht_reif": 10,
   "pruefung_hoch_tief_abweichend": 0,
   "pruefung_nicht_moeglich": 0,
   "rate_limit_abbruch": false,
   "schema_v": 1,
-  "zeilen_gesamt": 239
+  "zeilen_gesamt": 249
 }
