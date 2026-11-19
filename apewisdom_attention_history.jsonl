@@ -339,3 +339,15 @@
 {"date":"2026-11-18","ticker":"CBRL","ts_utc":"2026-11-19T02:46:29.474151+00:00","found":true,"mentions":1,"mentions_24h_ago":null,"rank":440,"rank_24h_ago":0,"upvotes":1,"quelle":"apewisdom"}
 {"date":"2026-11-18","ticker":"OXM","ts_utc":"2026-11-19T02:46:29.474162+00:00","found":false,"mentions":null,"mentions_24h_ago":null,"rank":null,"rank_24h_ago":null,"upvotes":null,"quelle":"apewisdom"}
 {"date":"2026-11-18","ticker":"WGS","ts_utc":"2026-11-19T02:46:29.474170+00:00","found":false,"mentions":null,"mentions_24h_ago":null,"rank":null,"rank_24h_ago":null,"upvotes":null,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"AMC","ts_utc":"2026-11-19T15:45:53.447197+00:00","found":true,"mentions":4,"mentions_24h_ago":5,"rank":121,"rank_24h_ago":209,"upvotes":6,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"DDD","ts_utc":"2026-11-19T15:45:53.447237+00:00","found":false,"mentions":null,"mentions_24h_ago":null,"rank":null,"rank_24h_ago":null,"upvotes":null,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"EMPD","ts_utc":"2026-11-19T15:45:53.447249+00:00","found":false,"mentions":null,"mentions_24h_ago":null,"rank":null,"rank_24h_ago":null,"upvotes":null,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"INBX","ts_utc":"2026-11-19T15:45:53.447258+00:00","found":false,"mentions":null,"mentions_24h_ago":null,"rank":null,"rank_24h_ago":null,"upvotes":null,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"JACK","ts_utc":"2026-11-19T15:45:53.447265+00:00","found":true,"mentions":1,"mentions_24h_ago":1,"rank":359,"rank_24h_ago":386,"upvotes":39,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"PCT","ts_utc":"2026-11-19T15:45:53.447273+00:00","found":false,"mentions":null,"mentions_24h_ago":null,"rank":null,"rank_24h_ago":null,"upvotes":null,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"SEAT","ts_utc":"2026-11-19T15:45:53.447280+00:00","found":true,"mentions":4,"mentions_24h_ago":null,"rank":124,"rank_24h_ago":0,"upvotes":13,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"SVRA","ts_utc":"2026-11-19T15:45:53.447287+00:00","found":false,"mentions":null,"mentions_24h_ago":null,"rank":null,"rank_24h_ago":null,"upvotes":null,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"VEEA","ts_utc":"2026-11-19T15:45:53.447294+00:00","found":false,"mentions":null,"mentions_24h_ago":null,"rank":null,"rank_24h_ago":null,"upvotes":null,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"WGS","ts_utc":"2026-11-19T15:45:53.447300+00:00","found":false,"mentions":null,"mentions_24h_ago":null,"rank":null,"rank_24h_ago":null,"upvotes":null,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"WOLF","ts_utc":"2026-11-19T15:45:53.447307+00:00","found":false,"mentions":null,"mentions_24h_ago":null,"rank":null,"rank_24h_ago":null,"upvotes":null,"quelle":"apewisdom"}
+{"date":"2026-11-19","ticker":"XPOF","ts_utc":"2026-11-19T15:45:53.447314+00:00","found":false,"mentions":null,"mentions_24h_ago":null,"rank":null,"rank_24h_ago":null,"upvotes":null,"quelle":"apewisdom"}
