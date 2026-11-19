@@ -2268,6 +2268,12 @@
       "shares_short": 57458412,
       "short_pct_float": 29.33,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 50431089,
+      "short_pct_float": 25.89,
+      "pub_date": "2026-11-10"
     }
   ],
   "UAMY": [
@@ -3954,6 +3960,12 @@
       "shares_short": 5626310,
       "short_pct_float": 36.11,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 6552860,
+      "short_pct_float": 41.71,
+      "pub_date": "2026-11-10"
     }
   ],
   "EBS": [
@@ -4128,6 +4140,12 @@
       "shares_short": 3989044,
       "short_pct_float": 41.01,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 3792311,
+      "short_pct_float": 38.99,
+      "pub_date": "2026-11-10"
     }
   ],
   "PRGO": [
@@ -9225,6 +9243,12 @@
       "shares_short": 2312699,
       "short_pct_float": 18.98,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 2362722,
+      "short_pct_float": 16.58,
+      "pub_date": "2026-11-10"
     }
   ],
   "BIRD": [
@@ -12425,6 +12449,21 @@
       "settlement_date": "2026-10-30",
       "shares_short": 2851058,
       "short_pct_float": 46.45,
+      "pub_date": "2026-11-10"
+    }
+  ],
+  "MATW": [
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 4702012,
+      "short_pct_float": null,
+      "pub_date": "2026-10-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 5090566,
+      "short_pct_float": 23.03,
       "pub_date": "2026-11-10"
     }
   ]

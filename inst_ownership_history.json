@@ -4555,6 +4555,11 @@
       "date": "2026-11-17",
       "inst_ownership": 0.31997,
       "insider_ownership": 0.68711
+    },
+    {
+      "date": "2026-11-18",
+      "inst_ownership": 0.31994,
+      "insider_ownership": 0.68711
     }
   ],
   "KURA": [
@@ -5901,6 +5906,11 @@
     {
       "date": "2026-11-04",
       "inst_ownership": 1.08985,
+      "insider_ownership": 0.06755
+    },
+    {
+      "date": "2026-11-18",
+      "inst_ownership": 1.11801,
       "insider_ownership": 0.06755
     }
   ],
@@ -7712,6 +7722,11 @@
       "date": "2026-11-06",
       "inst_ownership": 0.51208997,
       "insider_ownership": 0.11689
+    },
+    {
+      "date": "2026-11-18",
+      "inst_ownership": 0.43229,
+      "insider_ownership": 0.12566
     }
   ],
   "ALLO": [
@@ -8435,6 +8450,11 @@
       "date": "2026-09-30",
       "inst_ownership": 0.71999,
       "insider_ownership": 0.02105
+    },
+    {
+      "date": "2026-11-18",
+      "inst_ownership": 0.55609,
+      "insider_ownership": 0.12517
     }
   ],
   "CURV": [
@@ -10631,6 +10651,11 @@
     {
       "date": "2026-11-13",
       "inst_ownership": 0.71844,
+      "insider_ownership": 0.0563
+    },
+    {
+      "date": "2026-11-18",
+      "inst_ownership": 0.61916,
       "insider_ownership": 0.0563
     }
   ],
@@ -13670,6 +13695,11 @@
       "date": "2026-10-27",
       "inst_ownership": 1.08639,
       "insider_ownership": 0.0771
+    },
+    {
+      "date": "2026-11-18",
+      "inst_ownership": 1.14941,
+      "insider_ownership": 0.07672
     }
   ],
   "BTDR": [
@@ -13734,6 +13764,11 @@
     {
       "date": "2026-11-11",
       "inst_ownership": 0.76511,
+      "insider_ownership": 0.090150006
+    },
+    {
+      "date": "2026-11-18",
+      "inst_ownership": 0.72199,
       "insider_ownership": 0.090150006
     }
   ],
@@ -14251,6 +14286,13 @@
       "date": "2026-11-18",
       "inst_ownership": 1.06879,
       "insider_ownership": 0.029189998
+    }
+  ],
+  "MATW": [
+    {
+      "date": "2026-11-18",
+      "inst_ownership": 1.1387,
+      "insider_ownership": 0.048520003
     }
   ]
 }
