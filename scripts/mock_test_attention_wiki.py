@@ -216,6 +216,21 @@ def test_g_look_ahead_isolation():
                f"{tag} — Look-Ahead-Bruch: Score/Push liest Sammel-Feld")
 
 
+def test_default_ua_no_address():
+    """Standard-User-Agent ohne Kontaktadresse (20.11.2026): kein "@"."""
+    import os
+    old = os.environ.pop("WIKI_USER_AGENT", None)
+    try:
+        ua = wa._default_ua()
+    finally:
+        if old is not None:
+            os.environ["WIKI_USER_AGENT"] = old
+    _check("default_ua: kein '@'", "@" not in ua, ua)
+    _check("default_ua: Projektname + Repo-URL",
+           ua.startswith("SqueezeReportAttention/")
+           and "https://github.com/easywebb911/Aktien-Update" in ua, ua)
+
+
 def main():
     print("── attention_wiki ──────────────────────────────────────────────")
     for fn in (test_a_via_issuer_mismatch, test_b_defunct_reject, test_positive_en,
@@ -224,7 +239,7 @@ def main():
                test_d_en_fetch_fail_stays_en, test_e_baseline_ends_t_minus_2,
                test_zero_is_valid_measured, test_f_backfill_idempotent,
                test_backfill_none_noop, test_s10_classification,
-               test_g_look_ahead_isolation):
+               test_g_look_ahead_isolation, test_default_ua_no_address):
         try:
             fn()
         except Exception as exc:  # noqa: BLE001
