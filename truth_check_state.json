@@ -1,7 +1,8 @@
 {
- "export_lines_seen": 1427,
- "last_run_ts": "2026-11-18T04:06:31Z",
+ "export_lines_seen": 1437,
+ "last_run_ts": "2026-11-20T03:55:28Z",
  "recheck": [
+  "export|CMCO|03.11.2026",
   "export|GRPN|26.10.2026",
   "export|FRGT|27.10.2026",
   "exit_shadow|GRPN|27.10.2026",
@@ -12,10 +13,12 @@
   "export|CBRL|16.10.2026"
  ],
  "retry": [],
- "rotation_pos": 80,
+ "rotation_pos": 100,
  "schema_v": 1,
  "score_abgleich_abende": [
-  "2026-11-17T04:09:37Z"
+  "2026-11-17T04:09:37Z",
+  "2026-11-18T03:07:09Z",
+  "2026-11-19T02:46:24Z"
  ],
  "shadow_checked": [
   "exit_shadow|AI|01.07.2026",
@@ -67,6 +70,7 @@
   "exit_shadow|AMC|02.11.2026",
   "exit_shadow|AMC|03.08.2026",
   "exit_shadow|AMC|03.09.2026",
+  "exit_shadow|AMC|03.11.2026",
   "exit_shadow|AMC|04.08.2026",
   "exit_shadow|AMC|04.09.2026",
   "exit_shadow|AMC|05.08.2026",
@@ -468,6 +472,7 @@
   "exit_shadow|WOLF|02.11.2026",
   "exit_shadow|WOLF|03.08.2026",
   "exit_shadow|WOLF|03.09.2026",
+  "exit_shadow|WOLF|03.11.2026",
   "exit_shadow|WOLF|04.08.2026",
   "exit_shadow|WOLF|04.09.2026",
   "exit_shadow|WOLF|05.08.2026",
