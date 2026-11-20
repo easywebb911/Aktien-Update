@@ -1,6 +1,6 @@
 {
  "export_lines_seen": 1437,
- "last_run_ts": "2026-11-19T04:03:36Z",
+ "last_run_ts": "2026-11-20T03:55:28Z",
  "recheck": [
   "export|CMCO|03.11.2026",
   "export|GRPN|26.10.2026",
@@ -13,11 +13,12 @@
   "export|CBRL|16.10.2026"
  ],
  "retry": [],
- "rotation_pos": 90,
+ "rotation_pos": 100,
  "schema_v": 1,
  "score_abgleich_abende": [
   "2026-11-17T04:09:37Z",
-  "2026-11-18T03:07:09Z"
+  "2026-11-18T03:07:09Z",
+  "2026-11-19T02:46:24Z"
  ],
  "shadow_checked": [
   "exit_shadow|AI|01.07.2026",
