@@ -1853,7 +1853,12 @@ MARKET_STRESS_MILD_PCT   = -2.0  # −3 % < move ≤ −2 % → milde Warnung (g
 
 # ── Service-spezifische HTTP-Header ──────────────────────────────────────────
 REDDIT_HEADERS = {"User-Agent": "SqueezeAgent/1.0"}
-SEC_HEADERS    = {"User-Agent": "Easy Webb easywebb@yahoo.de"}
+# EDGAR Fix (a), Easy-Entscheid 17./18.11.2026: User-Agent aus dem Secret
+# EDGAR_USER_AGENT (wie 13D/G, material_8k, erkundungsfeld) statt einer festen
+# Kontaktadresse im öffentlichen Repo. Gesetzt in ki_agent.yml (Run KI-Agent) und
+# daily-squeeze-report.yml (Generate squeeze report). Rückfall nur für Tests/Forks.
+SEC_HEADERS    = {"User-Agent": os.environ.get("EDGAR_USER_AGENT")
+                  or "Squeeze Report contact@example.com"}
 
 # ── ntfy.sh Push-Notifications ───────────────────────────────────────────────
 # Leer = deaktiviert. Topic frei wählbar (z.B. "squeeze-xk7q2m9p"); auf

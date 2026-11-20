@@ -4260,6 +4260,15 @@ Kwarg für Tier-3-Provider mit reichhaltigen fail-soft-Returns
 | ``edgar_form4`` | ``fetch_sec_form4(ticker)`` in ``_process_ticker`` — Return-Tuple ``(has_form4, form4_title)`` bei Erfolg, **None bei Provider-Fehler**. | ``r is not None`` |
 | ``edgar_13d_g`` | ``fetch_edgar_filings(top10)`` — 1× pro KI-Agent-Tick. Liste bei Erfolg (auch ``[]`` = legitim leer), **None bei HTTP non-200 / Parse-Error**. | ``r is not None`` |
 
+**EDGAR Fix (a) (18.11.2026, Easy-Entscheid):** ``fetch_sec_8k``/``fetch_sec_form4``
+werten jeden HTTP-Status != 200 als Provider-Fehler und halten den Grund (Status +
+Textanfang bzw. Ausnahme, „erster Fehler: <Ticker>“) über ``_sec_note_error`` im
+Akkumulator fest → ``error`` in ``provider_health.jsonl`` und im Digest; je Lauf eine
+``log.warning`` „edgar_8k: N/M SEC-Abrufe fehlgeschlagen — …“. Ein 8-K-Provider-Fehler
+setzt ``sec_ok`` False. ``config.SEC_HEADERS`` liest den User-Agent aus dem Secret
+``EDGAR_USER_AGENT`` (keine feste Kontaktadresse im Repo). Anlass: Ausfall 16./17.11.2026
+(HTTP 400 „Invalid count“, nur auf ``debug`` geloggt). Test ``scripts/mock_test_edgar_fix_a.py``.
+
 **Tier-3-success_check-Recalibration (16.05.2026)** — Hintergrund:
 vier Tier-3-Provider (edgar_8k/form4/13d_g/stocktwits) zeigten 100 %
 Fail-Rate im Provider-Health-Log, weil die alten success_check-

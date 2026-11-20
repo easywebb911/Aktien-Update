@@ -297,6 +297,33 @@ _KI_SENTIMENT_ERROR_COUNTS: dict = {
 }
 
 
+def _sec_note_error(acct: dict, ticker: str, resp=None, exc=None) -> str:
+    """EDGAR Fix (a), Easy-Entscheid 17./18.11.2026: Fehlergrund eines
+    fehlgeschlagenen SEC-Abrufs festhalten statt nur auf ``debug`` zu loggen
+    (Ausfall 16./17.11.2026 — HTTP 400 „Invalid count“ war im Workflow-Log
+    unsichtbar). Merkt den ERSTEN Grund je Lauf im Provider-Akkumulator
+    (first-fail-wins wie ``provider_acct_record``), damit er in
+    ``provider_health.jsonl`` als ``error`` und damit im Digest erscheint.
+    Liefert den Text (für das Log)."""
+    if resp is not None:
+        body = " ".join((getattr(resp, "text", "") or "").split())
+        # Der Text landet im öffentlichen provider_health.jsonl/Digest: einen
+        # gespiegelten User-Agent und adressartige Angaben vorher entfernen
+        # (Guardian #748).
+        _ua = (SEC_HEADERS or {}).get("User-Agent") or ""
+        if _ua:
+            body = body.replace(_ua, "[User-Agent]")
+        body = re.sub(r"[\w.+-]+@[\w-]+(\.[\w-]+)+", "[Adresse]", body)[:100]
+        msg = f"HTTP {getattr(resp, 'status_code', '?')}" + (f": {body}" if body else "")
+    elif exc is not None:
+        msg = f"{type(exc).__name__}: {str(exc)[:100]}"
+    else:
+        msg = "unbekannter Fehler"
+    if not acct.get("last_error_repr"):
+        acct["last_error_repr"] = f"{msg} (erster Fehler: {ticker})"
+    return msg
+
+
 def _reset_tier3_accumulators() -> None:
     for acct in (_STOCKTWITS_ACCT, _UOA_ACCT, _NEWS_RSS_ACCT,
                  _EDGAR_8K_ACCT, _EDGAR_FORM4_ACCT, _EDGAR_13D_G_ACCT):
@@ -1031,10 +1058,10 @@ def fetch_sec_8k(ticker: str) -> tuple[bool, str, datetime | None] | None:
     time.sleep(0.5)
     try:
         resp = requests.get(url, headers=SEC_HEADERS, timeout=12)
-        if resp.status_code == 403:
-            log.debug("EDGAR %s: 403 geblockt — Provider-Fail.", ticker)
-            return None    # echter Fail: SEC-Rate-Limit oder UA-Block
-        resp.raise_for_status()
+        if resp.status_code != 200:
+            # 403 = SEC-Rate-Limit/UA-Block, 400 = ungültige Anfrage (16.11.2026)
+            log.debug("EDGAR 8-K %s: %s", ticker, _sec_note_error(_EDGAR_8K_ACCT, ticker, resp=resp))
+            return None
         text = re.sub(r' xmlns="[^"]+"', "", resp.text, count=1)
         root = ET.fromstring(text)
         for entry in root.findall("entry"):
@@ -1049,7 +1076,7 @@ def fetch_sec_8k(ticker: str) -> tuple[bool, str, datetime | None] | None:
             except Exception:
                 continue
     except Exception as exc:
-        log.debug("EDGAR 8-K %s: %s", ticker, exc)
+        log.debug("EDGAR 8-K %s: %s", ticker, _sec_note_error(_EDGAR_8K_ACCT, ticker, exc=exc))
         return None        # echter Fail: HTTP-Fehler, Timeout, Parse-Error
     return False, "", None  # legitim: Fetch OK, keine 8-K im Fenster
 
@@ -1536,10 +1563,9 @@ def fetch_sec_form4(ticker: str) -> tuple[bool, str] | None:
     time.sleep(0.3)
     try:
         resp = requests.get(url, headers=SEC_HEADERS, timeout=12)
-        if resp.status_code == 403:
-            log.debug("EDGAR Form4 %s: 403 geblockt — Provider-Fail.", ticker)
+        if resp.status_code != 200:
+            log.debug("EDGAR Form4 %s: %s", ticker, _sec_note_error(_EDGAR_FORM4_ACCT, ticker, resp=resp))
             return None
-        resp.raise_for_status()
         text = re.sub(r' xmlns="[^"]+"', "", resp.text, count=1)
         root = ET.fromstring(text)
         for entry in root.findall("entry"):
@@ -1554,7 +1580,7 @@ def fetch_sec_form4(ticker: str) -> tuple[bool, str] | None:
             except Exception:
                 continue
     except Exception as exc:
-        log.debug("EDGAR Form4 %s: %s", ticker, exc)
+        log.debug("EDGAR Form4 %s: %s", ticker, _sec_note_error(_EDGAR_FORM4_ACCT, ticker, exc=exc))
         return None
     return False, ""
 
@@ -3160,6 +3186,10 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
             _r = health_check.instrument_provider_call(
                 _EDGAR_8K_ACCT, fetch_sec_8k, ticker,
                 success_check=lambda r: r is not None)
+            if _r is None:
+                # EDGAR Fix (a): Provider-Fehler ist NICHT „keine Meldung“ —
+                # Zusammenfassung zeigt dann „SEC: fail“ statt „ok“.
+                sec_ok = False
             has_8k, sec_title, sec_8k_dt = _unpack_or_default(
                 _r, (False, "", None))
             if has_8k:
@@ -4025,6 +4055,11 @@ def main() -> None:
         ):
             if acct["calls"] <= 0:
                 continue
+            if prov_key.startswith("edgar_") and acct["failures"] > 0:
+                # EDGAR Fix (a): einmal je Lauf sichtbar im Workflow-Log.
+                log.warning("%s: %d/%d SEC-Abrufe fehlgeschlagen — %s",
+                            prov_key, acct["failures"], acct["calls"],
+                            acct.get("last_error_repr") or "ohne Fehlertext")
             try:
                 health_check.record_provider_call(
                     provider=prov_key,

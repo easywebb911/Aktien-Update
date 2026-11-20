@@ -70,12 +70,13 @@ def _cfg(name, default):
 
 def _default_ua() -> str:
     """Beschreibender User-Agent (Wikimedia-Policy: ohne UA HTTP 403, Probe-
-    belegt). Env-Override ``WIKI_USER_AGENT``; Default ist Probe-erprobt (200)."""
+    belegt). Env-Override ``WIKI_USER_AGENT``. Default nennt nur Projektname
+    und Repo-URL — keine persönliche Kontaktadresse im Repo (20.11.2026)."""
     import os
     return os.environ.get(
         "WIKI_USER_AGENT",
         "SqueezeReportAttention/1.0 "
-        "(https://github.com/easywebb911/Aktien-Update; easywebb@yahoo.de)",
+        "(https://github.com/easywebb911/Aktien-Update)",
     )
 
 
