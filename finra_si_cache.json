@@ -330,7 +330,7 @@
    ]
   },
   "FLWS": {
-   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "abgerufen_utc": "2026-11-20T02:34:10+00:00",
    "records": [
     {
      "bestand": 7664845,
@@ -364,6 +364,47 @@
     },
     {
      "bestand": 7754157,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "GRPN": {
+   "abgerufen_utc": "2026-11-20T02:34:10+00:00",
+   "records": [
+    {
+     "bestand": 12290151,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 12549059,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 12054254,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 13127934,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 11818861,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 12680074,
      "revision": null,
      "settlement_date": "2026-08-14",
      "split": null
@@ -493,8 +534,49 @@
     }
    ]
   },
+  "NTLA": {
+   "abgerufen_utc": "2026-11-20T02:34:10+00:00",
+   "records": [
+    {
+     "bestand": 44361762,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 44435219,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 45110513,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 46681609,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 43928014,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 44880339,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
   "OFRM": {
-   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "abgerufen_utc": "2026-11-20T02:34:10+00:00",
    "records": [
     {
      "bestand": 5628418,
@@ -699,7 +781,7 @@
    ]
   },
   "SHOE": {
-   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "abgerufen_utc": "2026-11-20T02:34:10+00:00",
    "records": [
     {
      "bestand": 9523171,

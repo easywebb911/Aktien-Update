@@ -3033,6 +3033,12 @@
       "shares_short": 70016737,
       "short_pct_float": 34.96,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 69081496,
+      "short_pct_float": 34.39,
+      "pub_date": "2026-11-10"
     }
   ],
   "SHPH": [
@@ -5409,6 +5415,12 @@
       "shares_short": 17212104,
       "short_pct_float": 38.85,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 17170095,
+      "short_pct_float": 38.76,
+      "pub_date": "2026-11-10"
     }
   ],
   "SERV": [
@@ -5460,6 +5472,12 @@
       "shares_short": 31217126,
       "short_pct_float": 37.55,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 31830184,
+      "short_pct_float": 37.9,
+      "pub_date": "2026-11-10"
     }
   ],
   "SVRA": [
@@ -8166,6 +8184,12 @@
       "shares_short": 18001644,
       "short_pct_float": 20.51,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 18920163,
+      "short_pct_float": 21.38,
+      "pub_date": "2026-11-10"
     }
   ],
   "JJSF": [
@@ -8853,6 +8877,12 @@
       "shares_short": 6224865,
       "short_pct_float": 36.65,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 6300973,
+      "short_pct_float": 34.83,
+      "pub_date": "2026-11-10"
     }
   ],
   "SHOE": [
@@ -12138,6 +12168,12 @@
       "shares_short": 78749690,
       "short_pct_float": 42.9,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 78727139,
+      "short_pct_float": 42.89,
+      "pub_date": "2026-11-10"
     }
   ],
   "TCRT": [
