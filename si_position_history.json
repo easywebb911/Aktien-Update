@@ -6201,6 +6201,12 @@
       "shares_short": 47348523,
       "short_pct_float": 28.89,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 46329834,
+      "short_pct_float": 28.26,
+      "pub_date": "2026-11-10"
     }
   ],
   "SRPT": [
@@ -9111,6 +9117,12 @@
       "shares_short": 38185007,
       "short_pct_float": 24.91,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 38720295,
+      "short_pct_float": 25.24,
+      "pub_date": "2026-11-10"
     }
   ],
   "CISS": [
@@ -12560,6 +12572,36 @@
       "settlement_date": "2026-10-30",
       "shares_short": 5090566,
       "short_pct_float": 23.03,
+      "pub_date": "2026-11-10"
+    }
+  ],
+  "UAA": [
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 65144528,
+      "short_pct_float": null,
+      "pub_date": "2026-10-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 64052429,
+      "short_pct_float": 44.78,
+      "pub_date": "2026-11-10"
+    }
+  ],
+  "WGO": [
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 2686960,
+      "short_pct_float": null,
+      "pub_date": "2026-10-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 3539028,
+      "short_pct_float": 15.14,
       "pub_date": "2026-11-10"
     }
   ]

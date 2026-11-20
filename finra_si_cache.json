@@ -1,6 +1,47 @@
 {
  "schema_v": 1,
  "tickers": {
+  "ABEO": {
+   "abgerufen_utc": "2026-11-20T15:28:47+00:00",
+   "records": [
+    {
+     "bestand": 16879896,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 17214886,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 16882889,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 15745098,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 15157188,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 14271165,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
   "ABX": {
    "abgerufen_utc": "2026-11-19T02:46:30+00:00",
    "records": [
@@ -43,7 +84,7 @@
    ]
   },
   "AMC": {
-   "abgerufen_utc": "2026-11-19T15:45:54+00:00",
+   "abgerufen_utc": "2026-11-20T15:28:47+00:00",
    "records": [
     {
      "bestand": 40635926,
@@ -370,6 +411,47 @@
     }
    ]
   },
+  "GLOB": {
+   "abgerufen_utc": "2026-11-20T15:28:47+00:00",
+   "records": [
+    {
+     "bestand": 10995198,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 8516948,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 11871899,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 11086817,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 7946514,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 7692806,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
   "GRPN": {
    "abgerufen_utc": "2026-11-20T02:34:10+00:00",
    "records": [
@@ -534,6 +616,88 @@
     }
    ]
   },
+  "JBGS": {
+   "abgerufen_utc": "2026-11-20T15:28:47+00:00",
+   "records": [
+    {
+     "bestand": 14084108,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 13953611,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 13194517,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 12482544,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 12141865,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 11898593,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
+  "MPT": {
+   "abgerufen_utc": "2026-11-20T15:28:47+00:00",
+   "records": [
+    {
+     "bestand": 148655541,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 149424881,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 146186806,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 145296024,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 150075140,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 144500823,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ]
+  },
   "NTLA": {
    "abgerufen_utc": "2026-11-20T02:34:10+00:00",
    "records": [
@@ -617,7 +781,7 @@
    ]
   },
   "OXM": {
-   "abgerufen_utc": "2026-11-19T02:46:30+00:00",
+   "abgerufen_utc": "2026-11-20T15:28:47+00:00",
    "records": [
     {
      "bestand": 3792311,
@@ -863,7 +1027,7 @@
    ]
   },
   "VEEA": {
-   "abgerufen_utc": "2026-11-19T15:45:54+00:00",
+   "abgerufen_utc": "2026-11-20T15:28:47+00:00",
    "records": [
     {
      "bestand": 184665,
@@ -904,7 +1068,7 @@
    ]
   },
   "VITL": {
-   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "abgerufen_utc": "2026-11-20T15:28:47+00:00",
    "records": [
     {
      "bestand": 9607509,
@@ -1027,7 +1191,7 @@
    ]
   },
   "WOLF": {
-   "abgerufen_utc": "2026-11-19T15:45:54+00:00",
+   "abgerufen_utc": "2026-11-20T15:28:47+00:00",
    "records": [
     {
      "bestand": 28999815,
