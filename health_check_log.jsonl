@@ -205,3 +205,4 @@
 {"run_ts": "2026-11-20T20:21:07Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-11-21T02:15:45Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-11-21T02:48:14Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S11", "severity": "warn", "detail": "kein echter premarket-Run (run_phase==tsp=='premarket') seit 7 Werktagen (Schwelle 5) — Cron-Drift/-Drop oder Sammlung gestorben"}], "provider_fails": []}
+{"run_ts": "2026-11-21T02:49:06Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
