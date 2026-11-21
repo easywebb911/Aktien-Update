@@ -2967,6 +2967,12 @@
       "shares_short": 39112280,
       "short_pct_float": 25.82,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 40227126,
+      "short_pct_float": 26.56,
+      "pub_date": "2026-11-10"
     }
   ],
   "CTNT": [
@@ -7704,6 +7710,12 @@
       "shares_short": 73479625,
       "short_pct_float": 32.19,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 79094334,
+      "short_pct_float": 34.65,
+      "pub_date": "2026-11-10"
     }
   ],
   "NUAI": [
@@ -11298,6 +11310,12 @@
       "shares_short": 11486308,
       "short_pct_float": 280.89,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 12957165,
+      "short_pct_float": 280.89,
+      "pub_date": "2026-11-10"
     }
   ],
   "NVVE": [
@@ -12602,6 +12620,66 @@
       "settlement_date": "2026-10-30",
       "shares_short": 3539028,
       "short_pct_float": 15.14,
+      "pub_date": "2026-11-10"
+    }
+  ],
+  "SPB": [
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 3875386,
+      "short_pct_float": null,
+      "pub_date": "2026-10-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 4441684,
+      "short_pct_float": 22.7,
+      "pub_date": "2026-11-10"
+    }
+  ],
+  "LEU": [
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 5937802,
+      "short_pct_float": null,
+      "pub_date": "2026-10-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 5796198,
+      "short_pct_float": 29.58,
+      "pub_date": "2026-11-10"
+    }
+  ],
+  "NXH": [
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 13005150,
+      "short_pct_float": null,
+      "pub_date": "2026-10-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 17604491,
+      "short_pct_float": 16.18,
+      "pub_date": "2026-11-10"
+    }
+  ],
+  "MARA": [
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 100753792,
+      "short_pct_float": null,
+      "pub_date": "2026-10-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 112939212,
+      "short_pct_float": 33.34,
       "pub_date": "2026-11-10"
     }
   ]
