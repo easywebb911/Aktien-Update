@@ -1,10 +1,10 @@
 {
-  "updated": "2026-11-21T03:49:03.680298+01:00",
+  "updated": "2026-11-21T10:54:48.621753+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 10.0,
+    "elapsed_s": 9.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -27,7 +27,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.47368421052631576
+      "uoa_cp_ratio": 0.47928994082840237
     },
     "AMC": {
       "score": 45,
@@ -54,9 +54,9 @@
       "uoa_cp_ratio": 11.554187192118226
     },
     "CAPR": {
-      "score": 40,
+      "score": 37,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 11.8% + News: fda approval",
+      "drivers": "Volumen 1.7× + Spanne 11.8% + News-KI 12/30: FDA regulatory decisions create volatility but lack short squeeze indicators like high short interest, low float, or sig",
       "price": 7.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.7,
@@ -68,7 +68,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.32182916307161347,
@@ -77,12 +77,12 @@
     "CSIQ": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 27.7% + Earnings in 13d + UOA Call-Vol/OI 10.0× ATM",
+      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 27.7% + Earnings in 12d + UOA Call-Vol/OI 10.0× ATM",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 4.22,
       "rvol_20d": 4.98,
-      "earnings": "in 13 Tagen (03.12.2026)",
+      "earnings": "in 12 Tagen (03.12.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -100,14 +100,14 @@
     "FLNC": {
       "score": 78,
       "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (23.11.2026) + Volumen 2.3× + Spanne 12.8% + News: contract + Earnings in 3d + 3/4 Trigger",
+      "drivers": "Earnings in 2 Tagen (23.11.2026) + Volumen 2.3× + Spanne 12.8% + News: contract + Earnings in 2d + 3/4 Trigger",
       "price": 3.46,
       "chg_pct": 0.0,
       "rvol_4d": 2.33,
       "rvol_20d": 1.98,
-      "earnings": "in 3 Tagen (23.11.2026)",
+      "earnings": "in 2 Tagen (23.11.2026)",
       "fda_date": null,
-      "upcoming_event": "Earnings in 3 Tagen (23.11.2026)",
+      "upcoming_event": "Earnings in 2 Tagen (23.11.2026)",
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.2,
@@ -167,12 +167,12 @@
     "JACK": {
       "score": 80,
       "confidence": 70,
-      "drivers": "Volumen 2.4× + Spanne 8.5% + News: short interest + Earnings in 19d + FINRA Short-Vol 51% + UOA Call/Put 5.2×",
+      "drivers": "Volumen 2.4× + Spanne 8.5% + News: short interest + Earnings in 18d + FINRA Short-Vol 51% + UOA Call/Put 5.2×",
       "price": 13.2,
       "chg_pct": -0.0,
       "rvol_4d": 2.37,
       "rvol_20d": 2.16,
-      "earnings": "in 19 Tagen (09.12.2026)",
+      "earnings": "in 18 Tagen (09.12.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -253,9 +253,9 @@
       "uoa_cp_ratio": 2.578231292517007
     },
     "VEEA": {
-      "score": 22,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 16.0% + News-KI 12/30: Positive business developments but no evidence of high short interest, significant squeeze dynamics, or catalyst for for",
+      "drivers": "Spanne 16.0% + News: merger",
       "price": 4.11,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
@@ -267,7 +267,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -281,7 +281,7 @@
       "chg_pct": -0.0,
       "rvol_4d": 2.04,
       "rvol_20d": 1.49,
-      "earnings": "in 75 Tagen (03.02.2027)",
+      "earnings": "in 74 Tagen (03.02.2027)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
