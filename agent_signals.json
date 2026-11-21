@@ -1,17 +1,17 @@
 {
-  "updated": "2026-11-21T10:54:48.621753+01:00",
+  "updated": "2026-11-21T18:33:03.544159+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 9.9,
+    "elapsed_s": 10.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "ABEO": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.4× + Spanne 7.0%",
+      "score": 41,
+      "confidence": 70,
+      "drivers": "Volumen 2.4× + Spanne 7.0% + News-KI 12/30: Negative momentum from declining fair value and product ramp concerns outweighs positive pipeline developments; insuffic",
       "price": 2.42,
       "chg_pct": 0.0,
       "rvol_4d": 2.4,
@@ -21,13 +21,13 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.47928994082840237
+      "uoa_cp_ratio": 0.47368421052631576
     },
     "AMC": {
       "score": 45,
@@ -54,9 +54,9 @@
       "uoa_cp_ratio": 11.554187192118226
     },
     "CAPR": {
-      "score": 37,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 11.8% + News-KI 12/30: FDA regulatory decisions create volatility but lack short squeeze indicators like high short interest, low float, or sig",
+      "drivers": "Volumen 1.7× + Spanne 11.8% + News: fda approval",
       "price": 7.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.7,
@@ -68,7 +68,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.32182916307161347,
@@ -253,9 +253,9 @@
       "uoa_cp_ratio": 2.578231292517007
     },
     "VEEA": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 16.0% + News: merger",
+      "drivers": "Spanne 16.0% + News-KI 12/30: Positive business developments and partnerships, but no short squeeze indicators (low float, high SI, or significant squ",
       "price": 4.11,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
@@ -267,7 +267,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -276,7 +276,7 @@
     "WOLF": {
       "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 11.9% + News: short interest, catalyst + UOA Call-Vol/OI 5.9× ATM",
+      "drivers": "Volumen 2.0× + Spanne 11.9% + News: catalyst, short interest + UOA Call-Vol/OI 5.9× ATM",
       "price": 19.22,
       "chg_pct": -0.0,
       "rvol_4d": 2.04,
