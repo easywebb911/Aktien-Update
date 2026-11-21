@@ -1,17 +1,17 @@
 {
-  "updated": "2026-11-21T18:33:03.544159+01:00",
+  "updated": "2026-11-22T00:16:49.000459+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 10.8,
+    "elapsed_s": 18.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "ABEO": {
-      "score": 41,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.4× + Spanne 7.0% + News-KI 12/30: Negative momentum from declining fair value and product ramp concerns outweighs positive pipeline developments; insuffic",
+      "drivers": "Volumen 2.4× + Spanne 7.0% + SEC Form 4",
       "price": 2.42,
       "chg_pct": 0.0,
       "rvol_4d": 2.4,
@@ -21,13 +21,13 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.47368421052631576
+      "uoa_cp_ratio": 0.47928994082840237
     },
     "AMC": {
       "score": 45,
@@ -188,9 +188,9 @@
       "uoa_cp_ratio": 5.1923076923076925
     },
     "JBGS": {
-      "score": 45,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + News: short seller + FINRA Short-Vol 60%",
+      "drivers": "Volumen 1.6× + News: short seller + FINRA Short-Vol 60% + SEC Form 4",
       "price": 12.15,
       "chg_pct": -0.0,
       "rvol_4d": 1.63,
@@ -255,7 +255,7 @@
     "VEEA": {
       "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 16.0% + News-KI 12/30: Positive business developments and partnerships, but no short squeeze indicators (low float, high SI, or significant squ",
+      "drivers": "Spanne 16.0% + News-KI 12/30: Positive business developments and partnerships, but no short squeeze indicators (low float signals, high short interest",
       "price": 4.11,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
