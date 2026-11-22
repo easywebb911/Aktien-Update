@@ -324,7 +324,122 @@ def _sec_note_error(acct: dict, ticker: str, resp=None, exc=None) -> str:
     return msg
 
 
+# ── EDGAR Fix (b) (Easy-Entscheid 22.11.2026): Abruf per CIK ──────────────
+# 8-K und Form 4 kommen aus EINEM Abruf je Ticker (data.sec.gov/submissions)
+# statt aus zwei browse-edgar-Abrufen per Ticker (die VEEA/MPT nicht auflösten).
+# Die SEC-Tickerliste (company_tickers.json) wird EINMAL je Lauf geholt. Ein
+# Fehlschlag wird je Lauf gemerkt (kein Retry). Titel/Präfix/Fenster bilden die
+# alte Quelle exakt nach (sec_meldungen.py) → KI-Score unverändert (Freeze).
+import material_8k as _m8k          # noqa: E402  (build_cik_index/resolve_cik)
+import sec_meldungen as _secm       # noqa: E402
+
+_SEC_COMPANY_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
+_SEC_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
+_SEC_LOCK = threading.Lock()
+_SEC_STATE: dict = {"cik_index": None, "cik_error": None, "subs": {}, "raw": []}
+
+
+def _sec_reset() -> None:
+    with _SEC_LOCK:
+        _SEC_STATE["cik_index"] = None
+        _SEC_STATE["cik_error"] = None
+        _SEC_STATE["subs"] = {}
+        _SEC_STATE["raw"] = []
+
+
+def _sec_get(url: str):
+    """Ein GET mit dem SEC-User-Agent. (resp, None) oder (None, exc)."""
+    try:
+        return requests.get(url, headers={**SEC_HEADERS, "Accept": "application/json"},
+                            timeout=12), None
+    except Exception as exc:  # noqa: BLE001
+        return None, exc
+
+
+def _sec_cik_index():
+    """(index, fehlergrund). Einmal je Lauf; Fehlschlag wird gemerkt."""
+    with _SEC_LOCK:
+        if _SEC_STATE["cik_index"] is not None or _SEC_STATE["cik_error"] is not None:
+            return _SEC_STATE["cik_index"], _SEC_STATE["cik_error"]
+        resp, exc = _sec_get(_SEC_COMPANY_TICKERS_URL)
+        if resp is None:
+            _SEC_STATE["cik_error"] = ("Tickerliste", None, exc)
+        elif resp.status_code != 200:
+            _SEC_STATE["cik_error"] = ("Tickerliste", resp, None)
+        else:
+            try:
+                _SEC_STATE["cik_index"] = _m8k.build_cik_index(resp.json())
+            except Exception as e:  # noqa: BLE001
+                _SEC_STATE["cik_error"] = ("Tickerliste", None, e)
+        return _SEC_STATE["cik_index"], _SEC_STATE["cik_error"]
+
+
+def _sec_submissions(ticker: str):
+    """(submissions-json, cik, fehler) — EIN Abruf je Ticker und Lauf, geteilt
+    von fetch_sec_8k und fetch_sec_form4. ``fehler`` = (art, resp, exc) oder
+    (art, None, None) mit Text in art."""
+    with _SEC_LOCK:
+        hit = _SEC_STATE["subs"].get(ticker)
+    if hit is not None:
+        return hit
+    idx, err = _sec_cik_index()
+    if idx is None:
+        res = (None, None, err)
+    else:
+        cik = _m8k.resolve_cik(ticker, idx)
+        if cik is None:
+            res = (None, None, ("keine eindeutige CIK in der SEC-Tickerliste", None, None))
+        else:
+            time.sleep(0.5)
+            resp, exc = _sec_get(_SEC_SUBMISSIONS_URL.format(cik=cik))
+            if resp is None:
+                res = (None, cik, ("Meldungsliste", None, exc))
+            elif resp.status_code != 200:
+                res = (None, cik, ("Meldungsliste", resp, None))
+            else:
+                try:
+                    res = (resp.json(), cik, None)
+                except Exception as e:  # noqa: BLE001
+                    res = (None, cik, ("Meldungsliste", None, e))
+    with _SEC_LOCK:
+        _SEC_STATE["subs"][ticker] = res
+    return res
+
+
+def _sec_note_fail(acct: dict, ticker: str, err) -> str:
+    """Lesbarer Grund für „unbekannt“ (None) in den Provider-Akkumulator."""
+    art, resp, exc = err if err else ("unbekannt", None, None)
+    if resp is not None or exc is not None:
+        # Text über denselben Bereiniger wie Fix (a) (User-Agent/Adressen raus)
+        msg = f"{art}: {_sec_note_error({}, ticker, resp=resp, exc=exc)}"
+    else:
+        msg = art
+    if not acct.get("last_error_repr"):
+        acct["last_error_repr"] = f"{msg} (erster Fehler: {ticker})"
+    return msg
+
+
+def _sec_keep_raw(ticker: str, cik: str | None, filings: list) -> None:
+    if not filings or not cik:
+        return
+    recs = _secm.raw_records(ticker, cik, filings, now_utc=datetime.now(timezone.utc))
+    with _SEC_LOCK:
+        _SEC_STATE["raw"].extend(recs)
+
+
+def _sec_flush_raw(path: str = _secm.RAW_FILE) -> int:
+    """Rohdaten des Laufs nach sec_meldungen.jsonl (Haupt-Thread, fail-soft)."""
+    with _SEC_LOCK:
+        recs = list(_SEC_STATE["raw"])
+    try:
+        return _secm.append_raw(recs, path)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("sec_meldungen: Schreiben fehlgeschlagen (fail-soft): %s", exc)
+        return 0
+
+
 def _reset_tier3_accumulators() -> None:
+    _sec_reset()
     for acct in (_STOCKTWITS_ACCT, _UOA_ACCT, _NEWS_RSS_ACCT,
                  _EDGAR_8K_ACCT, _EDGAR_FORM4_ACCT, _EDGAR_13D_G_ACCT):
         health_check.provider_acct_reset(acct)
@@ -1035,50 +1150,39 @@ def fetch_reddit_mentions(ticker: str) -> dict:
 
 def fetch_sec_8k(ticker: str) -> tuple[bool, str, datetime | None] | None:
     """Returns (has_recent_8k, title_of_8k, filing_dt) ODER None bei
-    echtem Provider-Fehler.
+    echtem Provider-Fehler bzw. unbekannter CIK („unbekannt“, Grund im
+    Provider-Akkumulator).
 
-    filing_dt ist der UTC-Zeitstempel der Meldung — wird für den
+    filing_dt ist der UTC-Zeitstempel der Annahme — wird für den
     Earnings-Sofort-Alert (Fix 3) genutzt um die 2h-Aktualität zu prüfen.
 
-    Return-Semantik (16.05.2026, Tier-3-success_check-Recalibration):
-      * (True, title, dt)    — Filing gefunden im 24h-Fenster.
-      * (False, "", None)    — Fetch erfolgreich, kein Filing (LEGITIM).
-      * None                 — Provider-Fehler (HTTP 403, 4xx/5xx, Timeout,
-                                Parse-Error). Wrapper zählt als fail.
+    Quelle seit EDGAR Fix (b) (22.11.2026): data.sec.gov/submissions per CIK
+    (``_sec_submissions``, ein Abruf je Ticker, geteilt mit Form 4). Auswahl
+    und Titel bilden die frühere Atom-Quelle exakt nach (Präfix „8-K“, 24 h
+    nach Annahmezeit, Titel „8-K  - Current report“) → identische Punkte in
+    ``compute_signal``. Rohdaten des Fensters → sec_meldungen.jsonl (kein
+    Score-Leser).
 
-    Trennung legitim-leer vs echter Outage erforderlich, damit
-    Provider-Health-Logging keine False-Positives produziert.
+    Return-Semantik (16.05.2026, Tier-3-success_check-Recalibration):
+      * (True, title, dt)    — Meldung im 24h-Fenster.
+      * (False, "", None)    — Abruf erfolgreich, keine Meldung (LEGITIM).
+      * None                 — Provider-Fehler oder keine CIK (unbekannt).
     """
-    url = (
-        "https://www.sec.gov/cgi-bin/browse-edgar"
-        f"?action=getcompany&CIK={ticker}&type=8-K"
-        "&dateb=&owner=include&count=10&search_text=&output=atom"
-    )
+    sub, cik, err = _sec_submissions(ticker)
+    if sub is None:
+        log.debug("EDGAR 8-K %s: %s", ticker, _sec_note_fail(_EDGAR_8K_ACCT, ticker, err))
+        return None
     cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
-    time.sleep(0.5)
     try:
-        resp = requests.get(url, headers=SEC_HEADERS, timeout=12)
-        if resp.status_code != 200:
-            # 403 = SEC-Rate-Limit/UA-Block, 400 = ungültige Anfrage (16.11.2026)
-            log.debug("EDGAR 8-K %s: %s", ticker, _sec_note_error(_EDGAR_8K_ACCT, ticker, resp=resp))
-            return None
-        text = re.sub(r' xmlns="[^"]+"', "", resp.text, count=1)
-        root = ET.fromstring(text)
-        for entry in root.findall("entry"):
-            updated = entry.findtext("updated") or ""
-            try:
-                filing_dt = datetime.fromisoformat(updated)
-                if filing_dt.tzinfo is None:
-                    filing_dt = filing_dt.replace(tzinfo=timezone.utc)
-                if filing_dt > cutoff:
-                    title = entry.findtext("title") or ""
-                    return True, title, filing_dt
-            except Exception:
-                continue
-    except Exception as exc:
+        filings = _secm.filings_in_window(sub, prefix="8-K", cutoff_utc=cutoff)
+    except Exception as exc:  # noqa: BLE001
         log.debug("EDGAR 8-K %s: %s", ticker, _sec_note_error(_EDGAR_8K_ACCT, ticker, exc=exc))
-        return None        # echter Fail: HTTP-Fehler, Timeout, Parse-Error
-    return False, "", None  # legitim: Fetch OK, keine 8-K im Fenster
+        return None
+    _sec_keep_raw(ticker, cik, filings)
+    if filings:
+        f = filings[0]
+        return True, _secm.title_for(f["form"]), f["_dt"]
+    return False, "", None  # legitim: Abruf OK, keine 8-K im Fenster
 
 
 # ── Datenquellen 5/8/9/10/11: Generischer RSS-Fetcher ────────────────────────
@@ -1545,43 +1649,33 @@ def _stocktwits_pts(st: dict | None) -> int:
 def fetch_sec_form4(ticker: str) -> tuple[bool, str] | None:
     """Sucht SEC Form 4 (Insider-Transaktionen) in den letzten FORM4_LOOKBACK_DAYS Tagen.
 
-    Returns (has_recent_form4, title) ODER None bei echtem Provider-Fehler.
+    Returns (has_recent_form4, title) ODER None bei Provider-Fehler bzw.
+    unbekannter CIK.
+
+    Quelle seit EDGAR Fix (b) (22.11.2026): derselbe submissions-Abruf wie
+    fetch_sec_8k. Der frühere Filter ``type=4`` war eine PRÄFIX-Suche (zählte
+    z. B. Form 425 mit, Beleg 4× in 100 Läufen) — exakt so nachgebildet
+    (``form.startswith("4")``), damit die Punkte im Freeze gleich bleiben.
+    Befund „Kauf-Bonus greift nie“: open_item ki-score-titel-boni-tot.
 
     Return-Semantik (16.05.2026):
-      * (True, title)  — Form 4 gefunden im Fenster.
-      * (False, "")    — Fetch OK, kein Form 4 (LEGITIM).
-      * None           — HTTP 403, 4xx/5xx, Timeout, Parse-Error.
-
-    Nur für US-Ticker; nutzt dieselbe EDGAR-Infrastruktur wie fetch_sec_8k.
+      * (True, title)  — Meldung im Fenster.
+      * (False, "")    — Abruf OK, keine Meldung (LEGITIM).
+      * None           — Provider-Fehler oder keine CIK (unbekannt).
     """
-    url = (
-        "https://www.sec.gov/cgi-bin/browse-edgar"
-        f"?action=getcompany&CIK={ticker}&type=4"
-        "&dateb=&owner=include&count=10&search_text=&output=atom"
-    )
+    sub, cik, err = _sec_submissions(ticker)
+    if sub is None:
+        log.debug("EDGAR Form4 %s: %s", ticker, _sec_note_fail(_EDGAR_FORM4_ACCT, ticker, err))
+        return None
     cutoff = datetime.now(timezone.utc) - timedelta(days=FORM4_LOOKBACK_DAYS)
-    time.sleep(0.3)
     try:
-        resp = requests.get(url, headers=SEC_HEADERS, timeout=12)
-        if resp.status_code != 200:
-            log.debug("EDGAR Form4 %s: %s", ticker, _sec_note_error(_EDGAR_FORM4_ACCT, ticker, resp=resp))
-            return None
-        text = re.sub(r' xmlns="[^"]+"', "", resp.text, count=1)
-        root = ET.fromstring(text)
-        for entry in root.findall("entry"):
-            updated = entry.findtext("updated") or ""
-            try:
-                dt = datetime.fromisoformat(updated)
-                if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                if dt > cutoff:
-                    title = entry.findtext("title") or ""
-                    return True, title
-            except Exception:
-                continue
-    except Exception as exc:
+        filings = _secm.filings_in_window(sub, prefix="4", cutoff_utc=cutoff)
+    except Exception as exc:  # noqa: BLE001
         log.debug("EDGAR Form4 %s: %s", ticker, _sec_note_error(_EDGAR_FORM4_ACCT, ticker, exc=exc))
         return None
+    _sec_keep_raw(ticker, cik, filings)
+    if filings:
+        return True, _secm.title_for(filings[0]["form"])
     return False, ""
 
 
@@ -3561,6 +3655,9 @@ def main() -> None:
                 log.warning("Ticker %s fehlgeschlagen: %s", t, exc)
     log.info("KI-Agent parallelisiert: %d Ticker in %.1fs (max_workers=8)",
              len(tickers), time.time() - _t_pool)
+    # EDGAR Fix (b): Rohdaten der SEC-Meldungen (kein Score-Leser).
+    _n_secm = _sec_flush_raw()
+    log.info("sec_meldungen: %d neue Meldungen gespeichert", _n_secm)
 
     # Single Source of Truth: alle drei Zahlen für den Alert (Setup, Monster,
     # KI) kommen aus app_data.json — identisch zu den Werten, die das Frontend

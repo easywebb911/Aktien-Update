@@ -85,6 +85,11 @@ jobs:
           # forward_3d/5d/10d beim nächsten Checkout verloren (analog
           # backtest_history.json-Return-Backfill).
           git add exit_shadow_log.jsonl 2>/dev/null || true
+          # sec_meldungen.jsonl: Rohdaten der SEC-Meldungen (8-K/Form 4) aus
+          # data.sec.gov (EDGAR Fix b, 22.11.2026), nur angehängt, kein Score-Leser.
+          if [ -f sec_meldungen.jsonl ]; then
+            git add sec_meldungen.jsonl
+          fi
           # gist_pull_state.json: Liveness-Marker, vom Pull-Step NUR bei
           # HTTP-Gist-Erfolg geschrieben. Committen, sonst Reset beim
           # nächsten Checkout → Marker altert fälschlich.
