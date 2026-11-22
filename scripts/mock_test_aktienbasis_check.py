@@ -139,8 +139,8 @@ calls: list[str] = []
 cache = {"schema_v": 1, "tickers": {}}
 out = ab.get_records(["FGL", "AAA", "BBB"], now_utc=NOW, cache=cache,
                      post_fn=_poster({"FGL": (200, FGL_RAW), "AAA": (500, None)}, calls))
-check("16 Abruf: FGL ok, AAA Fehler, BBB unbekannt (leer)",
-      out["FGL"]["status"] == "ok" and out["AAA"]["status"] == "fehler"
+check("16 Abruf: FGL ok, AAA Fehler (HTTP 500 im Status), BBB unbekannt (leer)",
+      out["FGL"]["status"] == "ok" and out["AAA"]["status"] == "http_500"
       and out["BBB"]["status"] == "ok" and out["BBB"]["records"] == [])
 check("17 genau ein Abruf je Ticker (kein Retry)", sorted(calls) == ["AAA", "BBB", "FGL"], calls)
 calls2: list[str] = []
@@ -292,8 +292,68 @@ _st2, _r2 = ab.fetch_finra("X", post_fn=lambda *a, **k: _Resp(200, _asc), today=
 check("40b aufsteigende Antwort: jüngster Stichtag zuerst, 6 behalten",
       _st2 == "ok" and _r2[0]["settlement_date"] == "2026-10-30" and len(_r2) == 6, _r2)
 
+# ── 41–49 Ticker-Prüfung der Antwort, HTTP-Status, Totalausfall-Warnung (22.11.2026) ──
+_foreign = [dict(r, symbolCode="ZZZ") for r in FGL_RAW]
+_st41, _r41 = ab.fetch_finra("FGL", post_fn=lambda *a, **k: _Resp(200, _foreign), today=D)
+_e41 = ab.evaluate(FGL, {"status": _st41, "records": _r41}, D)
+check("41 fremder Ticker in der Antwort → nicht prüfbar (finra_fremder_ticker), kein Kennzeichen",
+      _st41 == "fremder_ticker" and _r41 is None and _e41["short_float_pruefung"] == "nicht_pruefbar"
+      and _e41["short_float_grund"] == "finra_fremder_ticker" and _e41["finra_short_float"] is None,
+      (_st41, _e41.get("short_float_grund")))
+_mixed = FGL_RAW[:3] + [dict(FGL_RAW[3], symbolCode="ZZZ")]
+check("42 schon EINE fremde Zeile → ganze Antwort verworfen",
+      ab.fetch_finra("FGL", post_fn=lambda *a, **k: _Resp(200, _mixed), today=D)[0] == "fremder_ticker")
+_nosym = [{k: v for k, v in r.items() if k != "symbolCode"} for r in FGL_RAW]
+_st43, _ = ab.fetch_finra("FGL", post_fn=lambda *a, **k: _Resp(200, _nosym), today=D)
+check("43 Symbol-Feld fehlt → symbol_fehlt (nie Kennzeichen aus ungeprüften Daten)",
+      _st43 == "symbol_fehlt"
+      and ab.evaluate(FGL, {"status": _st43}, D)["short_float_grund"] == "finra_symbol_fehlt")
+_alt = [{("issueSymbolIdentifier" if k == "symbolCode" else k): (" fgl " if k == "symbolCode" else v)
+         for k, v in r.items()} for r in FGL_RAW]
+check("44 andere Feldnamen-Variante + Groß/Klein/Leerzeichen → ok",
+      ab.fetch_finra("FGL", post_fn=lambda *a, **k: _Resp(200, _alt), today=D)[0] == "ok")
+check("45 leere Antwort bleibt „FINRA kennt Ticker nicht“ (keine Zeile, nichts zu prüfen)",
+      ab.fetch_finra("FGL", post_fn=lambda *a, **k: _Resp(200, []), today=D) == ("ok", []))
+_st46, _ = ab.fetch_finra("FGL", post_fn=lambda *a, **k: _Resp(400, {"message": "x"}), today=D)
+check("46 HTTP 400 → Status http_400, Grund finra_http_400",
+      _st46 == "http_400"
+      and ab.evaluate(FGL, {"status": _st46}, D)["short_float_grund"] == "finra_http_400")
+_c47 = {"tickers": {"FGL": {"abgerufen_utc": NOW.isoformat(), "records": []}}}
+_calls47: list[str] = []
+_o47 = ab.get_records(["FGL"], now_utc=NOW, cache=_c47, post_fn=_poster({"FGL": (200, FGL_RAW)}, _calls47))
+check("47 Cache-Eintrag ohne Symbol-Prüfung → neu abrufen; neuer Eintrag trägt symbol_geprueft",
+      _calls47 == ["FGL"] and _o47["FGL"]["quelle"] == "api"
+      and _c47["tickers"]["FGL"].get("symbol_geprueft") is True)
+_calls47b: list[str] = []
+_c47b = {"tickers": {}}
+ab.get_records(["FGL"], now_utc=NOW, cache=_c47b, post_fn=_poster({"FGL": (200, _foreign)}, _calls47b))
+check("47b fremde Antwort wird NICHT gecacht", "FGL" not in _c47b["tickers"])
+with tempfile.TemporaryDirectory() as td:
+    bp = pathlib.Path(td) / "bh.json"
+    _np1 = ab.evaluate(FGL, {"status": "http_400"}, D)
+    _np2 = ab.evaluate(OK, {"status": "fremder_ticker"}, D)
+    bp.write_text(json.dumps([
+        {"date": "15.11.2026", "ticker": "OLD", ab.FIELD: ab.evaluate(FGL, fin, D)},
+        {"date": "16.11.2026", "ticker": "A", ab.FIELD: _np1},
+        {"date": "16.11.2026", "ticker": "B", ab.FIELD: _np1},
+        {"date": "16.11.2026", "ticker": "C", ab.FIELD: _np2}]))
+    _w = ab.warn_line(bp)
+    check("48 alle Einträge des Tages nicht prüfbar → Warnzeile mit Gründen",
+          _w is not None and _w.startswith("🟡") and "alle 3 nicht prüfbar" in _w
+          and "finra_http_400 2" in _w and "finra_fremder_ticker 1" in _w, _w)
+    bp.write_text(json.dumps([
+        {"date": "16.11.2026", "ticker": "A", ab.FIELD: _np1},
+        {"date": "16.11.2026", "ticker": "F", ab.FIELD: ab.evaluate(FGL, fin, D)}]))
+    check("48b ein Eintrag prüfbar → keine Warnzeile", ab.warn_line(bp) is None)
+    check("48c Datei fehlt → keine Warnzeile", ab.warn_line(pathlib.Path(td) / "nope.json") is None)
+    bp.write_text("{kaputt")
+    check("48d Datei kaputt → Warnzeile statt Stille", (ab.warn_line(bp) or "").startswith("🟡"))
+_dg = (ROOT / "scripts" / "health_check_digest.py").read_text(encoding="utf-8")
+check("49 Digest hängt die Warnzeile an die Alarmzeilen",
+      "aktienbasis_check.warn_line(" in _dg and "[_ab_warn]" in _dg)
+
 print()
 if FAILS:
     print(f"FEHLER: {len(FAILS)} Test(s) rot: {FAILS}")
     sys.exit(1)
-print("Alle 43 Checks grün.")
+print("Alle 56 Checks grün.")
