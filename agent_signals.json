@@ -1,17 +1,17 @@
 {
-  "updated": "2026-11-22T12:34:45.337013+01:00",
+  "updated": "2026-11-22T20:41:15.693690+01:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 3,
+    "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 17.8,
+    "elapsed_s": 13.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "ABEO": {
-      "score": 52,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.4× + Spanne 7.0% + News-KI 12/30: Negative clinical concerns and commercial ramp doubts outweigh positive pipeline news; no strong short squeeze catalysts + SEC Form 4",
+      "drivers": "Volumen 2.4× + Spanne 7.0% + SEC Form 4",
       "price": 2.42,
       "chg_pct": 0.0,
       "rvol_4d": 2.4,
@@ -21,13 +21,13 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.47928994082840237
+      "uoa_cp_ratio": 0.47368421052631576
     },
     "AMC": {
       "score": 30,
@@ -75,9 +75,9 @@
       "uoa_cp_ratio": 0.36582681017612523
     },
     "CSIQ": {
-      "score": 73,
+      "score": 81,
       "confidence": 70,
-      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 27.7% + Earnings in 11d + UOA Call-Vol/OI 10.0× ATM",
+      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 27.7% + News-KI 8/30: Positive operational news (AA rating, earnings call) lacks squeeze catalysts like high short interest, low float, or ext + Earnings in 11d + UOA Call-Vol/OI 10.0× ATM",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 4.22,
@@ -89,7 +89,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 20,
       "uoa_drivers": [
         "UOA Call-Vol/OI 10.0× ATM"
@@ -230,9 +230,9 @@
       "uoa_cp_ratio": 0.05720259251515785
     },
     "NTLA": {
-      "score": 35,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 11.7% + UOA Call/Put 2.6×",
+      "drivers": "Volumen 1.9× + Spanne 11.7% + News: unusual volume + UOA Call/Put 2.6×",
       "price": 10.0,
       "chg_pct": 0.0,
       "rvol_4d": 1.93,
@@ -243,7 +243,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -253,9 +253,9 @@
       "uoa_cp_ratio": 2.578231292517007
     },
     "VEEA": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 16.0% + News: merger",
+      "drivers": "Spanne 16.0% + News-KI 12/30: Positive business developments and institutional investment, but no high short interest indicators, low trading volume c",
       "price": 4.11,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
@@ -267,16 +267,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "WOLF": {
-      "score": 45,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 11.9% + UOA Call-Vol/OI 5.9× ATM",
+      "drivers": "Volumen 2.0× + Spanne 11.9% + News: catalyst, short interest + UOA Call-Vol/OI 5.9× ATM",
       "price": 19.22,
       "chg_pct": -0.0,
       "rvol_4d": 2.04,
@@ -286,8 +286,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "ki_sentiment_source": "keyword",
       "uoa_score": 20,
       "uoa_drivers": [
