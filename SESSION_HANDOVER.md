@@ -155,6 +155,28 @@ Anker.
 
 *(Einträge ab 17.11.2026 kommen aus `handover_eintraege/` (eine Datei je PR), neueste zuerst; ältere Einträge stehen darunter.)*
 
+### 22.11.2026 — squeeze-guardian: Modell opus + belegbare Pflicht-Leseliste (1 PR, Easy-Merge)
+
+- `#756` (Branch `claude/guardian-opus-lesepflicht-t4n8`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026.
+  Nur `.claude/agents/squeeze-guardian.md` (150 Zeilen): `model: opus` (vorher sonnet; Proben #754: opus
+  fand tiefer). Pflicht-Leseliste P1–P4 (protected-ok-Label-Regel, Zerstörerische Befehle, §7·0a,
+  Docstring `lint_protected_zones.py`) mit festen Such-Befehlen; Zeile „Gelesen“ nennt jede Pflichtstelle
+  mit `Datei:Zeile` oder „nicht gefunden: <Befehl> → <Ausgabe>“; „Datei nicht vorhanden“ nur mit gezeigtem
+  Befehl. Eine Nachschärf-Runde; Proben #735/#748/#750 erneut mit opus (Ergebnis im PR-Text).
+  Hinweis: die Agent-Datei wird beim Sitzungsstart geladen — Änderungen greifen erst in neuen Sitzungen.
+  Rückweg: Revert der Datei.
+
+### 22.11.2026 — Datenprüfung Short Float: FINRA-Antwort gegen Ticker prüfen + HTTP-Status + Totalausfall-Warnung (1 PR, Easy-Merge)
+
+- `#755` (Branch `claude/aktienbasis-ticker-check-m3v6`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026
+  (Nebenfund Guardian-Probe #735). `aktienbasis_check.symbol_check`: jede FINRA-Antwortzeile muss zum
+  abgefragten Ticker gehören (`_F_SYMBOL`, bisher unbenutzt); fremd → `fremder_ticker`, Feld fehlt →
+  `symbol_fehlt`, beides „nicht prüfbar“, nie Kennzeichen, nicht gecacht. HTTP ≠ 200 → `http_<code>` im
+  Grund. Cache ohne `symbol_geprueft` wird neu abgerufen. Digest: Warnzeile in den Alarmzeilen, wenn am
+  jüngsten Tag ALLE Einträge nicht prüfbar sind (`warn_line`, Lesefehler = Warnung). Dazu Personenname in
+  `diagnose_provider_probe.yml:94` durch Platzhalter ersetzt; open_item `sec-13f-count-3` (nur vorgemerkt).
+  Kein Score-/Filter-/Anzeige-Effekt außer dem Grund-Text. Test 56 Checks. Beleg: erster Tageslauf nach Merge.
+
 ### 22.11.2026 — squeeze-guardian: fünf Zielfragen + gezieltes Lesen (1 PR, Easy-Merge)
 
 - `#754` (Branch `claude/guardian-ziel-pruefung-q8w2`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026.
