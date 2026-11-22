@@ -897,6 +897,15 @@ farbcodierte Pill:
 
 - `premarket` → gelbe „· Pre-Open-Vorschau"-Pill (Hinweis: Daten noch
   nicht final)
+- `premarket` + `app_data.intraday_verspaetet = true` → gelbe „· Vorschau
+  (Börse offen)"-Pill (Premarket-Etikett, Easy-Entscheid 22.11.2026): der
+  geplante Premarket-Lauf hat wegen des GitHub-Startverzugs erst während der
+  US-Sitzung geschrieben (09:30 ET bis vor 16:20 ET, `_intraday_verspaetet`,
+  gemessen beim Schreiben von app_data.json). `run_phase` bleibt `premarket`;
+  Backtest, Pushes, Score und S11 unverändert — reine Anzeige. Das Flag hat
+  Vorrang vor `generated_at` (das ki_agent bei jedem Tick überschreibt); fehlt
+  es (alte app_data), gilt der Altpfad über `generated_at`. Ersetzt das frühere
+  Label „Intraday-Snapshot". Test `scripts/mock_test_runphase_pill.py`.
 - `postclose` → grüne „· Post-Close"-Pill (EOD-Wahrheit)
 - fehlendes Feld (alte app_data ohne `run_phase`) → kein Pill (statt
   verwirrendem „Unbekannt"-Label)

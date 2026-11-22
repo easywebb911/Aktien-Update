@@ -6,7 +6,7 @@ Backtest-Schutz, aber Label "Pre-Open-Vorschau" passt semantisch nur
 fuer Pre-Open-Runs.
 
 Fix: dritte Anzeige-Klasse via generated_at-Disambiguation:
-  premarket + US-Session (09:30–16:00 ET) → "Intraday-Snapshot"
+  premarket + US-Session (09:30–16:00 ET) → "Vorschau (Börse offen)"
   premarket + außerhalb                    → "Pre-Open-Vorschau"
   (seit 02.11.2026 in US-Ostküstenzeit; vorher feste UTC-Grenzen
   13:30/20:00 = nur Sommerzeit)
@@ -54,15 +54,15 @@ def _function_body(name: str) -> str:
 
 def test_function_takes_two_parameters():
     body = _function_body("_renderRunPhasePill")
-    assert "function _renderRunPhasePill(phase, generatedAt)" in body, (
-        "_renderRunPhasePill sollte (phase, generatedAt) signieren")
+    assert "function _renderRunPhasePill(phase, generatedAt, intradayVerspaetet)" in body, (
+        "_renderRunPhasePill sollte (phase, generatedAt, intradayVerspaetet) signieren")
 
 
 def test_all_three_labels_present():
     body = _function_body("_renderRunPhasePill")
     assert "Pre-Open-Vorschau" in body
-    assert "Intraday-Snapshot" in body, (
-        "Neues Label 'Intraday-Snapshot' fehlt im Pill")
+    assert "Vorschau (Börse offen)" in body, (
+        "Neues Label 'Vorschau (Börse offen)' fehlt im Pill")
     assert "Post-Close" in body
 
 
@@ -83,7 +83,8 @@ def test_us_session_window_constants_in_logic():
 def test_caller_passes_generated_at():
     """_renderRunPhasePill-Aufrufer muss appData.generated_at übergeben."""
     pat = re.compile(
-        r"_renderRunPhasePill\(\s*appData\.run_phase\s*,\s*appData\.generated_at\s*\)",
+        r"_renderRunPhasePill\(\s*appData\.run_phase\s*,\s*appData\.generated_at\s*,"
+        r"\s*appData\.intraday_verspaetet\s*\)",
     )
     assert pat.search(SRC), (
         "Aufrufer übergibt appData.generated_at nicht — Intraday-"
@@ -120,16 +121,19 @@ def test_graceful_fallback_on_invalid_generated_at():
 # === 2 — Pythonische Replikation der Label-Logik ==========================
 
 
-def _label_for(phase: str, generated_at: datetime | None) -> str | None:
+def _label_for(phase: str, generated_at: datetime | None, flag=None) -> str | None:
     """Replikation der _renderRunPhasePill-Logik in Python.
-    Returnt das Label-Suffix oder None (Pill hidden)."""
+    Returnt das Label-Suffix oder None (Pill hidden). ``flag`` =
+    app_data.intraday_verspaetet (Vorrang; None = Altpfad über generated_at)."""
     if phase == "premarket":
+        if flag is True or flag is False:
+            return " · Vorschau (Börse offen)" if flag else " · Pre-Open-Vorschau"
         if generated_at is None or generated_at.tzinfo is None:
             t = generated_at or datetime.now(timezone.utc)
         else:
             t = generated_at
         in_us = trading_date.us_session_state(t) in ("open", "closing")   # US/Eastern, bis 16:20 ET
-        return " · Intraday-Snapshot" if in_us else " · Pre-Open-Vorschau"
+        return " · Vorschau (Börse offen)" if in_us else " · Pre-Open-Vorschau"
     if phase == "postclose":
         return " · Post-Close"
     return None
@@ -142,15 +146,15 @@ def test_pre_open_run_at_1017_utc():
 
 
 def test_intraday_redeploy_at_1729_utc():
-    """17:29 UTC (Re-deploy mitten in US-Session) → 'Intraday-Snapshot'."""
+    """17:29 UTC (Re-deploy mitten in US-Session) → 'Vorschau (Börse offen)'."""
     t = datetime(2026, 5, 15, 17, 29, tzinfo=timezone.utc)
-    assert _label_for("premarket", t) == " · Intraday-Snapshot"
+    assert _label_for("premarket", t) == " · Vorschau (Börse offen)"
 
 
 def test_us_session_boundary_exactly_1330():
     """Genau 13:30 UTC zählt schon zur US-Session (≥-Schwelle)."""
     t = datetime(2026, 5, 15, 13, 30, tzinfo=timezone.utc)
-    assert _label_for("premarket", t) == " · Intraday-Snapshot"
+    assert _label_for("premarket", t) == " · Vorschau (Börse offen)"
 
 
 def test_us_session_boundary_just_before_1330():
@@ -161,11 +165,11 @@ def test_us_session_boundary_just_before_1330():
 
 def test_us_session_boundary_exactly_2000():
     """Seit 04.11.2026: 20:00/20:19 UTC (16:00/16:19 EDT, Schluss noch nicht
-    final) → noch 'Intraday-Snapshot'; ab 20:20 UTC (16:20 EDT) nicht mehr."""
+    final) → noch 'Vorschau (Börse offen)'; ab 20:20 UTC (16:20 EDT) nicht mehr."""
     t = datetime(2026, 5, 15, 20, 0, tzinfo=timezone.utc)
-    assert _label_for("premarket", t) == " · Intraday-Snapshot"
+    assert _label_for("premarket", t) == " · Vorschau (Börse offen)"
     t = datetime(2026, 5, 15, 20, 19, tzinfo=timezone.utc)
-    assert _label_for("premarket", t) == " · Intraday-Snapshot"
+    assert _label_for("premarket", t) == " · Vorschau (Börse offen)"
     t = datetime(2026, 5, 15, 20, 20, tzinfo=timezone.utc)
     assert _label_for("premarket", t) == " · Pre-Open-Vorschau"
 
@@ -192,9 +196,9 @@ def test_unknown_phase_hidden():
 
 
 def test_late_intraday_just_before_close():
-    """19:59 UTC — last minute der US-Session → noch 'Intraday-Snapshot'."""
+    """19:59 UTC — last minute der US-Session → noch 'Vorschau (Börse offen)'."""
     t = datetime(2026, 5, 15, 19, 59, tzinfo=timezone.utc)
-    assert _label_for("premarket", t) == " · Intraday-Snapshot"
+    assert _label_for("premarket", t) == " · Vorschau (Börse offen)"
 
 
 def test_after_close_late_evening():
@@ -208,7 +212,7 @@ def test_after_close_late_evening():
 def test_winter_intraday_2030_utc():
     """Winter: 20:30 UTC = 15:30 ET → noch Intraday (Fix 02.11.2026)."""
     t = datetime(2026, 11, 2, 20, 30, tzinfo=timezone.utc)
-    assert _label_for("premarket", t) == " · Intraday-Snapshot"
+    assert _label_for("premarket", t) == " · Vorschau (Börse offen)"
 
 
 def test_winter_1400_utc_pre_open():
@@ -255,6 +259,82 @@ def test_js_helper_matches_python_source():
     exp = [trading_date.us_session_state(datetime.fromisoformat(x.replace("Z", "+00:00")))
            for x in stamps]
     assert got == exp, f"JS {got} != Python {exp}"
+
+
+# === Premarket-Etikett (22.11.2026) =======================================
+
+
+def _helper():
+    """_intraday_verspaetet per AST aus generate_report.py (ohne Import der
+    schweren Abhängigkeiten) — läuft mit dem echten trading_date."""
+    import ast
+    tree = ast.parse(SRC)
+    fn = next(n for n in tree.body
+              if isinstance(n, ast.FunctionDef) and n.name == "_intraday_verspaetet")
+    ns = {"trading_date": trading_date, "datetime": datetime}
+    exec(compile(ast.Module(body=[fn], type_ignores=[]), "gr", "exec"), ns)
+    return ns["_intraday_verspaetet"]
+
+
+def test_flag_helper_cases():
+    f = _helper()
+    # Winter (EST): 14:29 UTC = 09:29 ET pre, 14:30 open, 21:19 closing, 21:20 post
+    assert f("premarket", datetime(2026, 11, 23, 14, 29, tzinfo=timezone.utc)) is False
+    assert f("premarket", datetime(2026, 11, 23, 14, 30, tzinfo=timezone.utc)) is True
+    assert f("premarket", datetime(2026, 11, 23, 21, 19, tzinfo=timezone.utc)) is True
+    assert f("premarket", datetime(2026, 11, 23, 21, 20, tzinfo=timezone.utc)) is False
+    # Sommer (EDT): 13:30 UTC open
+    assert f("premarket", datetime(2026, 7, 15, 13, 30, tzinfo=timezone.utc)) is True
+    # typischer verspäteter Premarket (17.11.: ~14:40 UTC) und pünktlicher (06:17)
+    assert f("premarket", datetime(2026, 11, 17, 14, 40, tzinfo=timezone.utc)) is True
+    assert f("premarket", datetime(2026, 11, 17, 6, 17, tzinfo=timezone.utc)) is False
+    # postclose nie
+    assert f("postclose", datetime(2026, 11, 23, 15, 0, tzinfo=timezone.utc)) is False
+
+
+def test_flag_has_priority_over_generated_at():
+    """generated_at überschreibt ki_agent bei jedem Tick — das Flag des
+    Daily-Runs hat Vorrang (beide Richtungen)."""
+    pre_t = datetime(2026, 11, 23, 12, 0, tzinfo=timezone.utc)    # 07:00 ET
+    open_t = datetime(2026, 11, 23, 16, 0, tzinfo=timezone.utc)   # 11:00 ET
+    assert _label_for("premarket", open_t, flag=False) == " · Pre-Open-Vorschau"
+    assert _label_for("premarket", pre_t, flag=True) == " · Vorschau (Börse offen)"
+    assert _label_for("premarket", open_t, flag=None) == " · Vorschau (Börse offen)"
+    assert _label_for("postclose", open_t, flag=True) == " · Post-Close"
+
+
+def test_flag_written_and_wired():
+    assert '"intraday_verspaetet": intraday_verspaetet,' in SRC, "Feld fehlt in app_data"
+    assert "intraday_verspaetet=_intraday_verspaetet(run_phase))" in SRC, "Aufruf fehlt"
+    body = _function_body("_renderRunPhasePill")
+    assert "intradayVerspaetet === true || intradayVerspaetet === false" in body
+    assert "Intraday-Snapshot" not in SRC, "altes Label noch im Quelltext"
+
+
+def test_js_pill_with_flag_node():
+    """Funktionstest der ECHTEN Pille aus dem Golden-HTML (nur mit node)."""
+    import shutil
+    import subprocess
+    node = shutil.which("node")
+    if not node:
+        print("     (node nicht vorhanden — Funktionstest übersprungen)")
+        return
+    golden = (ROOT / "tests" / "golden" / "report_outer_page.html").read_text(encoding="utf-8")
+    i = golden.index("function _usSessionStateET(d) {")
+    j = golden.index("\nfunction _renderStaleness", i)
+    js = golden[i:j]
+    code = ("const el={textContent:'',hidden:true,classList:{add(){},remove(){}}};"
+            "const document={getElementById:()=>el};" + js +
+            "const out=[];"
+            "for (const [g,f] of [['2026-11-23T16:00:00Z',false],['2026-11-23T12:00:00Z',true],"
+            "['2026-11-23T16:00:00Z',undefined],['2026-11-23T12:00:00Z',null]]){"
+            "_renderRunPhasePill('premarket',g,f);out.push(el.textContent);}"
+            "console.log(JSON.stringify(out));")
+    out = subprocess.run([node, "-e", code], capture_output=True, text=True, check=True)
+    import json as _json
+    got = _json.loads(out.stdout)
+    assert got == [" · Pre-Open-Vorschau", " · Vorschau (Börse offen)",
+                   " · Vorschau (Börse offen)", " · Pre-Open-Vorschau"], got
 
 
 # === 3 — Backend-Unveraendert (Vorsichts-Prinzip) =========================
@@ -312,19 +392,24 @@ def main() -> None:
         ("graceful fallback auf invalid generated_at",    test_graceful_fallback_on_invalid_generated_at),
         # Pythonische Replikation
         ("10:17 UTC premarket → Pre-Open-Vorschau",       test_pre_open_run_at_1017_utc),
-        ("17:29 UTC premarket → Intraday-Snapshot",       test_intraday_redeploy_at_1729_utc),
+        ("17:29 UTC premarket → Vorschau (Börse offen)",       test_intraday_redeploy_at_1729_utc),
         ("Boundary 13:30 UTC → Intraday (inkl)",          test_us_session_boundary_exactly_1330),
         ("Boundary 13:29 UTC → noch Pre-Open",             test_us_session_boundary_just_before_1330),
         ("Boundary 16:00/16:19 EDT Intraday, 16:20 Pre-Open", test_us_session_boundary_exactly_2000),
         ("21:37 UTC postclose → Post-Close",               test_postclose_run_at_2117_utc),
         ("postclose in US-Session bleibt Post-Close",      test_postclose_during_us_session_still_post_close),
         ("Unbekannte phase → Pill hidden",                  test_unknown_phase_hidden),
-        ("19:59 UTC → noch Intraday-Snapshot",              test_late_intraday_just_before_close),
+        ("19:59 UTC → noch Vorschau (Börse offen)",              test_late_intraday_just_before_close),
         ("22:00 UTC premarket → wieder Pre-Open",           test_after_close_late_evening),
         ("Winter 20:30 UTC → Intraday (15:30 ET)",          test_winter_intraday_2030_utc),
         ("Winter 14:00 UTC → Pre-Open (09:00 ET)",          test_winter_1400_utc_pre_open),
         ("Sommer 20:30 UTC → Pre-Open (16:30 ET)",          test_summer_2030_utc_after_close),
         ("JS-Helper == Python-Quelle (node, beide Regime)", test_js_helper_matches_python_source),
+        # Premarket-Etikett (22.11.2026)
+        ("_intraday_verspaetet: Grenzen Winter/Sommer, postclose nie", test_flag_helper_cases),
+        ("Flag hat Vorrang vor generated_at",                test_flag_has_priority_over_generated_at),
+        ("Flag geschrieben + verdrahtet, altes Label weg",   test_flag_written_and_wired),
+        ("JS-Pille mit Flag (node)",                         test_js_pill_with_flag_node),
         # Backend-Unveraendert
         ("resolve_run_phase.py unveraendert",              test_resolve_run_phase_untouched),
         ("redeploy-on-source-change.yml unveraendert",     test_redeploy_workflow_run_phase_logic_untouched),
