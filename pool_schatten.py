@@ -43,6 +43,11 @@ RANG_TOL = 0.01
 # in ``merkmale_ausgelassen`` genannt (nie still).
 MERKMAL_MAX_CHARS = 2000
 MERKMAL_DENY = frozenset({"news", "card_html", "sparkline_view"})
+# Datenschutz (Guardian-Hinweis 22.11.): die Datei ist öffentlich — Felder mit
+# Positions-/Nutzerbezug werden nie geschrieben, auch wenn sie künftig am
+# Kandidaten-Objekt auftauchen.
+MERKMAL_DENY_PREFIXES = ("position", "entry_", "pnl", "token", "gist", "secret")
+MERKMAL_DENY_EXACT = frozenset({"shares", "thesis", "lesson"})
 
 
 # ── reine Helfer ─────────────────────────────────────────────────────────────
@@ -80,7 +85,8 @@ def merkmale_of(c: dict) -> tuple[dict, list[str]]:
     out: dict = {}
     skipped: list[str] = []
     for k in sorted(str(x) for x in c.keys()):
-        if k in MERKMAL_DENY or k.startswith("_") or k.endswith("_html"):
+        if (k in MERKMAL_DENY or k in MERKMAL_DENY_EXACT or k.startswith("_")
+                or k.endswith("_html") or k.lower().startswith(MERKMAL_DENY_PREFIXES)):
             continue
         try:
             v = _clean(c[k])

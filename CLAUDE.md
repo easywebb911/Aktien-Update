@@ -4851,6 +4851,11 @@ den Top-10 (Easy-Entscheid 21./22.11.2026, open_item `pool-schatten`).
   `price`, `bar_date`, `letzte_zeile`, `vintage_zeile` (Grund, Zeile bleibt), `source`,
   `source_pools`, `code_sha` (`GITHUB_SHA`), `merkmale` (alles am Objekt außer News/HTML/
   internen Schlüsseln; Werte > 2000 Zeichen in `merkmale_ausgelassen`). NaN/Inf → null.
+  Felder mit Positions-/Nutzerbezug (`position*`, `entry_*`, `pnl*`, `token*`, `gist*`,
+  `secret*`, `shares`, `thesis`, `lesson`) werden nie geschrieben (Datei ist öffentlich).
+  Achtung beim Auswerten: `merkmale` der Top-10-Zeilen tragen spät veränderte Werte
+  (`score` nach Glättung/Boost, Monster, Conviction) — verglichen wird nur über
+  `score_auswahl`, nie über `merkmale.score`.
 - **Nur lesen:** kein Abruf, keine Neuberechnung. Für Rang 11+ gibt es keine Teil-Scores
   (`score()` speichert keine Zwischenwerte). Keine Renditen, keine Folgekurse.
 - **Gates:** Wochenende + Laufzeit-Gate des Vintage-Guards wie der Backtest-Append →

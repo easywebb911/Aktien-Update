@@ -279,6 +279,13 @@ with tempfile.TemporaryDirectory() as d1:
           == open(os.path.join(d3, "pool_schatten", "2026-11.jsonl"), "rb").read(),
           "Determinismus: gleiche Eingabe → gleiche Bytes")
 
+# 11b Datenschutz-Sperre
+_priv = {"position_size": 3, "entry_price": 1.0, "pnl_pct": 2.0, "shares": 35, "gist_id": "x",
+         "token_hint": "y", "thesis": "t", "Position": 1}
+m, _ = ps.merkmale_of({"ticker": "P", "score": 1.0, "shares_outstanding": 10, **_priv})
+check(not set(_priv) & set(m) and m.get("shares_outstanding") == 10,
+      f"Positions-/Nutzerfelder nie in merkmale ({sorted(set(_priv) & set(m))})")
+
 # 12 Konsumenten
 users = []
 for p in ROOT.rglob("*"):
