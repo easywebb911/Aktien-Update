@@ -70,9 +70,9 @@ jobs:
         run: |
           set +e
           URL="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=IONQ&type=8-K&dateb=&owner=include&count=10&search_text=&output=atom"
-          SEC_UA="SqueezeReport/1.0 github-actions@squeeze-report.com"
+          SEC_UA="SqueezeReport/1.0 contact@example.com"
           echo "URL: $URL"
-          echo "User-Agent: $SEC_UA   (aktuell in config.py:903)"
+          echo "User-Agent: $SEC_UA   (Platzhalter; Produktion liest das Secret EDGAR_USER_AGENT)"
           echo "----- verbose -----"
           curl -v --max-time 12 \
             -H "User-Agent: $SEC_UA" \

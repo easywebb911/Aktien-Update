@@ -4268,6 +4268,13 @@ Akkumulator fest → ``error`` in ``provider_health.jsonl`` und im Digest; je La
 setzt ``sec_ok`` False. ``config.SEC_HEADERS`` liest den User-Agent aus dem Secret
 ``EDGAR_USER_AGENT`` (keine feste Kontaktadresse im Repo). Anlass: Ausfall 16./17.11.2026
 (HTTP 400 „Invalid count“, nur auf ``debug`` geloggt). Test ``scripts/mock_test_edgar_fix_a.py``.
+**Lehre (Easy 22.11.2026):** die SEC verlangt im User-Agent eine **echte, erreichbare
+Kontaktadresse** — eine anonyme GitHub-noreply-Adresse wurde mit HTTP 403 abgewiesen (alle
+SEC-Abrufe 20.11. ~11:00 bis 21.11.). Das Secret ``EDGAR_USER_AGENT`` trägt deshalb eine
+Projekt-Adresse; Platzhalter (``example.com``) nur in Tests/Diagnose. Rest-Befund 21./22.11.:
+je Lauf 2/13 ``ParseError`` (VEEA, MPT) — ``browse-edgar?CIK=<Ticker>`` löst diese Ticker nicht
+auf, obwohl sie in ``company_tickers.json`` stehen (vermutlich HTML-Seite statt Atom, nicht direkt
+abgerufen); Lösung ist Fix (b) (Abruf per CIK).
 
 **Tier-3-success_check-Recalibration (16.05.2026)** — Hintergrund:
 vier Tier-3-Provider (edgar_8k/form4/13d_g/stocktwits) zeigten 100 %
