@@ -58,13 +58,19 @@ def test_02_sec_8k_403_returns_none() -> None:
     block = _func_block("def fetch_sec_8k(")
     # Fehler-Block: muss explizit return None (statt False-Tuple). Seit EDGAR
     # Fix (a) (18.11.2026) gilt jeder Status != 200 als Provider-Fehler (403
-    # Rate-Limit/UA-Block, 400 ungültige Anfrage wie am 16.11.2026).
-    pos_403 = block.find("status_code != 200")
-    assert pos_403 > 0
-    snippet = block[pos_403:pos_403 + 400]
-    assert "return None" in snippet, "403-Pfad returnt nicht None"
+    # Rate-Limit/UA-Block, 400 ungültige Anfrage wie am 16.11.2026). Seit Fix
+    # (b) (22.11.2026) liegt der Status-Check im geteilten _sec_submissions;
+    # fetch_sec_8k gibt bei dessen Fehler (sub is None) None zurück.
+    sub = _func_block("def _sec_submissions(")
+    assert sub.count("status_code != 200") >= 1, "Status-Check fehlt in _sec_submissions"
+    idx = _func_block("def _sec_cik_index(")
+    assert "status_code != 200" in idx, "Status-Check fehlt beim Tickerlisten-Abruf"
+    pos = block.find("if sub is None:")
+    assert pos > 0
+    snippet = block[pos:pos + 200]
+    assert "return None" in snippet, "Fehler-Pfad returnt nicht None"
     assert "return False, \"\", None" not in snippet, \
-        "403-Pfad returnt noch False-Tuple"
+        "Fehler-Pfad returnt noch False-Tuple"
 
 
 def test_03_sec_8k_exception_returns_none() -> None:

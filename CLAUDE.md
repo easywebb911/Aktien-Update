@@ -4285,6 +4285,22 @@ je Lauf 2/13 ``ParseError`` (VEEA, MPT) — ``browse-edgar?CIK=<Ticker>`` löst 
 auf, obwohl sie in ``company_tickers.json`` stehen (vermutlich HTML-Seite statt Atom, nicht direkt
 abgerufen); Lösung ist Fix (b) (Abruf per CIK).
 
+**EDGAR Fix (b) (Easy-Entscheid 22.11.2026):** ``fetch_sec_8k``/``fetch_sec_form4`` lesen aus
+``data.sec.gov/submissions/CIK##########.json`` (EIN Abruf je Ticker, geteilt; CIK aus
+``company_tickers.json``, einmal je Lauf, ``material_8k.build_cik_index``/``resolve_cik``) statt aus
+``browse-edgar?CIK=<Ticker>``. **KI-Score unverändert (Freeze):** Auswahl und Titel bilden die alte
+Quelle exakt nach (``sec_meldungen.py``): Präfix-Suche wie früher (``type=4`` zählte auch Form 425),
+Fenster nach Annahmezeit (``acceptanceDateTime`` = UTC; Beleg NTLA ``22:05:40Z``), Titel im alten
+Atom-Wortlaut („8-K  - Current report“, „4  - Statement of changes …“, „425  - Prospectuses …“),
+unbekannte Formen ohne Stichwort → ``compute_signal`` vergibt identische Punkte. Neu gefunden werden
+Ticker, die browse-edgar nicht auflöste (VEEA, MPT) — nur deren Score kann sich ändern. Keine CIK oder
+Abruf-Fehler → ``None`` (unbekannt) mit lesbarem Grund („keine eindeutige CIK …“, „Tickerliste: HTTP …“,
+„Meldungsliste: …“); ein Fehler der Tickerliste wird je Lauf gemerkt (kein Retry). **Rohdaten**
+(Form, Annahmezeit, Meldedatum, Beschreibung, bei 8-K die Item-Nummern, Accession) der Meldungen im
+jeweiligen Fenster → ``sec_meldungen.jsonl`` (nur angehängt, Dublette = Ticker + Accession, nur
+Felder der öffentlichen SEC-Quelle, kein Score-Leser). Befund „Titel-Boni greifen nie“: open_item
+``ki-score-titel-boni-tot``. Test ``scripts/mock_test_edgar_fix_b.py``.
+
 **Tier-3-success_check-Recalibration (16.05.2026)** — Hintergrund:
 vier Tier-3-Provider (edgar_8k/form4/13d_g/stocktwits) zeigten 100 %
 Fail-Rate im Provider-Health-Log, weil die alten success_check-

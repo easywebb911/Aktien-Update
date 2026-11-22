@@ -105,26 +105,46 @@ import ki_agent as ka  # noqa: E402
 
 
 class _Resp:
-    def __init__(self, status, text):
-        self.status_code, self.text = status, text
+    def __init__(self, status, text, js=None):
+        self.status_code, self.text, self._js = status, text, js
+
+    def json(self):
+        if self._js is None:
+            raise ValueError("kein JSON")
+        return self._js
 
 
-FEED_EMPTY = '<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"></feed>'
+# Seit EDGAR Fix (b) (22.11.2026): erst SEC-Tickerliste, dann Meldungsliste je CIK.
+_TICKERS = {"0": {"cik_str": 320193, "ticker": "AAPL"}, "1": {"cik_str": 789019, "ticker": "MSFT"},
+            "2": {"cik_str": 1824920, "ticker": "IONQ"}}
+_EMPTY_SUB = {"filings": {"recent": {"form": [], "acceptanceDateTime": []}}}
 
-# 2 HTTP 400
+
+def _router(sub_resp):
+    """Tickerliste OK; Meldungsliste = sub_resp (Resp oder Exception)."""
+    def _get(url, *a, **k):
+        if "company_tickers" in url:
+            return _Resp(200, "", _TICKERS)
+        if isinstance(sub_resp, Exception):
+            raise sub_resp
+        return sub_resp
+    return _get
+
+
+# 2 HTTP 400 (Meldungsliste)
 ka._reset_tier3_accumulators()
 with mock.patch.object(ka.requests, "get",
-                       return_value=_Resp(400, "Invalid count, Received: 5,\n Count must be one of: 10, 20")), \
+                       side_effect=_router(_Resp(400, "Invalid count, Received: 5,\n Count must be one of: 10, 20"))), \
      mock.patch.object(ka.time, "sleep"):
     r1 = ka.fetch_sec_8k("AAPL")
     r2 = ka.fetch_sec_8k("MSFT")
 err = ka._EDGAR_8K_ACCT.get("last_error_repr") or ""
 check(r1 is None and r2 is None, "HTTP 400 → None (Provider-Fehler)")
-check(err.startswith("HTTP 400: Invalid count, Received: 5, Count must be one of")
+check("HTTP 400: Invalid count, Received: 5, Count must be one of" in err
       and err.endswith("(erster Fehler: AAPL)"),
       f"Fehlergrund im Akkumulator, erster gewinnt: {err!r}")
 
-# 2b gespiegelter User-Agent / Adresse im Antworttext wird entfernt
+# 2b gespiegelter User-Agent / Adresse im Antworttext wird entfernt (Tickerliste)
 ka._reset_tier3_accumulators()
 _ua_now = ka.SEC_HEADERS.get("User-Agent")
 _addr = "jemand" + "@" + "beispiel.test"
@@ -138,15 +158,16 @@ check(_ua_now not in _e and _addr not in _e and "[User-Agent]" in _e and "[Adres
 
 # 3 Ausnahme
 ka._reset_tier3_accumulators()
-with mock.patch.object(ka.requests, "get", side_effect=ka.requests.exceptions.Timeout("read timeout")), \
+with mock.patch.object(ka.requests, "get",
+                       side_effect=_router(ka.requests.exceptions.Timeout("read timeout"))), \
      mock.patch.object(ka.time, "sleep"):
     r3 = ka.fetch_sec_8k("IONQ")
-check(r3 is None and (ka._EDGAR_8K_ACCT["last_error_repr"] or "").startswith("Timeout: read timeout"),
+check(r3 is None and "Timeout: read timeout" in (ka._EDGAR_8K_ACCT["last_error_repr"] or ""),
       f"Timeout → None + Grund: {ka._EDGAR_8K_ACCT['last_error_repr']!r}")
 
 # 4 legitim leer
 ka._reset_tier3_accumulators()
-with mock.patch.object(ka.requests, "get", return_value=_Resp(200, FEED_EMPTY)), \
+with mock.patch.object(ka.requests, "get", side_effect=_router(_Resp(200, "", _EMPTY_SUB))), \
      mock.patch.object(ka.time, "sleep"):
     r4 = ka.fetch_sec_8k("AAPL")
 check(r4 == (False, "", None) and ka._EDGAR_8K_ACCT["last_error_repr"] is None,
@@ -154,9 +175,10 @@ check(r4 == (False, "", None) and ka._EDGAR_8K_ACCT["last_error_repr"] is None,
 
 # 5 Form 4
 ka._reset_tier3_accumulators()
-with mock.patch.object(ka.requests, "get", return_value=_Resp(403, "")), mock.patch.object(ka.time, "sleep"):
+with mock.patch.object(ka.requests, "get", side_effect=_router(_Resp(403, ""))), \
+     mock.patch.object(ka.time, "sleep"):
     r5 = ka.fetch_sec_form4("AAPL")
-check(r5 is None and ka._EDGAR_FORM4_ACCT["last_error_repr"] == "HTTP 403 (erster Fehler: AAPL)"
+check(r5 is None and ka._EDGAR_FORM4_ACCT["last_error_repr"] == "Meldungsliste: HTTP 403 (erster Fehler: AAPL)"
       and ka._EDGAR_8K_ACCT["last_error_repr"] is None,
       f"Form 4: 403 → None, Grund nur im Form-4-Akkumulator ({ka._EDGAR_FORM4_ACCT['last_error_repr']!r})")
 
