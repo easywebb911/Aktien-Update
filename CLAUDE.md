@@ -4960,6 +4960,9 @@ Easy-Entscheid 22.11.2026, protected-ok b). Modul `verwaesserung.py` (pure), Que
   Entscheid und vorab festgeschriebene Regel; Top-10-Zeilen sind Blindfenster-Daten (nur speichern
   und zählen); kein Score-Input (Look-ahead-Konvention wie `material_8k_events`); keine Anzeige.
   Details, Einwand zur 424B5-Regel und Wiedervorlage: open_item `verwaesserung-sammlung`.
+- **Raise-frei:** `build()`/`log_line()` fangen jede unerwartete Ausnahme im Modul ab → null-Block mit
+  `grund = "interner_fehler: <Typ>"` + Log-Warnung (die Eintrags-Schleife in `_append_backtest_entries`
+  hat keinen äußeren Schutz); im Digest unbekannt mit Grund, bei Auftreten Warnzeile.
 - Test `scripts/mock_test_verwaesserung.py`. **Rückweg:** Revert; das Feld ist ein benannter Schlüssel
   und einzeln entfernbar (Muster `purge_material_8k_events`).
 

@@ -223,6 +223,105 @@ for f in ("generate_report.py", "ki_agent.py", "health_check.py", "templates/car
     t = (ROOT / f).read_text(encoding="utf-8")
     check(f"31 kein Leser in {f}", "verwaesserung" not in t)
 
+# ── Nachtrag 22.11.2026: raise-frei, interner Fehler sichtbar ───────────────
+bad = vw.build({"verw_quelle": {"ok": True, "cik": "0000000005", "rows": [1, "x", None]}}, D)
+check("32 Nicht-Dict-Zeilen → null-Block „interner_fehler: <Typ>“, keine Ausnahme",
+      bad["geprueft"] is False and bad["grund"].startswith("interner_fehler: ")
+      and bad["verw_424b5_180d"] is None and bad["verw_424b_180d"] is None
+      and bad["cik"] == "0000000005", bad)
+bad2 = vw.build({"verw_quelle": {"ok": True, "rows": [{"acceptance_utc": object(), "form": 5}],
+                                 "recent_aelteste_utc": 7, "recent_files_vorhanden": "ja"}}, D)
+check("33 kaputte Zeitstempel-/Form-Typen → kein Wurf, Block mit Grund",
+      bad2["geprueft"] is False and bad2["grund"] and bad2["verw_424b5_180d"] is None, bad2)
+check("34 log_line wirft nie", vw.log_line([1, None, "x"]).startswith("[verwaesserung]")
+      and vw.log_line(None).startswith("[verwaesserung]"))
+with tempfile.TemporaryDirectory() as td:
+    bp = pathlib.Path(td) / "bh.json"
+    bp.write_text(json.dumps([{"date": D, "ticker": "A", vw.FIELD: good},
+                              {"date": D, "ticker": "B", vw.FIELD: bad}]))
+    dl = vw.digest_line(bp)
+    check("35 Digest: interner_fehler zählt als unbekannt mit Grund",
+          "1 unbekannt (interner_fehler: AttributeError 1)" in dl, dl)
+    wl = vw.warn_line(bp) or ""
+    check("36 interner_fehler → Warnzeile, auch wenn nicht alle unbekannt",
+          wl.startswith("🟡") and "interner Fehler bei 1 von 2" in wl, wl)
+
+
+def _append_level_test():
+    """Ende-zu-Ende über den ECHTEN Schreibpfad: wirft der Kern von build(),
+    werden die Tages-Einträge trotzdem geschrieben (kein Netz, Sammler gefakt)."""
+    import io
+    import logging
+    import os
+    import types
+    from zoneinfo import ZoneInfo
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from mock_test_outer_page_golden import gr  # noqa: F401  (stubbt yfinance/requests/bs4)
+    for _m in ("yfinance", "bs4", "deep_translator", "lxml"):
+        sys.modules.setdefault(_m, types.ModuleType(_m))
+    for _attr in ("download", "Ticker"):
+        if not hasattr(sys.modules["yfinance"], _attr):
+            setattr(sys.modules["yfinance"], _attr, lambda *a, **k: None)
+    import backtest_history as bh
+    et = ZoneInfo("America/New_York")
+    now_et = datetime(2026, 11, 23, 17, 40, tzinfo=et)
+    rd = now_et.strftime("%d.%m.%Y")
+
+    def _stock(t):
+        return {"ticker": t, "score": 70.0, "price": 10.0, "short_float": 25.0,
+                "short_ratio": 5.0, "rel_volume": 2.4, "float_shares": 1e8,
+                "avg_vol_20d": 1e6, "hist_5d": [], "score_trend_bonus_pts": 0.0,
+                "agent_boost_factor": 1.0, "finra_bonus_pts": 0.0,
+                "short_float_source": "yfinance",
+                "finra_data": {"trend": "no_data", "history": [], "si_trend_source": "finra"},
+                "sparkline_view": None, "bar_date": now_et.strftime("%Y-%m-%d")}
+
+    real_collect = m8k.collect_material_8k_events
+
+    def fake_collect(tickers, *, now_utc=None, extras_out=None, **kw):
+        return real_collect(tickers, now_utc=NOW, ua="t", get_json=gj_factory(),
+                            get_text=lambda *a: "", company_tickers=CT, sleep_s=0,
+                            run_budget_s=0, extras_out=extras_out)
+
+    def boom(*a, **k):
+        raise RuntimeError("absichtlich")
+
+    orig_c = bh.material_8k_module.collect_material_8k_events
+    orig_b = bh.verwaesserung_module._build
+    bh.material_8k_module.collect_material_8k_events = fake_collect
+    bh.verwaesserung_module._build = boom
+    cwd = os.getcwd()
+    tmp = tempfile.mkdtemp(prefix="mt_verw_")
+    buf = io.StringIO()
+    h = logging.StreamHandler(buf)
+    logging.getLogger("verwaesserung").addHandler(h)
+    try:
+        os.chdir(tmp)
+        json.dump({"signals": {}}, open("agent_signals.json", "w"))
+        json.dump([], open("backtest_history.json", "w"))
+        n = bh._append_backtest_entries(
+            [_stock("AAA"), _stock("BBB")], rd, pool_size=2,
+            compute_sub_scores_fn=lambda s: {"struct": 0, "catalyst": 0, "timing": 0},
+            safe_float_fn=gr._safe_float, now_et=now_et)
+        rows = json.load(open("backtest_history.json"))
+    finally:
+        os.chdir(cwd)
+        logging.getLogger("verwaesserung").removeHandler(h)
+        bh.material_8k_module.collect_material_8k_events = orig_c
+        bh.verwaesserung_module._build = orig_b
+    by = {r["ticker"]: r for r in rows}
+    check("37 _append_backtest_entries: Ausnahme im Kern → beide Einträge trotzdem geschrieben",
+          n == 2 and set(by) == {"AAA", "BBB"}, (n, list(by)))
+    check("38 … mit null-Block „interner_fehler: RuntimeError“ und Log-Warnung",
+          all(by[t][vw.FIELD]["grund"] == "interner_fehler: RuntimeError"
+              and by[t][vw.FIELD]["verw_424b5_180d"] is None for t in by)
+          and "interner Fehler" in buf.getvalue())
+    check("39 bestehende Felder unberührt (material_8k_events gesammelt)",
+          all((by[t].get("material_8k_events") or {}).get("collected") is True for t in by))
+
+
+_append_level_test()
+
 print()
 if FAILS:
     print(f"FEHLER: {len(FAILS)} Test(s) rot: {FAILS}")

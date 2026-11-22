@@ -23,8 +23,11 @@ Kennzeichen sind ``None`` mit lesbarem ``grund``, nie ``False``.
 from __future__ import annotations
 
 import json
+import logging
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
+
+log = logging.getLogger(__name__)
 
 FIELD = "verwaesserung"
 SCHEMA_V = 1
@@ -79,7 +82,29 @@ def _empty(grund: str, cik=None, geprueft: bool = False) -> dict:
     }
 
 
+INTERNER_FEHLER = "interner_fehler"
+
+
 def build(m8k_extras, report_date, *, material_8k_enabled: bool = True) -> dict:
+    """RAISE-FREI (Nachtrag 22.11.2026): ``build`` läuft in der Eintrags-
+    Schleife von ``_append_backtest_entries`` ohne äußeren Schutz — eine
+    Ausnahme würde alle Tages-Einträge verwerfen. Jede unerwartete Ausnahme
+    ergibt deshalb den null-Block mit ``grund = "interner_fehler: <Typ>"``
+    und eine Log-Warnung."""
+    try:
+        return _build(m8k_extras, report_date,
+                      material_8k_enabled=material_8k_enabled)
+    except Exception as exc:  # noqa: BLE001 — bewusst breit, Lauf darf nie brechen
+        log.warning("verwaesserung: interner Fehler, Block null: %r", exc)
+        try:
+            cik = ((m8k_extras or {}).get("verw_quelle") or {}).get("cik")
+            cik = cik if isinstance(cik, str) else None
+        except Exception:  # noqa: BLE001
+            cik = None
+        return _empty(f"{INTERNER_FEHLER}: {type(exc).__name__}", cik)
+
+
+def _build(m8k_extras, report_date, *, material_8k_enabled: bool = True) -> dict:
     """Pure: Block ``verwaesserung`` für einen Backtest-Eintrag.
 
     ``m8k_extras`` ist ``material_8k.collect_material_8k_events(extras_out=…)
@@ -135,7 +160,16 @@ def build(m8k_extras, report_date, *, material_8k_enabled: bool = True) -> dict:
 
 
 def log_line(entries: list[dict]) -> str:
-    """Zählungen über die in DIESEM Lauf angehängten Einträge (keine Werte)."""
+    """Zählungen über die in DIESEM Lauf angehängten Einträge (keine Werte).
+    RAISE-FREI (steht in ``_append_backtest_entries`` vor dem Speichern)."""
+    try:
+        return _log_line(entries)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("verwaesserung: Log-Zeile fehlgeschlagen: %r", exc)
+        return f"[verwaesserung] Log-Zeile nicht ermittelbar ({type(exc).__name__})"
+
+
+def _log_line(entries: list[dict]) -> str:
     blocks = [e.get(FIELD) for e in entries if isinstance(e.get(FIELD), dict)]
     n = len(entries)
     p = [b for b in blocks if b.get("geprueft")]
@@ -206,7 +240,13 @@ def warn_line(bh_path) -> str | None:
         return None
     except Exception as exc:
         return f"🟡 Verwässerung: Warnprüfung fehlgeschlagen ({type(exc).__name__})"
-    if not blocks or any(b.get("geprueft") for b in blocks):
+    if not blocks:
+        return None
+    n_int = sum(1 for b in blocks if str(b.get("grund") or "").startswith(INTERNER_FEHLER))
+    if any(b.get("geprueft") for b in blocks):
+        if n_int:
+            return (f"🟡 Verwässerung ({last.day:02d}.{last.month:02d}.): interner Fehler bei "
+                    f"{n_int} von {len(blocks)} ({_why([b for b in blocks if not b.get('geprueft')])})")
         return None
     return (f"🟡 Verwässerung ({last.day:02d}.{last.month:02d}.): alle {len(blocks)} "
             f"unbekannt ({_why(blocks)})")
