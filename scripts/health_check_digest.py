@@ -743,6 +743,17 @@ def main(*, now_ts: datetime | None = None,
         eval_lines.append(ab_line)
     except Exception as _ab_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Datenprüfung-Short-Float-Digest unerwartet: %r", _ab_exc)
+    # Pool-Schatten (22.11.2026): „läuft · letzter Tag · Zeilen · Kandidaten je
+    # Tag (Median)“ über alle Monatsdateien. Reine Zählung, fail-soft.
+    _pool_warn = None
+    pool_line = None
+    try:
+        import pool_schatten  # noqa: E402  (Repo-Root liegt im sys.path)
+        pool_line = pool_schatten.digest_line(ROOT)
+        eval_lines.append(pool_line)
+        _pool_warn = pool_schatten.warn_line(ROOT, ROOT / hc.BACKTEST_FILE)
+    except Exception as _ps_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
+        log.warning("Pool-Schatten-Digest unerwartet: %r", _ps_exc)
     # ApeWisdom-Schatten (Easy-Entscheid 17.11.2026, open_item
     # apewisdom-abdeckung): Zähler bis zur Wiedervorlage bei 500 Einstiegen
     # mit Abdeckungs-Angabe. Nur Zählung, fail-soft.
@@ -801,6 +812,9 @@ def main(*, now_ts: datetime | None = None,
         _block1_warn = None
     if _block1_warn:
         watchdog_lines = list(watchdog_lines or []) + [_block1_warn]
+    # Pool-Schatten leer an einem Postclose-Tag → Warnzeile (wie Block 1).
+    if _pool_warn:
+        watchdog_lines = list(watchdog_lines or []) + [_pool_warn]
 
     body, title, priority, tags = hc.format_digest_body(
         state_fails, prov_fails,
@@ -848,7 +862,7 @@ def main(*, now_ts: datetime | None = None,
         + list(coverage_warns) + list(coverage_silent_empty_warns)
         + list(watchdog_lines or []),
         counter_lines=[freeze_line, suw_line, truth_check_line, treffer_line,
-                       ab_line, ape_counter_line],
+                       ab_line, ape_counter_line, pool_line],
     )
     outbox = {
         "digest_date": today_iso,

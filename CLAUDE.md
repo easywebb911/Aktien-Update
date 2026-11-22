@@ -4832,6 +4832,40 @@ Conviction, Filter, Auswahl oder Reihenfolge (Wächter im Test).
   `datenpruefung-short-float-auswertung` (Wiedervorlage 02.12.2026). **Rückweg:** Revert; das Feld in
   alten Einträgen und der Cache dürfen liegen bleiben.
 
+## Pool-Schatten (seit 22.11.2026, pool_schatten/)
+
+**Zweck:** das Tool bewertet je Tag 20–59 Kandidaten (Median 35), zeigt aber nur 10; die
+Tagesliste ist später nicht wiederherstellbar (Erkundungsfeld geschlossen 18.11.2026). Ein
+eigenes Suchfeld aus derselben Grundgesamtheit: gesucht wird auf Rang 11+, bestätigt auf
+den Top-10 (Easy-Entscheid 21./22.11.2026, open_item `pool-schatten`).
+
+- **Modul** `pool_schatten.py`, Aufruf in `main()` im Postclose-Zweig direkt nach
+  `_append_backtest_entries` (außerhalb der geschützten Zone `filter-top10-selection`),
+  raise-frei. Schreibt `pool_schatten/JJJJ-MM.jsonl` (Monat des Berichtstags, Klartext,
+  append-only, atomar), eine Zeile je Kandidat in `enriched`, Reihenfolge = Rang.
+- **Zeile:** `date`, `ticker`, `rang` (Index in `enriched` = Score-Reihenfolge),
+  `rang_vorrang`, `pool_size`, `rvol_vorrang`, `tag_regel` (`vorrang`/`auffuellen`/`notnetz`
+  wie `top10_vol`), `top10`, `top10_regel`, `top10_anzeige_rang`,
+  `top10_markierung_konsistent`, `score_auswahl` (Rang 11+: `score`; Top-10: `score_raw −
+  finra_bonus_pts`, bei Kappung auf 100 null), `rang_konsistent`, `watchlist_bypass`,
+  `price`, `bar_date`, `letzte_zeile`, `vintage_zeile` (Grund, Zeile bleibt), `source`,
+  `source_pools`, `code_sha` (`GITHUB_SHA`), `merkmale` (alles am Objekt außer News/HTML/
+  internen Schlüsseln; Werte > 2000 Zeichen in `merkmale_ausgelassen`). NaN/Inf → null.
+- **Nur lesen:** kein Abruf, keine Neuberechnung. Für Rang 11+ gibt es keine Teil-Scores
+  (`score()` speichert keine Zwischenwerte). Keine Renditen, keine Folgekurse.
+- **Gates:** Wochenende + Laufzeit-Gate des Vintage-Guards wie der Backtest-Append →
+  nichts geschrieben. Idempotent: Berichtstag schon in der Monatsdatei → nichts.
+- **Selbstkontrolle:** Top-10-Markierung gegen die nachgebildete Auswahlregel, Rangfolge
+  gegen `score_auswahl` (Toleranz 0,01) → Kennzeichen + `log.warning`, kein Abbruch.
+- **Digest:** „🗂 Pool-Schatten: läuft · letzter Tag · Zeilen · Kandidaten je Tag (Median)“
+  (alle Monatsdateien); Warnzeile, wenn der jüngste Postclose-Tag aus `backtest_history.json`
+  keine Zeilen hat (erst ab der ersten Zeile).
+- **NUTZUNGSREGEL:** Pool-Schatten ist SUCHFELD. Zeilen mit `top10 = true` gehören NICHT dazu
+  (Blindfenster-Daten), ebenso `watchlist_bypass = true`. Auswertungen nur mit vorab
+  festgeschriebener Regel; Folgekurse erst nach Easys Freigabe; jeder Fund ist „Hinweis,
+  kein Beleg“ und braucht eine Bestätigung auf Top-10-Daten. Kein Konsument außer dem Digest.
+- Test `scripts/mock_test_pool_schatten.py`. **Rückweg:** Revert; `pool_schatten/` bleibt liegen.
+
 ## Gewinn-Felder im Backtest (seit 14.11.2026)
 
 Zwei additive Felder je neuem `backtest_history.json`-Eintrag (Easy-Entscheid
