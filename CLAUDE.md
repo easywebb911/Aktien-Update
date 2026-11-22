@@ -4938,6 +4938,31 @@ im Postclose, Digest-Zeile „🧾 Gewinn-Felder“ (Feldnamen aus
 Rückweg: Revert; die Keys lassen sich je Eintrag poppen (analog
 `scripts/purge_material_8k_events.py`).
 
+## Verwässerung — stilles Kennzeichen, SAMMLUNG (seit 22.11.2026)
+
+Backtest-Feld `verwaesserung` je neuem Top-10-Eintrag (Postclose, forward-only, S10_OBSERVED;
+Easy-Entscheid 22.11.2026, protected-ok b). Modul `verwaesserung.py` (pure), Quelle = dasselbe
+`data.sec.gov/submissions`-JSON, das `material_8k` ohnehin je Top-10-Ticker holt
+(`extras_out[t]["verw_quelle"]`, `material_8k.verw_source_from_submissions`) — **kein Abruf**.
+- **Regel-Entwurf (beide gezählt, nichts festgeschrieben):** eng Form-Präfix `424B5`, breit `424B`;
+  Annahme-Datum in ET zwischen D−179 und D UND Annahme ≤ Report-Zeitpunkt (nur
+  `acceptanceDateTime`). Felder `verw_424b5_180d`/`anzahl_…`/`juengste_…_annahme_utc` und dasselbe
+  für `424b`; Rohliste 365 Tage (424B*, S-3*, S-1*, F-3*, F-1*: form, acceptance_utc, accession),
+  `recent_aelteste_utc`, `recent_files_vorhanden`, `rohliste_vollstaendig`, `cik`, `grund`.
+- **Unbekannt ≠ 0:** keine CIK, `http_<code>` (`material_8k.HttpStatusError`; `material_8k_events`
+  und die Zusatzwerte behalten ihren Grund `fetch_failed`), Zeitbudget erschöpft, „recent
+  unvollständig“ (Zusatzdateien vorhanden und recent reicht nicht vor D−179) → null + Grund.
+- **Pool-Schatten** (schema_v 2): `cik` + `cik_grund` je Zeile aus dem im Lauf gemerkten CIK-Index
+  (`material_8k.last_cik_index()`), kein Kennzeichen, kein Abruf.
+- **Digest:** „🧾 Verwässerung (TT.MM.): X von N mit 424B5 · Y mit 424B · Z unbekannt (Gründe)“;
+  alle unbekannt → Warnzeile in den Alarmzeilen. Pool-Schatten-Zeile zählt „CIK x/y (fehlt: …)“.
+- **NUTZUNGSREGEL:** Status SAMMLUNG. Keine Auswertung gegen Kurse/Treffer ohne Easys ausdrücklichen
+  Entscheid und vorab festgeschriebene Regel; Top-10-Zeilen sind Blindfenster-Daten (nur speichern
+  und zählen); kein Score-Input (Look-ahead-Konvention wie `material_8k_events`); keine Anzeige.
+  Details, Einwand zur 424B5-Regel und Wiedervorlage: open_item `verwaesserung-sammlung`.
+- Test `scripts/mock_test_verwaesserung.py`. **Rückweg:** Revert; das Feld ist ein benannter Schlüssel
+  und einzeln entfernbar (Muster `purge_material_8k_events`).
+
 ## Totmann-Signal an healthchecks.io (seit 02.11.2026)
 
 **Zweck:** Ein Wächter, der selbst per GitHub-Zeitplan läuft (Health-Digest,

@@ -747,6 +747,16 @@ def main(*, now_ts: datetime | None = None,
         _ab_warn = aktienbasis_check.warn_line(ROOT / hc.BACKTEST_FILE)
     except Exception as _ab_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Datenprüfung-Short-Float-Digest unerwartet: %r", _ab_exc)
+    # Verwässerung (22.11.2026, Sammlung): „X von N mit 424B5 · Y mit 424B ·
+    # Z unbekannt (Gründe)“ aus dem jüngsten Postclose; alle unbekannt →
+    # Warnzeile in den Alarmzeilen. Reine Zählung, fail-soft.
+    _vw_warn = None
+    try:
+        import verwaesserung  # noqa: E402  (Repo-Root liegt im sys.path)
+        eval_lines.append(verwaesserung.digest_line(ROOT / hc.BACKTEST_FILE))
+        _vw_warn = verwaesserung.warn_line(ROOT / hc.BACKTEST_FILE)
+    except Exception as _vw_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
+        log.warning("Verwässerung-Digest unerwartet: %r", _vw_exc)
     # Pool-Schatten (22.11.2026): „läuft · letzter Tag · Zeilen · Kandidaten je
     # Tag (Median)“ über alle Monatsdateien. Reine Zählung, fail-soft.
     _pool_warn = None
@@ -821,6 +831,8 @@ def main(*, now_ts: datetime | None = None,
         watchdog_lines = list(watchdog_lines or []) + [_pool_warn]
     if _ab_warn:
         watchdog_lines = list(watchdog_lines or []) + [_ab_warn]
+    if _vw_warn:
+        watchdog_lines = list(watchdog_lines or []) + [_vw_warn]
 
     body, title, priority, tags = hc.format_digest_body(
         state_fails, prov_fails,

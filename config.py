@@ -2683,6 +2683,13 @@ S10_OBSERVED_FIELDS = frozenset({
     # Isolierter Rückweg: scripts/purge_material_8k_events.py poppt exakt
     # diesen einen Key (kein Manifest nötig — benannter Key ist eindeutig).
     "material_8k_events",
+    # verwaesserung (22.11.2026, Easy-Entscheid, SAMMLUNG): Block mit 424B5-/
+    # 424B-Kennzeichen (180 Tage, ET-Datum, Point-in-time) + Rohliste 365 Tage
+    # aus dem submissions-JSON von material_8k. KEIN Score-/Filter-/Push-/
+    # Anzeige-Effekt, kein Score-Input (Look-ahead-Konvention). Unbekannt = null
+    # + Grund. Rückweg: benannter Key, einzeln entfernbar (Muster
+    # purge_material_8k_events).
+    "verwaesserung",
     # attention_wiki (24.07.2026, VORWÄRTS-ERHEBUNG, forward-only): Wrapper-Dict
     # {substrate, article_qid, article_title, views_t_minus_1, views_t,
     # views_t_backfilled_at, baseline_30d_median, baseline_30d_n, delta_ratio}
