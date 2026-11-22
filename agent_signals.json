@@ -1,10 +1,10 @@
 {
-  "updated": "2026-11-22T00:16:49.000459+01:00",
+  "updated": "2026-11-22T04:15:37.889741+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 18.6,
+    "elapsed_s": 13.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -75,9 +75,9 @@
       "uoa_cp_ratio": 0.36582681017612523
     },
     "CSIQ": {
-      "score": 73,
+      "score": 81,
       "confidence": 70,
-      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 27.7% + Earnings in 12d + UOA Call-Vol/OI 10.0× ATM",
+      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 27.7% + News-KI 8/30: Positive operational news (AA rating) but lacks evidence of high short interest, recent price collapse, or catalyst for  + Earnings in 12d + UOA Call-Vol/OI 10.0× ATM",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 4.22,
@@ -89,7 +89,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 20,
       "uoa_drivers": [
         "UOA Call-Vol/OI 10.0× ATM"
@@ -255,7 +255,7 @@
     "VEEA": {
       "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 16.0% + News-KI 12/30: Positive business developments and partnerships, but no short squeeze indicators (low float signals, high short interest",
+      "drivers": "Spanne 16.0% + News-KI 12/30: Positive business developments and partnerships, but lacks short squeeze indicators like high short interest, low float,",
       "price": 4.11,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
@@ -276,7 +276,7 @@
     "WOLF": {
       "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 11.9% + News: catalyst, short interest + UOA Call-Vol/OI 5.9× ATM",
+      "drivers": "Volumen 2.0× + Spanne 11.9% + News: short interest, catalyst + UOA Call-Vol/OI 5.9× ATM",
       "price": 19.22,
       "chg_pct": -0.0,
       "rvol_4d": 2.04,
