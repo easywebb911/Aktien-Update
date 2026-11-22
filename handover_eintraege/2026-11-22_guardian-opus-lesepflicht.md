@@ -1,6 +1,6 @@
 ### 22.11.2026 — squeeze-guardian: Modell opus + belegbare Pflicht-Leseliste (1 PR, Easy-Merge)
 
-- `#?` (Branch `claude/guardian-opus-lesepflicht-t4n8`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026.
+- `#756` (Branch `claude/guardian-opus-lesepflicht-t4n8`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026.
   Nur `.claude/agents/squeeze-guardian.md` (150 Zeilen): `model: opus` (vorher sonnet; Proben #754: opus
   fand tiefer). Pflicht-Leseliste P1–P4 (protected-ok-Label-Regel, Zerstörerische Befehle, §7·0a,
   Docstring `lint_protected_zones.py`) mit festen Such-Befehlen; Zeile „Gelesen“ nennt jede Pflichtstelle
