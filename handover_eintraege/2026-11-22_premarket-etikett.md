@@ -1,6 +1,6 @@
 ### 22.11.2026 — Premarket-Etikett „· Vorschau (Börse offen)“ (1 PR, Easy-Merge)
 
-- `#?` (Branch `claude/premarket-etikett-p4x9`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026.
+- `#752` (Branch `claude/premarket-etikett-p4x9`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026.
   Neuer Helfer `_intraday_verspaetet(run_phase, now)` in `generate_report.py`; neues app_data-Feld
   `intraday_verspaetet` (true, wenn ein premarket-Lauf erst zwischen 09:30 und 16:20 ET schreibt).
   Kopfzeilen-Pille: Flag hat Vorrang vor `generated_at` (ki_agent überschreibt es je Tick), Label
