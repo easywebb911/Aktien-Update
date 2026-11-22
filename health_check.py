@@ -1954,21 +1954,28 @@ def ki_sentiment_digest_line(entries) -> str:
         if not rows:
             return "🤖 Haiku: kein Lauf mit Zähler im Fenster"
 
-        def _pe_n(e):
+        def _pe_aus_n(e):
             c = _ki_sentiment_counts(e.get("error"))
             n = max([v[1] for v in c.values()] or [int(e.get("item_count") or 0)])
-            return c.get("parse_error", (0, n))[0], n
+            aus = sum(v[0] for k, v in c.items() if k != "parse_error")
+            return c.get("parse_error", (0, n))[0], aus, n
         last = rows[-1]
-        pe, n = _pe_n(last)
+        pe, aus, n = _pe_aus_n(last)
         ts = str(last.get("run_ts") or "")
         hhmm = ts[11:16] if len(ts) >= 16 else "?"
-        tot_pe = tot_n = 0
+        tot_pe = tot_aus = tot_n = 0
         for e in rows:
-            a, b_ = _pe_n(e)
+            a, x, b_ = _pe_aus_n(e)
             tot_pe += a
+            tot_aus += x
             tot_n += b_
-        return (f"🤖 Haiku: {pe}/{n} Parse-Fehler (letzter Lauf {hhmm} UTC) · "
-                f"24 h: {tot_pe}/{tot_n} in {len(rows)} Läufen")
+        txt = f"🤖 Haiku: {pe}/{n} Parse-Fehler"
+        if aus:
+            txt += f", {aus}/{n} Ausfälle (HTTP/Timeout)"
+        txt += f" (letzter Lauf {hhmm} UTC) · 24 h: {tot_pe}/{tot_n}"
+        if tot_aus:
+            txt += f", Ausfälle {tot_aus}"
+        return txt + f" in {len(rows)} Läufen"
     except Exception:  # noqa: BLE001
         return "🤖 Haiku: Status nicht ermittelbar"
 

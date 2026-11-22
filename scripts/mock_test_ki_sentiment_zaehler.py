@@ -190,6 +190,12 @@ rows2 = [{"provider": "ki_sentiment", "run_ts": "2026-11-22T11:34:45Z",
 line = hc.ki_sentiment_digest_line(rows2)
 check("E6 Digest-Zeile", line == "🤖 Haiku: 12/13 Parse-Fehler (letzter Lauf 11:34 UTC) · "
       "24 h: 23/25 in 2 Läufen", line)
+rows3 = [{"provider": "ki_sentiment", "run_ts": "2026-11-22T12:34:45Z",
+          "error": "rate_limit 13/13", "item_count": 0}]
+l3 = hc.ki_sentiment_digest_line(rows3)
+check("E6b Ausfälle (HTTP/Timeout) erscheinen in der Zeile, nicht als 0 Parse-Fehler allein",
+      l3 == "🤖 Haiku: 0/13 Parse-Fehler, 13/13 Ausfälle (HTTP/Timeout) (letzter Lauf 12:34 UTC) "
+      "· 24 h: 0/13, Ausfälle 13 in 1 Läufen", l3)
 check("E7 Digest ohne Zeilen / kaputt wirft nicht",
       hc.ki_sentiment_digest_line([]).startswith("🤖 Haiku")
       and hc.ki_sentiment_digest_line(None).startswith("🤖 Haiku"))
