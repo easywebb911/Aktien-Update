@@ -91,7 +91,7 @@ jobs:
         run: |
           set +e
           URL="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=IONQ&type=8-K&dateb=&owner=include&count=10&search_text=&output=atom"
-          SEC_UA="Easy Webb easy@example.com"
+          SEC_UA="SqueezeReport/1.0 contact@example.com"
           echo "URL: $URL"
           echo "User-Agent: $SEC_UA   (SEC-konformes Format Name + Email)"
           echo "----- verbose -----"

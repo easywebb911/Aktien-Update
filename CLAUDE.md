@@ -4851,6 +4851,10 @@ Conviction, Filter, Auswahl oder Reihenfolge (Wächter im Test).
 - **FINRA-Abruf** POST `consolidatedShortInterest` (Filter `symbolCode`, ohne Zugangsdaten),
   `FINRA_CSI_TIMEOUT_S` je Abruf, `FINRA_CSI_BUDGET_S` gesamt, Rate-Limit → kein Retry, Rest
   „nicht prüfbar“. Cache `finra_si_cache.json` (TTL 20 h, Prune 30 Tage), im Daily-Workflow committet.
+  **Seit 22.11.2026:** jede Antwortzeile muss zum abgefragten Ticker gehören (`symbol_check`,
+  Feld `_F_SYMBOL`); fremdes Symbol → `fremder_ticker`, fehlendes Feld → `symbol_fehlt` — beides
+  „nicht prüfbar“, nie ein Kennzeichen, nicht gecacht. HTTP-Status ≠ 200 steht im Grund
+  (`finra_http_<code>`). Cache-Einträge ohne `symbol_geprueft` werden neu abgerufen.
 - **Persistenz:** Backtest-Feld `aktienbasis_pruefung` (forward-only, S10_OBSERVED; unbekannt =
   null): Marktkap, Float, Aktienzahl, Kurs, verwendeter Short Float + Quelle, FINRA-Bestand,
   Stichtag, Veröffentlichung, Split-Kennzeichen, FINRA-Short-Float, beide Kennzeichen mit Grund.
@@ -4859,7 +4863,9 @@ Conviction, Filter, Auswahl oder Reihenfolge (Wächter im Test).
   „⚠ widersprüchlich“ bei (a); Risiko-Text nennt bei (a) keine Marktkap (Risiko-Punkte gleich).
   Helfer `_aktienbasis_card_parts` (v1 == v2). Rundung: eine Nachkommastelle, Komma.
 - **Digest:** „Datenprüfung Short Float (TT.MM.): x von n auffällig (Ticker)“ aus dem jüngsten
-  Postclose — Hinweis, zählt nicht in die Digest-Klasse.
+  Postclose — Hinweis, zählt nicht in die Digest-Klasse. Sind ALLE Einträge des Tages beim Short
+  Float „nicht prüfbar“, steht zusätzlich eine Warnzeile mit den Gründen in den Alarmzeilen
+  (`warn_line`, seit 22.11.2026).
 - Test `scripts/mock_test_aktienbasis_check.py` (FGL-Fixture). Auswertung: open_item
   `datenpruefung-short-float-auswertung` (Wiedervorlage 02.12.2026). **Rückweg:** Revert; das Feld in
   alten Einträgen und der Cache dürfen liegen bleiben.

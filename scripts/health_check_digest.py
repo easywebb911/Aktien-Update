@@ -734,6 +734,7 @@ def main(*, now_ts: datetime | None = None,
         eval_lines.append(options_intraday.digest_line(ROOT / options_intraday.STATE_FILE))
     except Exception as _oi_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Options-Handelszeit-Digest unerwartet: %r", _oi_exc)
+    _ab_warn = None
     # Datenprüfung Short Float (PR C, 17.11.2026): „x von 10 auffällig“ mit
     # Tickern aus dem jüngsten Postclose (backtest_history.json). Hinweis-
     # Charakter (warn), zählt NICHT in die Digest-Klasse. Fail-soft.
@@ -741,6 +742,9 @@ def main(*, now_ts: datetime | None = None,
         import aktienbasis_check  # noqa: E402  (Repo-Root liegt im sys.path)
         ab_line = aktienbasis_check.digest_line(ROOT / hc.BACKTEST_FILE)
         eval_lines.append(ab_line)
+        # Totalausfall (alle Einträge des Tages nicht prüfbar) als Warnzeile
+        # (22.11.2026) — erscheint in den Alarmzeilen der Kurzfassung.
+        _ab_warn = aktienbasis_check.warn_line(ROOT / hc.BACKTEST_FILE)
     except Exception as _ab_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Datenprüfung-Short-Float-Digest unerwartet: %r", _ab_exc)
     # Pool-Schatten (22.11.2026): „läuft · letzter Tag · Zeilen · Kandidaten je
@@ -815,6 +819,8 @@ def main(*, now_ts: datetime | None = None,
     # Pool-Schatten leer an einem Postclose-Tag → Warnzeile (wie Block 1).
     if _pool_warn:
         watchdog_lines = list(watchdog_lines or []) + [_pool_warn]
+    if _ab_warn:
+        watchdog_lines = list(watchdog_lines or []) + [_ab_warn]
 
     body, title, priority, tags = hc.format_digest_body(
         state_fails, prov_fails,

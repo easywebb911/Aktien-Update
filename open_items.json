@@ -1170,6 +1170,14 @@
       "description": "Befund 22.11.2026 (EDGAR Fix b): compute_signal vergibt den 8-K-Relevanz-Bonus nur bei SEC_RELEVANT_KEYWORDS im Titel und den Form-4-Kauf-Bonus nur bei „purchase“/„acquisition“ im Titel. Die Quelle liefert aber feste Formular-Titel. Beleg: 100 KI-Läufe 25.10.–16.11.2026 — 130 8-K-Treffer, alle „8-K  - Current report“ (126) bzw. „8-K/A [Amend]  - Current report“ (4), Relevanz-Bonus 0×; 181 Form-4-Treffer, alle „4  - Statement of changes in beneficial ownership of securities“ (177) bzw. „425  - Prospectuses and communications, business combinations“ (4), Kauf-Bonus 0×. Nebenbefund: der Form-4-Pfad zählt per Präfix auch Form 425 (Fusions-Prospekt) als Insider-Meldung (+10). Fix (b) bildet das bewusst unverändert nach (Freeze KI-Score n = 180/250). Kauf/Verkauf steht nicht in der Meldungsliste, sondern nur im Form-4-Dokument selbst (Transaktionscode P/S) — dafür wäre je Form-4-Meldung ein weiterer Abruf nötig. WIEDERVORLAGE: nach Abschluss des KI-Score-Freeze (n = 250) Entscheid Easy über eine Reparatur als eigene Score-Änderung.",
       "status": "offen",
       "status_date": "2026-11-22"
+    },
+    {
+      "id": "sec-13f-count-3",
+      "title": "13F-Abruf fragt browse-edgar mit count=3 ab (vermutlich HTTP 400) — nur relevant bei Reaktivierung",
+      "opened": "2026-11-22",
+      "description": "Nebenfund Guardian-Probe #748 (22.11.2026): generate_report.fetch_sec_13f ruft www.sec.gov/cgi-bin/browse-edgar mit count=3 ab. Laut #737 (Probe 17.11.2026) akzeptiert getcompany kleine count-Werte nicht mehr (HTTP 400 „Invalid count“); der Fehler würde nur auf debug geloggt, das Ergebnis None wäre nicht von „keine 13F“ zu unterscheiden. Heute wirkungslos: SEC_13F_ENABLED = False (kein Abruf, keine provider_health-Zeile edgar_13f). Easy-Entscheid 22.11.2026: nur vormerken, kein Bau. Vor einer Reaktivierung: count und Fehlerpfad prüfen (Lehre EDGAR Fix a/b, ggf. data.sec.gov per CIK).",
+      "status": "offen",
+      "status_date": "2026-11-22"
     }
   ]
 }

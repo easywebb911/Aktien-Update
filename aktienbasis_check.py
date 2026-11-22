@@ -71,6 +71,24 @@ def _pick(rec: dict, keys):
     return None
 
 
+def symbol_check(raw, symbol: str):
+    """Gehört jede Zeile der FINRA-Antwort zum abgefragten Ticker?
+    ``None`` = ja (oder keine Zeile); sonst Grund ``"symbol_fehlt"`` (Feld
+    fehlt in mindestens einer Zeile) bzw. ``"fremder_ticker"`` (Symbol weicht
+    ab). Ignoriert FINRA den Filter, entsteht so nie ein Kennzeichen aus
+    fremden Daten (Guardian-Probe #735, Easy-Entscheid 22.11.2026)."""
+    want = str(symbol or "").strip().upper()
+    for r in raw if isinstance(raw, list) else []:
+        if not isinstance(r, dict):
+            continue
+        got = _pick(r, _F_SYMBOL)
+        if got in (None, ""):
+            return "symbol_fehlt"
+        if str(got).strip().upper() != want:
+            return "fremder_ticker"
+    return None
+
+
 def _num(x):
     """Endliche, positive Zahl oder None (None/NaN/Inf/bool/≤0 → None)."""
     if isinstance(x, bool) or x is None:
@@ -124,7 +142,9 @@ def normalize_records(raw) -> list[dict] | None:
 def fetch_finra(symbol: str, *, post_fn=None, timeout: float = FINRA_CSI_TIMEOUT_S,
                 today: date | None = None):
     """Ein Abruf. Rückgabe ``(status, records)``: ``("ok", [...])``,
-    ``("rate_limit", None)``, ``("fehler", None)``. Raise nie. Kein Retry.
+    ``("rate_limit", None)``, ``("http_<code>", None)`` (Status ≠ 200),
+    ``("fehler", None)`` (Ausnahme/unlesbar), ``("symbol_fehlt"|"fremder_ticker",
+    None)`` (Antwort gehört nicht zum Ticker). Raise nie. Kein Retry.
 
     Ohne ``sortFields``: FINRA lehnt Sortieren ab, wenn ``settlementDate``
     nicht per EQUAL gefiltert ist (HTTP 400, Befund Wächter 18.11.2026).
@@ -154,11 +174,14 @@ def fetch_finra(symbol: str, *, post_fn=None, timeout: float = FINRA_CSI_TIMEOUT
     if code == 204:
         return "ok", []
     if code != 200:
-        return "fehler", None
+        return f"http_{code}", None
     try:
         raw = r.json() if (getattr(r, "text", "") or "").strip() else []
     except Exception:
         return "fehler", None
+    bad = symbol_check(raw, symbol)
+    if bad:
+        return bad, None
     recs = normalize_records(raw)
     if recs is None:
         return "fehler", None
@@ -212,7 +235,10 @@ def get_records(symbols, *, now_utc: datetime, cache: dict, post_fn=None,
                 age_h = (now_utc - datetime.fromisoformat(ent["abgerufen_utc"])).total_seconds() / 3600
             except Exception:
                 age_h = None
-            if age_h is not None and 0 <= age_h < FINRA_CSI_CACHE_TTL_H:
+            # Einträge ohne Symbol-Prüfung (vor dem 22.11.2026) gelten als
+            # veraltet → neu abrufen.
+            if (age_h is not None and 0 <= age_h < FINRA_CSI_CACHE_TTL_H
+                    and ent.get("symbol_geprueft") is True):
                 out[sym] = {"status": "ok", "records": ent.get("records") or [],
                             "quelle": "cache", "abgerufen_utc": ent["abgerufen_utc"]}
                 continue
@@ -227,7 +253,7 @@ def get_records(symbols, *, now_utc: datetime, cache: dict, post_fn=None,
         status, recs = fetch_finra(sym, post_fn=post_fn, today=now_utc.date())
         if status == "ok":
             iso = now_utc.isoformat(timespec="seconds")
-            tickers[sym] = {"abgerufen_utc": iso, "records": recs}
+            tickers[sym] = {"abgerufen_utc": iso, "records": recs, "symbol_geprueft": True}
             out[sym] = {"status": "ok", "records": recs, "quelle": "api", "abgerufen_utc": iso}
         else:
             if status == "rate_limit":
@@ -407,6 +433,43 @@ def digest_line(bh_path) -> str:
         return txt
     except Exception:
         return "🔎 Datenprüfung Short Float: Status nicht ermittelbar"
+
+
+def warn_line(bh_path):
+    """Warnzeile für den Digest, wenn am jüngsten Postclose-Tag mit dem Feld
+    ALLE Einträge beim Short Float „nicht prüfbar“ sind (Totalausfall FINRA),
+    mit Gründen. Sonst None. Raise nie — ein Lesefehler ergibt eine Warnung
+    statt Stille."""
+    try:
+        with open(bh_path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        rows = [e for e in (data if isinstance(data, list) else [])
+                if isinstance(e, dict) and isinstance(e.get(FIELD), dict)
+                and not e.get("bootstrap")]
+        if not rows:
+            return None
+
+        def _k(e):
+            try:
+                d, m, y = str(e.get("date", "")).split(".")
+                return (int(y), int(m), int(d))
+            except Exception:
+                return (0, 0, 0)
+        last = max(_k(e) for e in rows)
+        day = [e for e in rows if _k(e) == last]
+        if not day or any(e[FIELD].get("short_float_pruefung") != "nicht_pruefbar" for e in day):
+            return None
+        gr: dict[str, int] = {}
+        for e in day:
+            g = str(e[FIELD].get("short_float_grund") or "?")
+            gr[g] = gr.get(g, 0) + 1
+        why = ", ".join(f"{k} {v}" for k, v in sorted(gr.items(), key=lambda x: (-x[1], x[0])))
+        return (f"🟡 Datenprüfung Short Float ({last[2]:02d}.{last[1]:02d}.): alle {len(day)} "
+                f"nicht prüfbar ({why})")
+    except FileNotFoundError:
+        return None
+    except Exception as exc:
+        return f"🟡 Datenprüfung Short Float: Warnprüfung fehlgeschlagen ({type(exc).__name__})"
 
 
 def run(stocks, *, report_day: date, now_utc: datetime | None = None, post_fn=None,
