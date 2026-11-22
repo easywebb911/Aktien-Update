@@ -771,6 +771,9 @@ def main(*, now_ts: datetime | None = None,
     # ApeWisdom-Schatten (Easy-Entscheid 17.11.2026, open_item
     # apewisdom-abdeckung): Zähler bis zur Wiedervorlage bei 500 Einstiegen
     # mit Abdeckungs-Angabe. Nur Zählung, fail-soft.
+    # Haiku-Sichtbarkeit (22.11.2026, Vorschlag A): Parse-Fehler je Lauf aus
+    # provider_health „ki_sentiment“. Rein beobachtend, kein Alarm.
+    eval_lines.append(hc.ki_sentiment_digest_line(prov_entries))
     ape_counter_line = hc.apewisdom_shadow_counter_line(
         ROOT / hc.APEWISDOM_ATTENTION_LOG_FILE, ROOT / hc.BACKTEST_FILE)
     eval_lines.append(ape_counter_line)

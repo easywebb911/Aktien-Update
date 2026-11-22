@@ -4301,6 +4301,15 @@ jeweiligen Fenster → ``sec_meldungen.jsonl`` (nur angehängt, Dublette = Ticke
 Felder der öffentlichen SEC-Quelle, kein Score-Leser). Befund „Titel-Boni greifen nie“: open_item
 ``ki-score-titel-boni-tot``. Test ``scripts/mock_test_edgar_fix_b.py``.
 
+**Haiku-Sichtbarkeit (seit 22.11.2026, Easy-Entscheid, rein beobachtend):** `ki_agent.claude_sentiment_score`
+zählt Versuche/Erfolge je Lauf (`_KI_SENTIMENT_CALLS`) und loggt beim ERSTEN Parse-Fehler je Lauf den
+Anfang der Rohantwort (80 Zeichen, nur Modell-Text). Am Lauf-Ende eine `provider_health`-Zeile
+`ki_sentiment` (bestehendes Schema; `http_status` 200, sobald die API erreicht wurde → reine
+Parse-Fehler lösen keinen Provider-Alarm aus; Fehlertext `parse_error X/N`). Digest-Zeile „🤖 Haiku:
+X/N Parse-Fehler (letzter Lauf …) · 24 h: …“ (`health_check.ki_sentiment_digest_line`). max_tokens,
+Prompt, Parser und `compute_signal` unverändert (KI-Score im Freeze; Reparatur erst nach Freeze-Ende,
+open_item `ki-score-schwaechen`). Test `scripts/mock_test_ki_sentiment_zaehler.py` (alt == neu).
+
 **Tier-3-success_check-Recalibration (16.05.2026)** — Hintergrund:
 vier Tier-3-Provider (edgar_8k/form4/13d_g/stocktwits) zeigten 100 %
 Fail-Rate im Provider-Health-Log, weil die alten success_check-
