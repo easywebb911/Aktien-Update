@@ -1,6 +1,6 @@
 ### 22.11.2026 — Datenprüfung Short Float: FINRA-Antwort gegen Ticker prüfen + HTTP-Status + Totalausfall-Warnung (1 PR, Easy-Merge)
 
-- `#?` (Branch `claude/aktienbasis-ticker-check-m3v6`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026
+- `#755` (Branch `claude/aktienbasis-ticker-check-m3v6`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026
   (Nebenfund Guardian-Probe #735). `aktienbasis_check.symbol_check`: jede FINRA-Antwortzeile muss zum
   abgefragten Ticker gehören (`_F_SYMBOL`, bisher unbenutzt); fremd → `fremder_ticker`, Feld fehlt →
   `symbol_fehlt`, beides „nicht prüfbar“, nie Kennzeichen, nicht gecacht. HTTP ≠ 200 → `http_<code>` im
