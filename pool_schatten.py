@@ -33,7 +33,7 @@ import os
 import statistics
 from datetime import date, datetime
 
-SCHEMA_V = 1
+SCHEMA_V = 2   # v2 (22.11.2026): cik + cik_grund je Zeile; v1-Zeilen bleiben gültig
 POOL_SCHATTEN_DIR = "pool_schatten"
 # Rangkontrolle: die Top-10 tragen einen zurückgerechneten Auswahl-Score
 # (score_raw − finra_bonus_pts, score_raw auf 2 Nachkommastellen gerundet).
@@ -180,11 +180,28 @@ def _de_to_iso(report_date: str) -> str | None:
         return None
 
 
+def _default_cik_fn():
+    """CIK aus dem im Lauf ohnehin gebauten Index von ``material_8k`` (kein
+    Abruf). Rückgabe ``fn(ticker) -> (cik | None, grund | None)``."""
+    import material_8k
+    index, grund = material_8k.last_cik_index()
+
+    def fn(ticker):
+        if not index:
+            return None, grund or "tickerliste_nicht_geladen"
+        cik = material_8k.resolve_cik(ticker, index)
+        return (cik, None) if cik else (None, "keine eindeutige CIK")
+    return fn
+
+
 def build_rows(enriched: list, top10: list, *, report_date: str, run_ts: str,
                code_sha: str | None, min_rvol: float, now_et,
-               gate_fn) -> tuple[list[dict], dict]:
+               gate_fn, cik_fn=None) -> tuple[list[dict], dict]:
     """Zeilen für den Berichtstag; Reihenfolge = Rang (stabil)."""
     date_iso = _de_to_iso(report_date)
+    if cik_fn is None:
+        def cik_fn(_t):
+            return None, "cik_nicht_ermittelt"
     rule = selection_rule(enriched, top10, min_rvol)
     top_pos = {id(c): i for i, c in enumerate(top10, start=1)}
     vorrang_rank: dict[int, int] = {}
@@ -202,10 +219,16 @@ def build_rows(enriched: list, top10: list, *, report_date: str, run_ts: str,
         if act == "skip" and c.get("letzte_zeile") == "vortag_rueckfall":
             grund = "zeile_nicht_fuellbar"
         merk, ausgelassen = merkmale_of(c)
+        try:
+            cik, cik_grund = cik_fn(c.get("ticker"))
+        except Exception as exc:  # noqa: BLE001
+            cik, cik_grund = None, f"fehler:{type(exc).__name__}"
         rows.append({
             "schema_v": SCHEMA_V,
             "date": date_iso,
             "ticker": c.get("ticker"),
+            "cik": cik,
+            "cik_grund": cik_grund,
             "run_ts": run_ts,
             "code_sha": code_sha,
             "rang": rang,
@@ -290,7 +313,8 @@ def _default_gate():
 
 def run(enriched, top10, *, report_date: str, root: str = ".",
         now_et=None, run_ts: str | None = None, code_sha: str | None = None,
-        min_rvol: float | None = None, gate_fn=None, write_fn=None) -> dict:
+        min_rvol: float | None = None, gate_fn=None, write_fn=None,
+        cik_fn=None) -> dict:
     """Postclose-Hook. Raise nie: Fehler → ``status = fehler`` + Grund."""
     try:
         from zoneinfo import ZoneInfo
@@ -311,9 +335,16 @@ def run(enriched, top10, *, report_date: str, root: str = ".",
         act, grund = gate_fn(report_date, date_iso, now_et)
         if act == "skip":
             return {"status": "uebersprungen", "grund": grund, "date": date_iso}
+        if cik_fn is None:
+            try:
+                cik_fn = _default_cik_fn()
+            except Exception as exc:  # noqa: BLE001
+                def cik_fn(_t, _g=f"fehler:{type(exc).__name__}"):
+                    return None, _g
         rows, info = build_rows(list(enriched), list(top10), report_date=report_date,
                                 run_ts=run_ts, code_sha=code_sha, min_rvol=min_rvol,
-                                now_et=now_et, gate_fn=gate_fn)
+                                now_et=now_et, gate_fn=gate_fn, cik_fn=cik_fn)
+        info["cik_null"] = sum(1 for r in rows if r.get("cik") is None)
         status, n = write_fn(rows, root)
         return {"status": status, "date": date_iso, "zeilen": n,
                 "pool_size": len(rows), "top10": sum(1 for r in rows if r["top10"]),
@@ -332,6 +363,8 @@ def log_line(res: dict) -> str:
             txt += " ⚠ Top-10-Markierung passt nicht zur Auswahlregel"
         if res.get("rang_inkonsistent"):
             txt += f" ⚠ {res['rang_inkonsistent']} Zeilen rang_konsistent=false"
+        if res.get("cik_null") is not None:
+            txt += f" · CIK fehlt {res['cik_null']}"
         return txt
     return f"[pool_schatten] {st}: {res.get('grund')}"
 
@@ -372,8 +405,22 @@ def digest_line(root) -> str:
         last = max(per_day)
         med = statistics.median(per_day.values())
         med_s = f"{med:.0f}" if float(med).is_integer() else f"{med:.1f}".replace(".", ",")
-        return (f"🗂 Pool-Schatten: läuft · letzter Tag {_fmt(last)} · Zeilen {len(rows)} "
-                f"· Kandidaten je Tag (Median) {med_s}")
+        txt = (f"🗂 Pool-Schatten: läuft · letzter Tag {_fmt(last)} · Zeilen {len(rows)} "
+               f"· Kandidaten je Tag (Median) {med_s}")
+        # CIK (schema_v ≥ 2, 22.11.2026): am letzten Tag ohne CIK, mit Gründen.
+        day = [r for r in rows if r.get("date") == last and (r.get("schema_v") or 1) >= 2]
+        if day:
+            miss: dict[str, int] = {}
+            for r in day:
+                if r.get("cik") is None:
+                    g = str(r.get("cik_grund") or "?")
+                    miss[g] = miss.get(g, 0) + 1
+            n_miss = sum(miss.values())
+            txt += f" · CIK {len(day) - n_miss}/{len(day)}"
+            if n_miss:
+                txt += " (fehlt: " + ", ".join(f"{k} {v}" for k, v in
+                                              sorted(miss.items(), key=lambda x: (-x[1], x[0]))) + ")"
+        return txt
     except Exception:  # noqa: BLE001
         return "🗂 Pool-Schatten: Status nicht ermittelbar"
 

@@ -77,6 +77,17 @@ def _default_ua() -> str:
 
 
 # ── Default-I/O (lazy requests) ──────────────────────────────────────────────
+class HttpStatusError(Exception):
+    """HTTP-Status ≠ 200 (22.11.2026): trägt den Status, damit der Grund im
+    Verwässerungs-Block lesbar ist (``http_403``). Alle Aufrufer fangen
+    Ausnahmen bereits fail-soft ab; ``material_8k_events`` bleibt unverändert
+    (Grund dort weiter ``fetch_failed``)."""
+
+    def __init__(self, status):
+        super().__init__(f"HTTP {status}")
+        self.status = status
+
+
 def _http_get_json(url: str, ua: str, timeout: int):
     import requests
     r = requests.get(url, headers={"User-Agent": ua,
@@ -84,7 +95,7 @@ def _http_get_json(url: str, ua: str, timeout: int):
                      timeout=timeout)
     if r.status_code != 200:
         log.warning("material_8k GET %s → HTTP %s", url, r.status_code)
-        return None
+        raise HttpStatusError(r.status_code)
     return r.json()
 
 
@@ -293,14 +304,84 @@ def _extras_from_submissions(sub, *, now_utc, cik, lookback_days,
         "last_2_02": select_last_item_8k(sub, now_utc=now_utc,
                                          item_code="2.02"),
         "reason": None,
+        "verw_quelle": _verw_source_safe(sub, now_utc=now_utc, cik=cik),
     }
 
 
-def _empty_extras(reason, cik=None, lookback_days=None) -> dict:
+def _verw_source_safe(sub, *, now_utc, cik) -> dict:
+    """Ein Fehler im Verwässerungs-Teil darf die bestehenden Zusatzwerte
+    (14-Tage-Fenster, letztes 2.02) nie mitreißen."""
+    try:
+        return verw_source_from_submissions(sub, now_utc=now_utc, cik=cik)
+    except Exception as exc:  # pragma: no cover — reine Absicherung
+        log.warning("material_8k: Verwässerungs-Rohdaten fehlgeschlagen: %s", exc)
+        return {"ok": False, "grund": f"error:{type(exc).__name__}", "cik": cik}
+
+
+def _empty_extras(reason, cik=None, lookback_days=None, verw_grund=None) -> dict:
+    """``reason`` bleibt für die bestehenden Felder unverändert (z. B.
+    ``fetch_failed``); ``verw_grund`` ist der genauere Grund nur für den
+    Verwässerungs-Block (z. B. ``http_403``)."""
     return {"window": {"collected": False, "reason": reason, "cik": cik,
                        "truncated": False, "lookback_days": lookback_days,
                        "events": []},
-            "last_2_02": None, "reason": reason}
+            "last_2_02": None, "reason": reason,
+            "verw_quelle": {"ok": False, "grund": verw_grund or reason,
+                            "cik": cik}}
+
+
+# ── Verwässerung (Easy-Entscheid 22.11.2026, Sammlung, kein Score-Effekt) ────
+# Formen der Rohliste (Präfix): Prospekt-Nachträge + Registrierungen.
+VERW_RAW_PREFIXES = ("424B", "S-3", "S-1", "F-3", "F-1")
+VERW_RAW_MAX_DAYS = 366     # Vorfilter (UTC); das 365-Tage-Fenster je D setzt backtest_history
+
+
+def verw_source_from_submissions(sub, *, now_utc, cik) -> dict:
+    """Pure: Rohdaten für den Verwässerungs-Block aus DEMSELBEN submissions-
+    JSON — kein Abruf. Nur Meldungen mit Annahmezeit ``<= now_utc`` (Point-
+    in-time, Report-Zeitpunkt) und Form-Präfix aus ``VERW_RAW_PREFIXES``,
+    jünger als ``VERW_RAW_MAX_DAYS``. Dazu die älteste Annahmezeit in
+    ``filings.recent`` (alle Formen) und ob ``filings.files`` existiert —
+    damit erkennt der Aufrufer eine unvollständige Liste. Sortiert nach
+    (Annahme, Accession) für stabile Reihenfolge."""
+    filings = (sub or {}).get("filings") if isinstance(sub, dict) else None
+    rec = (filings or {}).get("recent") if isinstance(filings, dict) else None
+    if not isinstance(rec, dict) or not isinstance(rec.get("form"), list):
+        return {"ok": False, "grund": "recent_fehlt", "cik": cik}
+    forms = rec.get("form") or []
+    accs = rec.get("acceptanceDateTime") or []
+    accns = rec.get("accessionNumber") or []
+    oldest = None
+    rows = []
+    lo = now_utc - timedelta(days=VERW_RAW_MAX_DAYS)
+    for i, form in enumerate(forms):
+        dt = _parse_acc_dt(accs[i] if i < len(accs) else None)
+        if dt is None:
+            continue
+        if oldest is None or dt < oldest:
+            oldest = dt
+        f = str(form or "")
+        if not f.startswith(VERW_RAW_PREFIXES) or dt > now_utc or dt < lo:
+            continue
+        rows.append({"form": f,
+                     "acceptance_utc": dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                     "accession": str(accns[i]) if i < len(accns) else None})
+    rows.sort(key=lambda r: (r["acceptance_utc"], str(r["accession"])))
+    files = (filings or {}).get("files")
+    return {"ok": True, "grund": None, "cik": cik, "rows": rows,
+            "recent_aelteste_utc": (oldest.strftime("%Y-%m-%dT%H:%M:%SZ")
+                                    if oldest else None),
+            "recent_files_vorhanden": bool(files)}
+
+
+# Zuletzt gebauter CIK-Index (22.11.2026): der Pool-Schatten liest ihn nach
+# dem Backtest-Append für die CIK je Zeile — KEIN weiterer Abruf.
+_LAST_CIK_INDEX: dict = {"index": None, "grund": "tickerliste_nicht_geladen"}
+
+
+def last_cik_index() -> tuple[dict | None, str | None]:
+    """``(index, grund)`` des zuletzt in diesem Prozess gebauten CIK-Index."""
+    return _LAST_CIK_INDEX.get("index"), _LAST_CIK_INDEX.get("grund")
 
 
 def _empty_wrapper(reason=None, cik=None) -> dict:
@@ -329,6 +410,7 @@ def collect_for_ticker(ticker, *, now_utc, cik_index, ua, timeout,
         _put_extras(_empty_extras("no_cik", None, extra_lookback_days))
         return _empty_wrapper(reason="no_cik")
 
+    fail_reason = "fetch_failed"
     try:
         sub = get_json(f"https://data.sec.gov/submissions/CIK{cik}.json",
                        ua, timeout)
@@ -336,8 +418,15 @@ def collect_for_ticker(ticker, *, now_utc, cik_index, ua, timeout,
         log.warning("material_8k %s: submissions-Fetch fehlgeschlagen: %s",
                     ticker, exc)
         sub = None
+        if isinstance(exc, HttpStatusError):
+            fail_reason = f"http_{exc.status}"
+        else:
+            fail_reason = f"fetch_failed:{type(exc).__name__}"
     if sub is None:
-        _put_extras(_empty_extras("fetch_failed", cik, extra_lookback_days))
+        # Zusatzwerte tragen den genauen Grund (http_403 …); der Wrapper
+        # ``material_8k_events`` bleibt bei „fetch_failed“ (unverändert).
+        _put_extras(_empty_extras("fetch_failed", cik, extra_lookback_days,
+                                  verw_grund=fail_reason))
         return _empty_wrapper(reason="fetch_failed", cik=cik)
 
     if extras_out is not None:
@@ -472,6 +561,8 @@ def collect_material_8k_events(tickers, *, now_utc=None, ua=None,
                         exc)
             ct = None
     cik_index = build_cik_index(ct)
+    _LAST_CIK_INDEX["index"] = cik_index or None
+    _LAST_CIK_INDEX["grund"] = None if cik_index else "tickerliste_fehlgeschlagen"
     if not cik_index:
         log.warning("material_8k: leerer CIK-Index → alle Ticker leer "
                     "(fetch_failed)")

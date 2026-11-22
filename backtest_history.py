@@ -49,6 +49,7 @@ import entry_score as entry_score_module  # Entry-Timing-Score (Shadow, pure)
 import trading_date  # finale Schlusskurse (last_final_close_date, Fix 03.11.2026)
 from aktienbasis_check import FIELD as _AKTIENBASIS_FIELD  # PR C 17.11.2026
 import material_8k as material_8k_module   # §6c FDA-/materielle-8-K-Sammlung
+import verwaesserung as verwaesserung_module  # Verwässerung (Sammlung, 22.11.2026)
 import ssr_restriction as ssr_restriction_module                   # Rule-201 SSR-Status (forward-only)
 import wiki_attention as wiki_attention_module  # Wikipedia-Attention-Feed
 
@@ -1716,11 +1717,18 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         # (Prüfung lief nicht) → null.
         _ab = s.get(_AKTIENBASIS_FIELD)
         entry[_AKTIENBASIS_FIELD] = dict(_ab) if isinstance(_ab, dict) else None
+        # Verwässerung (22.11.2026, Easy-Freigabe protected-ok b): nur Sammlung,
+        # S10_OBSERVED, kein Score-/Filter-/Push-/Anzeige-Effekt; aus demselben
+        # submissions-JSON wie material_8k (kein Abruf). Unbekannt → null + Grund.
+        entry[verwaesserung_module.FIELD] = verwaesserung_module.build(
+            m8k_extras_by_ticker.get(s["ticker"]), report_date,
+            material_8k_enabled=MATERIAL_8K_ENABLED)
         history.append(entry)
         _new_entries.append(entry)
         n_added += 1
     if _new_entries:
         log.info(_earnings_fields_log_line(_new_entries))
+        log.info(verwaesserung_module.log_line(_new_entries))
 
     # Rolling Drawdown-Aktualisierung: die Ticker-History seit Entry holen und
     # max_drawdown/max_gain neu berechnen, bis Tag 10 final ist (+ Nachfrist,

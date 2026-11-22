@@ -89,6 +89,9 @@ def run(enriched, top10, root, **kw):
     kw.setdefault("run_ts", RUN_TS)
     kw.setdefault("min_rvol", 1.5)
     kw.setdefault("gate_fn", GATE)
+    # CIK-Quelle fest (kein Prozess-Zustand aus material_8k im Test, 22.11.2026)
+    kw.setdefault("cik_fn", lambda t: (None, "keine eindeutige CIK") if str(t).startswith("X")
+                  else ("0000000001", None))
     return ps.run(enriched, top10, report_date=kw.pop("rd", RD), root=root, **kw)
 
 
@@ -242,7 +245,7 @@ with tempfile.TemporaryDirectory() as d:
     files = sorted(os.listdir(os.path.join(d, "pool_schatten")))
     line = ps.digest_line(d)
     check(files == ["2026-10.jsonl", "2026-11.jsonl"], f"Monatsdateien {files}")
-    check(line == "🗂 Pool-Schatten: läuft · letzter Tag 23.11. · Zeilen 32 · Kandidaten je Tag (Median) 16",
+    check(line == "🗂 Pool-Schatten: läuft · letzter Tag 23.11. · Zeilen 32 · Kandidaten je Tag (Median) 16 · CIK 20/20",
           f"Digest-Zeile: {line}")
 
 # 10 Warnzeile
@@ -297,6 +300,7 @@ for p in ROOT.rglob("*"):
             pass
 allowed = {"pool_schatten.py", "generate_report.py", "scripts/health_check_digest.py",
            "scripts/mock_test_pool_schatten.py", "scripts/run_ci_mock_tests.py",
+           "scripts/mock_test_verwaesserung.py",
            ".github/workflows/daily-squeeze-report.yml"}
 check(set(users) <= allowed, f"Konsumenten nur Digest/Writer/Workflow/Tests: {sorted(set(users) - allowed)}")
 gr_uses = re.findall(r"_pool_schatten\.(\w+)", src)
