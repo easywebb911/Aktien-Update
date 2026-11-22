@@ -1,6 +1,6 @@
 ### 22.11.2026 — EDGAR Fix (b): 8-K/Form 4 per CIK, KI-Score unverändert, Rohdaten (1 PR, Easy-Merge)
 
-- `#?` (Branch `claude/edgar-fix-b-r5t1`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026.
+- `#753` (Branch `claude/edgar-fix-b-r5t1`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026.
   `ki_agent.fetch_sec_8k`/`fetch_sec_form4` lesen aus `data.sec.gov/submissions` per CIK (ein Abruf je
   Ticker, Tickerliste einmal je Lauf) statt `browse-edgar?CIK=<Ticker>`; neues Hilfsmodul `sec_meldungen.py`
   bildet Präfix, Fenster (Annahmezeit UTC) und Titel exakt nach → `compute_signal` identische Punkte (Freeze).
