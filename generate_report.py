@@ -20770,6 +20770,23 @@ def main():
             compute_sub_scores_fn=_compute_sub_scores,
             safe_float_fn=_safe_float,
             fresh_ki_signals=_fresh_ki_signals)
+        # Pool-Schatten (Easy-Entscheid 21./22.11.2026): ALLE bewerteten
+        # Kandidaten des Tages (enriched, Rang = Score-Reihenfolge) still nach
+        # pool_schatten/JJJJ-MM.jsonl. Nur lesend am Objekt, kein Abruf, keine
+        # Neuberechnung; Laufzeit-Gate wie der Backtest-Append; raise-frei.
+        # Kein Effekt auf Score/Filter/Auswahl/Anzeige/backtest_history.json.
+        try:
+            import pool_schatten as _pool_schatten
+            _ps_res = _pool_schatten.run(
+                enriched, top10, report_date=report_date,
+                code_sha=os.environ.get("GITHUB_SHA") or None)
+            _ps_line = _pool_schatten.log_line(_ps_res)
+            if _pool_schatten.is_warning(_ps_res):
+                log.warning(_ps_line)
+            else:
+                print(_ps_line, flush=True)
+        except Exception as _ps_exc:  # pragma: no cover — run() ist raise-frei
+            log.warning("Pool-Schatten übersprungen (fail-soft): %r", _ps_exc)
         # Append-only-Export gereifter Records (Analyse-only, prune-immun) —
         # trennt Anzeige (geprunetes backtest_history.json) von Analyse. EIN
         # additiver, FAIL-SOFT Aufruf: ein Export-Fehler darf den postclose-Lauf
