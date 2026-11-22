@@ -295,6 +295,13 @@ _KI_SENTIMENT_ERROR_COUNTS: dict = {
     "no_api_key": 0, "no_headlines": 0, "rate_limit": 0, "http_other": 0,
     "timeout": 0, "request_error": 0, "parse_error": 0,
 }
+# Sichtbarkeit Haiku (Easy-Entscheid 22.11.2026, Vorschlag A): Versuche und
+# Erfolge je Lauf → eine provider_health-Zeile „ki_sentiment“ + Digest-Zeile;
+# beim ERSTEN Parse-Fehler je Lauf der Anfang der Rohantwort im Log. Rein
+# beobachtend — Rückgabewerte, Prompt, max_tokens, Parser und compute_signal
+# bleiben unverändert (KI-Score im Freeze; Reparatur erst nach Freeze-Ende).
+_KI_SENTIMENT_CALLS: dict = {"versuche": 0, "erfolg": 0, "rohantwort_geloggt": False}
+KI_SENTIMENT_ROH_LOG_CHARS = 80
 
 
 def _sec_note_error(acct: dict, ticker: str, resp=None, exc=None) -> str:
@@ -445,6 +452,7 @@ def _reset_tier3_accumulators() -> None:
         health_check.provider_acct_reset(acct)
     for _k in _KI_SENTIMENT_ERROR_COUNTS:
         _KI_SENTIMENT_ERROR_COUNTS[_k] = 0
+    _KI_SENTIMENT_CALLS.update({"versuche": 0, "erfolg": 0, "rohantwort_geloggt": False})
     _coverage_acct_reset()
 
 
@@ -1709,6 +1717,8 @@ def claude_sentiment_score(ticker: str, news: list[str]) -> tuple[int | None, st
     if not headlines:
         _KI_SENTIMENT_ERROR_COUNTS["no_headlines"] += 1
         return None, ""
+    _KI_SENTIMENT_CALLS["versuche"] += 1
+    roh = ""   # nur Modell-Text (nie Header/Schlüssel), für das Fehler-Log
     try:
         resp = requests.post(
             "https://api.anthropic.com/v1/messages",
@@ -1747,6 +1757,7 @@ def claude_sentiment_score(ticker: str, news: list[str]) -> tuple[int | None, st
         blocks = data.get("content") or []
         text   = next((b.get("text", "") for b in blocks
                        if b.get("type") == "text"), "")
+        roh    = text if isinstance(text, str) else ""
         # Robust parsen: JSON könnte mit ```json```-Fence kommen
         text   = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(),
                         flags=re.MULTILINE)
@@ -1754,6 +1765,7 @@ def claude_sentiment_score(ticker: str, news: list[str]) -> tuple[int | None, st
         score  = int(parsed.get("score", 0))
         reason = str(parsed.get("reason", ""))[:120]
         score  = max(0, min(score, KI_SENTIMENT_MAX_SCORE))
+        _KI_SENTIMENT_CALLS["erfolg"] += 1
         return score, reason
     except requests.Timeout as exc:
         _KI_SENTIMENT_ERROR_COUNTS["timeout"] += 1
@@ -1766,7 +1778,37 @@ def claude_sentiment_score(ticker: str, news: list[str]) -> tuple[int | None, st
     except (json.JSONDecodeError, ValueError, TypeError, KeyError) as exc:
         _KI_SENTIMENT_ERROR_COUNTS["parse_error"] += 1
         log.warning("%s Haiku-Call Parse-Fehler: %s", ticker, exc)
+        if not _KI_SENTIMENT_CALLS["rohantwort_geloggt"]:
+            _KI_SENTIMENT_CALLS["rohantwort_geloggt"] = True
+            log.warning("%s Haiku-Rohantwort (Anfang, erster Parse-Fehler dieses "
+                        "Laufs, %d von %d Zeichen): %r", ticker,
+                        min(len(roh), KI_SENTIMENT_ROH_LOG_CHARS), len(roh),
+                        roh[:KI_SENTIMENT_ROH_LOG_CHARS])
         return None, ""
+
+
+def _ki_sentiment_provider_kwargs() -> dict | None:
+    """Argumente der provider_health-Zeile „ki_sentiment“ für diesen Lauf
+    (None ohne Haiku-Versuch). http_status 200, sobald die API erreicht wurde
+    (Erfolg oder Parse-Fehler) — Parse-Fehler lösen keinen Provider-Alarm aus,
+    sie stehen im Fehlertext (``parse_error X/N``) und im Digest."""
+    ks = _KI_SENTIMENT_CALLS
+    if ks["versuche"] <= 0:
+        return None
+    kc = _KI_SENTIMENT_ERROR_COUNTS
+    erreicht = ks["erfolg"] + kc["parse_error"]
+    fehl = {k: kc[k] for k in ("parse_error", "rate_limit", "http_other",
+                               "timeout", "request_error") if kc[k]}
+    return {
+        "provider": "ki_sentiment",
+        "tier": HEALTH_CHECK_PROVIDER_TIER.get("ki_sentiment", 3),
+        "latency_ms": 0,
+        "http_status": 200 if erreicht > 0 else None,
+        "item_count": ks["erfolg"],
+        "error": (None if not fehl else
+                  "; ".join(f"{k} {v}/{ks['versuche']}" for k, v in fehl.items())),
+        "run_phase": "ki_agent_tick",
+    }
 
 
 # ── Signal-Score berechnen ────────────────────────────────────────────────────
@@ -4173,6 +4215,17 @@ def main() -> None:
                 log.debug("%s provider-record skipped: %s", prov_key, _hc_exc)
     except Exception as exc:
         log.warning("tier3 provider-aggregator-records failed: %s", exc)
+
+    # Haiku-Sichtbarkeit (22.11.2026, Vorschlag A): eine Zeile je Lauf im
+    # bestehenden provider_health-Schema. http_status 200, sobald die API
+    # erreicht wurde (Erfolg oder Parse-Fehler) — Parse-Fehler lösen damit
+    # KEINEN Provider-Alarm aus, sie stehen im Fehlertext und im Digest.
+    try:
+        _kw = _ki_sentiment_provider_kwargs()
+        if _kw is not None:
+            health_check.record_provider_call(**_kw)
+    except Exception as exc:
+        log.warning("ki_sentiment provider-record übersprungen: %s", exc)
 
     # Generischer Daten-Abdeckungs-Wächter (21.10.2026): persistiert je
     # Quelle eine Zeile in die gemeinsame coverage_history.jsonl (geteilt

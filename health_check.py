@@ -1931,6 +1931,55 @@ def read_all_provider(path: str = LOG_FILE_PROVIDER) -> list[dict]:
     return entries
 
 
+def _ki_sentiment_counts(err) -> dict:
+    """``"parse_error 12/13; rate_limit 1/13"`` → ``{"parse_error": (12, 13), …}``."""
+    out: dict = {}
+    for part in str(err or "").split(";"):
+        m = re.match(r"\s*([a-z_]+)\s+(\d+)/(\d+)\s*$", part)
+        if m:
+            out[m.group(1)] = (int(m.group(2)), int(m.group(3)))
+    return out
+
+
+def ki_sentiment_digest_line(entries) -> str:
+    """Digest-Zeile Haiku (22.11.2026, Vorschlag A, rein beobachtend):
+    „🤖 Haiku: X/N Parse-Fehler (letzter Lauf HH:MM UTC) · 24 h: x/n in k
+    Läufen“ aus den provider_health-Zeilen ``ki_sentiment`` des Fensters.
+    Versuche N = Haiku-Abrufe des Laufs (ohne „kein Key“/„keine Schlagzeilen“).
+    Raise nie."""
+    try:
+        rows = sorted((e for e in (entries or []) if isinstance(e, dict)
+                       and e.get("provider") == "ki_sentiment"),
+                      key=lambda e: str(e.get("run_ts") or ""))
+        if not rows:
+            return "🤖 Haiku: kein Lauf mit Zähler im Fenster"
+
+        def _pe_aus_n(e):
+            c = _ki_sentiment_counts(e.get("error"))
+            n = max([v[1] for v in c.values()] or [int(e.get("item_count") or 0)])
+            aus = sum(v[0] for k, v in c.items() if k != "parse_error")
+            return c.get("parse_error", (0, n))[0], aus, n
+        last = rows[-1]
+        pe, aus, n = _pe_aus_n(last)
+        ts = str(last.get("run_ts") or "")
+        hhmm = ts[11:16] if len(ts) >= 16 else "?"
+        tot_pe = tot_aus = tot_n = 0
+        for e in rows:
+            a, x, b_ = _pe_aus_n(e)
+            tot_pe += a
+            tot_aus += x
+            tot_n += b_
+        txt = f"🤖 Haiku: {pe}/{n} Parse-Fehler"
+        if aus:
+            txt += f", {aus}/{n} Ausfälle (HTTP/Timeout)"
+        txt += f" (letzter Lauf {hhmm} UTC) · 24 h: {tot_pe}/{tot_n}"
+        if tot_aus:
+            txt += f", Ausfälle {tot_aus}"
+        return txt + f" in {len(rows)} Läufen"
+    except Exception:  # noqa: BLE001
+        return "🤖 Haiku: Status nicht ermittelbar"
+
+
 # ── Per-Call-Akkumulator-Pattern (extrahiert aus PR 2, generalisiert PR 3) ─
 #
 # Wird von Tier-2/3-Providern genutzt, die N-mal pro Run aufgerufen werden
