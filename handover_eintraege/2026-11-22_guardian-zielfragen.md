@@ -1,6 +1,6 @@
 ### 22.11.2026 — squeeze-guardian: fünf Zielfragen + gezieltes Lesen (1 PR, Easy-Merge)
 
-- `#?` (Branch `claude/guardian-ziel-pruefung-q8w2`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026.
+- `#754` (Branch `claude/guardian-ziel-pruefung-q8w2`, kein Merge-Hash — Regel a). Easy-Entscheid 22.11.2026.
   Nur `.claude/agents/squeeze-guardian.md` geändert (144 Zeilen statt 62). Neu: fünf Zielfragen
   a) Ziel belegt, b) echter Beleg bei Datenquellen (zählt nur bei GENAU dieser Abfrage — Endpunkt und
   Parameter; reiner Plan = Warnung „Prüfung im ersten Lauf nötig“), c) stiller Ausfall, d) Öffentlichkeit
