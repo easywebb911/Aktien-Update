@@ -24,7 +24,7 @@ vollständig lesen. Stattdessen:
   P1 `grep -n "^### protected-ok-Label-Regel" CLAUDE.md`
   P2 `grep -n "^### Zerstörerische Befehle" CLAUDE.md`
   P3 `grep -n "^### 7·0a" SESSION_HANDOVER.md`
-  P4 `sed -n 1,60p scripts/lint_protected_zones.py` (Docstring)
+  P4 Docstring `scripts/lint_protected_zones.py` bis zum zweiten `"""` (`grep -n '"""'`)
 - Unter **Gelesen** jede Pflichtstelle P1–P4 einzeln: `Datei:Zeile` des
   Fundorts ODER „nicht gefunden: <Befehl> → <Ausgabe>“. „Bekannt“, „nicht
   nötig“ oder Weglassen ist unzulässig.
