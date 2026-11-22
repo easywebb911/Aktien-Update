@@ -2467,7 +2467,7 @@ function _usSessionStateET(d) {
   }
 }
 
-function _renderRunPhasePill(phase, generatedAt) {
+function _renderRunPhasePill(phase, generatedAt, intradayVerspaetet) {
   // Header-Pill für Zwei-Run-Architektur (12.05.2026) + Intraday-
   // Disambiguation (15.05.2026).
   //
@@ -2478,8 +2478,14 @@ function _renderRunPhasePill(phase, generatedAt) {
   //
   // ``generatedAt`` (ISO-String aus ``app_data.json.generated_at``) erlaubt
   // Drei-Klassen-Disambiguation:
-  //   premarket + US-Session bis 16:20 ET (open|closing, _usSessionStateET) → "Intraday-Snapshot"
+  //   premarket + US-Session bis 16:20 ET (open|closing, _usSessionStateET) → "Vorschau (Börse offen)"
   //     (US-Session läuft, run_phase=premarket gepinnt fürs Backtest-Schutz)
+  // Seit 22.11.2026 (Premarket-Etikett): ``intradayVerspaetet``
+  // (app_data.intraday_verspaetet, beim Schreiben des Daily-Runs gesetzt)
+  // hat Vorrang — ``generated_at`` überschreibt ki_agent bei jedem Tick und
+  // misst deshalb nicht den Daily-Run. true → "Vorschau (Börse offen)",
+  // false → "Pre-Open-Vorschau"; fehlt das Feld (alte app_data) → Altpfad
+  // über generatedAt.
   //   premarket + UTC außerhalb        → "Pre-Open-Vorschau"
   //     (echter Pre-Open-Run vor US-Open)
   //   postclose                        → "Post-Close"
@@ -2492,16 +2498,21 @@ function _renderRunPhasePill(phase, generatedAt) {
     if (!el) return;
     if (phase === 'premarket') {
       // Session-Zustand in US-Ostküstenzeit aus generatedAt (oder now)
-      let sessionState = null;
-      try {
-        const t = generatedAt ? new Date(generatedAt) : new Date();
-        if (!isNaN(t.getTime())) {
-          sessionState = _usSessionStateET(t);
-        }
-      } catch(_) { /* fall through */ }
-      const inUsSession = (sessionState === 'open' || sessionState === 'closing');
+      let inUsSession;
+      if (intradayVerspaetet === true || intradayVerspaetet === false) {
+        inUsSession = intradayVerspaetet;
+      } else {
+        let sessionState = null;
+        try {
+          const t = generatedAt ? new Date(generatedAt) : new Date();
+          if (!isNaN(t.getTime())) {
+            sessionState = _usSessionStateET(t);
+          }
+        } catch(_) { /* fall through */ }
+        inUsSession = (sessionState === 'open' || sessionState === 'closing');
+      }
       el.textContent = inUsSession
-        ? ' · Intraday-Snapshot'
+        ? ' · Vorschau (Börse offen)'
         : ' · Pre-Open-Vorschau';
       el.classList.remove('hdr-runphase-postclose');
       el.classList.add('hdr-runphase-premarket');
@@ -5625,7 +5636,8 @@ function _fmtGerman(d) {
       // dem Pill, "Pre-Open-Vorschau" (vor US-Open) von "Intraday-
       // Snapshot" (waehrend US-Session) zu unterscheiden — beide
       // premarket, aber unterschiedlicher Wallclock-Kontext.
-      _renderRunPhasePill(appData.run_phase, appData.generated_at);
+      _renderRunPhasePill(appData.run_phase, appData.generated_at,
+                          appData.intraday_verspaetet);
       // Watchlist-Tiles neu rendern — _WL_CARDS liefert jetzt die
       // smoothed Scores, der erste Render-Pass nach DOMContentLoaded
       // hatte nur die raw-History als Fallback. Sicherstellt

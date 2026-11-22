@@ -12037,7 +12037,7 @@ function _usSessionStateET(d) {{
   }}
 }}
 
-function _renderRunPhasePill(phase, generatedAt) {{
+function _renderRunPhasePill(phase, generatedAt, intradayVerspaetet) {{
   // Header-Pill für Zwei-Run-Architektur (12.05.2026) + Intraday-
   // Disambiguation (15.05.2026).
   //
@@ -12048,8 +12048,14 @@ function _renderRunPhasePill(phase, generatedAt) {{
   //
   // ``generatedAt`` (ISO-String aus ``app_data.json.generated_at``) erlaubt
   // Drei-Klassen-Disambiguation:
-  //   premarket + US-Session bis 16:20 ET (open|closing, _usSessionStateET) → "Intraday-Snapshot"
+  //   premarket + US-Session bis 16:20 ET (open|closing, _usSessionStateET) → "Vorschau (Börse offen)"
   //     (US-Session läuft, run_phase=premarket gepinnt fürs Backtest-Schutz)
+  // Seit 22.11.2026 (Premarket-Etikett): ``intradayVerspaetet``
+  // (app_data.intraday_verspaetet, beim Schreiben des Daily-Runs gesetzt)
+  // hat Vorrang — ``generated_at`` überschreibt ki_agent bei jedem Tick und
+  // misst deshalb nicht den Daily-Run. true → "Vorschau (Börse offen)",
+  // false → "Pre-Open-Vorschau"; fehlt das Feld (alte app_data) → Altpfad
+  // über generatedAt.
   //   premarket + UTC außerhalb        → "Pre-Open-Vorschau"
   //     (echter Pre-Open-Run vor US-Open)
   //   postclose                        → "Post-Close"
@@ -12062,16 +12068,21 @@ function _renderRunPhasePill(phase, generatedAt) {{
     if (!el) return;
     if (phase === 'premarket') {{
       // Session-Zustand in US-Ostküstenzeit aus generatedAt (oder now)
-      let sessionState = null;
-      try {{
-        const t = generatedAt ? new Date(generatedAt) : new Date();
-        if (!isNaN(t.getTime())) {{
-          sessionState = _usSessionStateET(t);
-        }}
-      }} catch(_) {{ /* fall through */ }}
-      const inUsSession = (sessionState === 'open' || sessionState === 'closing');
+      let inUsSession;
+      if (intradayVerspaetet === true || intradayVerspaetet === false) {{
+        inUsSession = intradayVerspaetet;
+      }} else {{
+        let sessionState = null;
+        try {{
+          const t = generatedAt ? new Date(generatedAt) : new Date();
+          if (!isNaN(t.getTime())) {{
+            sessionState = _usSessionStateET(t);
+          }}
+        }} catch(_) {{ /* fall through */ }}
+        inUsSession = (sessionState === 'open' || sessionState === 'closing');
+      }}
       el.textContent = inUsSession
-        ? ' · Intraday-Snapshot'
+        ? ' · Vorschau (Börse offen)'
         : ' · Pre-Open-Vorschau';
       el.classList.remove('hdr-runphase-postclose');
       el.classList.add('hdr-runphase-premarket');
@@ -15195,7 +15206,8 @@ function _fmtGerman(d) {{
       // dem Pill, "Pre-Open-Vorschau" (vor US-Open) von "Intraday-
       // Snapshot" (waehrend US-Session) zu unterscheiden — beide
       // premarket, aber unterschiedlicher Wallclock-Kontext.
-      _renderRunPhasePill(appData.run_phase, appData.generated_at);
+      _renderRunPhasePill(appData.run_phase, appData.generated_at,
+                          appData.intraday_verspaetet);
       // Watchlist-Tiles neu rendern — _WL_CARDS liefert jetzt die
       // smoothed Scores, der erste Render-Pass nach DOMContentLoaded
       // hatte nur die raw-History als Fallback. Sicherstellt
@@ -17924,7 +17936,8 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
                           positions: dict | None = None,
                           conviction_scores: dict | None = None,
                           score_confidence: dict | None = None,
-                          run_phase: str = "premarket") -> None:
+                          run_phase: str = "premarket",
+                          intraday_verspaetet: bool | None = None) -> None:
     """Schreibt kombinierte app_data.json = score_history + agent_signals + watchlist_cards.
 
     Beide Quelldateien (score_history.json + agent_signals.json) bleiben separat
@@ -18015,6 +18028,11 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         # Persistenz von der Realität abweichen — der nächste Run
         # überschreibt.
         "run_phase":       run_phase,
+        # Premarket-Etikett (22.11.2026): premarket-Lauf, der erst in der
+        # US-Sitzung schreibt → Kopfzeile „· Vorschau (Börse offen)“. Nur
+        # Anzeige; ki_agent preserviert das Feld via ``**existing``. None =
+        # unbekannt (Aufrufer ohne Angabe) → Frontend nutzt den Altpfad.
+        "intraday_verspaetet": intraday_verspaetet,
         # Anker für S7-Race-Gate (23.06.2026): UTC-ISO-Zeit DIESES Daily-Run-
         # Writes. NUR der Daily-Run setzt das Feld; ki_agent preserviert es via
         # ``**existing`` (es steht NICHT in save_signals' expliziten Keys). Der
@@ -19338,6 +19356,20 @@ def _resolve_run_phase() -> str:
     if raw:
         log.warning("Unbekanntes RUN_PHASE=%r — Fallback auf premarket", raw)
     return "premarket"
+
+
+def _intraday_verspaetet(run_phase: str, now_utc: datetime | None = None) -> bool:
+    """Premarket-Etikett (Easy-Entscheid 22.11.2026): True, wenn ein
+    ``premarket``-Lauf erst während der US-Sitzung schreibt (09:30 ET bis vor
+    16:20 ET, ``trading_date.us_session_state`` = ``open``/``closing``) —
+    typisch durch den GitHub-Startverzug (Plan 06:17 UTC, real bis ~10 h
+    später). ``run_phase`` bleibt ``premarket``; Backtest, Pushes, Score und
+    Health-Check S11 sind davon unberührt. REIN ANZEIGE (Kopfzeile
+    „· Vorschau (Börse offen)“). Gemessen beim Schreiben von app_data.json
+    (konservativ: spätester Zeitpunkt des Laufs)."""
+    if run_phase != "premarket":
+        return False
+    return trading_date.us_session_state(now_utc) in ("open", "closing")
 
 
 def _cap_within_limit(c: dict) -> bool:
@@ -21059,7 +21091,8 @@ def main():
                          # in main() berechnet (Modul-Variable). Hier
                          # wird derselbe Snapshot durchgereicht.
                          score_confidence=globals().get("_SCORE_CONFIDENCE", {}),
-                         run_phase=run_phase)
+                         run_phase=run_phase,
+                         intraday_verspaetet=_intraday_verspaetet(run_phase))
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
     # Step 5 — Exit-Signale für offene Positionen (Phase 1, kein Frontend).
