@@ -1,10 +1,10 @@
 {
-  "updated": "2026-11-22T20:41:15.693690+01:00",
+  "updated": "2026-11-23T01:54:02.818018+01:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 13.4,
+    "elapsed_s": 13.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -27,7 +27,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.47368421052631576
+      "uoa_cp_ratio": 0.47928994082840237
     },
     "AMC": {
       "score": 30,
@@ -75,9 +75,9 @@
       "uoa_cp_ratio": 0.36582681017612523
     },
     "CSIQ": {
-      "score": 81,
+      "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 27.7% + News-KI 8/30: Positive operational news (AA rating, earnings call) lacks squeeze catalysts like high short interest, low float, or ext + Earnings in 11d + UOA Call-Vol/OI 10.0× ATM",
+      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 27.7% + Earnings in 11d + UOA Call-Vol/OI 10.0× ATM",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 4.22,
@@ -89,7 +89,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 20,
       "uoa_drivers": [
         "UOA Call-Vol/OI 10.0× ATM"
@@ -255,7 +255,7 @@
     "VEEA": {
       "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 16.0% + News-KI 12/30: Positive business developments and institutional investment, but no high short interest indicators, low trading volume c",
+      "drivers": "Spanne 16.0% + News-KI 12/30: Positive business developments and strategic partnerships, but no evidence of high short interest, low float, or catalys",
       "price": 4.11,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
@@ -276,7 +276,7 @@
     "WOLF": {
       "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 11.9% + News: catalyst, short interest + UOA Call-Vol/OI 5.9× ATM",
+      "drivers": "Volumen 2.0× + Spanne 11.9% + News: short interest, catalyst + UOA Call-Vol/OI 5.9× ATM",
       "price": 19.22,
       "chg_pct": -0.0,
       "rvol_4d": 2.04,
