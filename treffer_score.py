@@ -49,6 +49,8 @@ STAND_VORLAEUFIG = "vorläufig"
 GRUND_TAGESSCHLUSS_FEHLT = "Tagesschluss fehlt"
 GRUND_KURS_FEHLT = "Kurs fehlt"
 RUECKFALL_MAX_HANDELSTAGE = 3   # Easy-Entscheid 23.11.2026: 3 zählt, 4 nicht
+GRUND_VOR_OEFFNUNG = "vor Börsenöffnung"      # Vorschau vor 09:30 ET: kein Tageskurs
+GRUND_KEIN_HANDELSTAG = "kein Handelstag"   # Vorschau an Wochenende/Feiertag
 SCHEMA_V = 1
 
 

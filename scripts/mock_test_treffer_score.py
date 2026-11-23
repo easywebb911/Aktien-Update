@@ -237,6 +237,49 @@ with tempfile.TemporaryDirectory() as td:
           and T.RUECKFALL_MAX_HANDELSTAGE == 3)
     check("17e Rückfall-Läufe schreiben suw_daily.jsonl nicht", dp.read_bytes() == dp_bytes)
 
+    # Vorschau vor 09:30 ET / an Nicht-Handelstag: keine Berechnung (Guardian 23.11.)
+    calls = []
+
+    def spy_compute(top10, rd, cache_dir=None, extra=(), intraday=False):
+        calls.append((len(top10), len(extra), intraday))
+        return fake_compute(top10, rd, cache_dir=cache_dir, extra=extra, intraday=intraday)
+    ZB = __import__("zoneinfo").ZoneInfo("Europe/Berlin")
+    pre_open = [stock("AA", 30.0)]
+    gr._apply_treffer_score(pre_open, "premarket", D, compute=spy_compute, daily_path=dp,
+                            now_berlin=datetime(2026, 9, 15, 15, 0, tzinfo=ZB))  # 09:00 ET
+    fp = pre_open[0]["treffer_score"]
+    check("16e vor 09:30 ET: keine Berechnung, Rückfall auf Abendwert ohne Rang",
+          calls == [] and fp["aus_postclose"] and fp["rang"] is None
+          and fp["grund_tagsueber"] == T.GRUND_VOR_OEFFNUNG, (calls, fp))
+    sat = [stock("NEU", 5.0)]
+    gr._apply_treffer_score(sat, "premarket", date(2026, 9, 19), compute=spy_compute,
+                            daily_path=dp, now_berlin=datetime(2026, 9, 19, 17, 42, tzinfo=ZB))
+    check("16f Nicht-Handelstag: keine Berechnung, „—“ mit Grund „kein Handelstag“",
+          calls == [] and sat[0]["treffer_score"]["wert"] is None
+          and T.GRUND_KEIN_HANDELSTAG in str(sat[0]["treffer_score"]["grund"]))
+    check("16g Vorschau-Gate schreibt suw_daily.jsonl nicht", dp.read_bytes() == dp_bytes)
+
+    # Postclose: Top-10-Abruf ohne Watchlist; Watchlist-Fehler trifft Top-10 nicht
+    with tempfile.TemporaryDirectory() as td2:
+        dp2 = pathlib.Path(td2) / "suw_daily.jsonl"
+        calls2 = []
+
+        def wl_fails(top10, rd, cache_dir=None, extra=(), intraday=False):
+            calls2.append((len(top10), len(extra), intraday))
+            if extra:
+                raise RuntimeError("watchlist-abruf kaputt")
+            return fake_compute(top10, rd, cache_dir=cache_dir, extra=extra, intraday=intraday)
+        t2 = [stock("AA", 21.0), stock("BB", 17.5)]
+        w2 = [stock("WL", 21.0)]
+        gr._apply_treffer_score(t2, "postclose", D, compute=wl_fails, daily_path=dp2, extra=w2)
+        rows2 = [json.loads(x) for x in dp2.read_text(encoding="utf-8").splitlines()]
+        check("15c Postclose: Top-10-Abruf ohne Watchlist (getrennt), Watchlist-Fehler → "
+              "Top-10-Werte + suw_daily.jsonl unberührt",
+              calls2 == [(2, 0, False), (0, 1, False)] and len(rows2) == 2
+              and t2[0]["treffer_score"]["wert"] == 20.0
+              and w2[0]["treffer_score"]["wert"] is None
+              and w2[0]["treffer_score"]["grund"] == "nicht_berechnet", (calls2, rows2))
+
     def raising(*a, **k):
         raise RuntimeError("kaputt")
     x = [stock("AA", 21.0)]

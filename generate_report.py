@@ -3916,8 +3916,9 @@ def _momentum_5t_row_html(stock: dict) -> str:
 TREFFER_LABEL = "Treffer-Score"
 TREFFER_SCHILD = "UNVALIDIERT · TEST LÄUFT"
 TREFFER_NOTE = ("Misst, ob die Leerverkäufer der letzten 20 Tage im Minus sitzen. "
-                "Tagsüber mit dem aktuellen Kurs gerechnet (vorläufig, mit Uhrzeit), "
-                "abends mit dem Schlusskurs (Stand TT.MM.). Den Rang gibt es nur unter "
+                "Während der US-Börsenzeit mit dem aktuellen Kurs gerechnet (vorläufig, "
+                "mit Uhrzeit), abends mit dem Schlusskurs; vor der Börsenöffnung steht "
+                "der letzte Abendwert (Stand TT.MM.). Den Rang gibt es nur unter "
                 "den Top-10 desselben Laufs. "
                 "In Prüfung, Ergebnis ca. Februar 2027. "
                 "Gegenprobe an 30 anderen Aktien (2025/26): nicht bestätigt, dort zeigte "
@@ -4020,36 +4021,70 @@ def _apply_treffer_score(top10: list, run_phase: str, report_day, *,
       Tickers mit „Stand TT.MM.“, nur wenn höchstens 3 Handelstage alt, ohne
       Rang; sonst „—“ mit Grund. ``suw_daily.jsonl`` wird im Vorschau-Lauf NIE
       geschrieben (Freeze-Trennung).
+    * Vorschau vor 09:30 ET oder an einem Nicht-Handelstag: KEINE Berechnung
+      (``s["price"]`` wäre der Vortagsschluss, kein Tageskurs — Guardian-
+      Finding 23.11.2026), direkt Rückfall bzw. „—“ mit Grund.
+    * Postclose: Top-10 und Watchlist in GETRENNTEN Abrufen — die Abfrage für
+      die Top-10 (und damit ``suw_daily.jsonl``) bleibt wie bisher; scheitert
+      der Watchlist-Abruf, sind die Top-10-Werte nicht betroffen.
     Fail-soft — nie eine Exception; andere Felder werden nie verändert."""
     extra = [x for x in (extra or []) if isinstance(x, dict)]
     try:
         import treffer_score as _ts
         path = daily_path or _ts.DAILY_FILE
         intraday = run_phase != "postclose"
-        items, info = (compute or _ts.compute_for_top10)(
-            top10, report_day, cache_dir=_ts.CACHE_DIR, extra=extra, intraday=intraday)
+        _compute = compute or _ts.compute_for_top10
         n_top = len(top10)
         if not intraday:
+            items, info = _compute(top10, report_day, cache_dir=_ts.CACHE_DIR)
             for s, it in zip(top10, items[:n_top]):
                 s["treffer_score"] = _ts.field_from_item(it)
-            for s, it in zip(extra, items[n_top:]):
-                f = _ts.field_from_item(it)
-                f["watchlist"] = True
-                s["treffer_score"] = f
             try:
                 _ts.append_daily(items[:n_top], path)
             except OSError as exc:
                 log.warning("Treffer-Score: suw_daily.jsonl nicht geschrieben (%s)", exc)
-            _ts.prune_cache(_ts.CACHE_DIR)
             n_val = sum(1 for it in items[:n_top] if _finite(it.get("wert")))
             print(f"[treffer_score] {n_val}/{n_top} mit Wert · {info}", flush=True)
             line = _ts.log_line(items)
             if line:
                 print(line, flush=True)
+            if extra:
+                try:
+                    wl_items, wl_info = _compute([], report_day, cache_dir=_ts.CACHE_DIR,
+                                                 extra=extra)
+                    for s, it in zip(extra, wl_items):
+                        f = _ts.field_from_item(it)
+                        f["watchlist"] = True
+                        s["treffer_score"] = f
+                    n_wl = sum(1 for it in wl_items if _finite(it.get("wert")))
+                    print(f"[treffer_score] Watchlist: {n_wl}/{len(extra)} mit Wert · "
+                          f"{wl_info}", flush=True)
+                except Exception as exc:  # noqa: BLE001 — Top-10 bleiben unberührt
+                    log.warning("Treffer-Score Watchlist: nicht berechnet (%s)", exc)
+                    for s in extra:
+                        s["treffer_score"] = {"wert": None, "rang": None, "n_mit_wert": None,
+                                              "datum": None, "stand": None,
+                                              "grund": "nicht_berechnet", "watchlist": True}
+            _ts.prune_cache(_ts.CACHE_DIR)
             return
         if now_berlin is None:
             now_berlin = datetime.now(ZoneInfo("Europe/Berlin"))
         zeit = now_berlin.strftime("%H:%M Uhr")
+        try:
+            _trading = _ts.suw_eval.is_trading_day(report_day)
+        except Exception:  # noqa: BLE001
+            _trading = False
+        _session = trading_date.us_session_state(now_berlin.astimezone(timezone.utc))
+        if not _trading or _session == "pre":
+            _g = _ts.GRUND_KEIN_HANDELSTAG if not _trading else _ts.GRUND_VOR_OEFFNUNG
+            items = ([{"ticker": x.get("ticker"), "wert": None, "grund": _g, "top10": True}
+                      for x in top10]
+                     + [{"ticker": x.get("ticker"), "wert": None, "grund": _g, "top10": False}
+                        for x in extra])
+            info = {"berechnet": False, "grund": _g}
+        else:
+            items, info = _compute(top10, report_day, cache_dir=_ts.CACHE_DIR,
+                                   extra=extra, intraday=True)
         last = _ts.load_last_value_per_ticker(path)
         counts = {"vorlaeufig": 0, "rueckfall": 0, "ohne": 0}
         for s, it in zip(list(top10) + extra, items):

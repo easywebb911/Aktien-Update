@@ -602,8 +602,10 @@ neutrale Akzentfarbe (Violett, `--treffer-col`), unabhängig vom Wert — keine 
 Balken (Richtung offen bis zum Test; Hinweistext zur Gegenprobe im Tooltip/Detail).
 Wert = SUW aus `treffer_score.py` (Rechenkern `scripts/suw_eval.py`, keine zweite Formel):
 **Postclose** mit Tagesschluss, nur die Top-10 → `suw_daily.jsonl` (unverändert);
-**Vorschau-Lauf** mit dem aktuellen Kurs des Laufs als c_D (`intraday=True`), schreibt
-`suw_daily.jsonl` **nie**. Kein Tageswert → Rückfall auf den letzten Postclose-Wert desselben
+Watchlist im getrennten Abruf (ohne Rang, nicht in die Datei); **Vorschau-Lauf** ab 09:30 ET an
+einem Handelstag mit dem aktuellen Kurs des Laufs als c_D (`intraday=True`), schreibt
+`suw_daily.jsonl` **nie**; vor 09:30 ET oder an Nicht-Handelstagen keine Berechnung (der Kurs wäre
+der Vortagsschluss). Kein Tageswert → Rückfall auf den letzten Postclose-Wert desselben
 Tickers mit „Stand TT.MM.“, nur wenn höchstens 3 Handelstage alt (`RUECKFALL_MAX_HANDELSTAGE`),
 ohne Rang und ohne `data-treffer`; sonst „—“ mit Grund, nie 0.
 **Schatten-Wert:** nie in Score/Conviction/Filter/Auswahl/Reihenfolge/Backtest/

@@ -9910,19 +9910,24 @@ Nachrechnung einer bereits festgeschriebenen Regel (gleicher Regeltext, gleiche 
 und (b) ein Vergleich von Listen-Namen, bei dem keine Renditen oder Treffer aus dem offenen Fenster berechnet
 oder ausgegeben werden; Kurse dienen nur als Eingabe bis zum jeweiligen Listentag. Alles andere bleibt gesperrt.
 
-### 7·1. Treffer-Score (unvalidiert) — SUW-Schatten-Wert (seit 15.11.2026)
+### 7·1. Treffer-Score (unvalidiert) — SUW-Schatten-Wert (seit 15.11.2026; Kachel seit 23.11.2026)
 
-- Berechnung nur im Postclose in `generate_report.main()` nach Auswahl, Scores, Conviction und
-  Backtest-Append (`_apply_treffer_score` → `treffer_score.compute_for_top10`); Rechenkern aus
-  `scripts/suw_eval.py` (L1–L9), keine zweite Formel. Feld `s["treffer_score"]` + Sammeldatei
-  `suw_daily.jsonl` (nur angehängt). Immer **vorläufig** (Schlusskurs D aus dem Postclose).
+- Berechnung in `generate_report.main()` nach Auswahl, Scores, Conviction und Backtest-Append
+  (`_apply_treffer_score` → `treffer_score.compute_for_top10`); Rechenkern aus
+  `scripts/suw_eval.py` (L1–L9), keine zweite Formel. Feld `s["treffer_score"]`.
+  **Postclose:** Top-10 mit Tagesschluss → `suw_daily.jsonl` (nur angehängt, immer **vorläufig**);
+  Watchlist außerhalb der Top-10 im getrennten Abruf, Wert ohne Rang, nicht in die Datei.
+  **Vorschau-Lauf** (ab 09:30 ET an einem Handelstag): mit dem aktuellen Kurs (`intraday=True`),
+  schreibt `suw_daily.jsonl` **nie**. Vor 09:30 ET oder an Nicht-Handelstagen keine Berechnung.
 - **Schatten-Wert:** kein Leser in Score, Conviction, Filtern, Auswahl, gespeicherter
   Reihenfolge, Backtest, Export, KI-Agent (Wächter `mock_test_treffer_score.py`, Tests 25–27).
 - **Freeze-Trennung:** der SUW-Test liest Feld und Datei nie; er rechnet selbst aus endgültigen
   Daten (`suw_eval.py`, Betriebsart test).
-- Karte: Zeile unter KI-Score und Ring (grau, „Platz x von N“, N = Einträge mit Wert);
-  Premarket/Intraday: letzter Postclose-Wert mit „Stand TT.MM.“. Sortier-Menü: vierter Eintrag,
-  **nur Ansicht, nie gespeichert**.
+- Karte: dritte Cockpit-Säule unter KI, Violett unabhängig vom Wert (§7·0), „Rang x von N“ nur
+  unter den Top-10 desselben Laufs, „Watchlist“ sonst, Schild „UNVALIDIERT · TEST LÄUFT“,
+  „vorläufig HH:MM Uhr“ / „Stand TT.MM.“. Ohne Tageswert: letzter Abendwert, nur bis 3 Handelstage
+  alt, ohne Rang; sonst „—“ mit Grund. Sortier-Menü: vierter Eintrag, **nur Ansicht, nie
+  gespeichert**, nur Werte mit Rang.
 - FINRA-Zwischenspeicher `finra_cache/` über `actions/cache` (25 Börsentage), Zeitlimit 10 s je
   Datei / 60 s gesamt; jeder Fehler → Feld leer, nie Abbruch.
 
