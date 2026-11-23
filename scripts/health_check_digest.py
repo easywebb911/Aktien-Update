@@ -727,11 +727,15 @@ def main(*, now_ts: datetime | None = None,
         eval_lines.append(treffer_line)
     except Exception as _ts_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Treffer-Score-Digest unerwartet: %r", _ts_exc)
+    _oi_warn: list = []
     # Options-Sammlung in der Handelszeit (16.11.2026): „Kette x/10 · ATM-Paar
     # y/x“ aus options_intraday_state.json. Reine Anzeige, fail-soft.
     try:
         import options_intraday  # noqa: E402  (Repo-Root liegt im sys.path)
         eval_lines.append(options_intraday.digest_line(ROOT / options_intraday.STATE_FILE))
+        # Ausbleibende Messungen / veraltete Liste verkürzter Handelstage
+        # (23.11.2026) → Alarmzeilen der Kurzfassung.
+        _oi_warn = options_intraday.warn_lines(ROOT / options_intraday.STATE_FILE, now_ts)
     except Exception as _oi_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
         log.warning("Options-Handelszeit-Digest unerwartet: %r", _oi_exc)
     _ab_warn = None
@@ -836,6 +840,8 @@ def main(*, now_ts: datetime | None = None,
         watchdog_lines = list(watchdog_lines or []) + [_ab_warn]
     if _vw_warn:
         watchdog_lines = list(watchdog_lines or []) + [_vw_warn]
+    if _oi_warn:
+        watchdog_lines = list(watchdog_lines or []) + list(_oi_warn)
 
     body, title, priority, tags = hc.format_digest_body(
         state_fails, prov_fails,

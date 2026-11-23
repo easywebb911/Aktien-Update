@@ -1803,6 +1803,20 @@ US_MARKET_HOLIDAYS = frozenset(
     for iso in _us_market_holidays_for_year(_y)
 )
 
+# Verkürzte US-Handelstage (Easy-Entscheid 23.11.2026): {ISO-Datum: Schluss ET
+# "HH:MM"}. Wirkt AUSSCHLIESSLICH im Fenster-Gate von options_intraday
+# (Fensterende = Schluss − 30 min). Quelle: offizieller NYSE-Kalender
+# https://www.nyse.com/markets/hours-calendars („Early Closings“, 1:00 p.m. ET).
+# Die Seite war beim Eintragen aus der Sitzung NICHT erreichbar — eingetragen
+# sind nur die von Easy als sicher belegt genannten Tage; weitere Jahre erst
+# nach Abgleich mit der Quelle (nichts aus dem Gedächtnis). Fehlt für das
+# laufende Kalenderjahr ein Eintrag, meldet der Digest „Liste verkürzter
+# Handelstage veraltet“.
+US_EARLY_CLOSE_DAYS: dict[str, str] = {
+    "2026-11-27": "13:00",   # Tag nach Thanksgiving
+    "2026-12-24": "13:00",   # Heiligabend
+}
+
 # ── Staleness-Banner (Frontend-Anzeige, Daily-Run-Frische) ───────────────────
 # Dezenter Header-Hinweis, WIE ALT die angezeigten Daily-Run-Daten (Top-10)
 # sind. Anker ist ein server-eingebrannter Render-Timestamp (_DAILY_RUN_TS),

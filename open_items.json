@@ -1117,10 +1117,9 @@
       "id": "options-intraday-erster-lauf",
       "title": "Optionen in der Handelszeit: erster echter Lauf prüfen",
       "opened": "2026-11-16",
-      "description": "Nach Merge von options_intraday (PR #733, Manual-Merge Easy): ersten echten Lauf prüfen — Kette x/10, ATM-Paar, Abrufzeit in der Handelszeit, ein Beispiel-Ticker mit Aktienkurs, Basispreis, Geld/Brief Call und Put und Spanne in % an Easy melden. Offen bis dahin: liefert Yahoo in der Handelszeit Geld-/Briefkurse > 0 (Nachtsammlung hatte oft weite/veraltete Werte)? Keine Auswertung, keine Rendite. ENTSCHEID Easy 22.11.2026: options_intraday läuft unverändert weiter, KEIN weiterer Bau. Zweck jetzt: Spanne Geld/Brief zur Handelszeit messen. Wiedervorlage zusammen mit der Short-Float-Kennzeichen-Auswertung (02.12.2026, open_item datenpruefung-short-float-auswertung): dann auswerten oder per PR entfernen.",
+      "description": "Nach Merge von options_intraday (PR #733, Manual-Merge Easy): ersten echten Lauf prüfen — Kette x/10, ATM-Paar, Abrufzeit in der Handelszeit, ein Beispiel-Ticker mit Aktienkurs, Basispreis, Geld/Brief Call und Put und Spanne in % an Easy melden. Offen bis dahin: liefert Yahoo in der Handelszeit Geld-/Briefkurse > 0 (Nachtsammlung hatte oft weite/veraltete Werte)? Keine Auswertung, keine Rendite. ENTSCHEID Easy 22.11.2026: options_intraday läuft unverändert weiter, KEIN weiterer Bau. Zweck jetzt: Spanne Geld/Brief zur Handelszeit messen. Wiedervorlage zusammen mit der Short-Float-Kennzeichen-Auswertung (02.12.2026, open_item datenpruefung-short-float-auswertung): dann auswerten oder per PR entfernen. NACHTRAG 23.11.2026 (Easy-Entscheid): Seit 17.11. keine Messung — die Zeitplan-Slots starteten bei GitHub erst 22:13–00:57 UTC (nach dem Fenster). Neuer Auslöser: workflow_run nach Tageslauf UND KI-Lauf (Beleg 09.–23.11.: 11/11 Tage mit Laufende im Fenster), höchstens 1 Messung je Handelstag, verkürzte Handelstage (config.US_EARLY_CLOSE_DAYS, Ende = Schluss − 30 min), Digest-Warnung nach 3 Handelstagen ohne Messung. WIEDERVORLAGE jetzt: nach 10 Handelstagen MIT Messung (statt 02.12.2026) — dann Spanne Geld/Brief zur Handelszeit berichten (keine Rendite). Die Short-Float-Wiedervorlage 02.12.2026 (datenpruefung-short-float-auswertung) bleibt unverändert.",
       "status": "offen",
-      "status_date": "2026-11-22",
-      "faellig_am": "2026-12-02"
+      "status_date": "2026-11-23"
     },
     {
       "id": "datenpruefung-short-float-auswertung",

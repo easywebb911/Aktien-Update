@@ -40,7 +40,8 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 import trading_date  # noqa: E402
-from config import OPTIONS_CHAIN_RAW_MONEYNESS_RANGE, US_MARKET_HOLIDAYS  # noqa: E402
+from config import (OPTIONS_CHAIN_RAW_MONEYNESS_RANGE, US_EARLY_CLOSE_DAYS,  # noqa: E402
+                    US_MARKET_HOLIDAYS)
 
 DATA_FILE = "options_chain_intraday.jsonl"
 STATE_FILE = "options_intraday_state.json"
@@ -82,15 +83,35 @@ def is_trading_day(d: date, holidays=US_MARKET_HOLIDAYS) -> bool:
     return d.weekday() < 5 and d.isoformat() not in holidays
 
 
-def run_window_ok(now_utc: datetime, holidays=US_MARKET_HOLIDAYS) -> tuple[bool, str]:
-    """(ok, grund). Nur an US-Handelstagen und im Fenster 10:00–15:30 ET."""
+EARLY_CLOSE_MARGIN_MIN = 30    # Fensterende an verkürzten Tagen = Schluss − 30 min
+
+
+def window_end_et(d: date, early_close=None) -> tuple[int, int]:
+    """Fensterende (ET) für Tag ``d``: normal 15:30; an verkürzten Handelstagen
+    (``config.US_EARLY_CLOSE_DAYS``) Schluss − 30 min (13:00 → 12:30)."""
+    ec = US_EARLY_CLOSE_DAYS if early_close is None else early_close
+    close = ec.get(d.isoformat()) if isinstance(ec, dict) else None
+    if close:
+        try:
+            h, m = (int(x) for x in str(close).split(":"))
+            tot = h * 60 + m - EARLY_CLOSE_MARGIN_MIN
+            return (tot // 60, tot % 60)
+        except (TypeError, ValueError):
+            return WINDOW_END_ET
+    return WINDOW_END_ET
+
+
+def run_window_ok(now_utc: datetime, holidays=US_MARKET_HOLIDAYS,
+                  early_close=None) -> tuple[bool, str]:
+    """(ok, grund). Nur an US-Handelstagen und im Fenster 10:00–15:30 ET
+    (verkürzte Tage: bis Schluss − 30 min)."""
     et = now_utc.astimezone(_NY)
     if not is_trading_day(et.date(), holidays):
         return False, "kein_handelstag"
     t = (et.hour, et.minute)
     if t < WINDOW_START_ET:
         return False, "vor_fenster"
-    if t >= WINDOW_END_ET:
+    if t >= window_end_et(et.date(), early_close):
         return False, "nach_fenster"
     return True, "ok"
 
@@ -374,6 +395,63 @@ def digest_line(state_path=STATE_FILE) -> str:
         return f"🧾 Optionen Handelszeit ({d}): Kette {c}/{n} · ATM-Paar {p}/{c} ({anteil}){extra}"
     except Exception:  # noqa: BLE001
         return "🧾 Optionen Handelszeit: nicht ermittelbar"
+
+
+MISS_WARN_TRADING_DAYS = 3
+
+
+def missed_trading_days(last_run_date: str | None, now_utc: datetime,
+                        holidays=US_MARKET_HOLIDAYS, early_close=None) -> int | None:
+    """Zahl der US-Handelstage NACH der letzten Messung, deren Fenster schon
+    vorbei ist (heute zählt erst nach Fensterende). Feiertage und Wochenenden
+    zählen nicht. None, wenn das Datum unlesbar ist."""
+    try:
+        last = date.fromisoformat(str(last_run_date))
+    except (TypeError, ValueError):
+        return None
+    et = now_utc.astimezone(_NY)
+    today = et.date()
+    n = 0
+    d = last + timedelta(days=1)
+    while d <= today:
+        if is_trading_day(d, holidays):
+            if d < today or (et.hour, et.minute) >= window_end_et(d, early_close):
+                n += 1
+        d += timedelta(days=1)
+    return n
+
+
+def warn_lines(state_path=STATE_FILE, now_utc: datetime | None = None,
+               early_close=None) -> list[str]:
+    """Warnzeilen für die Alarmzeilen des Digests (fail-soft):
+    * seit ≥ 3 Handelstagen keine Messung in der Handelszeit;
+    * keine verkürzten Handelstage für das laufende Kalenderjahr eingetragen."""
+    now_utc = now_utc or datetime.now(timezone.utc)
+    out: list[str] = []
+    try:
+        try:
+            st = json.loads(pathlib.Path(state_path).read_text(encoding="utf-8"))
+            last = st.get("last_run_date") if isinstance(st, dict) else None
+        except (OSError, ValueError):
+            last = None
+        n = missed_trading_days(last, now_utc, early_close=early_close) if last else None
+        if last is None:
+            out.append("🟡 Optionen Handelszeit: noch keine Messung")
+        elif n is not None and n >= MISS_WARN_TRADING_DAYS:
+            ld = date.fromisoformat(last).strftime("%d.%m.")
+            out.append(f"🟡 Optionen Handelszeit: seit {n} Handelstagen keine Messung "
+                       f"in der Handelszeit (letzte {ld})")
+    except Exception as exc:  # noqa: BLE001
+        out.append(f"🟡 Optionen Handelszeit: Warnprüfung fehlgeschlagen ({type(exc).__name__})")
+    try:
+        ec = US_EARLY_CLOSE_DAYS if early_close is None else early_close
+        year = str(now_utc.astimezone(_NY).year)
+        if not any(str(k).startswith(year + "-") for k in (ec or {})):
+            out.append(f"🟡 Liste verkürzter Handelstage veraltet (kein Eintrag für {year}, "
+                       "config.US_EARLY_CLOSE_DAYS)")
+    except Exception as exc:  # noqa: BLE001
+        out.append(f"🟡 Liste verkürzter Handelstage: Prüfung fehlgeschlagen ({type(exc).__name__})")
+    return out
 
 
 if __name__ == "__main__":

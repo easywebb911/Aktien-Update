@@ -4790,10 +4790,14 @@ Prüfung „Call + Put zusammen“ (open_item `erkundungsfeld-plan` Teil B). Die
 Verfall) bleibt unverändert.
 
 - **Skript** `options_intraday.py`, Workflow `.github/workflows/options_intraday.yml`
-  (drei Slots werktags 15:07 / 16:37 / 18:07 UTC = 10:07–14:07 ET je nach Sommer-/Winterzeit
-  + Hand-Start). Das Skript läuft nur an US-Handelstagen (`US_MARKET_HOLIDAYS`) im Fenster
-  10:00–15:30 ET und höchstens **einmal je Handelstag** (auch nach Rate-/Zeitlimit kein
-  Nachholen am selben Tag).
+  (seit 23.11.2026 **kein Zeitplan mehr**: `workflow_run` nach jedem Ende von „Daily Squeeze
+  Report“ und „KI-Agent Squeeze Monitor“ auf main, dazu Hand-Start; die alten Slots 15:07/16:37/
+  18:07 UTC starteten bei GitHub erst 22–01 UTC). Das Skript läuft nur an US-Handelstagen
+  (`US_MARKET_HOLIDAYS`) im Fenster 10:00–15:30 ET — an verkürzten Handelstagen
+  (`config.US_EARLY_CLOSE_DAYS`, Quelle NYSE-Kalender) bis Schluss − 30 min — und höchstens
+  **einmal je Handelstag** (auch nach Rate-/Zeitlimit kein Nachholen am selben Tag). Digest:
+  Warnzeile nach 3 Handelstagen ohne Messung und wenn die Liste verkürzter Tage für das
+  laufende Jahr leer ist.
 - **Top-10** = jüngster Postclose in `backtest_history.json` (Nicht-Bootstrap, Datum als Datum
   gelesen, nach `pool_position`). Am Vormittag gilt damit der Vorabend-Postclose (Einstieg =
   heutige Eröffnung), nicht ein Premarket-Stand. Fehlt der Postclose des letzten Handelstags,
