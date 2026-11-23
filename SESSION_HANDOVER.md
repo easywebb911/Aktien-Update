@@ -5908,6 +5908,8 @@ neu getestet.
 | danach · n ≥ 500 (frühestens ~Ende Jan. 2027) | **H-I Stufe 2** (`hyp_nov26_s2`, k = 1) → **H-I Rendite** (`hi_r_f1`/`hi_r_f2`) → **Landkarte K1/K2** — Reihenfolge laut Freeze-Blöcken | `hypothesen-runde-nov26-skript`, `hi-rendite-skript`, `landkarte-k1k2-skript` |
 | ab 09.11.2026 · n = 500 | **Exit-B.1-Nachfolger** sammelt (Schätzung ~Mitte/Ende Mai 2027) | `exit-b1-nachfolger-sammelphase` |
 | **Mo 08.02.2027** (maßgeblich: Digest-Zähler SUW 60/60) | **SUW-Test von Hand starten** (Workflow `suw_eval.yml`, Modus test; Freeze-Block „VORABREGISTRIERUNG — SUW“) — nachgetragen 16.11.2026 | `regel-suw-shorts-unter-wasser` |
+| **15.01.2027** | **Frist Auswertungs-Skripte** (Paper C Replikation, Paper C handelbar, H-I Rendite, K1/K2; H-I Stufe 2 Workflow-Anschluss) — jedes Skript vor dem ersten Blick gebaut und mit künstlichen Daten geprüft; sonst rutscht Stichtag 1 | `auswertungs-skripte-frist` |
+| **Stichtag 1** (Ereignis: alle Tests mit Blindheits-Wortlaut ausgewertet; Schätzung Feb./März 2027) | **Fenster-Rollregel:** Easy bestätigt das Datum; Blindfenster 1 → Suchfeld 1, Blindfenster 2 beginnt (§7·0b) | `fenster-rollregel` |
 | kein Bau ohne Entscheid | Handelskosten-Auswertung (Minutenkurse) | `handelskosten-messung` |
 
 *(Vorgänger-Tabelle „Stand 08.11.2026“ ersetzt; erledigt seither:
@@ -9925,12 +9927,71 @@ Sprünge, aber keine bessere Rendite — allein und zusammen mit dem Treffer-Sco
 Auf dem offenen Fenster (Einstiege **<= 23.10.2026**) werden **keine weiteren Erkundungen** gerechnet. Anlass:
 zwei Gegenproben in Folge haben Funde aus diesem Fenster nicht bestätigt (SUW `regel-suw-gegenprobe-bootstrap`,
 Stopp 10 % `regel-stopp-10-gegenprobe-bootstrap`); nach zehn Blicken ist es ausgereizt. Bereits festgeschriebene
-Regeln und eingefrorene Tests bleiben unberührt; Einstiege ab 24.10.2026 bleiben blind (Freeze-Blöcke).
+Regeln und eingefrorene Tests bleiben unberührt; Einstiege ab 24.10.2026 bleiben blind (Freeze-Blöcke;
+seit 24.11.2026: Blindfenster 1 nach der Fenster-Rollregel §7·0b, bis Stichtag 1).
 
 **Ergänzung (Easy-Entscheid 16.11.2026, präzisiert 17.11.2026):** Keine Erkundung ist (a) die unveränderte
 Nachrechnung einer bereits festgeschriebenen Regel (gleicher Regeltext, gleiche Daten, gleiche Auswertung)
 und (b) ein Vergleich von Listen-Namen, bei dem keine Renditen oder Treffer aus dem offenen Fenster berechnet
 oder ausgegeben werden; Kurse dienen nur als Eingabe bis zum jeweiligen Listentag. Alles andere bleibt gesperrt.
+
+### 7·0b. Fenster-Rollregel für die Edge-Suche (feste Regel, Easy-Entscheid 24.11.2026)
+
+Ziel: Jede Zeile nützt zweimal — erst zum Bestätigen, dann zum Suchen —, und für die nächste Bestätigung
+wächst immer ein unberührtes Feld nach. Ergänzt §7·0a; Zählerstände und Wiedervorlagen im open_item
+`fenster-rollregel`.
+
+1. **Fenster sind zeitlich geteilt** und gelten für alle Zeilen eines Tages gleich (Top-10-Zeilen in
+   Backtest/Export/`outcome_path`/Minutenkurse/Verwässerung **und** Pool-Schatten). Einzige Ausnahme:
+   Pool-Schatten Rang 11+ (Punkt 10).
+2. **Blindfenster N** = alle Einträge nach Stichtag N−1 (Blindfenster 1 = Einstiege ≥ 24.10.2026).
+   Erlaubt: speichern, zählen und die Auswertung durch **vorab eingefrorene** Tests, jeweils auf Easys
+   Entscheid. Prädiktorwerte dürfen angezeigt werden (z. B. Treffer-Score); Ergebnisfelder nicht. Nichts
+   sonst.
+3. **Stichtag 1 ist ein Ereignis:** der Tag, an dem **alle Tests mit Blindheits-Wortlaut** ausgewertet
+   sind — Paper C Replikation, Paper C handelbar, Hypothesen-Runde Stufe 2, H-I Rendite, Landkarte K1/K2,
+   SUW. Easy bestätigt das Datum, wenn es so weit ist (Schätzung Februar/März 2027). Früher endende Tests
+   (Setup-Edge/Conviction, KI-Score) werden ausgewertet, öffnen das Fenster aber **nicht**. Es gibt
+   **einen** einheitlichen Stichtag, keine Teilöffnung.
+4. **Am Stichtag wird Blindfenster N zu „Suchfeld N“.** Erkundungen erlaubt, aber nur so: Regeltext vor
+   der Rechnung festschreiben und pushen; **eine** Rechnung je Regel; Zählung vor Rendite;
+   **Hälften-Regel** (ein Fund zählt nur, wenn er in beiden zeitlichen Hälften des Suchfelds dieselbe
+   Richtung hat); Ergebnis ist „Hinweis, kein Beleg“.
+5. **Suchbudget:** je Suchfeld höchstens **10** Regel-Rechnungen, fortlaufend im open_item
+   `fenster-rollregel` gezählt (auch die erfolglosen). Danach ist das Suchfeld geschlossen wie das offene
+   Fenster nach §7·0a.
+6. **Jeder Hinweis aus Suchfeld N braucht eine eingefrorene Bestätigung auf Blindfenster N+1**
+   (Familie, Holm, Auslöser vorab; jeder weitere Test auf Blindfenster-Zeilen nur mit Easys
+   ausdrücklichem Entscheid, open_item `blindes-fenster-keine-weiteren-tests`). Ohne sie keine Anzeige über
+   Stufe „Erkundung“ hinaus (§7·0).
+7. **Tests, die über einen Stichtag hinaus Zeilen sammeln, laufen unverändert weiter** (Regel,
+   Population, Auslöser und Auswertung stehen vor jedem Blick fest). Dafür gilt:
+   a) **Keine Protokoll- oder Erratum-Änderung nach Einsicht** in ein Suchfeld, das Zeilen des Tests
+   enthält — außer rein technisch, mit Easy-Entscheid und dem Vermerk „nach Einsicht“.
+   b) **Kein Ermessen beim Lauf:** Ist der Auslöser erreicht, läuft der Test und wird berichtet; kein
+   Warten, Vorziehen oder Entfallen nach Lage der Daten.
+   c) **Der Blindheits-Wortlaut bestimmt den Stichtag:** Ein Test, dessen Block „blind“ /
+   „Bestätigung auf blinden Daten“ / „ungesehen“ sagt, muss vor dem Stichtag ausgewertet sein (Punkt 3).
+   d) **Vermerk-Pflicht für lange Läufer** (heute Exit-B.1-Nachfolger, H5): jeder Bericht vermerkt
+   „Population ab Stichtag N teilweise erkundet“.
+8. **Stichtag N+1** legt Easy fest, frühestens wenn Blindfenster N+1 60 Handelstage umfasst und die
+   darauf registrierten Bestätigungen ausgewertet sind.
+9. Das alte offene Fenster (Einstiege ≤ 23.10.2026) und die Bootstrap-Einträge bleiben wie in §7·0a
+   geregelt.
+10. **Pool-Schatten Rang 11+ ist ab sofort „Pool-Schatten 1“** (Suchfeld, Regeln aus Punkt 4,
+    Suchbudget 10 nach Punkt 5). Ein Hinweis daraus darf nur auf **späteren Handelstagen** bestätigt
+    werden (Blindfenster N+1), **nie** auf Top-10-Zeilen derselben Tage (gleiche Tage = gleiche Marktlage).
+    Der Vergleich „Top-10 gegen Rang 11+“ braucht Top-10-Ergebnisse derselben Tage und ist deshalb **bis
+    zum Stichtag nicht erlaubt**. Zeilen mit `top10 = true` oder `watchlist_bypass = true` gehören nicht
+    zum Suchfeld.
+
+**Lesart der Freeze-Blöcke (unverändert):** „blind“ heißt dort „Einstiege ≥ 24.10.2026, zum
+Freeze-Zeitpunkt ungesehen“ = Blindfenster 1. Die Blöcke werden nicht geändert; diese Regel sorgt über
+Punkt 3 und 7 dafür, dass ihr Wortlaut bis zu ihrem Lauf stimmt.
+
+**Frist für fehlende Auswertungs-Skripte:** open_item `auswertungs-skripte-frist` (Wiedervorlage
+15.01.2027). Jedes Skript wird vor dem ersten Blick auf Ergebnisse gebaut und mit künstlichen Daten
+geprüft (Muster `suw_eval`: Nachrechnen-Modus auf erlaubten Daten, Test-Modus getrennt).
 
 ### 7·1. Treffer-Score (unvalidiert) — SUW-Schatten-Wert (seit 15.11.2026; Kachel seit 23.11.2026)
 
