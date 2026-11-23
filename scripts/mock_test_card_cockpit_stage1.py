@@ -92,7 +92,7 @@ def _extract_helper():
     ns["_SPARK_VIEW_POINTS"] = 7
     # Treffer-Score-Zeile (15.11.2026): eigener Helfer, eigener Test
     # (mock_test_treffer_score.py) — hier als leerer Stub (Struktur-Test).
-    ns["_treffer_row_html"] = lambda s: ""
+    ns["_treffer_pillar_html"] = lambda s: ""
     for _dep in ("_spark_parse_date", "_spark_de",
                  "_sparkline_view_from_entries", "_sparkline_view",
                  "_cockpit_delta_html", "_status_kind_of",

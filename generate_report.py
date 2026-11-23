@@ -3913,46 +3913,77 @@ def _momentum_5t_row_html(stock: dict) -> str:
 # _compute_sub_scores(), Conviction, Filtern, Auswahl oder gespeicherter
 # Reihenfolge (Wächter: scripts/mock_test_treffer_score.py). Der eingefrorene
 # SUW-Test liest das Tagesfeld nie (rechnet selbst aus endgültigen Daten).
-TREFFER_LABEL = "Treffer-Score (unvalidiert):"
+TREFFER_LABEL = "Treffer-Score"
+TREFFER_SCHILD = "UNVALIDIERT · TEST LÄUFT"
 TREFFER_NOTE = ("Misst, ob die Leerverkäufer der letzten 20 Tage im Minus sitzen. "
-                "Vorläufiger Tageswert vom Abend. Vor Börsenschluss steht hier der Wert "
-                "vom letzten Abend mit Datum, der Platz gilt dann für die damalige Top-10. "
+                "Während der US-Börsenzeit mit dem aktuellen Kurs gerechnet (vorläufig, "
+                "mit Uhrzeit), abends mit dem Schlusskurs; vor der Börsenöffnung steht "
+                "der letzte Abendwert (Stand TT.MM.). Den Rang gibt es nur unter "
+                "den Top-10 desselben Laufs. "
                 "In Prüfung, Ergebnis ca. Februar 2027. "
                 "Gegenprobe an 30 anderen Aktien (2025/26): nicht bestätigt, dort zeigte "
-                "der Wert in die Gegenrichtung. Richtung offen bis zum Test. Kein Kaufsignal.")
+                "der Wert in die Gegenrichtung. Richtung offen bis zum Test. Kein Kaufsignal. "
+                "Farbe bewusst neutral (keine Ampel), gleich für hohe und niedrige Werte.")
 
 
 def _treffer_pct_text(w: float) -> str:
-    """Ganze Prozent, kaufmännisch gerundet, mit Vorzeichen (Anzeige)."""
-    n = int(math.floor(abs(w) + 0.5))
-    if n == 0:
-        return "0\u00a0%"
-    return f"{'+' if w > 0 else '−'}{n}\u00a0%"
+    """Prozent mit einer Nachkommastelle, Komma, Vorzeichen (Anzeige)."""
+    r = math.floor(abs(w) * 10 + 0.5) / 10
+    if r == 0:
+        return "0,0 %"
+    return f"{'+' if w > 0 else '−'}{r:.1f}".replace(".", ",") + " %"
 
 
-def _treffer_row_html(stock: dict) -> str:
-    """Kartenzeile unter dem Block aus KI-Score und Conviction-Ring. Nur wenn
-    das Feld gesetzt ist (Top-10); Watchlist-Karten außerhalb der Top-10 ohne
-    Zeile. Neutral grau, kein Fettdruck, kein Pfeil, keine Ampel."""
+def _treffer_esc(x) -> str:
+    return (str(x or "").replace("&", "&amp;").replace('"', "'")
+            .replace("<", "").replace(">", ""))
+
+
+def _treffer_pillar_html(stock: dict) -> str:
+    """Dritte Cockpit-Säule „Treffer-Score“ unter KI (Easy-Entscheid 23.11.2026).
+    Neutrale Akzentfarbe (Violett, nur über die CSS-Klasse), unabhängig vom
+    Wert — keine Ampel, kein Balken. Wert mit Vorzeichen, darunter Rang (nur
+    Top-10 des Laufs) bzw. „Watchlist“, Schild, Stand. Ohne Feld → leer.
+    Ohne Wert → „—“ mit Grund, nie 0."""
     if "treffer_score" not in stock:
         return ""
     t = stock.get("treffer_score") or {}
-    w, rang, n = t.get("wert"), t.get("rang"), t.get("n_mit_wert")
-    if _finite(w) and isinstance(rang, int) and isinstance(n, int):
-        val = f"{_treffer_pct_text(float(w))} · Platz {rang} von {n}"
-        title = ""
+    w = t.get("wert")
+    rang, n = t.get("rang"), t.get("n_mit_wert")
+    if _finite(w):
+        val = _treffer_pct_text(float(w))
+        if isinstance(rang, int) and isinstance(n, int):
+            sub = f"Rang {rang} von {n}"
+        elif t.get("watchlist"):
+            sub = "Watchlist"
+        else:
+            sub = ""
+        grund = ""
     else:
         val = "—"
-        g = str(t.get("grund") or "").replace('"', "'").replace("<", "").replace(">", "")
-        title = f' title="{g}"' if g else ""
-    if t.get("aus_postclose") and t.get("datum"):
+        sub = ""
+        grund = _treffer_esc(t.get("grund"))
+    stand = ""
+    if _finite(w) and t.get("zeit") and not t.get("aus_postclose"):
+        stand = f"vorläufig {_treffer_esc(t['zeit'])}"
+    elif t.get("datum") and t.get("aus_postclose"):
         try:
-            val += " · Stand " + datetime.strptime(str(t["datum"]), "%Y-%m-%d").strftime("%d.%m.")
+            stand = "Stand " + datetime.strptime(str(t["datum"]), "%Y-%m-%d").strftime("%d.%m.")
         except ValueError:
-            pass
-    return (f'<div class="cockpit-treffer"{title}>'
-            f'<span class="ts-lbl">{TREFFER_LABEL}</span> '
-            f'<span class="ts-val">{val}</span></div>')
+            stand = ""
+    title = _treffer_esc(TREFFER_NOTE + (f" Kein Wert: {grund}." if grund else ""))
+    sub_html = f'<div class="treffer-sub">{sub}</div>' if sub else ""
+    grund_html = f'<div class="treffer-grund">{grund}</div>' if grund else ""
+    stand_html = f'<div class="treffer-stand">{stand}</div>' if stand else ""
+    return (f'<div class="cockpit-pillar cockpit-pillar-treffer" data-sb="treffer" '
+            f'title="{title}">'
+            f'<div class="cockpit-pillar-label">'
+            f'<span class="cockpit-pillar-name">{TREFFER_LABEL}</span></div>'
+            f'<div class="treffer-value">{val}</div>'
+            f'{sub_html}{grund_html}'
+            f'<span class="cockpit-status-badge treffer-schild">{TREFFER_SCHILD}</span>'
+            f'{stand_html}'
+            f'</div>')
 
 
 def _treffer_detail_row_html(stock: dict) -> str:
@@ -3964,50 +3995,128 @@ def _treffer_detail_row_html(stock: dict) -> str:
 
 
 def _treffer_data_attr(stock: dict) -> str:
-    """``data-treffer`` (gespeicherter Wert, 4 Nachkommastellen) — nur für die
-    Ansichts-Sortierung im Browser. Ohne Wert kein Attribut."""
+    """``data-treffer`` (Wert, 4 Nachkommastellen) — nur für die Ansichts-
+    Sortierung im Browser. Nur Werte mit Rang (Top-10 desselben Laufs);
+    Rückfall-Werte eines früheren Stands und Watchlist ohne Attribut, damit
+    nie Werte verschiedener Zeitpunkte verglichen werden."""
     t = stock.get("treffer_score") or {}
     w = t.get("wert")
-    return f' data-treffer="{float(w):.4f}"' if _finite(w) else ""
+    if not (_finite(w) and isinstance(t.get("rang"), int)):
+        return ""
+    return f' data-treffer="{float(w):.4f}"'
 
 
 def _apply_treffer_score(top10: list, run_phase: str, report_day, *,
-                         compute=None, daily_path=None) -> None:
-    """Setzt ``s["treffer_score"]`` je Top-10-Eintrag. Postclose: berechnen und
-    an ``suw_daily.jsonl`` anhängen. Sonst: letzter Postclose-Wert mit Datum.
+                         compute=None, daily_path=None, extra=None,
+                         now_berlin=None) -> None:
+    """Setzt ``s["treffer_score"]`` je angezeigter Aktie (Top-10 + ``extra`` =
+    Watchlist außerhalb der Top-10, Easy-Entscheid 23.11.2026).
+
+    * Postclose: berechnen (Tagesschluss), NUR die Top-10 an
+      ``suw_daily.jsonl`` anhängen (unverändert). Watchlist: Wert ohne Rang,
+      nicht angehängt.
+    * Sonst (Vorschau): mit dem aktuellen Kurs desselben Laufs rechnen
+      (``intraday``), Rang nur unter den Top-10 dieses Laufs, „vorläufig HH:MM
+      Uhr“. Kein Wert → Rückfall auf den letzten Postclose-Wert desselben
+      Tickers mit „Stand TT.MM.“, nur wenn höchstens 3 Handelstage alt, ohne
+      Rang; sonst „—“ mit Grund. ``suw_daily.jsonl`` wird im Vorschau-Lauf NIE
+      geschrieben (Freeze-Trennung).
+    * Vorschau vor 09:30 ET oder an einem Nicht-Handelstag: KEINE Berechnung
+      (``s["price"]`` wäre der Vortagsschluss, kein Tageskurs — Guardian-
+      Finding 23.11.2026), direkt Rückfall bzw. „—“ mit Grund.
+    * Postclose: Top-10 und Watchlist in GETRENNTEN Abrufen — die Abfrage für
+      die Top-10 (und damit ``suw_daily.jsonl``) bleibt wie bisher; scheitert
+      der Watchlist-Abruf, sind die Top-10-Werte nicht betroffen.
     Fail-soft — nie eine Exception; andere Felder werden nie verändert."""
+    extra = [x for x in (extra or []) if isinstance(x, dict)]
     try:
         import treffer_score as _ts
         path = daily_path or _ts.DAILY_FILE
-        if run_phase == "postclose":
-            items, info = (compute or _ts.compute_for_top10)(top10, report_day,
-                                                             cache_dir=_ts.CACHE_DIR)
-            for s, it in zip(top10, items):
+        intraday = run_phase != "postclose"
+        _compute = compute or _ts.compute_for_top10
+        n_top = len(top10)
+        if not intraday:
+            items, info = _compute(top10, report_day, cache_dir=_ts.CACHE_DIR)
+            for s, it in zip(top10, items[:n_top]):
                 s["treffer_score"] = _ts.field_from_item(it)
             try:
-                _ts.append_daily(items, path)
+                _ts.append_daily(items[:n_top], path)
             except OSError as exc:
                 log.warning("Treffer-Score: suw_daily.jsonl nicht geschrieben (%s)", exc)
-            _ts.prune_cache(_ts.CACHE_DIR)
-            n_val = sum(1 for it in items if _finite(it.get("wert")))
-            print(f"[treffer_score] {n_val}/{len(items)} mit Wert · {info}", flush=True)
+            n_val = sum(1 for it in items[:n_top] if _finite(it.get("wert")))
+            print(f"[treffer_score] {n_val}/{n_top} mit Wert · {info}", flush=True)
             line = _ts.log_line(items)
             if line:
                 print(line, flush=True)
+            if extra:
+                try:
+                    wl_items, wl_info = _compute([], report_day, cache_dir=_ts.CACHE_DIR,
+                                                 extra=extra)
+                    for s, it in zip(extra, wl_items):
+                        f = _ts.field_from_item(it)
+                        f["watchlist"] = True
+                        s["treffer_score"] = f
+                    n_wl = sum(1 for it in wl_items if _finite(it.get("wert")))
+                    print(f"[treffer_score] Watchlist: {n_wl}/{len(extra)} mit Wert · "
+                          f"{wl_info}", flush=True)
+                except Exception as exc:  # noqa: BLE001 — Top-10 bleiben unberührt
+                    log.warning("Treffer-Score Watchlist: nicht berechnet (%s)", exc)
+                    for s in extra:
+                        s["treffer_score"] = {"wert": None, "rang": None, "n_mit_wert": None,
+                                              "datum": None, "stand": None,
+                                              "grund": "nicht_berechnet", "watchlist": True}
+            _ts.prune_cache(_ts.CACHE_DIR)
             return
-        d, rows = _ts.load_last_postclose(path)
-        for s in top10:
-            r = rows.get(s.get("ticker"))
-            if r:
-                f = _ts.field_from_item(r)
+        if now_berlin is None:
+            now_berlin = datetime.now(ZoneInfo("Europe/Berlin"))
+        zeit = now_berlin.strftime("%H:%M Uhr")
+        try:
+            _trading = _ts.suw_eval.is_trading_day(report_day)
+        except Exception:  # noqa: BLE001
+            _trading = False
+        _session = trading_date.us_session_state(now_berlin.astimezone(timezone.utc))
+        if not _trading or _session == "pre":
+            _g = _ts.GRUND_KEIN_HANDELSTAG if not _trading else _ts.GRUND_VOR_OEFFNUNG
+            items = ([{"ticker": x.get("ticker"), "wert": None, "grund": _g, "top10": True}
+                      for x in top10]
+                     + [{"ticker": x.get("ticker"), "wert": None, "grund": _g, "top10": False}
+                        for x in extra])
+            info = {"berechnet": False, "grund": _g}
+        else:
+            items, info = _compute(top10, report_day, cache_dir=_ts.CACHE_DIR,
+                                   extra=extra, intraday=True)
+        last = _ts.load_last_value_per_ticker(path)
+        counts = {"vorlaeufig": 0, "rueckfall": 0, "ohne": 0}
+        for s, it in zip(list(top10) + extra, items):
+            f = _ts.field_from_item(it)
+            f["watchlist"] = not it.get("top10")
+            if _finite(it.get("wert")):
+                f["zeit"] = zeit
+                counts["vorlaeufig"] += 1
             else:
-                f = {"wert": None, "rang": None, "n_mit_wert": None, "datum": d,
-                     "stand": None, "grund": "kein Wert im letzten Postclose"}
-            f["aus_postclose"] = True
+                r = last.get(s.get("ticker"))
+                age = (_ts.trading_days_since(r.get("datum"), report_day)
+                       if r else None)
+                if r is not None and age is not None and age <= _ts.RUECKFALL_MAX_HANDELSTAGE:
+                    f = {"wert": r.get("wert"), "rang": None, "n_mit_wert": None,
+                         "datum": r.get("datum"), "stand": r.get("stand"),
+                         "grund": None, "aus_postclose": True,
+                         "watchlist": not it.get("top10"),
+                         "grund_tagsueber": it.get("grund")}
+                    counts["rueckfall"] += 1
+                else:
+                    if r is not None and age is not None:
+                        f["grund"] = (f"{it.get('grund') or 'kein Tageswert'}; letzter "
+                                      f"Abendwert älter als {_ts.RUECKFALL_MAX_HANDELSTAGE} "
+                                      f"Handelstage")
+                    counts["ohne"] += 1
             s["treffer_score"] = f
+        print(f"[treffer_score] Vorschau: {counts['vorlaeufig']} vorläufig · "
+              f"{counts['rueckfall']} Rückfall · {counts['ohne']} ohne Wert · {info}",
+              flush=True)
     except Exception as exc:  # noqa: BLE001 — leer statt Abbruch
         log.warning("Treffer-Score: nicht berechnet (%s)", exc)
-        for s in top10:
+        for s in list(top10) + extra:
             s["treffer_score"] = {"wert": None, "rang": None, "n_mit_wert": None,
                                   "datum": None, "stand": None, "grund": "nicht_berechnet"}
 
@@ -7551,7 +7660,7 @@ def _card_cockpit_html(
         f'</div>'
         f'{rank_context_html}'
         f'<div class="cockpit-body">'
-        f'<div class="cockpit-pillars">{"".join(pillars)}</div>'
+        f'<div class="cockpit-pillars">{"".join(pillars)}{_treffer_pillar_html(s)}</div>'
         f'<div class="cockpit-donut-wrap">'
         f'<div class="cockpit-donut-label">Conviction</div>'
         f'<div class="cockpit-donut-inner">'
@@ -7574,7 +7683,6 @@ def _card_cockpit_html(
         f'{conv_status_badge}'
         f'</div>'
         f'</div>'
-        f'{_treffer_row_html(s)}'
         f'</div>'
     )
 
@@ -20870,7 +20978,8 @@ def main():
     # ``suw_daily.jsonl``. Kein Einfluss auf Score, Filter, Auswahl oder
     # gespeicherte Reihenfolge. Der eingefrorene SUW-Test liest dieses Feld nie
     # (rechnet selbst aus endgültigen Daten, scripts/suw_eval.py). Fail-soft.
-    _apply_treffer_score(top10, run_phase, _report_day)
+    _apply_treffer_score(top10, run_phase, _report_day,
+                         extra=_wl_outsiders_for_pool)
 
     # Watchlist-Karten-Snapshot VOR generate_html aufbauen, damit der
     # Chat-Synthese-Builder (_build_chat_synthesis_ctx) den enriched

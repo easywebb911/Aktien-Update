@@ -47,6 +47,10 @@ TOTAL_BUDGET_S = 60             # FINRA gesamt
 YAHOO_TIMEOUT_S = 20
 STAND_VORLAEUFIG = "vorläufig"
 GRUND_TAGESSCHLUSS_FEHLT = "Tagesschluss fehlt"
+GRUND_KURS_FEHLT = "Kurs fehlt"
+RUECKFALL_MAX_HANDELSTAGE = 3   # Easy-Entscheid 23.11.2026: 3 zählt, 4 nicht
+GRUND_VOR_OEFFNUNG = "vor Börsenöffnung"      # Vorschau vor 09:30 ET: kein Tageskurs
+GRUND_KEIN_HANDELSTAG = "kein Handelstag"   # Vorschau an Wochenende/Feiertag
 SCHEMA_V = 1
 
 
@@ -176,15 +180,28 @@ def assign_ranks(items: Sequence[dict]) -> None:
 def compute_for_top10(top10: Sequence[dict], report_day: date, *, cache_dir=CACHE_DIR,
                       fetch_finra=_fetch_finra_http, fetch_closes=_fetch_closes_yf,
                       clock: Callable[[], float] = time.monotonic, holidays=None,
-                      budget_s: float = TOTAL_BUDGET_S) -> tuple[list[dict], dict]:
+                      budget_s: float = TOTAL_BUDGET_S, extra: Sequence[dict] = (),
+                      intraday: bool = False) -> tuple[list[dict], dict]:
     """Berechnet je Top-10-Eintrag den Treffer-Score. Reine Leseoperation auf
     ``top10`` (kein Schreiben ins Stock-Dict). Liefert (items, info). Wirft
-    nie: jeder Fehler → Einträge ohne Wert mit Grund."""
+    nie: jeder Fehler → Einträge ohne Wert mit Grund.
+
+    ``extra`` (23.11.2026): weitere angezeigte Aktien (Watchlist außerhalb der
+    Top-10) im SELBEN Abruf — Wert ohne Rang (``top10`` = False). ``intraday``:
+    Vorschau-Lauf, c_D = aktueller Kurs des Laufs (``s["price"]``) statt
+    Tagesschluss; Fenster, Gewichtung und Fehl-Regel unverändert (derselbe
+    Kern ``suw_eval.suw_value``)."""
     items: list[dict] = []
     info: dict = {}
     for i, s in enumerate(top10, start=1):
         items.append({"ticker": s.get("ticker"), "pool_position": i, "wert": None,
-                      "grund": None, "c_d": None, "r": None, "fehlende_tage": None})
+                      "grund": None, "c_d": None, "r": None, "fehlende_tage": None,
+                      "top10": True})
+    for s in extra or ():
+        items.append({"ticker": s.get("ticker"), "pool_position": None, "wert": None,
+                      "grund": None, "c_d": None, "r": None, "fehlende_tage": None,
+                      "top10": False})
+    stocks = list(top10) + list(extra or ())
     try:
         wdays = suw_eval.window_days(report_day, holidays=holidays)
         texts, fstatus = load_finra(wdays, cache_dir=cache_dir, fetch=fetch_finra,
@@ -202,14 +219,19 @@ def compute_for_top10(top10: Sequence[dict], report_day: date, *, cache_dir=CACH
         except Exception as exc:  # noqa: BLE001
             closes = {}
             info["yahoo_fehler"] = type(exc).__name__
-        for it, s in zip(items, top10):
+        for it, s in zip(items, stocks):
             t = it["ticker"]
             c_d = s.get("price")
-            bar_ok = (s.get("letzte_zeile") != "vortag_rueckfall"
-                      and (s.get("bar_date") in (None, report_day.isoformat())))
-            if not (bar_ok and _finite(c_d) and c_d > 0):
-                it["grund"] = GRUND_TAGESSCHLUSS_FEHLT
-                continue
+            if intraday:
+                if not (_finite(c_d) and c_d > 0):
+                    it["grund"] = GRUND_KURS_FEHLT
+                    continue
+            else:
+                bar_ok = (s.get("letzte_zeile") != "vortag_rueckfall"
+                          and (s.get("bar_date") in (None, report_day.isoformat())))
+                if not (bar_ok and _finite(c_d) and c_d > 0):
+                    it["grund"] = GRUND_TAGESSCHLUSS_FEHLT
+                    continue
             # nur Tage VOR D aus dem Abruf (D selbst kommt aus der reparierten
             # letzten Tageszeile des Daily-Laufs)
             cl = {k: v for k, v in (closes.get(t) or {}).items() if k < report_day}
@@ -229,7 +251,12 @@ def compute_for_top10(top10: Sequence[dict], report_day: date, *, cache_dir=CACH
         for it in items:
             if it["wert"] is None and it["grund"] is None:
                 it["grund"] = "nicht_berechnet"
-    assign_ranks(items)
+    # Rang nur unter den Top-10 des Laufs; Watchlist-Werte ohne Rang.
+    assign_ranks([it for it in items if it["top10"]])
+    for it in items:
+        if not it["top10"]:
+            it["rang"] = None
+            it["n_mit_wert"] = None
     datum = report_day.isoformat()
     for it in items:
         it["datum"] = datum
@@ -283,6 +310,44 @@ def load_last_postclose(path=DAILY_FILE) -> tuple[str | None, dict]:
         if r["datum"] == last:
             out[r["ticker"]] = r     # spätere Zeile desselben Tages gewinnt
     return last, out
+
+
+def load_last_value_per_ticker(path=DAILY_FILE) -> dict:
+    """{ticker: jüngste Postclose-Zeile mit endlichem Wert} aus
+    ``suw_daily.jsonl`` (für den Rückfall im Vorschau-Lauf). Fail-soft."""
+    out: dict = {}
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    obj = json.loads(line)
+                except (json.JSONDecodeError, ValueError):
+                    continue
+                if not (isinstance(obj, dict) and obj.get("ticker") and obj.get("datum")
+                        and _finite(obj.get("wert"))):
+                    continue
+                cur = out.get(obj["ticker"])
+                if cur is None or str(obj["datum"]) >= str(cur["datum"]):
+                    out[obj["ticker"]] = obj
+    except OSError:
+        return {}
+    return out
+
+
+def trading_days_since(datum_iso: str, report_day: date, holidays=None) -> int | None:
+    """US-Handelstage NACH ``datum_iso`` bis einschließlich ``report_day``
+    (Wochenenden/Feiertage zählen nicht). None bei unlesbarem Datum."""
+    try:
+        d0 = date.fromisoformat(str(datum_iso))
+    except (TypeError, ValueError):
+        return None
+    n = 0
+    x = d0 + timedelta(days=1)
+    while x <= report_day:
+        if suw_eval.is_trading_day(x, holidays):
+            n += 1
+        x += timedelta(days=1)
+    return n
 
 
 def log_line(items: Sequence[dict]) -> str | None:
