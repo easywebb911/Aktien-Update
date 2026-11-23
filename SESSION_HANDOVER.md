@@ -9885,12 +9885,12 @@ bestimmt, ob und wie er im Tool erscheint:
 | Stufe | Anzeige |
 |---|---|
 | **Erkundung** | **nicht auf der Karte**, nur in `open_items.json` |
-| **Eingefroren, Test läuft** | **grau**, mit dem Zusatz „unvalidiert“ oder „in Prüfung“ |
+| **Eingefroren, Test läuft** | **neutrale Akzentfarbe, nie Ampelfarbe**, mit dem Zusatz „unvalidiert“ oder „in Prüfung“ (Vorschlag 23.11.2026, Easy bestätigt mit dem Merge von PR „Treffer-Score-Kachel“; vorher: grau) |
 | **Beleg im offenen Fenster** | **blau**, mit einem Satz, **was** belegt ist (und was nicht) |
 | **Bestätigt auf neuen Daten** | **grün** (CLAUDE.md-GRÜN-Regel: nur mit `eval_ref` auf eine `eval_results`-Zeile „Beleg“) |
 | **Durchgefallen** | wird **von der Karte entfernt** |
 
-Heute: Treffer-Score (SUW) = „Eingefroren, Test läuft“ → grau, „(unvalidiert)“ / „in Prüfung“.
+Heute: Treffer-Score (SUW) = „Eingefroren, Test läuft“ → Violett (Karten-Säule, gleich für hohe und niedrige Werte), „UNVALIDIERT · TEST LÄUFT“ / „in Prüfung“.
 Inst-Beteiligung (H-I) = „Beleg im offenen Fenster“ → blau; belegt sind **häufigere Sprünge über
 +30 %**, **nicht** eine höhere Rendite (Hinweistext `config.INST_OWNERSHIP_HINT`). Paper C =
 blau (Test läuft). Erstes Beispiel für **„Durchgefallen: von der Karte entfernt“**: der

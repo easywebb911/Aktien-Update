@@ -14,7 +14,7 @@ import json
 import pathlib
 import sys
 import tempfile
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -152,28 +152,90 @@ golden = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(golden)
 gr = golden.gr
 
+def sv_wl(d):
+    v = sv_hand(d)
+    v["WL"] = v["AA"]
+    return v
+
+
+BERLIN_FIX = datetime(2026, 9, 15, 17, 42, tzinfo=__import__("zoneinfo").ZoneInfo("Europe/Berlin"))
+
 with tempfile.TemporaryDirectory() as td:
     dp = pathlib.Path(td) / "suw_daily.jsonl"
     top = [stock("AA", 21.0, score=82.0, conviction={"score": 70}), stock("BB", 17.5, score=71.0)]
+    wl = [stock("WL", 21.0)]
     before = copy.deepcopy(top)
     order_before = [s["ticker"] for s in top]
 
-    def fake_compute(top10, rd, cache_dir=None):
-        return T.compute_for_top10(top10, rd, cache_dir=td, fetch_finra=make_fetch(sv_hand),
-                                   fetch_closes=closes_hand, holidays=NOHOL)
-    gr._apply_treffer_score(top, "postclose", D, compute=fake_compute, daily_path=dp)
+    def fake_compute(top10, rd, cache_dir=None, extra=(), intraday=False):
+        return T.compute_for_top10(top10, rd, cache_dir=td, fetch_finra=make_fetch(sv_wl),
+                                   fetch_closes=closes_hand, holidays=NOHOL,
+                                   extra=extra, intraday=intraday)
+    gr._apply_treffer_score(top, "postclose", D, compute=fake_compute, daily_path=dp, extra=wl)
     check("14 Postclose: nur Feld treffer_score neu, Reihenfolge + alle anderen Felder gleich",
           [s["ticker"] for s in top] == order_before
           and all({k: v for k, v in s.items() if k != "treffer_score"} == b for s, b in zip(top, before)))
     rows = [json.loads(x) for x in dp.read_text(encoding="utf-8").splitlines()]
-    check("15 suw_daily.jsonl: je Eintrag eine Zeile, 4 Nachkommastellen",
-          len(rows) == 2 and rows[0]["wert"] == 20.0 and rows[0]["stand"] == "vorläufig")
-    pre = [stock("AA", 1.0), stock("NEU", 1.0)]
-    gr._apply_treffer_score(pre, "premarket", date(2026, 9, 16), daily_path=dp)
-    check("16 Premarket: letzter Postclose-Wert mit Datum; neuer Ticker ohne Wert",
-          pre[0]["treffer_score"]["wert"] == 20.0 and pre[0]["treffer_score"]["aus_postclose"]
-          and pre[0]["treffer_score"]["datum"] == D.isoformat()
-          and pre[1]["treffer_score"]["wert"] is None)
+    check("15 suw_daily.jsonl: nur die Top-10 (keine Watchlist), 4 Nachkommastellen",
+          len(rows) == 2 and rows[0]["wert"] == 20.0 and rows[0]["stand"] == "vorläufig"
+          and "WL" not in {r["ticker"] for r in rows}, rows)
+    check("15b Postclose-Watchlist: Wert ohne Rang, als Watchlist markiert",
+          wl[0]["treffer_score"]["wert"] == 20.0 and wl[0]["treffer_score"]["rang"] is None
+          and wl[0]["treffer_score"]["watchlist"] is True
+          and top[0]["treffer_score"]["rang"] == 1 and top[0]["treffer_score"]["n_mit_wert"] == 2)
+    dp_bytes = dp.read_bytes()
+
+    # Vorschau-Lauf: c_D = aktueller Kurs desselben Laufs
+    pre = [stock("AA", 24.5, bar_date="2026-09-14"), stock("BB", 17.5, letzte_zeile="vortag_rueckfall")]
+    pwl = [stock("WL", 35.0)]
+    gr._apply_treffer_score(pre, "premarket", D, compute=fake_compute, daily_path=dp,
+                            extra=pwl, now_berlin=BERLIN_FIX)
+    ta, tb, tw = (x["treffer_score"] for x in (pre[0], pre[1], pwl[0]))
+    check("16 Vorschau: Wert mit aktuellem Kurs (24,5 / R 17,5 → +40 %), Bar-Datum egal",
+          ta["wert"] == 40.0 and tb["wert"] == 0.0, (ta, tb))
+    check("16b Vorschau: Rang nur unter den Top-10 desselben Laufs, Watchlist ohne Rang",
+          ta["rang"] == 1 and tb["rang"] == 2 and ta["n_mit_wert"] == 2
+          and tw["rang"] is None and tw["watchlist"] is True and tw["wert"] == 100.0)
+    check("16c Vorschau: „vorläufig HH:MM Uhr“ (Berlin wie Kopfzeile)",
+          ta["zeit"] == "17:42 Uhr" and not ta.get("aus_postclose")
+          and "vorläufig 17:42 Uhr" in gr._treffer_pillar_html(pre[0]))
+    check("16d Vorschau schreibt suw_daily.jsonl NIE (Freeze-Trennung, byte-gleich)",
+          dp.read_bytes() == dp_bytes)
+
+    # Rückfall: Tagesberechnung ohne Wert → letzter Abendwert ≤ 3 Handelstage
+    td_leer = tempfile.mkdtemp()   # leerer Zwischenspeicher → FINRA scheitert wirklich
+
+    def fail_compute(top10, rd, cache_dir=None, extra=(), intraday=False):
+        return T.compute_for_top10(top10, rd, cache_dir=td_leer,
+                                   fetch_finra=lambda d, timeout: (None, "fehler"),
+                                   fetch_closes=closes_hand, holidays=NOHOL,
+                                   extra=extra, intraday=intraday)
+    D3 = date(2026, 9, 18)   # Fr: 3 Handelstage nach Di 15.09.
+    D4 = date(2026, 9, 21)   # Mo: 4 Handelstage nach Di 15.09.
+    r3 = [stock("AA", 30.0), stock("NEU", 5.0)]
+    gr._apply_treffer_score(r3, "premarket", D3, compute=fail_compute, daily_path=dp,
+                            now_berlin=BERLIN_FIX)
+    f3 = r3[0]["treffer_score"]
+    check("17a Rückfall (3 Handelstage alt): Abendwert mit „Stand TT.MM.“, OHNE Rang",
+          f3["wert"] == 20.0 and f3["aus_postclose"] and f3["rang"] is None
+          and "Stand 15.09." in gr._treffer_pillar_html(r3[0])
+          and "Rang " not in gr._treffer_pillar_html(r3[0]).split("title=")[0]
+          and 'treffer-sub' not in gr._treffer_pillar_html(r3[0])
+          and gr._treffer_data_attr(r3[0]) == "", f3)
+    check("17b ohne Abendwert → „—“ mit Grund, nie 0",
+          r3[1]["treffer_score"]["wert"] is None and r3[1]["treffer_score"]["grund"]
+          and ">—<" in gr._treffer_pillar_html(r3[1])
+          and ">0,0" not in gr._treffer_pillar_html(r3[1]))
+    r4 = [stock("AA", 30.0)]
+    gr._apply_treffer_score(r4, "premarket", D4, compute=fail_compute, daily_path=dp,
+                            now_berlin=BERLIN_FIX)
+    f4 = r4[0]["treffer_score"]
+    check("17c Rückfall-Grenze: 4 Handelstage alt → „—“ mit Grund „älter als 3 Handelstage“",
+          f4["wert"] is None and "älter als 3 Handelstage" in str(f4["grund"]), f4)
+    check("17d Grenze 3 zählt, 4 nicht (Handelstage; Wochenende zählt nicht)",
+          T.trading_days_since("2026-09-15", D3) == 3 and T.trading_days_since("2026-09-15", D4) == 4
+          and T.RUECKFALL_MAX_HANDELSTAGE == 3)
+    check("17e Rückfall-Läufe schreiben suw_daily.jsonl nicht", dp.read_bytes() == dp_bytes)
 
     def raising(*a, **k):
         raise RuntimeError("kaputt")
@@ -185,33 +247,52 @@ with tempfile.TemporaryDirectory() as td:
         ok17 = False
     check("17 Fehler im Treffer-Score bricht den Lauf nicht ab", ok17)
 
-# ── 5) Anzeige ──────────────────────────────────────────────────────────────
-def row(t):
-    return gr._treffer_row_html({"treffer_score": t})
+# ── 5) Anzeige: dritte Säule ────────────────────────────────────────────────
+def pil(t):
+    return gr._treffer_pillar_html({"treffer_score": t})
 
 
-r1 = row({"wert": 13.6512, "rang": 2, "n_mit_wert": 10})
-check("18 Kartenzeile: ganze Prozent + Platz, Label voll", "+14 % · Platz 2 von 10" in r1
-      and "Treffer-Score (unvalidiert):" in r1 and "<strong" not in r1 and "<b>" not in r1)
-check("19 Rundung kaufmännisch, Minus, Null", "−3 %" in row({"wert": -2.5, "rang": 1, "n_mit_wert": 1})
-      and "0 %" in row({"wert": -0.4, "rang": 1, "n_mit_wert": 1}))
-r_none = row({"wert": None, "grund": "Tagesschluss fehlt"})
-check("20 ohne Wert „—“ mit Grund", '<span class="ts-val">—</span>' in r_none and "Tagesschluss fehlt" in r_none)
-check("21 Premarket: „Stand TT.MM.“", "Stand 15.09." in row({"wert": 1.0, "rang": 1, "n_mit_wert": 1,
-                                                             "datum": "2026-09-15", "aus_postclose": True}))
-check("22 Watchlist außerhalb Top-10 (kein Feld) → keine Zeile, kein Satz, kein Attribut",
-      gr._treffer_row_html({}) == "" and gr._treffer_detail_row_html({}) == ""
+p1 = pil({"wert": 12.4312, "rang": 3, "n_mit_wert": 10, "zeit": "11:42 Uhr"})
+check("18 Säule: „+12,4 %“, „Rang 3 von 10“, Schild, Label",
+      "+12,4 %" in p1 and "Rang 3 von 10" in p1 and gr.TREFFER_SCHILD in p1
+      and "UNVALIDIERT · TEST LÄUFT" in p1 and ">Treffer-Score<" in p1)
+check("19 Rundung eine Stelle, Minus, Null", "−2,5 %" in pil({"wert": -2.46, "rang": 1, "n_mit_wert": 1})
+      and "0,0 %" in pil({"wert": -0.04, "rang": 1, "n_mit_wert": 1}))
+import re as _re  # noqa: E402
+hi = pil({"wert": 85.0, "rang": 1, "n_mit_wert": 10})
+lo = pil({"wert": -60.0, "rang": 10, "n_mit_wert": 10})
+_strip = lambda h: _re.sub(r'class="treffer-value">[^<]*<', "", _re.sub(r"Rang \d+", "", h))  # noqa: E731
+check("19b Farbe hängt NICHT vom Wert ab (gleiches Markup bis auf Zahl/Rang, kein style, kein Balken)",
+      _strip(hi) == _strip(lo) and "style=" not in hi and "pillar-bar" not in hi
+      and "#22c55e" not in hi and "#ef4444" not in hi and "#f59e0b" not in hi)
+check("19c Säule ohne cockpit-pillar-value (S9 zählt genau 2 Säulen-Werte je Karte)",
+      "cockpit-pillar-value" not in hi and "cockpit-pillar-value" not in lo)
+r_none = pil({"wert": None, "grund": "zu_viele_fehlende_tage"})
+check("20 ohne Wert „—“ mit Grund, nie 0",
+      'treffer-value">—<' in r_none and "zu_viele_fehlende_tage" in r_none and "0,0" not in r_none)
+check("21 Abendwert: „Stand TT.MM.“", "Stand 15.09." in pil({"wert": 1.0, "rang": 1, "n_mit_wert": 1,
+                                                           "datum": "2026-09-15", "aus_postclose": True}))
+check("21b Watchlist: „Watchlist“ statt Rang",
+      "Watchlist" in pil({"wert": 3.0, "rang": None, "watchlist": True, "zeit": "11:42 Uhr"})
+      and 'class="treffer-sub">Rang' not in pil({"wert": 3.0, "rang": None, "watchlist": True}))
+check("22 ohne Feld → keine Säule, kein Satz, kein Attribut",
+      gr._treffer_pillar_html({}) == "" and gr._treffer_detail_row_html({}) == ""
       and gr._treffer_data_attr({}) == "")
-check("23 data-treffer = gespeicherter Wert (4 Stellen)",
-      gr._treffer_data_attr({"treffer_score": {"wert": 13.6512}}) == ' data-treffer="13.6512"')
-check("24 Detail-Satz mit Pflichttext + Premarket-Hinweis",
+check("23 data-treffer nur mit Rang (4 Stellen); Rückfall/Watchlist ohne",
+      gr._treffer_data_attr({"treffer_score": {"wert": 13.6512, "rang": 2}}) == ' data-treffer="13.6512"'
+      and gr._treffer_data_attr({"treffer_score": {"wert": 13.6512, "rang": None}}) == "")
+check("24 Detail-Satz mit Pflichttext (Gegenprobe, Kein Kaufsignal, neutrale Farbe)",
       all(x in gr.TREFFER_NOTE for x in ("Misst, ob die Leerverkäufer der letzten 20 Tage im Minus sitzen.",
-                                         "Vorläufiger Tageswert", "In Prüfung, Ergebnis ca. Februar 2027.",
-                                         "Kein Kaufsignal.", "damalige Top-10",
+                                         "In Prüfung, Ergebnis ca. Februar 2027.",
+                                         "Kein Kaufsignal.", "aktuellen Kurs", "Stand TT.MM.",
                                          "Gegenprobe an 30 anderen Aktien (2025/26): nicht bestätigt, "
                                          "dort zeigte der Wert in die Gegenrichtung. Richtung offen bis "
-                                         "zum Test."))
-      and gr.TREFFER_NOTE.endswith("Kein Kaufsignal."))
+                                         "zum Test.", "keine Ampel")))
+cp = gr._card_cockpit_html(0, {"ticker": "AA", "price": 1.0, "score": 70.0, "ki_signal_score": 40,
+                               "treffer_score": {"wert": 5.0, "rang": 1, "n_mit_wert": 1}})
+check("24b Cockpit: Säule unter KI in der Säulen-Spalte (Reihenfolge Setup, KI, Treffer)",
+      cp.index('data-sb="setup"') < cp.index('data-sb="ki"') < cp.index('data-sb="treffer"')
+      < cp.index('cockpit-donut-wrap') and "cockpit-treffer\"" not in cp)
 _panel_rows, _ = gr._score_confidence_rows_html({"setup": {"n": 5, "data_tier": "klein"}})
 _suw_li = next((li for li in _panel_rows.split("<li>") if "Treffer-Score (SUW)" in li), "")
 check("24b Panel-Zeile Treffer-Score (SUW) nennt die Gegenprobe (Halbsatz, ohne Zahl)",
@@ -235,7 +316,7 @@ other = [f for f in ("backtest_history.py", "matured_export.py", "score_inflatio
 check("26 Backtest/Export/KI-Agent/Freeze-Auswertung lesen Feld und Datei nie", other == [], str(other))
 i_conv = src_gr.index("apply_conviction_scores(top10, _anomalies_today")
 i_bt = src_gr.index("_n_backtest_appended = _append_backtest_entries(")
-i_ts = src_gr.index("_apply_treffer_score(top10, run_phase, _report_day)")
+i_ts = src_gr.index("_apply_treffer_score(top10, run_phase, _report_day,\n                         extra=_wl_outsiders_for_pool)")
 i_html = src_gr.index("html = generate_html(top10, report_date")
 check("27 Aufruf nach Conviction und Backtest-Append, vor generate_html", i_conv < i_bt < i_ts < i_html)
 

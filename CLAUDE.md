@@ -591,20 +591,26 @@ kein Sortieren.
   `_isNonTradingDay`), Tooltip: bester gemessener Stand ab Einstiegskurs,
   kein belegter Vorteil, Ausstiegsregel unbelegt.
 
-### Karten-Zeile „Treffer-Score (unvalidiert)“ (SUW-Schatten-Wert, seit 15.11.2026)
+### Karten-Säule „Treffer-Score“ (SUW-Schatten-Wert, seit 15.11.2026; Säule seit 23.11.2026)
 
-Zeile in voller Breite unter dem Block aus KI-Score und Conviction-Ring
-(`_treffer_row_html`, im Cockpit-Helper → v1 == v2), nur auf Top-10-Karten
-(Feld `s["treffer_score"]`; Watchlist außerhalb der Top-10 ohne Zeile). Grau,
-11 px, kein Fettdruck/Pfeil/Ampel; zwei nicht umbrechende Teile, unter 360 px
-zwei Zeilen reserviert. Wert = SUW aus `treffer_score.py` (Rechenkern
-`scripts/suw_eval.py`), nur im Postclose berechnet, immer vorläufig; sonst
-letzter Postclose-Wert aus `suw_daily.jsonl` mit „Stand TT.MM.“.
+Dritte Cockpit-Säule unter KI (`_treffer_pillar_html`, im Cockpit-Helper → v1 == v2),
+auf Top-10-Karten UND Watchlist-Karten außerhalb der Top-10 (Feld `s["treffer_score"]`).
+Wert groß mit Vorzeichen und einer Nachkommastelle („+12,4 %“), darunter „Rang x von N“
+(nur unter den Top-10 desselben Laufs) bzw. „Watchlist“, Schild „UNVALIDIERT · TEST LÄUFT“,
+Stand „vorläufig HH:MM Uhr“ (Berlin, wie die Kopfzeile) oder „Stand TT.MM.“. **Farbe:** eine
+neutrale Akzentfarbe (Violett, `--treffer-col`), unabhängig vom Wert — keine Ampel, kein
+Balken (Richtung offen bis zum Test; Hinweistext zur Gegenprobe im Tooltip/Detail).
+Wert = SUW aus `treffer_score.py` (Rechenkern `scripts/suw_eval.py`, keine zweite Formel):
+**Postclose** mit Tagesschluss, nur die Top-10 → `suw_daily.jsonl` (unverändert);
+**Vorschau-Lauf** mit dem aktuellen Kurs des Laufs als c_D (`intraday=True`), schreibt
+`suw_daily.jsonl` **nie**. Kein Tageswert → Rückfall auf den letzten Postclose-Wert desselben
+Tickers mit „Stand TT.MM.“, nur wenn höchstens 3 Handelstage alt (`RUECKFALL_MAX_HANDELSTAGE`),
+ohne Rang und ohne `data-treffer`; sonst „—“ mit Grund, nie 0.
 **Schatten-Wert:** nie in Score/Conviction/Filter/Auswahl/Reihenfolge/Backtest/
 Export lesen (Wächter `scripts/mock_test_treffer_score.py`); der SUW-Freeze-Test
 liest Feld und Datei nie. Sortier-Menü: vierter Eintrag `treffer`, nur Ansicht,
-**nie in localStorage gespeichert** (`_SORT_VIEW_ONLY`). Anzeige-Stufen-Regel:
-SESSION_HANDOVER §7·0.
+**nie in localStorage gespeichert** (`_SORT_VIEW_ONLY`), sortiert nur Werte mit Rang.
+Anzeige-Stufen-Regel: SESSION_HANDOVER §7·0.
 
 ### Pflege
 
