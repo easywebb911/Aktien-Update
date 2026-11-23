@@ -1,6 +1,6 @@
 ### 23.11.2026 — Treffer-Score als violette Kachel mit Tageswert (1 PR, Easy-Merge)
 
-- `#?` (Branch `claude/treffer-score-kachel-v8m4`, kein Merge-Hash — Regel a). Easy-Entscheid 23.11.2026.
+- `#762` (Branch `claude/treffer-score-kachel-v8m4`, kein Merge-Hash — Regel a). Easy-Entscheid 23.11.2026.
   Treffer-Score als dritte Cockpit-Säule unter KI (`_treffer_pillar_html`): „+12,4 %“, „Rang x von N“
   (nur Top-10 desselben Laufs) bzw. „Watchlist“, Schild „UNVALIDIERT · TEST LÄUFT“, Stand „vorläufig HH:MM Uhr“
   oder „Stand TT.MM.“; Violett (`--treffer-col`) unabhängig vom Wert, kein Balken. Vorschau-Lauf rechnet mit
