@@ -1,0 +1,59 @@
+Health-Check-Digest 2026-11-23 — vollständig (erstellt 2026-11-23 20:32 UTC)
+
+✅ Health-Check OK 2026-11-23
+24h ohne Fails. 4 Runs geprüft (Daily-Run + ki_agent).
+🟡 S11: kein echter premarket-Run (run_phase==tsp=='premarket') seit 8 Werktagen (Schwelle 5) — Cron-Drift/-Drop oder Sammlung gestorben
+🟡 +1 weitere warn (Details: health_check_log.jsonl)
+📊 Re-Test-Zähler (§4): n = 305/250 · Export 1447 Zeilen
+🧪 Freeze-Zähler: Setup/Conviction n = 180/250 · Rate 80 Zeilen/8 Handelstage (28T) · KI-Abdeckung (letzter Report-Tag) 10/10
+🔍 Wahrheits-Abgleich: 85 Zeilen · 0 Abweichung · 7 neu-adjustiert · 3 bekannt (geprüft) · 0 unbekannt (Yahoo 0, leer 0) · max |Δ| 0,52 pp · Score-Abgleich 1 Abend(e)/10 Zeilen: 0 mit |Δ| ≥ 0,5, Wechsel 70 0 (Info 0), Rangwechsel max 0
+🏛 Inst-Ownership: läuft · 382 Ticker · 2864 Punkte
+🎯 Options-OI: läuft · 2026-11-20: 10 Ticker mit Kette (von 10) · 221 gesamt · 734 Punkte
+📦 Options-Rohkette: läuft · 225 Ticker-Tage · letzter Tag 2026-11-20: 10 Ticker · Bid&Ask > 0 bei 27 von 28 ATM-nahen Strikes (±10 %)
+📈 Kursverlauf: läuft · 752 Zeilen · jüngster Einstieg 05.11.2026 · letzter Lauf 21.11.2026
+🕐 Minutenkurse: läuft · 260 Einstiege · jüngster Tag 1 19.11.2026 · letzter Lauf 20.11.2026 · 10 ohne Minuten
+🧾 Gewinn-Felder (letzter Bericht 20.11.): Überraschung 9/10 · letzter 8-K-Termin 0/10 · 8-K 14 Tage 0/10
+🕳 Halbzeilen (Kurs-Batch, letzte Zeile ohne Schluss): Premarket 23.11. 18:10 UTC 0,0 % — Hinweis, kein Alarm
+🧩 0 Einträge entfallen: Zeile nicht füllbar (24 h) · 0 in 7 Tagen
+📉 FTD: läuft (no_new_file) · neuestes File cnsfails202610b.zip · 58 Ticker · 396 Punkte · zuletzt verfügbar 2026-11-16
+📋 Reg-SHO: läuft · nasdaq=ok:1 nyse=ok:25 · heute 10 geprüft / 0 none · 734 Punkte
+📰 News-Abdeckung: letzter Lauf Top-10 9/10 · Watchlist 1/2 · Quelle yfinance 0 / RSS 50
+🗣 Reddit-Schatten (ApeWisdom): läuft · 1 Ticker · 1 Punkte
+📡 Abdeckung options_atm: letzter Lauf 5/5
+📡 Abdeckung earnings_date: letzter Lauf 10/10
+📡 Abdeckung earnings_surprise: letzter Lauf 10/10
+ℹ️ reddit_mentions: bekannt tot (siehe open_items: bekannt-tote-quellen-digest)
+ℹ️ fda_calendar: bekannt tot (siehe open_items: bekannt-tote-quellen-digest)
+ℹ️ openinsider: bekannt tot (siehe open_items: bekannt-tote-quellen-digest)
+📡 Abdeckung apewisdom_shadow: letzter Lauf 12/12
+📡 Abdeckungs-Übersicht: 0 von 4 Quellen unter Baseline · 3 bekannt tot (ausgenommen)
+🧪 Setup-Edge/Conviction: n = 180/250, ca. 10.0 Zeilen/Tag
+🧪 KI-Score: n = 180/250, ca. 10.0 Zeilen/Tag
+🧪 Exit-B.1 (§4) ausgewertet: exit_b1_a: nicht belegt (Haupt: Unklar, Sensitivität: Unklar); exit_b1_b: nicht belegt (Haupt: Unklar, Sensitivität: Unklar), Details in eval_results.jsonl
+🧪 SUW (Einstiegstage): n = 8/60
+📐 Treffer-Score: 10/10 mit Wert (Stand 20.11., vorläufig)
+🧾 Optionen Handelszeit (17.11.): Kette 9/10 · ATM-Paar 5/9 (56 %)
+🟡 Datenprüfung Short Float (20.11.): 1 von 10 auffällig (ABEO)
+🧾 Verwässerung: sammelt ab dem nächsten Postclose (noch kein Eintrag)
+🗂 Pool-Schatten: sammelt ab dem nächsten Postclose (noch keine Zeile)
+🤖 Haiku: 9/12 Parse-Fehler (letzter Lauf 18:12 UTC) · 24 h: 32/38 in 3 Läufen
+🗣 ApeWisdom-Schatten: 167/500 Top-10-Einstiege mit Abdeckungs-Angabe (Wiedervorlage bei 500)
+📅 Wochenübersicht:
+  📊 §4-Zähler: 274 → 305 (+31) von 250
+  🆕 Setup- und KI-Säule in Ampelfarben, obwohl „Test läuft“ (Anzeige-Stufe §7·0) — kein Bau (offen)
+  🆕 Datenprüfung Short Float/Aktienbasis: Häufigkeit auswerten, dann Filter-Entscheid (offen)
+  🆕 Health-Check-Digest startet 6–10 h nach dem Plan (08:47 UTC) (beobachtet)
+  🆕 EDGAR 8-K / Form 4 im KI-Agent: Totalausfall seit 16.11.2026 15:50 UTC (beobachtet)
+  🆕 KI-Score: vier belegte Schwächen — Reparatur erst nach Abschluss des KI-Score-Freeze (n = 250), als eine gemeinsame Score-Entscheidung (offen)
+  🆕 KI-Score: Kauf-Bonus (Form 4) und Stichwort-Bonus (8-K) greifen praktisch nie, weil die Titel feste Texte sind (offen)
+  🆕 Marktkapitalisierung unplausibel (FGL 16.11.): veraltete Aktienbasis — Wirkung auf die Liste belegt (offen)
+  🆕 Optionen in der Handelszeit: erster echter Lauf prüfen (offen)
+  🆕 Pool-Schatten: alle bewerteten Kandidaten je Postclose-Tag (Suchfeld Rang 11+) (offen)
+  🆕 13F-Abruf fragt browse-edgar mit count=3 ab (vermutlich HTTP 400) — nur relevant bei Reaktivierung (offen)
+  🆕 Feste Handelszeiten ohne verkürzte Handelstage (13:00 ET) — Anzeige/Zuordnung, kein Bau (offen)
+  🆕 Verwässerung (Aktienausgabe laut SEC): stilles Kennzeichen — Status SAMMLUNG, Regel noch Entwurf (offen)
+  🆕 Folgen des GitHub-Startverzugs: Premarket in der Handelszeit, Optionen-Slots verfehlt, S11 (offen)
+  ✅ Fix B: Wirkungsbeleg durch den Score-Abgleich (jetzt: erledigt)
+  ✅ Regel Stopp-10-Gegenprobe auf den Bootstrap-Einträgen (festgeschrieben vor der Rechnung) (jetzt: erledigt)
+🟡 Optionen Handelszeit: seit 4 Handelstagen keine Messung in der Handelszeit (letzte 17.11.)
+Letzter Run: 2026-11-23T18:12:06Z
