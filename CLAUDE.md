@@ -4287,7 +4287,7 @@ setzt ``sec_ok`` False. ``config.SEC_HEADERS`` liest den User-Agent aus dem Secr
 (HTTP 400 „Invalid count“, nur auf ``debug`` geloggt). Test ``scripts/mock_test_edgar_fix_a.py``.
 **Lehre (Easy 22.11.2026):** die SEC verlangt im User-Agent eine **echte, erreichbare
 Kontaktadresse** — eine anonyme GitHub-noreply-Adresse wurde mit HTTP 403 abgewiesen (alle
-SEC-Abrufe 20.11. ~11:00 bis 21.11.). Das Secret ``EDGAR_USER_AGENT`` trägt deshalb eine
+SEC-Abrufe 20.11. ~20:20 UTC, erster Lauf nach Fix (a), bis 21.11. 17:33 UTC). Das Secret ``EDGAR_USER_AGENT`` trägt deshalb eine
 Projekt-Adresse; Platzhalter (``example.com``) nur in Tests/Diagnose. Rest-Befund 21./22.11.:
 je Lauf 2/13 ``ParseError`` (VEEA, MPT) — ``browse-edgar?CIK=<Ticker>`` löst diese Ticker nicht
 auf, obwohl sie in ``company_tickers.json`` stehen (vermutlich HTML-Seite statt Atom, nicht direkt
