@@ -1,6 +1,6 @@
 ### 24.11.2026 — Fenster-Rollregel für die Edge-Suche festgeschrieben (1 PR, Easy-Merge)
 
-- `#?` (Branch `claude/fenster-rollregel-w7p2`, kein Merge-Hash — Regel a). Easy-Entscheid 24.11.2026, reine Doku.
+- `#764` (Branch `claude/fenster-rollregel-w7p2`, kein Merge-Hash — Regel a). Easy-Entscheid 24.11.2026, reine Doku.
   Neue feste Regel SESSION_HANDOVER §7·0b + Kurzfassung CLAUDE.md: Fenster zeitlich geteilt; Blindfenster 1 = Einstiege
   ≥ 24.10.2026; Stichtag 1 als Ereignis (alle Tests mit Blindheits-Wortlaut ausgewertet), ein einheitlicher Stichtag;
   danach Suchfeld mit Suchbudget 10 und Bestätigung auf Blindfenster N+1; Regel 7 a–d für lange Läufer. Pool-Schatten
