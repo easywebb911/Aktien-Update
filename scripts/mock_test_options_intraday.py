@@ -92,6 +92,13 @@ check("14 config: 27.11.2026 und 24.12.2026 eingetragen (13:00)",
       _cfg.US_EARLY_CLOSE_DAYS.get("2026-11-27") == "13:00"
       and _cfg.US_EARLY_CLOSE_DAYS.get("2026-12-24") == "13:00")
 
+check("14b alle Einträge sind gültige Handelstage (kein Wochenende, kein Feiertag), Format HH:MM",
+      all(O.is_trading_day(date.fromisoformat(k)) and len(v) == 5 and v[2] == ":"
+          for k, v in _cfg.US_EARLY_CLOSE_DAYS.items()))
+check("14c Liste 2026–2028 nach NYSE-Kalender (23.11.2026)",
+      sorted(_cfg.US_EARLY_CLOSE_DAYS) == ["2026-11-27", "2026-12-24", "2027-11-26",
+                                          "2028-07-03", "2028-11-24"])
+
 # ── 15) Warnung nach 3 Handelstagen ohne Messung ───────────────────────────
 from datetime import datetime as _dt, timezone as _tz  # noqa: E402
 

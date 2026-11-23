@@ -1806,15 +1806,20 @@ US_MARKET_HOLIDAYS = frozenset(
 # Verkürzte US-Handelstage (Easy-Entscheid 23.11.2026): {ISO-Datum: Schluss ET
 # "HH:MM"}. Wirkt AUSSCHLIESSLICH im Fenster-Gate von options_intraday
 # (Fensterende = Schluss − 30 min). Quelle: offizieller NYSE-Kalender
-# https://www.nyse.com/markets/hours-calendars („Early Closings“, 1:00 p.m. ET).
-# Die Seite war beim Eintragen aus der Sitzung NICHT erreichbar — eingetragen
-# sind nur die von Easy als sicher belegt genannten Tage; weitere Jahre erst
-# nach Abgleich mit der Quelle (nichts aus dem Gedächtnis). Fehlt für das
-# laufende Kalenderjahr ein Eintrag, meldet der Digest „Liste verkürzter
-# Handelstage veraltet“.
+# https://www.nyse.com/trade/hours-calendars („Early Closings“, 1:00 p.m. ET),
+# nachgeschlagen von Claude (claude.ai) am 23.11.2026, übergeben durch Easy.
+# EINSCHRÄNKUNG: gelesen wurden die Fußnoten, nicht die ganze Tabelle; für
+# 2027 nennt keine Fußnote einen weiteren verkürzten Tag (kein 24.12.2027 —
+# der ist voller Feiertag, Christmas observed, siehe US_MARKET_HOLIDAYS).
+# Aus der Code-Sitzung selbst war die Seite nicht erreichbar; nichts aus dem
+# Gedächtnis ergänzt. Fehlt für das laufende Kalenderjahr ein Eintrag, meldet
+# der Digest „Liste verkürzter Handelstage veraltet“.
 US_EARLY_CLOSE_DAYS: dict[str, str] = {
     "2026-11-27": "13:00",   # Tag nach Thanksgiving
     "2026-12-24": "13:00",   # Heiligabend
+    "2027-11-26": "13:00",   # Tag nach Thanksgiving
+    "2028-07-03": "13:00",   # Tag vor Independence Day
+    "2028-11-24": "13:00",   # Tag nach Thanksgiving
 }
 
 # ── Staleness-Banner (Frontend-Anzeige, Daily-Run-Frische) ───────────────────
