@@ -53,15 +53,88 @@ check("06 Samstag kein Handelstag", O.run_window_ok(at(date(2026, 11, 21), 16, 0
 
 # ── 2) Cron-Slots im Workflow ───────────────────────────────────────────────
 wf = (ROOT / ".github" / "workflows" / "options_intraday.yml").read_text(encoding="utf-8")
-crons = re.findall(r"cron:\s*'(\d+) (\d+) \* \* 1-5'", wf)
-check("07 drei werktägliche Cron-Slots", len(crons) == 3, str(crons))
-check("08 jeder Slot in Sommer- UND Winterzeit im Fenster",
-      all(O.run_window_ok(at(SUMMER, int(h), int(m)))[0] and O.run_window_ok(at(WINTER, int(h), int(m)))[0]
-          for m, h in crons))
+import yaml  # noqa: E402
+_wfy = yaml.safe_load(wf)
+_on = _wfy.get(True) or _wfy.get("on") or {}
+_wr = _on.get("workflow_run") or {}
+_names = set()
+for _f in (ROOT / ".github" / "workflows").glob("*.yml"):
+    _n = (yaml.safe_load(_f.read_text(encoding="utf-8")) or {}).get("name")
+    if _n:
+        _names.add(_n)
+check("07 Auslöser workflow_run nach Tageslauf + KI-Lauf, completed, nur main; kein Zeitplan mehr",
+      set(_wr.get("workflows") or []) == {"Daily Squeeze Report", "KI-Agent Squeeze Monitor"}
+      and _wr.get("types") == ["completed"] and _wr.get("branches") == ["main"]
+      and "schedule" not in _on and "workflow_dispatch" in _on, str(_on))
+check("08 die genannten Workflow-Namen existieren wirklich (Tippfehler = nie ausgelöst)",
+      {"Daily Squeeze Report", "KI-Agent Squeeze Monitor"} <= _names, str(sorted(_names)))
+check("08b Auslöser-Werte nur über env, nicht direkt im run-Text (keine Einschleusung)",
+      "${{ github.event.workflow_run" not in "\n".join(
+          l for l in wf.splitlines() if not l.strip().startswith("AUSLOESER_")))
 adds = {a.rstrip(";") for a in re.findall(r"git add (\S+)", wf)}
 check("09 Workflow committet nur die zwei eigenen Dateien",
       adds == {"options_intraday_state.json", "options_chain_intraday.jsonl"}, str(adds))
 check("10 kein Fehler-Verschlucken im Workflow", "|| true" not in wf and "2>/dev/null" not in wf)
+
+# ── 11) Verkürzte Handelstage (23.11.2026) ─────────────────────────────────
+EC = {"2026-11-27": "13:00", "2026-12-24": "13:00"}
+check("11 Fensterende an verkürztem Tag = Schluss − 30 min (12:30 ET)",
+      O.window_end_et(date(2026, 11, 27), EC) == (12, 30)
+      and O.window_end_et(date(2026, 11, 25), EC) == (15, 30))
+check("12 27.11.: 12:29 ET (17:29 UTC) im Fenster, 12:30 ET nach_fenster",
+      O.run_window_ok(at(date(2026, 11, 27), 17, 29), early_close=EC) == (True, "ok")
+      and O.run_window_ok(at(date(2026, 11, 27), 17, 30), early_close=EC) == (False, "nach_fenster"))
+check("13 normaler Tag unverändert bis 15:30 ET",
+      O.run_window_ok(at(date(2026, 11, 25), 20, 29), early_close=EC)[0]
+      and not O.run_window_ok(at(date(2026, 11, 25), 20, 30), early_close=EC)[0])
+import config as _cfg  # noqa: E402
+check("14 config: 27.11.2026 und 24.12.2026 eingetragen (13:00)",
+      _cfg.US_EARLY_CLOSE_DAYS.get("2026-11-27") == "13:00"
+      and _cfg.US_EARLY_CLOSE_DAYS.get("2026-12-24") == "13:00")
+
+# ── 15) Warnung nach 3 Handelstagen ohne Messung ───────────────────────────
+from datetime import datetime as _dt, timezone as _tz  # noqa: E402
+
+
+def _utc(y, mo, d, h, mi):
+    return _dt(y, mo, d, h, mi, tzinfo=_tz.utc)
+
+
+# letzte Messung Mi 25.11.; Do 26.11. Feiertag, Fr 27.11. verkürzt (zählt), Mo 30.11., Di 01.12.
+check("15 Feiertag zählt nicht: bis Mo 30.11. abends 2 verpasste Tage",
+      O.missed_trading_days("2026-11-25", _utc(2026, 12, 1, 2, 0), early_close=EC) == 2)
+check("16 heute zählt erst nach Fensterende (Di 01.12. 15:00 UTC = 10:00 ET → noch 2)",
+      O.missed_trading_days("2026-11-25", _utc(2026, 12, 1, 15, 0), early_close=EC) == 2)
+check("17 nach Fensterende Di 01.12. → 3",
+      O.missed_trading_days("2026-11-25", _utc(2026, 12, 1, 21, 0), early_close=EC) == 3)
+with tempfile.TemporaryDirectory() as _td:
+    _sp = pathlib.Path(_td) / "st.json"
+    _sp.write_text(json.dumps({"last_run_date": "2026-11-25"}))
+    _w2 = O.warn_lines(_sp, _utc(2026, 12, 1, 2, 0), early_close=EC)
+    _w3 = O.warn_lines(_sp, _utc(2026, 12, 1, 21, 0), early_close=EC)
+    check("18 Warnzeile erst ab 3 Handelstagen",
+          not any("keine Messung" in x for x in _w2)
+          and any("seit 3 Handelstagen keine Messung" in x and "25.11." in x for x in _w3), (_w2, _w3))
+    check("19 Liste verkürzter Tage veraltet → Warnung (kein Eintrag für 2027)",
+          any("veraltet" in x and "2027" in x
+              for x in O.warn_lines(_sp, _utc(2027, 1, 5, 21, 0), early_close=EC))
+          and not any("veraltet" in x for x in _w3))
+    check("20 State fehlt → „noch keine Messung“, kaputt → Warnung statt Stille",
+          any("noch keine Messung" in x for x in O.warn_lines(pathlib.Path(_td) / "x.json",
+                                                             _utc(2026, 12, 1, 21, 0), early_close=EC)))
+
+# ── 21) Obergrenze: höchstens eine Messung je Handelstag ───────────────────
+with tempfile.TemporaryDirectory() as _td:
+    (pathlib.Path(_td) / O.STATE_FILE).write_text(json.dumps({"last_run_date": "2026-11-25"}))
+    _calls = []
+    _st = O.run(now_utc=_utc(2026, 11, 25, 17, 0), root=_td,
+                ticker_factory=lambda t: _calls.append(t))
+    check("21 zweiter Auslöser am selben Handelstag: kein Abruf, State unverändert",
+          _calls == [] and _st.get("last_run_date") == "2026-11-25"
+          and not (pathlib.Path(_td) / O.DATA_FILE).exists())
+dg = (ROOT / "scripts" / "health_check_digest.py").read_text(encoding="utf-8")
+check("22 Digest hängt die Warnzeilen an die Alarmzeilen",
+      "options_intraday.warn_lines(" in dg and "list(_oi_warn)" in dg)
 
 # ── 3) Top-10-Quelle ────────────────────────────────────────────────────────
 bt = [

@@ -6,25 +6,28 @@ name: Optionen Handelszeit
 # options_chain_intraday.jsonl (nur angehängt) und options_intraday_state.json.
 # Die Nachtsammlung options_chain_raw.jsonl (Daily-Run) bleibt unverändert.
 #
-# Zeitplan (UTC, werktags), drei Slots — der erste erfolgreiche Lauf des Tages
-# sammelt, die übrigen sehen „heute schon gesammelt“ und enden ohne Abruf:
-#   15:07 UTC = 11:07 ET (Sommerzeit, EDT) / 10:07 ET (Winterzeit, EST)
-#   16:37 UTC = 12:37 ET / 11:37 ET
-#   18:07 UTC = 14:07 ET / 13:07 ET
-# Alle liegen in beiden Zeitzonen im Fenster 10:00–15:30 ET (≥ 30 min nach
-# Eröffnung, ≥ 30 min vor Schluss). Die späteren Slots fangen verspätete oder
-# gedropte GitHub-Läufe ab. Das Skript prüft selbst Handelstag (Wochenende,
-# config.US_MARKET_HOLIDAYS) und Fenster — an Feiertagen und bei zu später
-# Ausführung wird nichts abgerufen.
+# Auslöser (Easy-Entscheid 23.11.2026): NICHT mehr per Zeitplan. Die drei
+# früheren Slots (15:07/16:37/18:07 UTC) starteten bei GitHub erst 22:13–00:57
+# UTC und lagen nie im Fenster (Wächter 23.11.). Stattdessen startet dieser
+# Workflow nach JEDEM Ende (Erfolg oder Fehlschlag) des Tageslaufs „Daily
+# Squeeze Report“ und des „KI-Agent Squeeze Monitor“ auf main (workflow_run).
+# Beleg 09.–23.11.2026: Tageslauf allein endete an 8 von 11 Handelstagen im
+# Fenster, mit KI-Lauf an 11 von 11. Die beiden auslösenden Workflows bleiben
+# unverändert und warten nie auf diesen (getrennter Workflow, eigene
+# concurrency). Das Skript entscheidet selbst: nur an US-Handelstagen
+# (config.US_MARKET_HOLIDAYS), nur im Fenster 10:00–15:30 ET (an verkürzten
+# Tagen aus config.US_EARLY_CLOSE_DAYS bis Schluss − 30 min) und höchstens
+# EINE Messung je Handelstag (already_done) — alle übrigen Auslöser enden
+# nach wenigen Sekunden ohne Abruf.
 #
-# Rückweg: diese Datei + options_intraday.py per Revert entfernen; die
-# gesammelten Dateien dürfen liegen bleiben (kein Konsument außer dem Digest).
+# Rückweg: den PR revertieren (Zeitplan-Slots kehren zurück); die gesammelten
+# Dateien dürfen liegen bleiben (kein Konsument außer dem Digest).
 
 on:
-  schedule:
-    - cron: '7 15 * * 1-5'
-    - cron: '37 16 * * 1-5'
-    - cron: '7 18 * * 1-5'
+  workflow_run:
+    workflows: ["Daily Squeeze Report", "KI-Agent Squeeze Monitor"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -59,7 +62,15 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Optionen sammeln
-        run: python options_intraday.py
+        env:
+          AUSLOESER_EVENT: ${{ github.event_name }}
+          AUSLOESER_WORKFLOW: ${{ github.event.workflow_run.name }}
+          AUSLOESER_FAZIT: ${{ github.event.workflow_run.conclusion }}
+          AUSLOESER_EVENT_VORLAUF: ${{ github.event.workflow_run.event }}
+        run: |
+          # Beleg im Log: wer hat diesen Lauf ausgelöst (nur Namen, keine Daten).
+          echo "Auslöser: ${AUSLOESER_EVENT} ${AUSLOESER_WORKFLOW} (${AUSLOESER_EVENT_VORLAUF}, ${AUSLOESER_FAZIT})"
+          python options_intraday.py
 
       - name: Commit options_chain_intraday + state
         run: |
