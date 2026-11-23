@@ -1,6 +1,6 @@
 ### 23.11.2026 — Optionen Handelszeit: Auslöser nach Tages-/KI-Lauf, verkürzte Handelstage, Warnung (1 PR, Easy-Merge)
 
-- `#?` (Branch `claude/options-intraday-ausloeser-w5c3`, kein Merge-Hash — Regel a). Easy-Entscheid 23.11.2026
+- `#760` (Branch `claude/options-intraday-ausloeser-w5c3`, kein Merge-Hash — Regel a). Easy-Entscheid 23.11.2026
   (Wächter 23.11.: seit 17.11. keine Messung, Zeitplan-Slots starteten erst 22–01 UTC). `options_intraday.yml`:
   drei Zeitplan-Slots entfernt, neu `workflow_run` nach „Daily Squeeze Report“ und „KI-Agent Squeeze Monitor“
   (completed, main), Hand-Start bleibt; Auslöser steht im Log. Beleg 09.–23.11.: Laufende im Fenster an 11/11
