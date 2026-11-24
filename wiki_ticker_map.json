@@ -998,6 +998,15 @@
     "substrate": "en",
     "reason": null
   },
+  "GRRR": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-24T05:29:50Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Gorilla Technology Group Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "GTM": {
     "qid": "Q8074134",
     "title": "ZoomInfo",
@@ -2032,6 +2041,15 @@
     "company_name_at_resolve": "Vital Farms, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "VNET": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-24T05:29:50Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "VNET Group, Inc.",
+    "substrate": "none",
+    "reason": "issuer_mismatch"
   },
   "VOYG": {
     "qid": null,

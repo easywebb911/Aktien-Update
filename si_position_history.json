@@ -6264,6 +6264,12 @@
       "shares_short": 22784187,
       "short_pct_float": 25.85,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 19297522,
+      "short_pct_float": 21.51,
+      "pub_date": "2026-11-10"
     }
   ],
   "LESL": [
@@ -12327,6 +12333,12 @@
       "shares_short": 9797814,
       "short_pct_float": 20.37,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 10335632,
+      "short_pct_float": 21.4,
+      "pub_date": "2026-11-10"
     }
   ],
   "COHU": [
@@ -12773,6 +12785,21 @@
       "settlement_date": "2026-10-30",
       "shares_short": 30079190,
       "short_pct_float": 15.86,
+      "pub_date": "2026-11-10"
+    }
+  ],
+  "SMTK": [
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 18690,
+      "short_pct_float": null,
+      "pub_date": "2026-10-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 86462,
+      "short_pct_float": 35.64,
       "pub_date": "2026-11-10"
     }
   ]

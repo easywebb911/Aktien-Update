@@ -539,7 +539,7 @@
    ]
   },
   "GLOB": {
-   "abgerufen_utc": "2026-11-20T15:28:47+00:00",
+   "abgerufen_utc": "2026-11-24T05:29:41+00:00",
    "records": [
     {
      "bestand": 10995198,
@@ -577,7 +577,8 @@
      "settlement_date": "2026-08-14",
      "split": null
     }
-   ]
+   ],
+   "symbol_geprueft": true
   },
   "GRPN": {
    "abgerufen_utc": "2026-11-21T02:47:33+00:00",
@@ -619,6 +620,48 @@
      "split": null
     }
    ]
+  },
+  "GRRR": {
+   "abgerufen_utc": "2026-11-24T05:29:41+00:00",
+   "records": [
+    {
+     "bestand": 6641292,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 5970646,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 4844328,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 4896533,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 4822225,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 5122980,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ],
+   "symbol_geprueft": true
   },
   "IIIV": {
    "abgerufen_utc": "2026-11-18T15:41:08+00:00",
@@ -1363,6 +1406,48 @@
      "split": null
     }
    ]
+  },
+  "VNET": {
+   "abgerufen_utc": "2026-11-24T05:29:41+00:00",
+   "records": [
+    {
+     "bestand": 46026467,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 47966889,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 44027107,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 39568859,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 39560058,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    },
+    {
+     "bestand": 38349925,
+     "revision": null,
+     "settlement_date": "2026-08-14",
+     "split": null
+    }
+   ],
+   "symbol_geprueft": true
   },
   "VYX": {
    "abgerufen_utc": "2026-11-18T15:41:08+00:00",
