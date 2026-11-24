@@ -9942,8 +9942,8 @@ wächst immer ein unberührtes Feld nach. Ergänzt §7·0a; Zählerstände und W
 `fenster-rollregel`.
 
 1. **Fenster sind zeitlich geteilt** und gelten für alle Zeilen eines Tages gleich (Top-10-Zeilen in
-   Backtest/Export/`outcome_path`/Minutenkurse/Verwässerung **und** Pool-Schatten). Einzige Ausnahme:
-   Pool-Schatten Rang 11+ (Punkt 10).
+   Backtest/Export/`outcome_path`/Minutenkurse/Verwässerung **und** Pool-Schatten). Pool-Schatten Rang 11+
+   folgt ab Stichtag 1 derselben Teilung; bis dahin gilt Punkt 10.
 2. **Blindfenster N** = alle Einträge nach Stichtag N−1 (Blindfenster 1 = Einstiege ≥ 24.10.2026).
    Erlaubt: speichern, zählen und die Auswertung durch **vorab eingefrorene** Tests, jeweils auf Easys
    Entscheid. Prädiktorwerte dürfen angezeigt werden (z. B. Treffer-Score); Ergebnisfelder nicht. Nichts
@@ -9978,12 +9978,25 @@ wächst immer ein unberührtes Feld nach. Ergänzt §7·0a; Zählerstände und W
    darauf registrierten Bestätigungen ausgewertet sind.
 9. Das alte offene Fenster (Einstiege ≤ 23.10.2026) und die Bootstrap-Einträge bleiben wie in §7·0a
    geregelt.
-10. **Pool-Schatten Rang 11+ ist ab sofort „Pool-Schatten 1“** (Suchfeld, Regeln aus Punkt 4,
-    Suchbudget 10 nach Punkt 5). Ein Hinweis daraus darf nur auf **späteren Handelstagen** bestätigt
-    werden (Blindfenster N+1), **nie** auf Top-10-Zeilen derselben Tage (gleiche Tage = gleiche Marktlage).
-    Der Vergleich „Top-10 gegen Rang 11+“ braucht Top-10-Ergebnisse derselben Tage und ist deshalb **bis
-    zum Stichtag nicht erlaubt**. Zeilen mit `top10 = true` oder `watchlist_bypass = true` gehören nicht
-    zum Suchfeld.
+10. **Pool-Schatten Rang 11+** (Easy-Entscheid 24.11.2026). **„Pool-Schatten 1“** = Rang-11+-Zeilen vom
+    22.11.2026 bis Stichtag 1; ab Stichtag 1 beginnt **„Pool-Schatten 2“**, blind zusammen mit Blindfenster 2
+    (und so fort). Zeilen mit `top10 = true` oder `watchlist_bypass = true` gehören nie zum Suchfeld.
+    a) **Bis Stichtag 1 nur Merkmale und Zählungen** — **keine Folgekurse, Renditen oder Treffer, für keinen
+    Ticker.** Begründung: Ein Rang-11+-Ticker steht oft am Vor- oder Folgetag in den Top-10; seine Folgekurse
+    würden die Ergebnisse gesperrter Blindfenster-1-Zeilen fast offenlegen. Ein Ausschluss früherer
+    Top-10-Ticker ließe ein verzerrtes Restfeld (nur Ticker, die nie Top-10 waren) und bräuchte eine täglich
+    wachsende Ausschlussliste; die Sperre kostet praktisch nichts, weil eine Auswertung ohnehin rund 60
+    Handelstage braucht, die erst um den Stichtag vorliegen.
+    b) **Ab Stichtag 1:** Rendite-Erkundung auf Pool-Schatten 1 nach Punkt 4, Suchbudget 10 (Punkt 5).
+    Hinweise daraus werden auf **Blindfenster 2** bestätigt, nie auf Top-10-Zeilen derselben Tage (gleiche
+    Tage = gleiche Marktlage).
+    c) Der Vergleich „Top-10 gegen Rang 11+“ braucht Top-10-Ergebnisse derselben Tage und ist deshalb **bis
+    zum Stichtag nicht erlaubt**.
+11. **Kurslose Zählungen sind ab sofort erlaubt** (Easy-Entscheid 24.11.2026): Häufigkeiten und
+    Verteilungen von Merkmalen in Pool-Schatten **und** Top-10 — z. B. Formular-Zählung Verwässerung,
+    Häufigkeit „SUW-Tiefe > 0,5“, Gruppengrößen für Regel-Entwürfe („Zählung vor Rendite“). Ohne Kurse nach
+    dem Listentag, ohne Renditen, Treffer oder sonstige Ergebnisgrößen. Jede solche Zählung wird im open_item
+    `fenster-rollregel` vermerkt; sie zählt **nicht** gegen das Suchbudget.
 
 **Lesart der Freeze-Blöcke (unverändert):** „blind“ heißt dort „Einstiege ≥ 24.10.2026, zum
 Freeze-Zeitpunkt ungesehen“ = Blindfenster 1. Die Blöcke werden nicht geändert; diese Regel sorgt über

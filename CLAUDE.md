@@ -4925,13 +4925,15 @@ den Top-10 (Easy-Entscheid 21./22.11.2026, open_item `pool-schatten`).
 - **Digest:** „🗂 Pool-Schatten: läuft · letzter Tag · Zeilen · Kandidaten je Tag (Median)“
   (alle Monatsdateien); Warnzeile, wenn der jüngste Postclose-Tag aus `backtest_history.json`
   keine Zeilen hat (erst ab der ersten Zeile).
-- **NUTZUNGSREGEL:** Pool-Schatten Rang 11+ ist SUCHFELD „Pool-Schatten 1“ (Fenster-Rollregel
-  unten, Punkt 10; Suchbudget 10, Zähler im open_item `fenster-rollregel`). Zeilen mit
-  `top10 = true` gehören NICHT dazu (Blindfenster-Daten), ebenso `watchlist_bypass = true`.
-  Auswertungen nur mit vorab festgeschriebener Regel; Folgekurse erst nach Easys Freigabe; jeder
-  Fund ist „Hinweis, kein Beleg“ und braucht eine eingefrorene Bestätigung auf Top-10-Daten
-  **späterer** Handelstage (Blindfenster N+1), nie auf Top-10-Zeilen derselben Tage. Der Vergleich
-  „Top-10 gegen Rang 11+“ ist bis Stichtag 1 nicht erlaubt. Kein Konsument außer dem Digest.
+- **NUTZUNGSREGEL** (Fenster-Rollregel unten, Punkt 10/11): Rang-11+-Zeilen vom 22.11.2026 bis
+  Stichtag 1 = Suchfeld **„Pool-Schatten 1“**; ab Stichtag 1 beginnt „Pool-Schatten 2“, blind mit
+  Blindfenster 2. **Bis Stichtag 1 nur Merkmale und Zählungen — keine Folgekurse, Renditen oder
+  Treffer, für keinen Ticker** (kurslose Zählungen erlaubt, im open_item `fenster-rollregel`
+  vermerkt). Ab Stichtag 1 Rendite-Erkundung mit vorab festgeschriebener Regel, Suchbudget 10;
+  jeder Fund ist „Hinweis, kein Beleg“ und braucht eine eingefrorene Bestätigung auf Blindfenster 2,
+  nie auf Top-10-Zeilen derselben Tage. Der Vergleich „Top-10 gegen Rang 11+“ ist bis Stichtag 1
+  nicht erlaubt. Zeilen mit `top10 = true` (Blindfenster-Daten) oder `watchlist_bypass = true`
+  gehören nie dazu. Kein Konsument außer dem Digest.
 - Test `scripts/mock_test_pool_schatten.py`. **Rückweg:** Revert; `pool_schatten/` bleibt liegen.
 
 ## Gewinn-Felder im Backtest (seit 14.11.2026)
@@ -5007,8 +5009,12 @@ Wiedervorlage im open_item `fenster-rollregel`. Kurz:
   eine eingefrorene Bestätigung auf Blindfenster N+1.
 - Tests über den Stichtag hinaus laufen unverändert; keine Protokoll-/Erratum-Änderung nach Einsicht
   (außer technisch, Easy-Entscheid, Vermerk), kein Ermessen beim Lauf, Vermerk-Pflicht für lange Läufer.
-- **Pool-Schatten Rang 11+ = „Pool-Schatten 1“** ab sofort (Suchbudget 10); Bestätigung nur auf späteren
-  Handelstagen; „Top-10 gegen Rang 11+“ bis Stichtag 1 nicht erlaubt.
+- **Pool-Schatten 1** = Rang-11+-Zeilen 22.11.2026 bis Stichtag 1: bis Stichtag 1 **nur Merkmale und
+  Zählungen, keine Folgekurse/Renditen/Treffer**; ab Stichtag 1 Rendite-Erkundung (Suchbudget 10),
+  Bestätigung auf Blindfenster 2; „Top-10 gegen Rang 11+“ bis Stichtag 1 nicht erlaubt. Danach
+  Pool-Schatten 2, blind mit Blindfenster 2.
+- **Kurslose Zählungen** (Häufigkeiten/Verteilungen von Merkmalen in Pool-Schatten und Top-10) sind ab
+  sofort erlaubt, werden im open_item `fenster-rollregel` vermerkt und zählen nicht gegen das Suchbudget.
 - Freeze-Blöcke bleiben unverändert („blind“ dort = Blindfenster 1).
 
 ## Totmann-Signal an healthchecks.io (seit 02.11.2026)
