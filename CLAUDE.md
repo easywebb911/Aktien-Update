@@ -4752,8 +4752,9 @@ Schluss D; Gipfel-Bericht 11.11.2026). Zielfeld der Vorabregistrierung
 - **Datei** append-only, kein Prune, atomar (tmp + replace); ~12 600 Zeilen / ~15 MB in
   5 Jahren. Schreibt NIE in `matured_backtest_export.jsonl`. State `outcome_path_state.json`
   (nur Zählungen), Digest-Zeile „📈 Kursverlauf“ (läuft / noch nie / kaputt-überfällig).
-- **BLINDHEIT:** Einstiege ≥ 24.10.2026 werden nur geschrieben (und nur, wenn der
-  Freeze-Block im Handover steht), nie ausgewertet, gezählt nach Ergebnis oder angezeigt.
+- **BLINDHEIT:** Einstiege ≥ 24.10.2026 (Blindfenster 1, Fenster-Rollregel unten) werden nur
+  geschrieben (und nur, wenn der Freeze-Block im Handover steht), nie ausgewertet, gezählt nach Ergebnis
+  oder angezeigt — außer durch vorab eingefrorene Tests; ab Stichtag 1 gilt die Fenster-Rollregel.
   Log/State/Digest enthalten keine Kennzahl. Kein Score-/Filter-/Push-/Anzeige-Effekt.
 - Test `scripts/mock_test_outcome_path.py` (inkl. MD5-Pin des Freeze-Blocks).
   **Rückweg:** Merge revertieren (Freeze-Revert wird im Block protokolliert); Datei und
@@ -4786,7 +4787,7 @@ Hoch/Tief passen zur Tageszeile, der letzte Minutenkurs ist NICHT der Schlusskur
   `minute_bars_state.json` (nur Zählungen); Digest-Zeile „🕐 Minutenkurse“ (läuft / noch nie /
   kaputt-überfällig).
 - **Keine Auswertung:** kein Score-/Ranking-/Push-/Anzeige-Effekt; Einstiege ≥ 24.10.2026 nur
-  speichern (open_item `blindes-fenster-keine-weiteren-tests`). Test
+  speichern (Blindfenster 1, Fenster-Rollregel unten; open_item `blindes-fenster-keine-weiteren-tests`). Test
   `scripts/mock_test_minute_bars.py`. **Rückweg:** Workflow per PR entfernen; Daten können
   gelöscht werden, keine Bestandsdatei berührt.
 
@@ -4924,10 +4925,15 @@ den Top-10 (Easy-Entscheid 21./22.11.2026, open_item `pool-schatten`).
 - **Digest:** „🗂 Pool-Schatten: läuft · letzter Tag · Zeilen · Kandidaten je Tag (Median)“
   (alle Monatsdateien); Warnzeile, wenn der jüngste Postclose-Tag aus `backtest_history.json`
   keine Zeilen hat (erst ab der ersten Zeile).
-- **NUTZUNGSREGEL:** Pool-Schatten ist SUCHFELD. Zeilen mit `top10 = true` gehören NICHT dazu
-  (Blindfenster-Daten), ebenso `watchlist_bypass = true`. Auswertungen nur mit vorab
-  festgeschriebener Regel; Folgekurse erst nach Easys Freigabe; jeder Fund ist „Hinweis,
-  kein Beleg“ und braucht eine Bestätigung auf Top-10-Daten. Kein Konsument außer dem Digest.
+- **NUTZUNGSREGEL** (Fenster-Rollregel unten, Punkt 10/11): Rang-11+-Zeilen vom 22.11.2026 bis
+  Stichtag 1 = Suchfeld **„Pool-Schatten 1“**; ab Stichtag 1 beginnt „Pool-Schatten 2“, blind mit
+  Blindfenster 2. **Bis Stichtag 1 nur Merkmale und Zählungen — keine Folgekurse, Renditen oder
+  Treffer, für keinen Ticker** (kurslose Zählungen erlaubt, im open_item `fenster-rollregel`
+  vermerkt). Ab Stichtag 1 Rendite-Erkundung mit vorab festgeschriebener Regel, Suchbudget 10;
+  jeder Fund ist „Hinweis, kein Beleg“ und braucht eine eingefrorene Bestätigung auf Blindfenster 2,
+  nie auf Top-10-Zeilen derselben Tage. Der Vergleich „Top-10 gegen Rang 11+“ ist bis Stichtag 1
+  nicht erlaubt. Zeilen mit `top10 = true` (Blindfenster-Daten) oder `watchlist_bypass = true`
+  gehören nie dazu. Kein Konsument außer dem Digest.
 - Test `scripts/mock_test_pool_schatten.py`. **Rückweg:** Revert; `pool_schatten/` bleibt liegen.
 
 ## Gewinn-Felder im Backtest (seit 14.11.2026)
@@ -4979,13 +4985,37 @@ Easy-Entscheid 22.11.2026, protected-ok b). Modul `verwaesserung.py` (pure), Que
   alle unbekannt → Warnzeile in den Alarmzeilen. Pool-Schatten-Zeile zählt „CIK x/y (fehlt: …)“.
 - **NUTZUNGSREGEL:** Status SAMMLUNG. Keine Auswertung gegen Kurse/Treffer ohne Easys ausdrücklichen
   Entscheid und vorab festgeschriebene Regel; Top-10-Zeilen sind Blindfenster-Daten (nur speichern
-  und zählen); kein Score-Input (Look-ahead-Konvention wie `material_8k_events`); keine Anzeige.
+  und zählen; Fenster-Rollregel unten); kein Score-Input (Look-ahead-Konvention wie `material_8k_events`); keine Anzeige.
   Details, Einwand zur 424B5-Regel und Wiedervorlage: open_item `verwaesserung-sammlung`.
 - **Raise-frei:** `build()`/`log_line()` fangen jede unerwartete Ausnahme im Modul ab → null-Block mit
   `grund = "interner_fehler: <Typ>"` + Log-Warnung (die Eintrags-Schleife in `_append_backtest_entries`
   hat keinen äußeren Schutz); im Digest unbekannt mit Grund, bei Auftreten Warnzeile.
 - Test `scripts/mock_test_verwaesserung.py`. **Rückweg:** Revert; das Feld ist ein benannter Schlüssel
   und einzeln entfernbar (Muster `purge_material_8k_events`).
+
+## Fenster-Rollregel für die Edge-Suche (seit 24.11.2026)
+
+Volltext: SESSION_HANDOVER §7·0b (Easy-Entscheid 24.11.2026); Zähler, Mehrfachtest-Zählung und
+Wiedervorlage im open_item `fenster-rollregel`. Kurz:
+
+- Fenster sind **zeitlich** geteilt und gelten für alle Zeilen eines Tages gleich. **Blindfenster 1** =
+  Einstiege ≥ 24.10.2026: nur speichern, zählen, Auswertung durch vorab eingefrorene Tests;
+  Prädiktorwerte dürfen angezeigt werden, Ergebnisfelder nicht.
+- **Stichtag 1 ist ein Ereignis:** alle Tests mit Blindheits-Wortlaut ausgewertet (Paper C Replikation,
+  Paper C handelbar, Hypothesen Stufe 2, H-I Rendite, K1/K2, SUW); Easy bestätigt das Datum. Ein
+  einheitlicher Stichtag, keine Teilöffnung.
+- Danach wird Blindfenster N zu **Suchfeld N**: Regeltext vorher pushen, eine Rechnung je Regel, Zählung
+  vor Rendite, Hälften-Regel, „Hinweis, kein Beleg“; **Suchbudget 10** je Suchfeld; jeder Hinweis braucht
+  eine eingefrorene Bestätigung auf Blindfenster N+1.
+- Tests über den Stichtag hinaus laufen unverändert; keine Protokoll-/Erratum-Änderung nach Einsicht
+  (außer technisch, Easy-Entscheid, Vermerk), kein Ermessen beim Lauf, Vermerk-Pflicht für lange Läufer.
+- **Pool-Schatten 1** = Rang-11+-Zeilen 22.11.2026 bis Stichtag 1: bis Stichtag 1 **nur Merkmale und
+  Zählungen, keine Folgekurse/Renditen/Treffer**; ab Stichtag 1 Rendite-Erkundung (Suchbudget 10),
+  Bestätigung auf Blindfenster 2; „Top-10 gegen Rang 11+“ bis Stichtag 1 nicht erlaubt. Danach
+  Pool-Schatten 2, blind mit Blindfenster 2.
+- **Kurslose Zählungen** (Häufigkeiten/Verteilungen von Merkmalen in Pool-Schatten und Top-10) sind ab
+  sofort erlaubt, werden im open_item `fenster-rollregel` vermerkt und zählen nicht gegen das Suchbudget.
+- Freeze-Blöcke bleiben unverändert („blind“ dort = Blindfenster 1).
 
 ## Totmann-Signal an healthchecks.io (seit 02.11.2026)
 
