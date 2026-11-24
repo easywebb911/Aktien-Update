@@ -1,12 +1,12 @@
 {
-  "entry_date": "2026-11-16",
-  "erwartet_entry_date": "2026-11-16",
-  "last_run_date": "2026-11-17",
-  "last_run_utc": "2026-11-17T19:33:50.074160+00:00",
-  "n_pair_ok": 5,
+  "entry_date": "2026-11-23",
+  "erwartet_entry_date": "2026-11-23",
+  "last_run_date": "2026-11-24",
+  "last_run_utc": "2026-11-24T17:46:49.080755+00:00",
+  "n_pair_ok": 9,
   "n_tickers": 10,
-  "n_with_chain": 9,
+  "n_with_chain": 10,
   "status": "fertig",
-  "tag10": "2026-12-01",
+  "tag10": "2026-12-08",
   "top10_aktuell": true
 }
