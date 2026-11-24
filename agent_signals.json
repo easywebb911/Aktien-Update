@@ -1,17 +1,17 @@
 {
-  "updated": "2026-11-24T06:31:10.854169+01:00",
+  "updated": "2026-11-24T07:03:34.363764+01:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 9.7,
+    "elapsed_s": 8.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 20,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 8.6% + UOA Call/Put 14.4×",
+      "drivers": "Spanne 8.6% + News: earnings beat + UOA Call/Put 14.4×",
       "price": 2.86,
       "chg_pct": -0.0,
       "rvol_4d": 1.02,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -55,13 +55,13 @@
       "uoa_cp_ratio": 303.0
     },
     "FLNC": {
-      "score": 23,
-      "confidence": 17,
-      "drivers": "SEC 8-K + News-KI 8/30: Negative earnings miss and losses suggest weak fundamentals and limited institutional support, making a short squeeze un",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 8.4% + SEC 8-K",
       "price": 3.8,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.45,
+      "rvol_20d": 1.46,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -69,16 +69,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.2675129290079925
     },
     "GLOB": {
-      "score": 25,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 10.1% + News-KI 5/30: Positive fundamental news and AI growth outlook attract long-term investors, but lack catalyst for short squeeze pressur + UOA Call/Put 7.8×",
+      "drivers": "Spanne 10.1% + UOA Call/Put 7.8×",
       "price": 45.57,
       "chg_pct": -0.0,
       "rvol_4d": 0.8,
@@ -90,7 +90,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.8×"
@@ -99,9 +99,9 @@
       "uoa_cp_ratio": 7.765625
     },
     "GRRR": {
-      "score": 35,
+      "score": 47,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 34.3% + UOA Call/Put 4.6×",
+      "drivers": "Volumen 1.9× + Spanne 34.3% + News-KI 12/30: Positive sustainability award is overshadowed by analyst downgrade citing market uncertainty and lowered valuation targe + UOA Call/Put 4.6×",
       "price": 7.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.91,
@@ -112,8 +112,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.6×"
@@ -189,9 +189,9 @@
       "uoa_cp_ratio": 0.6867469879518072
     },
     "VEEA": {
-      "score": 62,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 10.1% + News-KI 12/30: Positive business developments and partnerships, but no short squeeze indicators (high short interest, gamma dynamics, o + FINRA Short-Vol 100%",
+      "drivers": "Volumen 1.6× + Spanne 10.1% + News: merger + FINRA Short-Vol 100%",
       "price": 4.61,
       "chg_pct": 0.0,
       "rvol_4d": 1.57,
@@ -203,16 +203,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "VNET": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 14.7%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 14.7% + News-KI 8/30: Earnings miss with loss and mixed revenue results indicates weak fundamental momentum, reducing short-squeeze potential.",
       "price": 2.54,
       "chg_pct": -0.0,
       "rvol_4d": 1.49,
@@ -224,7 +224,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
