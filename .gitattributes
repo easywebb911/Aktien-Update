@@ -33,3 +33,7 @@ health_check_log.jsonl        merge=union
 provider_health.jsonl         merge=union
 finra_history_health.jsonl    merge=union
 vintage_guard_log.jsonl       merge=union
+# coverage_history.jsonl: zwei Schreiber (Daily-Run + KI-Agent), reiner Append
+# (health_check.persist_coverage_row, open "a", kein Prune) — Konflikt-Abbruch
+# des Premarket-Laufs 24.11.2026 (Run 45452185706) bei gleichzeitigem KI-Tick.
+coverage_history.jsonl        merge=union

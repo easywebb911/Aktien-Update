@@ -21,12 +21,14 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 #   score_inflation_log.py:240  · health_check.py:1063 (record_run)
 #   health_check.py:1231 (record_provider_call → provider_health + finra)
 #   backtest_history.py:575 (_log_vintage_skip)
+#   health_check.persist_coverage_row (coverage_history, Daily-Run + KI-Agent)
 UNION_FILES = [
     "score_inflation_log.jsonl",
     "health_check_log.jsonl",
     "provider_health.jsonl",
     "finra_history_health.jsonl",
     "vintage_guard_log.jsonl",
+    "coverage_history.jsonl",
 ]
 
 # Full-Rewrite / keyed Re-Write (open(..., "w"), exit_shadow.py:178) — union
