@@ -1,11 +1,11 @@
 {
-  "updated": "2026-11-25T05:34:19.531617+01:00",
+  "updated": "2026-11-25T13:56:39.890963+01:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 0,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 11.8,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 8.9,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -16,7 +16,7 @@
       "chg_pct": 0.0,
       "rvol_4d": 1.07,
       "rvol_20d": 1.06,
-      "earnings": "in 91 Tagen (23.02.2027)",
+      "earnings": "in 90 Tagen (23.02.2027)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -28,7 +28,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.0×"
       ],
-      "uoa_atm_ratio": 0.8356396290298838,
+      "uoa_atm_ratio": 1.0769814542522411,
       "uoa_cp_ratio": 6.049904761904762
     },
     "ANAB": {
@@ -49,7 +49,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.06569343065693431,
+      "uoa_atm_ratio": 0.06338028169014084,
       "uoa_cp_ratio": 1.9090909090909092
     },
     "ANNX": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 2.6837837837837837
     },
     "CCCC": {
-      "score": 44,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 22.2% + News: short interest",
+      "drivers": "Volumen 2.2× + Spanne 22.2% + News-KI 8/30: Moderate price movement without catalyst, but no concrete short squeeze indicators like high short interest, low float, ",
       "price": 3.1,
       "chg_pct": -0.0,
       "rvol_4d": 2.2,
@@ -88,12 +88,12 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.3920792079207921,
+      "uoa_atm_ratio": 0.3108320251177394,
       "uoa_cp_ratio": 1.1406593406593406
     },
     "FDMT": {
@@ -125,7 +125,7 @@
       "chg_pct": -0.0,
       "rvol_4d": 4.57,
       "rvol_20d": 5.21,
-      "earnings": "in 71 Tagen (03.02.2027)",
+      "earnings": "in 70 Tagen (03.02.2027)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -135,13 +135,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 1.0792540792540792,
+      "uoa_atm_ratio": 1.0902668759811618,
       "uoa_cp_ratio": 1.742486741308191
     },
     "GOSS": {
-      "score": 48,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 20.3% + News-KI 8/30: Negative analyst sentiment on drug timeline delays and valuation cuts indicate fundamental weakness, not short-squeeze s + FINRA Short-Vol 67%",
+      "drivers": "Volumen 2.2× + Spanne 20.3% + FINRA Short-Vol 67%",
       "price": 13.01,
       "chg_pct": 0.0,
       "rvol_4d": 2.19,
@@ -153,16 +153,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "GRRR": {
-      "score": 52,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 30.1% + News-KI 12/30: Positive CEO recognition lacks market catalyst strength, while analyst downgrade and valuation concerns signal weak near + UOA Call/Put 3.7×",
+      "drivers": "Volumen 2.0× + Spanne 30.1% + UOA Call/Put 3.7×",
       "price": 8.53,
       "chg_pct": -0.0,
       "rvol_4d": 2.02,
@@ -172,20 +172,20 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.7×"
       ],
-      "uoa_atm_ratio": 2.0074812967581046,
+      "uoa_atm_ratio": 0.8665231431646933,
       "uoa_cp_ratio": 3.6586402266288953
     },
     "INBX": {
-      "score": 18,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 11.9% + News-KI 8/30: Clinical updates and earnings reports are fundamentally positive but lack the high short interest, low float, and extrem",
+      "drivers": "Spanne 11.9% + News: insider buying",
       "price": 77.8,
       "chg_pct": 0.0,
       "rvol_4d": 1.19,
@@ -196,11 +196,11 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 1.25,
+      "uoa_atm_ratio": 0.625,
       "uoa_cp_ratio": 0.4230769230769231
     },
     "NGNE": {
@@ -248,9 +248,9 @@
       "uoa_cp_ratio": 46.73913043478261
     },
     "VEEA": {
-      "score": 68,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 6.7× + 🚀 Massives Volumen 6.7×+ + Spanne 36.7% + News-KI 12/30: Positive business developments and partnerships, but no clear short-squeeze indicators such as high short interest, low ",
+      "drivers": "Volumen 6.7× + 🚀 Massives Volumen 6.7×+ + Spanne 36.7% + News: merger",
       "price": 5.92,
       "chg_pct": 0.0,
       "rvol_4d": 6.67,
@@ -262,21 +262,21 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "WOLF": {
-      "score": 50,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 12.1% + News: short interest, catalyst + UOA Call-Vol/OI 4.3× ATM",
+      "drivers": "Spanne 12.1% + News: short interest, catalyst",
       "price": 18.2,
       "chg_pct": 0.0,
       "rvol_4d": 1.38,
       "rvol_20d": 1.25,
-      "earnings": "in 71 Tagen (03.02.2027)",
+      "earnings": "in 70 Tagen (03.02.2027)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -284,11 +284,9 @@
       "combo_mult": 1.0,
       "active_triggers": 1,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call-Vol/OI 4.3× ATM"
-      ],
-      "uoa_atm_ratio": 4.300699300699301,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.9262048192771084,
       "uoa_cp_ratio": 0.20955590800951626
     }
   }
