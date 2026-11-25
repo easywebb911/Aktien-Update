@@ -155,6 +155,15 @@ Anker.
 
 *(Einträge ab 17.11.2026 kommen aus `handover_eintraege/` (eine Datei je PR), neueste zuerst; ältere Einträge stehen darunter.)*
 
+### 25.11.2026 — [Wächter] coverage_history.jsonl auf merge=union (1 PR, Self-Merge)
+
+- `#765` (Branch `claude/waechter-coverage-union-k7m2`, kein Merge-Hash — Regel a). Täglicher Wächter-Lauf.
+  Befund: Premarket 24.11.2026 (Run 45452185706) brach beim Commit ab — Rebase-Konflikt in
+  `coverage_history.jsonl` mit dem KI-Agent-Lauf 17:45 UTC; der Workflow-Auflöser behandelt nur `*.json`.
+  Fix: `.gitattributes` + `coverage_history.jsonl merge=union` (reiner Append, `persist_coverage_row`, kein Prune,
+  zwei Schreiber); Test `mock_test_gitattributes_union_merge.py` ergänzt. Kein Workflow, keine Funktion, keine Daten.
+  Rückweg: Revert.
+
 ### 24.11.2026 — Fenster-Rollregel für die Edge-Suche festgeschrieben (1 PR, Easy-Merge)
 
 - `#764` (Branch `claude/fenster-rollregel-w7p2`, kein Merge-Hash — Regel a). Easy-Entscheid 24.11.2026, reine Doku.
