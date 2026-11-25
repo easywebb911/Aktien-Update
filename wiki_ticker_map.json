@@ -980,6 +980,15 @@
     "substrate": "en",
     "reason": null
   },
+  "GOSS": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-25T04:33:13Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Gossamer Bio, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "GPRO": {
     "qid": "Q733482",
     "title": "GoPro",
@@ -1573,6 +1582,15 @@
     "company_name_at_resolve": "United Parks & Resorts Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "PRLD": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-25T04:33:13Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Prelude Therapeutics Incorporated",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "PRTA": {
     "qid": null,
