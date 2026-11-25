@@ -684,3 +684,6 @@
 {"date":"2026-11-25","run_phase":"ki_agent_tick","quelle":"reddit_mentions","tick_hour":"17","ts_utc":"2026-11-25T17:16:35.926465+00:00","n_erwartet":12,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"RuntimeError":12}}
 {"date":"2026-11-25","run_phase":"ki_agent_tick","quelle":"fda_calendar","tick_hour":"17","ts_utc":"2026-11-25T17:16:35.929182+00:00","n_erwartet":1,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"HTTPError":1}}
 {"date":"2026-11-25","run_phase":"ki_agent_tick","quelle":"openinsider","tick_hour":"17","ts_utc":"2026-11-25T17:16:35.931811+00:00","n_erwartet":12,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"ConnectionError":12}}
+{"date":"2026-11-25","run_phase":"ki_agent_tick","quelle":"reddit_mentions","tick_hour":"22","ts_utc":"2026-11-25T22:33:12.176787+00:00","n_erwartet":12,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"RuntimeError":12}}
+{"date":"2026-11-25","run_phase":"ki_agent_tick","quelle":"fda_calendar","tick_hour":"22","ts_utc":"2026-11-25T22:33:12.179112+00:00","n_erwartet":1,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"HTTPError":1}}
+{"date":"2026-11-25","run_phase":"ki_agent_tick","quelle":"openinsider","tick_hour":"22","ts_utc":"2026-11-25T22:33:12.181289+00:00","n_erwartet":12,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"ConnectionError":12}}
