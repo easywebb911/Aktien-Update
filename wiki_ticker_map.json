@@ -386,6 +386,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "BYND": {
+    "qid": "Q18205509",
+    "title": "Beyond_Meat",
+    "resolved_at": "2026-11-26T03:45:51Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Beyond Meat, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "CABA": {
     "qid": null,
     "title": null,

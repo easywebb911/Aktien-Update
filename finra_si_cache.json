@@ -84,7 +84,7 @@
    ]
   },
   "AMC": {
-   "abgerufen_utc": "2026-11-25T04:33:03+00:00",
+   "abgerufen_utc": "2026-11-26T03:45:40+00:00",
    "records": [
     {
      "bestand": 35630325,
@@ -793,7 +793,7 @@
    ]
   },
   "FLNC": {
-   "abgerufen_utc": "2026-11-25T04:33:03+00:00",
+   "abgerufen_utc": "2026-11-26T03:45:40+00:00",
    "records": [
     {
      "bestand": 40730214,
@@ -918,7 +918,7 @@
    "symbol_geprueft": true
   },
   "GOSS": {
-   "abgerufen_utc": "2026-11-25T04:33:03+00:00",
+   "abgerufen_utc": "2026-11-26T03:45:40+00:00",
    "records": [
     {
      "bestand": 1367530,
@@ -1499,6 +1499,48 @@
     }
    ]
   },
+  "PAR": {
+   "abgerufen_utc": "2026-11-26T03:45:40+00:00",
+   "records": [
+    {
+     "bestand": 9152110,
+     "revision": null,
+     "settlement_date": "2026-11-13",
+     "split": null
+    },
+    {
+     "bestand": 8750545,
+     "revision": null,
+     "settlement_date": "2026-10-30",
+     "split": null
+    },
+    {
+     "bestand": 8882685,
+     "revision": null,
+     "settlement_date": "2026-10-15",
+     "split": null
+    },
+    {
+     "bestand": 8334742,
+     "revision": null,
+     "settlement_date": "2026-09-30",
+     "split": null
+    },
+    {
+     "bestand": 9044818,
+     "revision": null,
+     "settlement_date": "2026-09-15",
+     "split": null
+    },
+    {
+     "bestand": 9172418,
+     "revision": null,
+     "settlement_date": "2026-08-31",
+     "split": null
+    }
+   ],
+   "symbol_geprueft": true
+  },
   "PCT": {
    "abgerufen_utc": "2026-11-23T18:11:02+00:00",
    "records": [
@@ -1833,7 +1875,7 @@
    "symbol_geprueft": true
   },
   "VEEA": {
-   "abgerufen_utc": "2026-11-25T04:33:03+00:00",
+   "abgerufen_utc": "2026-11-26T03:45:40+00:00",
    "records": [
     {
      "bestand": 195779,
@@ -1958,8 +2000,14 @@
    "symbol_geprueft": true
   },
   "VYX": {
-   "abgerufen_utc": "2026-11-18T15:41:08+00:00",
+   "abgerufen_utc": "2026-11-26T03:45:40+00:00",
    "records": [
+    {
+     "bestand": 26919206,
+     "revision": null,
+     "settlement_date": "2026-11-13",
+     "split": null
+    },
     {
      "bestand": 30217395,
      "revision": null,
@@ -1989,14 +2037,9 @@
      "revision": null,
      "settlement_date": "2026-08-31",
      "split": null
-    },
-    {
-     "bestand": 28180303,
-     "revision": null,
-     "settlement_date": "2026-08-14",
-     "split": null
     }
-   ]
+   ],
+   "symbol_geprueft": true
   },
   "WGS": {
    "abgerufen_utc": "2026-11-23T18:11:02+00:00",
@@ -2041,7 +2084,7 @@
    "symbol_geprueft": true
   },
   "WOLF": {
-   "abgerufen_utc": "2026-11-25T04:33:03+00:00",
+   "abgerufen_utc": "2026-11-26T03:45:40+00:00",
    "records": [
     {
      "bestand": 29265785,

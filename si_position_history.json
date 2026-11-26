@@ -537,6 +537,12 @@
       "shares_short": 8334742,
       "short_pct_float": 23.4,
       "pub_date": "2026-10-09"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 9152110,
+      "short_pct_float": 25.68,
+      "pub_date": "2026-11-24"
     }
   ],
   "GLOB": [
@@ -1464,6 +1470,12 @@
       "shares_short": 4778399,
       "short_pct_float": 23.04,
       "pub_date": "2026-11-10"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 4162246,
+      "short_pct_float": 20.07,
+      "pub_date": "2026-11-24"
     }
   ],
   "SEAT": [
@@ -3630,6 +3642,12 @@
       "shares_short": 12901043,
       "short_pct_float": 23.12,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 14433505,
+      "short_pct_float": 25.87,
+      "pub_date": "2026-11-24"
     }
   ],
   "TNXP": [
@@ -5823,6 +5841,12 @@
       "shares_short": 36054963,
       "short_pct_float": 23.75,
       "pub_date": "2026-11-10"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 33826935,
+      "short_pct_float": 21.91,
+      "pub_date": "2026-11-24"
     }
   ],
   "DDD": [
@@ -6996,6 +7020,12 @@
       "shares_short": 30217395,
       "short_pct_float": 40.65,
       "pub_date": "2026-11-10"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 26919206,
+      "short_pct_float": 36.21,
+      "pub_date": "2026-11-24"
     }
   ],
   "UPWK": [
@@ -7941,6 +7971,12 @@
       "shares_short": 33228705,
       "short_pct_float": 28.9,
       "pub_date": "2026-11-10"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 35280180,
+      "short_pct_float": 25.52,
+      "pub_date": "2026-11-24"
     }
   ],
   "LUNR": [
@@ -9861,6 +9897,12 @@
       "shares_short": 12562278,
       "short_pct_float": 23.21,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 12513597,
+      "short_pct_float": 22.95,
+      "pub_date": "2026-11-24"
     }
   ],
   "GAP": [
@@ -11163,6 +11205,12 @@
       "shares_short": 1339230,
       "short_pct_float": 22.22,
       "pub_date": "2026-11-10"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 1367530,
+      "short_pct_float": 22.68,
+      "pub_date": "2026-11-24"
     }
   ],
   "ANVS": [
@@ -11847,6 +11895,12 @@
       "shares_short": 228093454,
       "short_pct_float": 27.65,
       "pub_date": "2026-11-10"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 228329943,
+      "short_pct_float": 27.68,
+      "pub_date": "2026-11-24"
     }
   ],
   "PMT": [
@@ -12222,6 +12276,12 @@
       "shares_short": 8126703,
       "short_pct_float": 16.78,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 8493891,
+      "short_pct_float": 17.52,
+      "pub_date": "2026-11-24"
     }
   ],
   "DNA": [
@@ -12972,6 +13032,12 @@
       "shares_short": 109972195,
       "short_pct_float": 21.26,
       "pub_date": "2026-11-10"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 110624692,
+      "short_pct_float": 21.38,
+      "pub_date": "2026-11-24"
     }
   ],
   "UUUU": [
@@ -13106,6 +13172,36 @@
       "settlement_date": "2026-11-13",
       "shares_short": 3443960,
       "short_pct_float": 17.51,
+      "pub_date": "2026-11-24"
+    }
+  ],
+  "AMR": [
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 1338688,
+      "short_pct_float": null,
+      "pub_date": "2026-10-26",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 1363923,
+      "short_pct_float": 15.61,
+      "pub_date": "2026-11-24"
+    }
+  ],
+  "CANG": [
+    {
+      "settlement_date": "2026-10-15",
+      "shares_short": 1448102,
+      "short_pct_float": null,
+      "pub_date": "2026-10-26",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 1711460,
+      "short_pct_float": 15.27,
       "pub_date": "2026-11-24"
     }
   ]
