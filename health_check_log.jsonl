@@ -189,3 +189,4 @@
 {"run_ts": "2026-11-25T22:33:12Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-11-26T03:46:26Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S11", "severity": "warn", "detail": "kein echter premarket-Run (run_phase==tsp=='premarket') seit 11 Werktagen (Schwelle 5) — Cron-Drift/-Drop oder Sammlung gestorben"}, {"id": "S17", "severity": "warn", "detail": "Export-Plausibilität: 1 Zeile(n) mit entry_price ≠ Schluss D (outcome_path), 0 mit Datum an einem Nicht-Handelstag (Preis geprüft 769, mit Kapitalmaßnahme 19, Altbestand Preis 55 / Datum 0) — nur Zählung, keine Werte"}], "provider_fails": []}
 {"run_ts": "2026-11-26T03:47:15Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-11-26T05:05:10Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
