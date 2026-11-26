@@ -2,11 +2,11 @@
   "abruf_fehler_ticker": {},
   "davon_null_nach_grund": {},
   "erneut_versuchen": 0,
-  "geschrieben": 11,
+  "geschrieben": 10,
   "gesperrt_ohne_freeze": 0,
-  "last_run_utc": "2026-11-25T05:43:56+00:00",
+  "last_run_utc": "2026-11-26T05:32:22+00:00",
   "nicht_reif": 110,
   "rate_limit_abbruch": false,
   "schema_v": 1,
-  "zeilen_gesamt": 772
+  "zeilen_gesamt": 782
 }
