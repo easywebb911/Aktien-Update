@@ -1,10 +1,10 @@
 {
-  "updated": "2026-11-26T16:17:40.734004+01:00",
+  "updated": "2026-11-26T17:56:28.377459+01:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 8.9,
+    "elapsed_s": 8.7,
     "market_phase": "Regulär"
   },
   "signals": {
@@ -79,7 +79,7 @@
     "DFH": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 12.8% + News: acquisition, short interest + UOA Call/Put 33.9×",
+      "drivers": "Spanne 12.8% + News: short interest, acquisition + UOA Call/Put 33.9×",
       "price": 11.35,
       "chg_pct": 0.0,
       "rvol_4d": 0.79,
@@ -100,9 +100,9 @@
       "uoa_cp_ratio": 33.86666666666667
     },
     "DKI": {
-      "score": 99,
+      "score": 75,
       "confidence": 70,
-      "drivers": "Volumen 11.6× + 🚀 Massives Volumen 11.6×+ + Spanne 38.8% + News: short interest + FINRA Short-Vol 92%",
+      "drivers": "Volumen 11.6× + 🚀 Massives Volumen 11.6×+ + Spanne 38.8% + FINRA Short-Vol 92%",
       "price": 1.28,
       "chg_pct": -0.0,
       "rvol_4d": 11.55,
@@ -112,13 +112,15 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
+      "uoa_cp_ratio": null,
+      "push_silenced": true,
+      "silenced_reason": "+40% 2T"
     },
     "FLNC": {
       "score": 20,
@@ -211,9 +213,9 @@
       "uoa_cp_ratio": 6.252222222222223
     },
     "VEEA": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 20.5% + News: merger",
+      "drivers": "Spanne 20.5% + News-KI 12/30: Positive business developments but no indicators of high short interest, low float, or imminent squeeze catalysts typica",
       "price": 4.92,
       "chg_pct": 0.0,
       "rvol_4d": 0.64,
@@ -225,7 +227,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -255,9 +257,9 @@
       "uoa_cp_ratio": 283.7692307692308
     },
     "WOLF": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 14.1% + News: catalyst, short interest",
+      "drivers": "Spanne 14.1% + News: catalyst",
       "price": 17.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.17,
