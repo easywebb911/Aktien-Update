@@ -1,4 +1,3 @@
-{"run_ts": "2026-10-28T08:33:36Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-10-28T12:56:58Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-10-28T12:57:49Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-10-28T16:03:25Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
@@ -187,3 +186,4 @@
 {"run_ts": "2026-11-27T00:35:14Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-11-27T03:46:27Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S11", "severity": "warn", "detail": "kein echter premarket-Run (run_phase==tsp=='premarket') seit 12 Werktagen (Schwelle 5) — Cron-Drift/-Drop oder Sammlung gestorben"}, {"id": "S17", "severity": "warn", "detail": "Export-Plausibilität: 1 Zeile(n) mit entry_price ≠ Schluss D (outcome_path), 0 mit Datum an einem Nicht-Handelstag (Preis geprüft 779, mit Kapitalmaßnahme 20, Altbestand Preis 55 / Datum 0) — nur Zählung, keine Werte"}], "provider_fails": []}
 {"run_ts": "2026-11-27T03:47:11Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-11-27T09:41:10Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
