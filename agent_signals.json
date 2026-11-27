@@ -1,11 +1,11 @@
 {
-  "updated": "2026-11-27T01:35:11.202050+01:00",
+  "updated": "2026-11-27T04:47:06.513099+01:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 8.5,
-    "market_phase": "After-Hours"
+    "elapsed_s": 10.4,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
@@ -118,14 +118,12 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null,
-      "push_silenced": true,
-      "silenced_reason": "+40% 2T"
+      "uoa_cp_ratio": null
     },
     "FLNC": {
-      "score": 25,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 28.1% + News-KI 5/30: Analyst cuts on execution risk and lower fair value assessment indicate bearish sentiment that contradicts short-squeeze + UOA Call/Put 4.7×",
+      "drivers": "Spanne 28.1% + UOA Call/Put 4.7×",
       "price": 4.72,
       "chg_pct": -0.0,
       "rvol_4d": 1.18,
@@ -137,7 +135,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.7×"
@@ -215,7 +213,7 @@
     "VEEA": {
       "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 20.5% + News-KI 12/30: Positive business developments and partnerships, but lack of short interest indicators, squeeze catalysts, or financial ",
+      "drivers": "Spanne 20.5% + News-KI 12/30: Positive business developments and partnerships, but no short squeeze indicators (high short interest, low float, or squ",
       "price": 4.92,
       "chg_pct": 0.0,
       "rvol_4d": 0.64,
