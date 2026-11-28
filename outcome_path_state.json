@@ -2,10 +2,10 @@
   "abruf_fehler_ticker": {},
   "davon_null_nach_grund": {},
   "erneut_versuchen": 0,
-  "geschrieben": 10,
+  "geschrieben": 0,
   "gesperrt_ohne_freeze": 0,
-  "last_run_utc": "2026-11-27T05:26:53+00:00",
-  "nicht_reif": 100,
+  "last_run_utc": "2026-11-28T05:02:04+00:00",
+  "nicht_reif": 110,
   "rate_limit_abbruch": false,
   "schema_v": 1,
   "zeilen_gesamt": 792
