@@ -1,0 +1,41 @@
+Health-Check-Digest 2026-11-28 — vollständig (erstellt 2026-11-28 03:30 UTC)
+
+✅ Health-Check OK 2026-11-28
+24h ohne Fails. 8 Runs geprüft (Daily-Run + ki_agent).
+🟡 S11: kein echter premarket-Run (run_phase==tsp=='premarket') seit 12 Werktagen (Schwelle 5) — Cron-Drift/-Drop oder Sammlung gestorben
+🟡 S17: Export-Plausibilität: 1 Zeile(n) mit entry_price ≠ Schluss D (outcome_path), 0 mit Datum an einem Nicht-Handelstag (Preis geprüft 789, mit Kapitalmaßnahme 20, Altbestand Preis 55 / Datum 0) — nur Zählung, keine Werte
+📊 Re-Test-Zähler (§4): n = 317/250 · Export 1487 Zeilen
+🧪 Freeze-Zähler: Setup/Conviction n = 220/250 · Rate 70 Zeilen/7 Handelstage (28T) · KI-Abdeckung (letzter Report-Tag) 10/10
+🔍 Wahrheits-Abgleich: 58 Zeilen · 0 Abweichung · 11 neu-adjustiert · 3 bekannt (geprüft) · 0 unbekannt (Yahoo 0, leer 0) · max |Δ| 0,52 pp · Score-Abgleich 1 Abend(e)/10 Zeilen: 0 mit |Δ| ≥ 0,5, Wechsel 70 0 (Info 0), Rangwechsel max 0
+🏛 Inst-Ownership: läuft · 396 Ticker · 2987 Punkte
+🎯 Options-OI: läuft · 2026-11-27: 6 Ticker mit Kette (von 10) · 228 gesamt · 784 Punkte
+📦 Options-Rohkette: läuft · 269 Ticker-Tage · letzter Tag 2026-11-27: 6 Ticker · Bid&Ask > 0 bei 11 von 14 ATM-nahen Strikes (±10 %)
+📈 Kursverlauf: läuft · 792 Zeilen · jüngster Einstieg 11.11.2026 · letzter Lauf 27.11.2026
+🕐 Minutenkurse: läuft · 300 Einstiege · jüngster Tag 1 25.11.2026 · letzter Lauf 27.11.2026 · 10 ohne Minuten
+🧾 Gewinn-Felder (letzter Bericht 27.11.): Überraschung 7/10 · letzter 8-K-Termin 5/10 · 8-K 14 Tage 10/10
+🕳 Halbzeilen (Kurs-Batch, letzte Zeile ohne Schluss): Postclose 28.11. 03:29 UTC 0,0 % · Premarket 27.11. 16:41 UTC 0,0 % — Hinweis, kein Alarm
+🧩 0 Einträge entfallen: Zeile nicht füllbar (24 h) · 0 in 7 Tagen
+📉 FTD: läuft (no_new_file) · neuestes File cnsfails202610b.zip · 58 Ticker · 396 Punkte · zuletzt verfügbar 2026-11-16
+📋 Reg-SHO: läuft · nasdaq=ok:1 nyse=ok:25 · heute 10 geprüft / 0 none · 784 Punkte
+📰 News-Abdeckung: letzter Lauf Top-10 9/10 · Watchlist 1/1 · Quelle yfinance 0 / RSS 45
+🗣 Reddit-Schatten (ApeWisdom): läuft · 1 Ticker · 4 Punkte
+📡 Abdeckung options_atm: letzter Lauf 5/5
+📡 Abdeckung earnings_date: letzter Lauf 10/10
+📡 Abdeckung earnings_surprise: letzter Lauf 10/10
+ℹ️ reddit_mentions: bekannt tot (siehe open_items: bekannt-tote-quellen-digest)
+ℹ️ fda_calendar: bekannt tot (siehe open_items: bekannt-tote-quellen-digest)
+ℹ️ openinsider: bekannt tot (siehe open_items: bekannt-tote-quellen-digest)
+📡 Abdeckung apewisdom_shadow: letzter Lauf 11/11
+📡 Abdeckungs-Übersicht: 0 von 4 Quellen unter Baseline · 3 bekannt tot (ausgenommen)
+🧪 Setup-Edge/Conviction: n = 220/250, ca. 10.0 Zeilen/Tag
+🧪 KI-Score: n = 220/250, ca. 10.0 Zeilen/Tag
+🧪 Exit-B.1 (§4) ausgewertet: exit_b1_a: nicht belegt (Haupt: Unklar, Sensitivität: Unklar); exit_b1_b: nicht belegt (Haupt: Unklar, Sensitivität: Unklar), Details in eval_results.jsonl
+🧪 SUW (Einstiegstage): n = 12/60
+📐 Treffer-Score: 10/10 mit Wert (Stand 27.11., vorläufig)
+🧾 Optionen Handelszeit (27.11.): Kette 8/10 · ATM-Paar 8/8 (100 %)
+🟡 Datenprüfung Short Float (27.11.): 1 von 10 auffällig (METC) · FINRA nicht prüfbar 1
+🧾 Verwässerung (27.11.): 3 von 10 mit 424B5 · 4 mit 424B · 0 unbekannt
+🗂 Pool-Schatten: läuft · letzter Tag 27.11. · Zeilen 194 · Kandidaten je Tag (Median) 36 · CIK 43/43
+🤖 Haiku: 8/12 Parse-Fehler (letzter Lauf 02:41 UTC) · 24 h: 49/60 in 5 Läufen
+🗣 ApeWisdom-Schatten: 207/500 Top-10-Einstiege mit Abdeckungs-Angabe (Wiedervorlage bei 500)
+Letzter Run: 2026-11-28T03:30:23Z
