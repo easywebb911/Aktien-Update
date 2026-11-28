@@ -1878,6 +1878,12 @@
       "shares_short": 63775389,
       "short_pct_float": 28.57,
       "pub_date": "2026-11-10"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 63129444,
+      "short_pct_float": 27.7,
+      "pub_date": "2026-11-24"
     }
   ],
   "FDMT": [
@@ -3393,6 +3399,12 @@
       "shares_short": 10196188,
       "short_pct_float": 37.55,
       "pub_date": "2026-11-10"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 9818618,
+      "short_pct_float": 36.16,
+      "pub_date": "2026-11-24"
     }
   ],
   "AMCX": [
@@ -3705,6 +3717,12 @@
       "shares_short": 3408130,
       "short_pct_float": 19.89,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 3315083,
+      "short_pct_float": 17.08,
+      "pub_date": "2026-11-24"
     }
   ],
   "TDOC": [
@@ -7947,6 +7965,12 @@
       "shares_short": 35838218,
       "short_pct_float": 25.21,
       "pub_date": "2026-11-10"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 35662173,
+      "short_pct_float": 25.08,
+      "pub_date": "2026-11-24"
     }
   ],
   "TE": [
@@ -11553,6 +11577,12 @@
       "shares_short": 1411623,
       "short_pct_float": 28.96,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-10-30",
+      "shares_short": 1017739,
+      "short_pct_float": 20.88,
+      "pub_date": "2026-11-10"
     }
   ],
   "MPT": [
@@ -12327,6 +12357,12 @@
       "shares_short": 37599393,
       "short_pct_float": 27.06,
       "pub_date": "2026-10-26"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 40332031,
+      "short_pct_float": 28.97,
+      "pub_date": "2026-11-24"
     }
   ],
   "BTDR": [
@@ -12729,6 +12765,12 @@
       "shares_short": 10335632,
       "short_pct_float": 21.4,
       "pub_date": "2026-11-10"
+    },
+    {
+      "settlement_date": "2026-11-13",
+      "shares_short": 10039457,
+      "short_pct_float": 20.79,
+      "pub_date": "2026-11-24"
     }
   ],
   "COHU": [

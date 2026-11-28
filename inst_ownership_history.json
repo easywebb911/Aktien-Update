@@ -23,6 +23,11 @@
       "date": "2026-08-25",
       "inst_ownership": 0.56074,
       "insider_ownership": 0.00127
+    },
+    {
+      "date": "2026-11-27",
+      "inst_ownership": 0.53298,
+      "insider_ownership": 0.0016699999
     }
   ],
   "INHD": [
@@ -2959,6 +2964,11 @@
     {
       "date": "2026-11-20",
       "inst_ownership": 1.02457,
+      "insider_ownership": 0.01592
+    },
+    {
+      "date": "2026-11-27",
+      "inst_ownership": 1.02455,
       "insider_ownership": 0.01592
     }
   ],
@@ -9235,6 +9245,11 @@
       "date": "2026-11-20",
       "inst_ownership": 1.06001,
       "insider_ownership": 0.0513
+    },
+    {
+      "date": "2026-11-27",
+      "inst_ownership": 1.06005,
+      "insider_ownership": 0.0513
     }
   ],
   "TRIP": [
@@ -13647,6 +13662,11 @@
       "date": "2026-10-06",
       "inst_ownership": 0.20077999,
       "insider_ownership": 0.78196
+    },
+    {
+      "date": "2026-11-27",
+      "inst_ownership": 0.2022,
+      "insider_ownership": 0.78538
     }
   ],
   "MPT": [
@@ -14723,6 +14743,11 @@
       "date": "2026-11-09",
       "inst_ownership": 0.58001,
       "insider_ownership": 0.08054
+    },
+    {
+      "date": "2026-11-27",
+      "inst_ownership": 0.47265998,
+      "insider_ownership": 0.07964
     }
   ],
   "WGS": [

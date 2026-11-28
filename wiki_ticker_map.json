@@ -188,6 +188,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "ARAI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-28T03:29:55Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Arrive AI Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "ARCT": {
     "qid": "Q98713358",
     "title": "Arcturus_Therapeutics",
@@ -1655,6 +1664,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "RETO": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-28T03:29:55Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "ReTo Eco-Solutions, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "ROOT": {
     "qid": null,
     "title": null,
@@ -1823,6 +1841,15 @@
     "resolved_at": "2026-07-29T22:16:00Z",
     "issuer_verified": false,
     "company_name_at_resolve": "ARS Pharmaceuticals, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "SSMR": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-11-28T03:29:55Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Sunshine Silver Mining & Refining Company",
     "substrate": "none",
     "reason": "no_p249"
   },
