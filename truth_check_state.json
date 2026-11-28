@@ -1,6 +1,6 @@
 {
  "export_lines_seen": 1487,
- "last_run_ts": "2026-11-27T04:53:55Z",
+ "last_run_ts": "2026-11-28T04:39:00Z",
  "recheck": [
   "export|FIP|10.11.2026",
   "export|ATEN|09.11.2026",
@@ -18,7 +18,7 @@
   "export|CBRL|16.10.2026"
  ],
  "retry": [],
- "rotation_pos": 150,
+ "rotation_pos": 160,
  "schema_v": 1,
  "score_abgleich_abende": [
   "2026-11-17T04:09:37Z",
@@ -28,7 +28,8 @@
   "2026-11-21T02:47:27Z",
   "2026-11-24T05:29:35Z",
   "2026-11-25T04:32:59Z",
-  "2026-11-26T03:45:34Z"
+  "2026-11-26T03:45:34Z",
+  "2026-11-27T03:45:48Z"
  ],
  "shadow_checked": [
   "exit_shadow|AI|01.07.2026",
